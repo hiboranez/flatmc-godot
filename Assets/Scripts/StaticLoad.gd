@@ -68,6 +68,7 @@ func _ready() -> void:
 	self.hide()
 	if OS.has_feature("android"):
 		is_on_mobile_platform = true
+		get_tree().set_quit_on_go_back(false)
 	if OS.has_feature("dedicated_server"):
 		is_dedicated_server = true
 	connect_signal.connect(connect_signal_received)
@@ -125,8 +126,8 @@ func _ready() -> void:
 	}
 	if is_dedicated_server:
 		var world_server_path = "user://worlds/world"
-		DirAccess.make_dir_recursive_absolute(world_server_path)
 		if not DirAccess.dir_exists_absolute(world_server_path):
+			DirAccess.make_dir_recursive_absolute(world_server_path)
 			create_server_world()
 			await get_tree().create_timer(1).timeout
 		select_world = "world"
@@ -399,23 +400,27 @@ func create_server_world():
 
 func start_server():
 	reset_signals(true)
-	game.broadcast_to_person(game.player.player_name, tr("OPENING_PORT"), "gold")
-	var port = get_random_available_port()
+	if not is_dedicated_server:
+		game.broadcast_to_person(game.player.player_name, tr("OPENING_PORT"), "gold")
+	var port
 	if is_dedicated_server:
 		port = 12419
+	else:
+		port = get_random_available_port()
 	var err = multiplayer_peer.create_server(port)
 	if OK != err:
 		game.broadcast_to_person(game.player.player_name, tr("OPEN_SERVER_FAIL_1")+StaticLoad.HOST_IP+":"+str(port)+tr("OPEN_SERVER_FAIL_2"), "pink")
 		return
 	if is_dedicated_server:
-		print("Server opened on 127.0.0.1:12419")
+		print("["+get_time_string(false)+" INFO]: "+"Server opened on 127.0.0.1:12419")
 	multiplayer.multiplayer_peer = multiplayer_peer
-	game.broadcast_to_person(game.player.player_name, tr("OPEN_SERVER_SUCCESS")+StaticLoad.HOST_IP+":"+str(port), "chartreuse")
+	if not is_dedicated_server:
+		game.pause_button_4.disabled = true
+		game.broadcast_to_person(game.player.player_name, tr("OPEN_SERVER_SUCCESS")+StaticLoad.HOST_IP+":"+str(port), "chartreuse")
 	var ping_instance = ping_scene.instantiate()
 	ping_instance.peer_id = 1
 	ping_instance.ping = 1
 	online_peer_pings[1] = ping_instance
-	game.pause_button_4.disabled = true
 	StaticLoad.is_muti_mode = true
 	ServiceDiscovery.server_data = {'Name':str(port)+"|"+game.player.player_name}
 	ServiceDiscovery.set_server()
@@ -433,6 +438,15 @@ func connect_signal_received(state):
 		get_node("/root/LoadingServerUI").is_connect_interrupt = true
 	elif state == "player_info_updated":
 		game.is_player_info_updated = true
+
+func get_time_string(is_return_day: bool = true):
+	var time_str = Time.get_datetime_string_from_system().split("T")
+	var day = time_str[0].replace("-","/")
+	var moment = time_str[1]
+	var time = moment
+	if is_return_day:
+		time = day + " " + moment
+	return time
 
 @rpc("authority", "call_remote", "reliable", 1)
 func check_ping():
@@ -461,7 +475,7 @@ func peer_disconnect_broadcast(peer_id):
 		return
 	game.broadcast_to_all(online_peer_ids[peer_id].player_name+tr("LEFT_GAME"), "gold")
 	if StaticLoad.is_dedicated_server:
-		print(online_peer_ids[peer_id].player_name+" left the game")
+		print("["+get_time_string(false)+" INFO]: "+online_peer_ids[peer_id].player_name+" left the game")
 	destroy_peer(peer_id)
 
 @rpc("authority", "call_remote", "reliable", 1)

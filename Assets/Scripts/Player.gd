@@ -190,12 +190,12 @@ func send_message(message: String):
 	var player_name_mesage =  "<"+player_name+">  "+message
 	StaticLoad.game.broadcast_to_all(player_name_mesage)
 	if StaticLoad.is_dedicated_server:
-		print("<"+player_name+"> "+message)
+		print("["+StaticLoad.get_time_string(false)+" INFO]: "+"<"+player_name+"> "+message)
 
 func send_command(command: String):
 	var splits = command.split(" ")
 	if StaticLoad.is_dedicated_server:
-		print("<"+player_name+"> "+command)
+		print("["+StaticLoad.get_time_string(false)+" INFO]: "+"<"+player_name+"> "+command)
 	if splits[0] == "/help":
 		StaticLoad.game.close_chat_ui()
 		StaticLoad.game.broadcast_to_person(player_name, tr("COMMAND_LIST"), "gold")
@@ -232,7 +232,7 @@ func stop_player_move():
 func broadcast_join_game(player_name):
 	StaticLoad.game.broadcast_to_all(player_name+tr("JOINED_GAME"), "gold")
 	if StaticLoad.is_dedicated_server:
-		print(player_name+" joined the game")
+		print("["+StaticLoad.get_time_string(false)+" INFO]: "+player_name+" joined the game")
 
 @rpc("any_peer", "call_local", "reliable", 1)
 @warning_ignore("shadowed_variable")

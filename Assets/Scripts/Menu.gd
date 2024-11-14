@@ -3,6 +3,10 @@ extends CanvasLayer
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+	if OS.has_feature("dedicated_server"):
+		return
+	StaticLoad.select_server = null
+	StaticLoad.select_world = null
 	var exist_options = StaticLoad.check_options_outdated()
 	if exist_options["is_option_outdated"]:
 		StaticLoad.generate_options(exist_options)

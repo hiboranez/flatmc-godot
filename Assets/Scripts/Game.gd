@@ -77,6 +77,20 @@ func _notification(what):
 		save_player()
 		if not StaticLoad.is_muti_mode:
 			print("窗口意外关闭，游戏已自动保存")
+	elif what == NOTIFICATION_WM_GO_BACK_REQUEST:
+		StaticLoad.click_audio_player.play()
+		if is_chat:
+			close_chat_ui()
+			Input.emulate_mouse_from_touch = false
+		else:
+			pause_ui.visible = !pause_ui.visible
+			is_pause = pause_ui.visible
+			if pause_ui.visible:
+				move_input_list.clear()
+				player.stop_player_move()
+				if StaticLoad.is_muti_mode:
+					player.rpc("remote_stop_player_move")
+			Input.emulate_mouse_from_touch = true
 	
 func _ready() -> void:
 	StaticLoad.update_game()
