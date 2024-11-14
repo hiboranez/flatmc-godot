@@ -1,0 +1,377 @@
+[gd_scene load_steps=20 format=3 uid="uid://c2xj82s25mlo"]
+
+[ext_resource type="Texture2D" uid="uid://b14xkgu1d1omr" path="res://Assets/Textures/Backgrounds/stone_wall.png" id="1_cg14s"]
+[ext_resource type="Script" path="res://Assets/Scripts/Options.gd" id="1_d0p62"]
+[ext_resource type="FontFile" uid="uid://csywm01568tlp" path="res://Assets/Fonts/MinecraftAE.ttf" id="2_5ysu4"]
+[ext_resource type="Texture2D" uid="uid://b6wbqichdrhpr" path="res://Assets/Textures/GUI/button_normal.png" id="4_cgyyv"]
+[ext_resource type="Texture2D" uid="uid://caueuwmlcmeot" path="res://Assets/Textures/GUI/button_disabled.png" id="4_tjirk"]
+[ext_resource type="Script" path="res://Assets/Scripts/GameButton.gd" id="5_i8g0f"]
+[ext_resource type="Texture2D" uid="uid://bn78hs0omgltt" path="res://Assets/Textures/GUI/slider_box_default.png" id="5_tyydw"]
+[ext_resource type="Texture2D" uid="uid://dpshcvcyt856e" path="res://Assets/Textures/GUI/slider_box_hover.png" id="6_gjysn"]
+[ext_resource type="Theme" uid="uid://do1xfdxltcv20" path="res://Assets/Themes/gui_theme.tres" id="7_tggb6"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_rfgq5"]
+content_margin_left = 30.0
+content_margin_top = 50.0
+content_margin_right = 30.0
+content_margin_bottom = 30.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_p58p3"]
+content_margin_left = 25.0
+texture = ExtResource("4_tjirk")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_7j7y4"]
+texture = ExtResource("4_tjirk")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_uu8er"]
+content_margin_left = 35.0
+content_margin_right = 35.0
+texture = ExtResource("5_tyydw")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_jidev"]
+texture = ExtResource("6_gjysn")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_vad76"]
+texture = ExtResource("6_gjysn")
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_k1gad"]
+content_margin_left = 30.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_t7o14"]
+content_margin_left = 30.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_y24qp"]
+content_margin_left = 30.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_cfs5x"]
+content_margin_left = 30.0
+
+[node name="Options" type="CanvasLayer"]
+script = ExtResource("1_d0p62")
+
+[node name="TextureRect" type="TextureRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1_cg14s")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 160.0
+offset_top = 100.0
+offset_right = -160.0
+offset_bottom = -180.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.686275)
+
+[node name="ScrollContainer" type="ScrollContainer" parent="ColorRect"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxEmpty_rfgq5")
+vertical_scroll_mode = 3
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ColorRect/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 2
+theme_override_constants/separation = 60
+
+[node name="PlayerName" type="HSplitContainer" parent="ColorRect/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+collapsed = true
+
+[node name="Title" type="Label" parent="ColorRect/ScrollContainer/VBoxContainer/PlayerName"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_fonts/font = ExtResource("2_5ysu4")
+theme_override_font_sizes/font_size = 40
+text = "PLAYER_NAME"
+
+[node name="LineEdit" type="LineEdit" parent="ColorRect/ScrollContainer/VBoxContainer/PlayerName"]
+custom_minimum_size = Vector2(0, 70)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_constants/caret_width = 5
+theme_override_constants/minimum_character_width = 0
+theme_override_fonts/font = ExtResource("2_5ysu4")
+theme_override_font_sizes/font_size = 40
+theme_override_styles/normal = SubResource("StyleBoxTexture_p58p3")
+text = "Steve"
+caret_blink = true
+
+[node name="RenderChunk" type="HSplitContainer" parent="ColorRect/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+collapsed = true
+
+[node name="Title" type="Label" parent="ColorRect/ScrollContainer/VBoxContainer/RenderChunk"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_fonts/font = ExtResource("2_5ysu4")
+theme_override_font_sizes/font_size = 40
+text = "RENDER_CHUNK"
+
+[node name="HScrollBar" type="HScrollBar" parent="ColorRect/ScrollContainer/VBoxContainer/RenderChunk"]
+custom_minimum_size = Vector2(0, 70)
+layout_mode = 2
+theme_override_styles/scroll = SubResource("StyleBoxTexture_7j7y4")
+theme_override_styles/grabber = SubResource("StyleBoxTexture_uu8er")
+theme_override_styles/grabber_highlight = SubResource("StyleBoxTexture_jidev")
+theme_override_styles/grabber_pressed = SubResource("StyleBoxTexture_vad76")
+min_value = 2.0
+max_value = 8.0
+value = 4.0
+rounded = true
+
+[node name="Label" type="Label" parent="ColorRect/ScrollContainer/VBoxContainer/RenderChunk/HScrollBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("2_5ysu4")
+theme_override_font_sizes/font_size = 40
+text = "4"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="FovZoom" type="HSplitContainer" parent="ColorRect/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+collapsed = true
+
+[node name="Title" type="Label" parent="ColorRect/ScrollContainer/VBoxContainer/FovZoom"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_fonts/font = ExtResource("2_5ysu4")
+theme_override_font_sizes/font_size = 40
+text = "FOV_ZOOM"
+
+[node name="HScrollBar" type="HScrollBar" parent="ColorRect/ScrollContainer/VBoxContainer/FovZoom"]
+custom_minimum_size = Vector2(0, 70)
+layout_mode = 2
+theme_override_styles/scroll = SubResource("StyleBoxTexture_7j7y4")
+theme_override_styles/grabber = SubResource("StyleBoxTexture_uu8er")
+theme_override_styles/grabber_highlight = SubResource("StyleBoxTexture_jidev")
+theme_override_styles/grabber_pressed = SubResource("StyleBoxTexture_vad76")
+value = 50.0
+rounded = true
+
+[node name="Label" type="Label" parent="ColorRect/ScrollContainer/VBoxContainer/FovZoom/HScrollBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("2_5ysu4")
+theme_override_font_sizes/font_size = 40
+text = "50%"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="BgmVolume" type="HSplitContainer" parent="ColorRect/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+collapsed = true
+
+[node name="Title" type="Label" parent="ColorRect/ScrollContainer/VBoxContainer/BgmVolume"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_fonts/font = ExtResource("2_5ysu4")
+theme_override_font_sizes/font_size = 40
+text = "BGM_VOLUME"
+
+[node name="HScrollBar" type="HScrollBar" parent="ColorRect/ScrollContainer/VBoxContainer/BgmVolume"]
+custom_minimum_size = Vector2(0, 70)
+layout_mode = 2
+theme_override_styles/scroll = SubResource("StyleBoxTexture_7j7y4")
+theme_override_styles/grabber = SubResource("StyleBoxTexture_uu8er")
+theme_override_styles/grabber_highlight = SubResource("StyleBoxTexture_jidev")
+theme_override_styles/grabber_pressed = SubResource("StyleBoxTexture_vad76")
+value = 50.0
+rounded = true
+
+[node name="Label" type="Label" parent="ColorRect/ScrollContainer/VBoxContainer/BgmVolume/HScrollBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("2_5ysu4")
+theme_override_font_sizes/font_size = 40
+text = "50%"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SoundVolume" type="HSplitContainer" parent="ColorRect/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+collapsed = true
+
+[node name="Title" type="Label" parent="ColorRect/ScrollContainer/VBoxContainer/SoundVolume"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_fonts/font = ExtResource("2_5ysu4")
+theme_override_font_sizes/font_size = 40
+text = "SOUND_VOLUME"
+
+[node name="HScrollBar" type="HScrollBar" parent="ColorRect/ScrollContainer/VBoxContainer/SoundVolume"]
+custom_minimum_size = Vector2(0, 70)
+layout_mode = 2
+theme_override_styles/scroll = SubResource("StyleBoxTexture_7j7y4")
+theme_override_styles/grabber = SubResource("StyleBoxTexture_uu8er")
+theme_override_styles/grabber_highlight = SubResource("StyleBoxTexture_jidev")
+theme_override_styles/grabber_pressed = SubResource("StyleBoxTexture_vad76")
+value = 50.0
+rounded = true
+
+[node name="Label" type="Label" parent="ColorRect/ScrollContainer/VBoxContainer/SoundVolume/HScrollBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("2_5ysu4")
+theme_override_font_sizes/font_size = 40
+text = "50%"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="BlockSelectionBox" type="HSplitContainer" parent="ColorRect/ScrollContainer/VBoxContainer"]
+z_index = 1
+layout_mode = 2
+collapsed = true
+
+[node name="Title" type="Label" parent="ColorRect/ScrollContainer/VBoxContainer/BlockSelectionBox"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_fonts/font = ExtResource("2_5ysu4")
+theme_override_font_sizes/font_size = 40
+text = "BLOCK_SELECTION_BOX"
+
+[node name="OptionButton" type="OptionButton" parent="ColorRect/ScrollContainer/VBoxContainer/BlockSelectionBox"]
+custom_minimum_size = Vector2(0, 70)
+layout_mode = 2
+size_flags_horizontal = 3
+theme = ExtResource("7_tggb6")
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_constants/h_separation = 10
+theme_override_fonts/font = ExtResource("2_5ysu4")
+theme_override_font_sizes/font_size = 40
+theme_override_styles/focus = SubResource("StyleBoxEmpty_k1gad")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_t7o14")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_y24qp")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_cfs5x")
+theme_override_constants/arrow_margin = 30
+flat = true
+selected = 0
+item_count = 3
+popup/item_0/text = "SHOW_WHEN_CHANGING"
+popup/item_1/text = "ALWAYS_SHOW"
+popup/item_1/id = 1
+popup/item_2/text = "NEVER_SHOW"
+popup/item_2/id = 2
+
+[node name="TextureRect" type="TextureRect" parent="ColorRect/ScrollContainer/VBoxContainer/BlockSelectionBox/OptionButton"]
+z_index = -1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("7_tggb6")
+texture = ExtResource("4_tjirk")
+
+[node name="GridContainer" type="GridContainer" parent="ColorRect"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -2.0
+offset_top = 21.0
+offset_right = 2.0
+offset_bottom = 108.0
+grow_horizontal = 2
+grow_vertical = 0
+columns = 2
+
+[node name="Button1" type="Button" parent="ColorRect/GridContainer"]
+z_index = 1
+custom_minimum_size = Vector2(800, 87.555)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+theme_override_fonts/font = ExtResource("2_5ysu4")
+theme_override_font_sizes/font_size = 40
+text = "SAVE"
+flat = true
+icon_alignment = 1
+expand_icon = true
+script = ExtResource("5_i8g0f")
+
+[node name="Icon" type="TextureRect" parent="ColorRect/GridContainer/Button1"]
+z_index = -1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("4_cgyyv")
+
+[node name="Button2" type="Button" parent="ColorRect/GridContainer"]
+z_index = 1
+custom_minimum_size = Vector2(800, 87.555)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+theme_override_fonts/font = ExtResource("2_5ysu4")
+theme_override_font_sizes/font_size = 40
+text = "CANCEL"
+flat = true
+icon_alignment = 1
+expand_icon = true
+script = ExtResource("5_i8g0f")
+
+[node name="Icon" type="TextureRect" parent="ColorRect/GridContainer/Button2"]
+z_index = -1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("4_cgyyv")
+
+[node name="Title" type="Label" parent="."]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -125.0
+offset_top = 29.0
+offset_right = 125.0
+offset_bottom = 80.0
+grow_horizontal = 2
+size_flags_horizontal = 4
+theme_override_fonts/font = ExtResource("2_5ysu4")
+theme_override_font_sizes/font_size = 50
+text = "OPTIONS"
+horizontal_alignment = 1
+
+[connection signal="scrolling" from="ColorRect/ScrollContainer/VBoxContainer/RenderChunk/HScrollBar" to="." method="_on_options_render_chunk_scroll_bar_scrolling"]
+[connection signal="scrolling" from="ColorRect/ScrollContainer/VBoxContainer/FovZoom/HScrollBar" to="." method="_on_options_fov_zoom_scroll_bar_scrolling"]
+[connection signal="scrolling" from="ColorRect/ScrollContainer/VBoxContainer/BgmVolume/HScrollBar" to="." method="_on_options_bgm_volume_scroll_bar_scrolling"]
+[connection signal="scrolling" from="ColorRect/ScrollContainer/VBoxContainer/SoundVolume/HScrollBar" to="." method="_on_options_sound_volume_scroll_bar_scrolling"]
+[connection signal="pressed" from="ColorRect/GridContainer/Button1" to="." method="_on_options_button_1_pressed"]
+[connection signal="pressed" from="ColorRect/GridContainer/Button2" to="." method="_on_options_button_2_pressed"]

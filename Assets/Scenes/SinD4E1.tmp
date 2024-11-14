@@ -1,0 +1,290 @@
+[gd_scene load_steps=11 format=3 uid="uid://c07n0w0ra2yms"]
+
+[ext_resource type="Texture2D" uid="uid://b14xkgu1d1omr" path="res://Assets/Textures/Backgrounds/stone_wall.png" id="1_onk51"]
+[ext_resource type="Script" path="res://Assets/Scripts/SingleMenu.gd" id="1_raaec"]
+[ext_resource type="FontFile" uid="uid://csywm01568tlp" path="res://Assets/Fonts/MinecraftAE.ttf" id="2_5dafd"]
+[ext_resource type="Texture2D" uid="uid://bmk3gvhnhpvqp" path="res://Assets/Textures/GUI/default_icon.png" id="3_kcy1x"]
+[ext_resource type="Script" path="res://Assets/Scripts/GameSelection.gd" id="3_kmpxe"]
+[ext_resource type="Texture2D" uid="uid://b6wbqichdrhpr" path="res://Assets/Textures/GUI/button_normal.png" id="4_j3gn5"]
+[ext_resource type="Script" path="res://Assets/Scripts/GameButton.gd" id="5_7gcfm"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_67wvm"]
+content_margin_left = 30.0
+content_margin_top = 30.0
+content_margin_right = 30.0
+content_margin_bottom = 30.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_u6nnc"]
+content_margin_left = 30.0
+content_margin_top = 50.0
+content_margin_right = 30.0
+content_margin_bottom = 30.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_glihk"]
+bg_color = Color(0.366595, 0.366595, 0.366594, 1)
+border_width_left = 20
+border_color = Color(0.364706, 0.364706, 0.364706, 1)
+
+[node name="SingleMenu" type="CanvasLayer"]
+script = ExtResource("1_raaec")
+
+[node name="TextureRect" type="TextureRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1_onk51")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 160.0
+offset_top = 100.0
+offset_right = -160.0
+offset_bottom = -225.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.686275)
+
+[node name="ScrollContainer" type="ScrollContainer" parent="ColorRect"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxEmpty_67wvm")
+vertical_scroll_mode = 3
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ColorRect/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Selection1" type="Button" parent="ColorRect/ScrollContainer/VBoxContainer"]
+custom_minimum_size = Vector2(1540, 150)
+layout_mode = 2
+focus_mode = 1
+theme_override_fonts/font = ExtResource("2_5dafd")
+theme_override_font_sizes/font_size = 40
+text = "   新的世界"
+icon = ExtResource("3_kcy1x")
+flat = true
+alignment = 0
+expand_icon = true
+script = ExtResource("3_kmpxe")
+
+[node name="GridContainer" type="GridContainer" parent="ColorRect"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -2.0
+offset_top = 17.0
+offset_right = 2.0
+offset_bottom = 195.0
+grow_horizontal = 2
+grow_vertical = 0
+columns = 2
+
+[node name="Button1" type="Button" parent="ColorRect/GridContainer"]
+custom_minimum_size = Vector2(800, 87.555)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+theme_override_fonts/font = ExtResource("2_5dafd")
+theme_override_font_sizes/font_size = 40
+text = "ENTER_WORLD"
+icon = ExtResource("4_j3gn5")
+flat = true
+icon_alignment = 1
+expand_icon = true
+script = ExtResource("5_7gcfm")
+
+[node name="Button2" type="Button" parent="ColorRect/GridContainer"]
+custom_minimum_size = Vector2(800, 87.555)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+theme_override_fonts/font = ExtResource("2_5dafd")
+theme_override_font_sizes/font_size = 40
+text = "BACK_TO_MENU"
+icon = ExtResource("4_j3gn5")
+flat = true
+icon_alignment = 1
+expand_icon = true
+script = ExtResource("5_7gcfm")
+
+[node name="Button3" type="Button" parent="ColorRect/GridContainer"]
+custom_minimum_size = Vector2(800, 87.555)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+theme_override_fonts/font = ExtResource("2_5dafd")
+theme_override_font_sizes/font_size = 40
+text = "CREATE_WORLD"
+icon = ExtResource("4_j3gn5")
+flat = true
+icon_alignment = 1
+expand_icon = true
+script = ExtResource("5_7gcfm")
+
+[node name="Button4" type="Button" parent="ColorRect/GridContainer"]
+custom_minimum_size = Vector2(800, 87.555)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+theme_override_fonts/font = ExtResource("2_5dafd")
+theme_override_font_sizes/font_size = 40
+text = "DELETE_WORLD"
+icon = ExtResource("4_j3gn5")
+flat = true
+icon_alignment = 1
+expand_icon = true
+script = ExtResource("5_7gcfm")
+
+[node name="Title" type="Label" parent="."]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -200.0
+offset_top = 29.0
+offset_right = 200.0
+offset_bottom = 80.0
+grow_horizontal = 2
+size_flags_horizontal = 4
+theme_override_fonts/font = ExtResource("2_5dafd")
+theme_override_font_sizes/font_size = 50
+text = "SINGLE_MODE"
+horizontal_alignment = 1
+
+[node name="CreateWorldUI" type="CanvasLayer" parent="."]
+visible = false
+
+[node name="TextureRect" type="TextureRect" parent="CreateWorldUI"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1_onk51")
+
+[node name="Title" type="Label" parent="CreateWorldUI"]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -200.0
+offset_top = 29.0
+offset_right = 200.0
+offset_bottom = 80.0
+grow_horizontal = 2
+size_flags_horizontal = 4
+theme_override_fonts/font = ExtResource("2_5dafd")
+theme_override_font_sizes/font_size = 50
+text = "CREATE_WORLD"
+horizontal_alignment = 1
+
+[node name="ColorRect2" type="ColorRect" parent="CreateWorldUI"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 160.0
+offset_top = 100.0
+offset_right = -160.0
+offset_bottom = -180.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.686275)
+
+[node name="ScrollContainer" type="ScrollContainer" parent="CreateWorldUI/ColorRect2"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxEmpty_u6nnc")
+vertical_scroll_mode = 3
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CreateWorldUI/ColorRect2/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 2
+
+[node name="WorldName" type="Label" parent="CreateWorldUI/ColorRect2/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_fonts/font = ExtResource("2_5dafd")
+theme_override_font_sizes/font_size = 40
+text = "WORLD_NAME"
+
+[node name="LineEdit" type="LineEdit" parent="CreateWorldUI/ColorRect2/ScrollContainer/VBoxContainer/WorldName"]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = 25.0
+offset_top = -35.0
+offset_right = 1204.79
+offset_bottom = 35.0
+grow_horizontal = 0
+grow_vertical = 2
+theme_override_constants/minimum_character_width = 0
+theme_override_fonts/font = ExtResource("2_5dafd")
+theme_override_font_sizes/font_size = 40
+theme_override_styles/normal = SubResource("StyleBoxFlat_glihk")
+text = "DEFAULT_WORLD_NAME"
+caret_blink = true
+
+[node name="GridContainer" type="GridContainer" parent="CreateWorldUI/ColorRect2"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -2.0
+offset_top = 21.0
+offset_right = 2.0
+offset_bottom = 108.0
+grow_horizontal = 2
+grow_vertical = 0
+columns = 2
+
+[node name="Button1" type="Button" parent="CreateWorldUI/ColorRect2/GridContainer"]
+custom_minimum_size = Vector2(800, 87.555)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+theme_override_fonts/font = ExtResource("2_5dafd")
+theme_override_font_sizes/font_size = 40
+text = "CREATE_WORLD"
+icon = ExtResource("4_j3gn5")
+flat = true
+icon_alignment = 1
+expand_icon = true
+script = ExtResource("5_7gcfm")
+
+[node name="Button2" type="Button" parent="CreateWorldUI/ColorRect2/GridContainer"]
+custom_minimum_size = Vector2(800, 87.555)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+theme_override_fonts/font = ExtResource("2_5dafd")
+theme_override_font_sizes/font_size = 40
+text = "CANCEL"
+icon = ExtResource("4_j3gn5")
+flat = true
+icon_alignment = 1
+expand_icon = true
+script = ExtResource("5_7gcfm")
+
+[connection signal="button_up" from="ColorRect/GridContainer/Button1" to="." method="_on_single_menu_button_1_up"]
+[connection signal="button_up" from="ColorRect/GridContainer/Button2" to="." method="_on_single_menu_button_2_up"]
+[connection signal="button_up" from="ColorRect/GridContainer/Button3" to="." method="_on_single_menu_button_3_up"]
+[connection signal="button_up" from="ColorRect/GridContainer/Button4" to="." method="_on_single_menu_button_4_up"]
+[connection signal="button_up" from="CreateWorldUI/ColorRect2/GridContainer/Button1" to="." method="_on_create_world_button_1_up"]
+[connection signal="button_up" from="CreateWorldUI/ColorRect2/GridContainer/Button2" to="." method="_on_create_world_button_2_up"]

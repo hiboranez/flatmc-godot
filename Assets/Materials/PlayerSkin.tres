@@ -1,0 +1,10 @@
+[gd_resource type="StandardMaterial3D" load_steps=2 format=3 uid="uid://xffbfmc4nkjq"]
+
+[ext_resource type="Texture2D" uid="uid://b1e7ey48hb5am" path="res://Assets/Textures/Skins/Steve.png" id="1_ydbeb"]
+
+[resource]
+resource_name = "PlayerSkin"
+cull_mode = 2
+shading_mode = 0
+albedo_texture = ExtResource("1_ydbeb")
+texture_filter = 0
