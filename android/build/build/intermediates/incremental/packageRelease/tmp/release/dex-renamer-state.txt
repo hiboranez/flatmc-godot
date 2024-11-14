@@ -1,4 +1,0 @@
-#Fri Nov 15 06:03:32 CST 2024
-base.0=D\:\\Data\\WorkData\\GodotProject\\FlatMC\\android\\build\\build\\intermediates\\dex\\release\\mergeDexRelease\\classes.dex
-renamed.0=classes.dex
-path.0=classes.dex
