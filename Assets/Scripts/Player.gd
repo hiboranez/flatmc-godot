@@ -19,10 +19,11 @@ var is_flying: bool = false
 var move_state: String = "stand"
 var face_state: int = -1
 var selected_item_grid: int = 0
-var item_bar_names = ["COBBLESTONE","DIRT","GRASS_BLOCK","OAK_LOG","OAK_PLANKS","STONE","COBBLESTONE","DIRT","GRASS_BLOCK"]
+var item_bar_names = []
 var last_y_velocity = 0.0
 var step_sound_timer = 0.0
 var refresh_timer = 0.0
+var turn_state: float = -1
 var player_state = {
 	"face_state": StaticLoad.DEFAULT_PLAYER_FACE_STATE,
 	"move_state": "idle",
@@ -36,6 +37,17 @@ var player_state = {
 @onready var player_model = $SubViewportContainer/SubViewport/PlayerModel
 @onready var camera = $Camera2D
 @onready var name_label = $Sprite2D/NameLable
+
+func _ready():
+	var count:int = 0
+	for key in StaticLoad.block_ids:
+		if count < 13:
+			count += 1
+			continue
+		item_bar_names.push_back(key)
+		count += 1
+		if count >= 22:
+			break
 
 func _process(delta: float) -> void:
 	update_gravity(delta)
@@ -65,6 +77,7 @@ func init(peer_id):
 			if player_result == OK:
 				position = player_config.get_value("player", "position", StaticLoad.DEFAULT_PLAYER_SPAWN_POS)
 				face_state = player_config.get_value("player", "face_state", StaticLoad.DEFAULT_PLAYER_FACE_STATE)
+				turn_state = face_state
 				is_flying = player_config.get_value("player", "is_flying", StaticLoad.DEFAULT_PLAYER_IS_FLYING)
 		if face_state == 1:
 			player_model.look_at(player_model.position + Vector3.BACK)
@@ -76,10 +89,10 @@ func init(peer_id):
 	StaticLoad.game.update_details(true)
 	
 	for i in range(9):
-		StaticLoad.game.item_grids[i].connect("item_grid_focus_entered", StaticLoad.game.select_item_grid)
-		var children = StaticLoad.game.item_grids[i].get_children()
-		children[0].texture = load("res://Assets//Textures//Items//"+item_bar_names[i].to_lower()+".png") as Texture2D
+		StaticLoad.game.item_grids[i].get_node("Icon").texture = load("res://Assets//Textures//Items//"+item_bar_names[i].to_lower()+".png") as Texture2D
 
+	StaticLoad.game.init_inventory()
+	
 	if not StaticLoad.is_muti_mode:
 		return
 	StaticLoad.rpc("new_peer_broadcast", player_peer_id)
@@ -165,10 +178,15 @@ func update_move_by_player_state():
 			velocity.y = 0
 	last_is_down_pressed = is_down_pressed
 	
-	if face_state == -1:
-		player_model.look_at(player_model.position + Vector3.FORWARD)
-	elif face_state == 1:
-		player_model.look_at(player_model.position + Vector3.BACK)
+	var looking_at = Vector3(0, 90+turn_state*90, 0)
+	player_model.rotation_degrees = looking_at
+	turn_state = turn_state*0.95+face_state*0.05
+	if abs(turn_state-face_state)<0.01:
+		turn_state = face_state
+	#if face_state == -1:
+		#player_model.look_at(player_model.position + Vector3.FORWARD)
+	#elif face_state == 1:
+		#player_model.look_at(player_model.position + Vector3.BACK)
 	
 	if move_state == "run":
 		player_animation.play("run")

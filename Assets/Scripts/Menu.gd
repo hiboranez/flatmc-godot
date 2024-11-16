@@ -37,6 +37,13 @@ func _ready() -> void:
 	if not DirAccess.dir_exists_absolute(StaticLoad.server_path):
 		DirAccess.make_dir_recursive_absolute(StaticLoad.server_path)
 
+func _notification(what):
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
+		var audio_stream_player = StaticLoad.click_audio_player
+		audio_stream_player.play()
+		await audio_stream_player.finished
+		get_tree().quit()
+
 func _on_menu_button_1_pressed() -> void:
 	StaticLoad.click_audio_player.play()
 	StaticLoad.change_scene("res://Assets/Scenes/SingleMenu.tscn")

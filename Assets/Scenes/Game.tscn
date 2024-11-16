@@ -1,11 +1,11 @@
-[gd_scene load_steps=49 format=3 uid="uid://2hv5eany3vpf"]
+[gd_scene load_steps=57 format=3 uid="uid://2hv5eany3vpf"]
 
 [ext_resource type="Script" path="res://Assets/Scripts/Game.gd" id="1_ctu8j"]
 [ext_resource type="Script" path="res://Assets/Scripts/BgmAudioPlayer.gd" id="2_gyse0"]
 [ext_resource type="Texture2D" uid="uid://cqpbp4dic383f" path="res://Assets/Textures/GUI/unknown_version_gui.webp" id="2_mnda3"]
 [ext_resource type="Script" path="res://Assets/Scripts/SoundAudioManager.gd" id="2_vxlg4"]
 [ext_resource type="Texture2D" uid="uid://co37dhrfnga6g" path="res://Assets/Textures/Backgrounds/Sky.png" id="2_xngfj"]
-[ext_resource type="TileSet" uid="uid://qjwjktw5h0n1" path="res://Assets/TileSets/Blocks.tres" id="3_fa3r6"]
+[ext_resource type="TileSet" uid="uid://2rlvh0e0mfoo" path="res://Assets/TileSets/Blocks.tres" id="3_fa3r6"]
 [ext_resource type="Texture2D" uid="uid://d02e418c7jdla" path="res://Assets/Textures/GUI/mobile_small_button.png" id="4_5q8xe"]
 [ext_resource type="FontFile" uid="uid://csywm01568tlp" path="res://Assets/Fonts/MinecraftAE.ttf" id="4_nsj5b"]
 [ext_resource type="Texture2D" uid="uid://b6wbqichdrhpr" path="res://Assets/Textures/GUI/button_normal.png" id="5_0o0wo"]
@@ -21,13 +21,19 @@
 [ext_resource type="Script" path="res://Assets/Scripts/DragScroll.gd" id="13_wfnj5"]
 [ext_resource type="Script" path="res://Assets/Scripts/Options.gd" id="14_ic0qm"]
 [ext_resource type="Texture2D" uid="uid://b14xkgu1d1omr" path="res://Assets/Textures/Backgrounds/stone_wall.png" id="15_e4i4j"]
+[ext_resource type="Texture2D" uid="uid://p66pcctndsk1" path="res://Assets/Textures/GUI/close_button.png" id="15_tbxis"]
+[ext_resource type="Script" path="res://Assets/Scripts/TouchButton.gd" id="16_3a6pi"]
 [ext_resource type="Texture2D" uid="uid://caueuwmlcmeot" path="res://Assets/Textures/GUI/button_disabled.png" id="16_pttjf"]
+[ext_resource type="Texture2D" uid="uid://bl0xpo1luvy7i" path="res://Assets/Textures/GUI/white_background.png" id="17_ud88f"]
 [ext_resource type="Texture2D" uid="uid://bn78hs0omgltt" path="res://Assets/Textures/GUI/slider_box_default.png" id="17_wst6d"]
+[ext_resource type="Texture2D" uid="uid://cknufva8e2vcv" path="res://Assets/Textures/GUI/panel.png" id="18_1usby"]
 [ext_resource type="Texture2D" uid="uid://dpshcvcyt856e" path="res://Assets/Textures/GUI/slider_box_hover.png" id="18_pg3nf"]
+[ext_resource type="Texture2D" uid="uid://cb3c6rd57rnuu" path="res://Assets/Textures/GUI/transparent_background.png" id="18_sydpy"]
 [ext_resource type="PackedScene" uid="uid://dgk4c6ipagqa4" path="res://Assets/Scenes/Language.tscn" id="19_6nn42"]
+[ext_resource type="Texture2D" uid="uid://18usdnqj200e" path="res://Assets/Textures/GUI/more_ui.png" id="21_gulf0"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_6ugo2"]
-size = Vector2(150, 150)
+size = Vector2(125, 125)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_b3kjx"]
 atlas = ExtResource("2_mnda3")
@@ -74,6 +80,37 @@ border_width_top = 7
 border_width_right = 10
 border_width_bottom = 5
 border_color = Color(0, 0, 0, 0.588235)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_vm4jx"]
+size = Vector2(150, 150)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_0ltg1"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("17_ud88f")
+}, {
+"duration": 1.0,
+"texture": ExtResource("18_sydpy")
+}, {
+"duration": 1.0,
+"texture": ExtResource("17_ud88f")
+}, {
+"duration": 1.0,
+"texture": ExtResource("18_sydpy")
+}],
+"loop": false,
+"name": &"blink",
+"speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("18_sydpy")
+}],
+"loop": false,
+"name": &"transparent",
+"speed": 5.0
+}]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_rfgq5"]
 content_margin_left = 30.0
@@ -726,6 +763,111 @@ theme_override_font_sizes/font_size = 30
 theme_override_styles/normal = SubResource("StyleBoxFlat_ursv3")
 caret_blink = true
 
+[node name="InventoryUI" type="ColorRect" parent="GameUI"]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.705882)
+
+[node name="Panel" type="TextureRect" parent="GameUI/InventoryUI"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -524.0
+offset_top = -465.0
+offset_right = 524.0
+offset_bottom = 267.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("18_1usby")
+
+[node name="Title" type="Control" parent="GameUI/InventoryUI/Panel"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_top = 70.0
+offset_bottom = 70.0
+grow_horizontal = 2
+
+[node name="Label" type="Label" parent="GameUI/InventoryUI/Panel/Title"]
+z_index = 1
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -0.5
+offset_top = -25.5
+offset_right = 0.5
+offset_bottom = 25.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("4_nsj5b")
+theme_override_font_sizes/font_size = 50
+text = "INVENTORY"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Background" type="ColorRect" parent="GameUI/InventoryUI/Panel/Title/Label"]
+z_index = -1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -13.0
+offset_top = -12.0
+offset_right = 10.0
+offset_bottom = 13.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.588235)
+
+[node name="InventoryContainer" type="FlowContainer" parent="GameUI/InventoryUI/Panel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -466.0
+offset_top = -227.0
+offset_right = 466.0
+offset_bottom = 305.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="InventoryCloseButton" type="TextureRect" parent="GameUI/InventoryUI/Panel"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -94.0
+offset_top = 17.0
+offset_right = -23.0
+offset_bottom = 88.0
+grow_horizontal = 0
+focus_mode = 2
+mouse_filter = 0
+texture = ExtResource("15_tbxis")
+expand_mode = 1
+script = ExtResource("16_3a6pi")
+
+[node name="InventoryCloseButton" type="TouchScreenButton" parent="GameUI/InventoryUI/Panel/InventoryCloseButton"]
+z_index = 1
+position = Vector2(62.5, 62.5)
+shape = SubResource("RectangleShape2D_vm4jx")
+shape_visible = false
+passby_press = true
+visibility_mode = 1
+
 [node name="ItemBarPanel" type="Control" parent="GameUI"]
 layout_mode = 3
 anchors_preset = 12
@@ -767,7 +909,7 @@ grow_horizontal = 2
 grow_vertical = 0
 mouse_filter = 0
 theme_override_constants/h_separation = 0
-columns = 9
+columns = 10
 
 [node name="1" type="TextureRect" parent="GameUI/ItemBarPanel/ItemBar"]
 custom_minimum_size = Vector2(125, 125)
@@ -777,6 +919,13 @@ mouse_filter = 0
 texture = ExtResource("7_cjy4x")
 expand_mode = 1
 script = ExtResource("5_taigv")
+
+[node name="Blink" type="AnimatedSprite2D" parent="GameUI/ItemBarPanel/ItemBar/1"]
+position = Vector2(62.5, 63.0001)
+scale = Vector2(0.97, 0.980001)
+sprite_frames = SubResource("SpriteFrames_0ltg1")
+animation = &"transparent"
+autoplay = "blink"
 
 [node name="Icon" type="TextureRect" parent="GameUI/ItemBarPanel/ItemBar/1"]
 custom_minimum_size = Vector2(80, 80)
@@ -817,6 +966,13 @@ mouse_filter = 0
 texture = ExtResource("7_cjy4x")
 expand_mode = 1
 script = ExtResource("5_taigv")
+
+[node name="Blink" type="AnimatedSprite2D" parent="GameUI/ItemBarPanel/ItemBar/2"]
+position = Vector2(62.5, 63.0001)
+scale = Vector2(0.97, 0.980001)
+sprite_frames = SubResource("SpriteFrames_0ltg1")
+animation = &"transparent"
+autoplay = "blink"
 
 [node name="Icon" type="TextureRect" parent="GameUI/ItemBarPanel/ItemBar/2"]
 custom_minimum_size = Vector2(80, 80)
@@ -859,6 +1015,13 @@ texture = ExtResource("7_cjy4x")
 expand_mode = 1
 script = ExtResource("5_taigv")
 
+[node name="Blink" type="AnimatedSprite2D" parent="GameUI/ItemBarPanel/ItemBar/3"]
+position = Vector2(62.5, 63.0001)
+scale = Vector2(0.97, 0.980001)
+sprite_frames = SubResource("SpriteFrames_0ltg1")
+animation = &"transparent"
+autoplay = "blink"
+
 [node name="Icon" type="TextureRect" parent="GameUI/ItemBarPanel/ItemBar/3"]
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 1
@@ -899,6 +1062,13 @@ mouse_filter = 0
 texture = ExtResource("7_cjy4x")
 expand_mode = 1
 script = ExtResource("5_taigv")
+
+[node name="Blink" type="AnimatedSprite2D" parent="GameUI/ItemBarPanel/ItemBar/4"]
+position = Vector2(62.5, 63.0001)
+scale = Vector2(0.97, 0.980001)
+sprite_frames = SubResource("SpriteFrames_0ltg1")
+animation = &"transparent"
+autoplay = "blink"
 
 [node name="Icon" type="TextureRect" parent="GameUI/ItemBarPanel/ItemBar/4"]
 custom_minimum_size = Vector2(80, 80)
@@ -941,6 +1111,13 @@ texture = ExtResource("7_cjy4x")
 expand_mode = 1
 script = ExtResource("5_taigv")
 
+[node name="Blink" type="AnimatedSprite2D" parent="GameUI/ItemBarPanel/ItemBar/5"]
+position = Vector2(62.5, 63.0001)
+scale = Vector2(0.97, 0.980001)
+sprite_frames = SubResource("SpriteFrames_0ltg1")
+animation = &"transparent"
+autoplay = "blink"
+
 [node name="Icon" type="TextureRect" parent="GameUI/ItemBarPanel/ItemBar/5"]
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 1
@@ -981,6 +1158,13 @@ mouse_filter = 0
 texture = ExtResource("7_cjy4x")
 expand_mode = 1
 script = ExtResource("5_taigv")
+
+[node name="Blink" type="AnimatedSprite2D" parent="GameUI/ItemBarPanel/ItemBar/6"]
+position = Vector2(62.5, 63.0001)
+scale = Vector2(0.97, 0.980001)
+sprite_frames = SubResource("SpriteFrames_0ltg1")
+animation = &"transparent"
+autoplay = "blink"
 
 [node name="Icon" type="TextureRect" parent="GameUI/ItemBarPanel/ItemBar/6"]
 custom_minimum_size = Vector2(80, 80)
@@ -1023,6 +1207,13 @@ texture = ExtResource("7_cjy4x")
 expand_mode = 1
 script = ExtResource("5_taigv")
 
+[node name="Blink" type="AnimatedSprite2D" parent="GameUI/ItemBarPanel/ItemBar/7"]
+position = Vector2(62.5, 63.0001)
+scale = Vector2(0.97, 0.980001)
+sprite_frames = SubResource("SpriteFrames_0ltg1")
+animation = &"transparent"
+autoplay = "blink"
+
 [node name="Icon" type="TextureRect" parent="GameUI/ItemBarPanel/ItemBar/7"]
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 1
@@ -1063,6 +1254,13 @@ mouse_filter = 0
 texture = ExtResource("7_cjy4x")
 expand_mode = 1
 script = ExtResource("5_taigv")
+
+[node name="Blink" type="AnimatedSprite2D" parent="GameUI/ItemBarPanel/ItemBar/8"]
+position = Vector2(62.5, 63.0001)
+scale = Vector2(0.97, 0.980001)
+sprite_frames = SubResource("SpriteFrames_0ltg1")
+animation = &"transparent"
+autoplay = "blink"
 
 [node name="Icon" type="TextureRect" parent="GameUI/ItemBarPanel/ItemBar/8"]
 custom_minimum_size = Vector2(80, 80)
@@ -1105,6 +1303,13 @@ texture = ExtResource("7_cjy4x")
 expand_mode = 1
 script = ExtResource("5_taigv")
 
+[node name="Blink" type="AnimatedSprite2D" parent="GameUI/ItemBarPanel/ItemBar/9"]
+position = Vector2(62.5, 63.0001)
+scale = Vector2(0.97, 0.980001)
+sprite_frames = SubResource("SpriteFrames_0ltg1")
+animation = &"transparent"
+autoplay = "blink"
+
 [node name="Icon" type="TextureRect" parent="GameUI/ItemBarPanel/ItemBar/9"]
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 1
@@ -1130,6 +1335,40 @@ texture = ExtResource("6_d227v")
 expand_mode = 1
 
 [node name="9" type="TouchScreenButton" parent="GameUI/ItemBarPanel/ItemBar/9"]
+z_index = 1
+position = Vector2(62.5, 62.5)
+shape = SubResource("RectangleShape2D_6ugo2")
+shape_visible = false
+passby_press = true
+visibility_mode = 1
+
+[node name="More" type="TextureRect" parent="GameUI/ItemBarPanel/ItemBar"]
+custom_minimum_size = Vector2(125, 125)
+layout_mode = 2
+focus_mode = 2
+mouse_filter = 0
+texture = ExtResource("7_cjy4x")
+expand_mode = 1
+script = ExtResource("5_taigv")
+
+[node name="Icon" type="TextureRect" parent="GameUI/ItemBarPanel/ItemBar/More"]
+custom_minimum_size = Vector2(80, 80)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -40.0
+offset_top = -40.0
+offset_right = 40.0
+offset_bottom = 40.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("21_gulf0")
+expand_mode = 1
+
+[node name="More" type="TouchScreenButton" parent="GameUI/ItemBarPanel/ItemBar/More"]
 z_index = 1
 position = Vector2(62.5, 62.5)
 shape = SubResource("RectangleShape2D_6ugo2")
@@ -1654,6 +1893,8 @@ visible = false
 [connection signal="pre_sort_children" from="GameUI/ChatHistory" to="." method="_on_chat_history_out_pre_sort_children"]
 [connection signal="gui_input" from="GameUI/ChatPanel/ChatHistory" to="GameUI/ChatPanel/ChatHistory" method="_on_scrollcontainer_gui_input"]
 [connection signal="text_submitted" from="GameUI/ChatPanel/ChatLineEdit" to="." method="_on_chat_line_edit_text_submitted"]
+[connection signal="focus_entered" from="GameUI/InventoryUI/Panel/InventoryCloseButton" to="GameUI/InventoryUI/Panel/InventoryCloseButton" method="_touch_button_focus_entered"]
+[connection signal="pressed" from="GameUI/InventoryUI/Panel/InventoryCloseButton/InventoryCloseButton" to="GameUI/InventoryUI/Panel/InventoryCloseButton" method="_touch_button_focus_entered"]
 [connection signal="focus_entered" from="GameUI/ItemBarPanel/ItemBar/1" to="GameUI/ItemBarPanel/ItemBar/1" method="_on_item_bar_focus_entered"]
 [connection signal="pressed" from="GameUI/ItemBarPanel/ItemBar/1/1" to="GameUI/ItemBarPanel/ItemBar/1" method="_on_item_bar_focus_entered"]
 [connection signal="focus_entered" from="GameUI/ItemBarPanel/ItemBar/2" to="GameUI/ItemBarPanel/ItemBar/2" method="_on_item_bar_focus_entered"]
@@ -1672,6 +1913,8 @@ visible = false
 [connection signal="pressed" from="GameUI/ItemBarPanel/ItemBar/8/8" to="GameUI/ItemBarPanel/ItemBar/8" method="_on_item_bar_focus_entered"]
 [connection signal="focus_entered" from="GameUI/ItemBarPanel/ItemBar/9" to="GameUI/ItemBarPanel/ItemBar/9" method="_on_item_bar_focus_entered"]
 [connection signal="pressed" from="GameUI/ItemBarPanel/ItemBar/9/9" to="GameUI/ItemBarPanel/ItemBar/9" method="_on_item_bar_focus_entered"]
+[connection signal="focus_entered" from="GameUI/ItemBarPanel/ItemBar/More" to="GameUI/ItemBarPanel/ItemBar/More" method="_on_item_bar_focus_entered"]
+[connection signal="pressed" from="GameUI/ItemBarPanel/ItemBar/More/More" to="GameUI/ItemBarPanel/ItemBar/More" method="_on_item_bar_focus_entered"]
 [connection signal="pressed" from="PauseUI/FlowContainer/Button1" to="." method="_on_pause_button_1_pressed"]
 [connection signal="pressed" from="PauseUI/FlowContainer/Button2" to="." method="_on_pause_button_2_pressed"]
 [connection signal="pressed" from="PauseUI/FlowContainer/Button3" to="." method="_on_pause_button_3_pressed"]

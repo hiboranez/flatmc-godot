@@ -1,5 +1,6 @@
 extends Node2D
 
+@onready var select = load("res://Assets//Sounds//GUI//select.mp3") as AudioStream
 @onready var dig_cloth1 = load("res://Assets//Sounds//Dig//cloth1.mp3") as AudioStream
 @onready var dig_cloth2 = load("res://Assets//Sounds//Dig//cloth2.mp3") as AudioStream
 @onready var dig_cloth3 = load("res://Assets//Sounds//Dig//cloth3.mp3") as AudioStream
@@ -110,6 +111,15 @@ func _ready() -> void:
 	damage_fallsmall_sound_list = [fall_small]
 	damage_fallbig_sound_list = [fall_big]
 
+func play_audio_static(type, sub_type):
+	var audio_player = AudioStreamPlayer.new()
+	if type == "gui":
+		if sub_type == "select":
+			audio_player.stream = select
+	audio_player.connect("finished", _on_audio_finished.bind(audio_player))
+	add_child(audio_player)
+	audio_player.play()
+
 func play_random_audio_at_position(type, sub_type, sound_position: Vector2) -> void:
 	var sound_list = []
 	if type == "dig":
@@ -164,5 +174,5 @@ func play_audio_at_position(audio:AudioStream ,sound_position: Vector2) -> void:
 	add_child(audio_player)
 	audio_player.play()
 
-func _on_audio_finished(audio_player: AudioStreamPlayer2D) -> void:
+func _on_audio_finished(audio_player) -> void:
 	audio_player.queue_free()  # 删除实例以释放内存

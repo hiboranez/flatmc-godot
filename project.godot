@@ -12,8 +12,9 @@ config_version=5
 
 config/name="FlatMC"
 config/description="我的世界2D版"
-config/version="alpha 0.1"
+config/version="0.1.1.0 alpha"
 run/main_scene="res://Assets/Scenes/Menu.tscn"
+run/disable_stderr=true
 config/features=PackedStringArray("4.3", "Mobile")
 boot_splash/show_image=false
 boot_splash/image="res://Assets/Textures/GUI/author.png"
@@ -166,6 +167,11 @@ online_info={
 screenshot={
 "deadzone": 0.5,
 "events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":4194333,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
+]
+}
+inventory={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":69,"key_label":0,"unicode":101,"location":0,"echo":false,"script":null)
 ]
 }
 

@@ -23,6 +23,12 @@ func _ready() -> void:
 	add_server_name_line_edit.text = tr("DEFAULT_SERVER_NAME")
 	update_server_list()
 
+func _notification(what):
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
+		StaticLoad.click_audio_player.play()
+		StaticLoad.select_world = null
+		StaticLoad.change_scene("res://Assets/Scenes/Menu.tscn")
+
 func update_server_list():
 	var current_servers = server_list_vboxcontainer.get_children()
 	for server in current_servers:

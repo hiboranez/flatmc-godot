@@ -7,6 +7,7 @@ extends Node2D
 @onready var secondary_confirmation_scene = load("res://Assets/Scenes/SecondaryConfirmation.tscn") as PackedScene
 @onready var ping_scene = load("res://Assets/Scenes/Ping.tscn") as PackedScene
 @onready var online_info_scene = load("res://Assets/Scenes/OnlineInfo.tscn") as PackedScene
+@onready var mouse_item_name_label_scene = load("res://Assets/Scenes/MouseItemNameLabel.tscn") as PackedScene
 @onready var animation:AnimationPlayer = $AnimationPlayer
 @onready var click_audio_player = $ClickAudioPlayer
 
@@ -25,7 +26,8 @@ const HOST_IP = "127.0.0.1"
 const REFRESH_TIME = 1
 const CONNECTING_TIME = 10
 const LONG_TOUCH_TIME = 0.4
-const POSITION_MAX_DIFFERENCE = 1
+const POSITION_MAX_DIFFERENCE = 5
+const INVENTORY_NAME_SHOW_STAY_TIME = 1
 
 var is_dedicated_server: bool = false
 var is_on_mobile_platform: bool = false
@@ -62,8 +64,16 @@ var region_path
 var player_path
 var server_path = "user://servers"
 var screenshot_path = "user://screenshots"
+var block_ids_0_1_0_1 = {
+		"AIR": 0,
+		"COBBLESTONE": 1,
+		"DIRT": 2,
+		"GRASS_BLOCK": 3,
+		"OAK_LOG": 4,
+		"OAK_PLANKS": 5,
+		"STONE": 6
+	}
 
-# Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	self.hide()
 	if OS.has_feature("android"):
@@ -80,7 +90,7 @@ func _ready() -> void:
 	default_icon_gray_image = load("res://Assets/Textures/GUI/default_icon_gray.png").get_image()
 	game_icon_image = load("res://Assets/Textures/GUI/icon.png").get_image()
 	options = {
-		"version": "0.1.0.1",
+		"version": "0.1.1.0",
 		"updated": "false",
 		"player_name": "Steve",
 		"language": "zh",
@@ -92,21 +102,73 @@ func _ready() -> void:
 		}
 	block_ids = {
 		"AIR": 0,
-		"COBBLESTONE": 1,
-		"DIRT": 2,
-		"GRASS_BLOCK": 3,
-		"OAK_LOG": 4,
-		"OAK_PLANKS": 5,
-		"STONE": 6
+		"BEDROCK": 1,
+		"COAL_ORE": 2,
+		"COBBLESTONE": 3,
+		"CRAFTING_TABLE": 4,
+		"DIAMOND_BLOCK": 5,
+		"DIAMOND_ORE": 6,
+		"DIRT": 7,
+		"GOLD_BLOCK": 8,
+		"GOLD_ORE": 9,
+		"GRASS_BLOCK": 10,
+		"IRON_BLOCK": 11,
+		"IRON_ORE": 12,
+		"LEAVES": 13,
+		"OAK_LOG": 14,
+		"OAK_PLANKS": 15,
+		"STONE": 16,
+		"WOOL_BLACK": 17,
+		"WOOL_BLUE": 18,
+		"WOOL_BROWN": 19,
+		"WOOL_CYAN": 20,
+		"WOOL_GRAY": 21,
+		"WOOL_GREEN": 22,
+		"WOOL_LIGHT_BLUE": 23,
+		"WOOL_LIGHT_GRAY": 24,
+		"WOOL_LIME": 25,
+		"WOOL_MAGENTA": 26,
+		"WOOL_ORANGE": 27,
+		"WOOL_PINK": 28,
+		"WOOL_PURPLE": 29,
+		"WOOL_RED": 30,
+		"WOOL_WHITE": 31,
+		"WOOL_YELLOW": 32,
 	}
 	block_types = {
 		0: "air",
 		1: "stone",
-		2: "gravel",
-		3: "grass",
+		2: "stone",
+		3: "stone",
 		4: "wood",
-		5: "wood",
-		6: "stone"
+		5: "stone",
+		6: "stone",
+		7: "gravel",
+		8: "stone",
+		9: "stone",
+		10: "grass",
+		11: "stone",
+		12: "stone",
+		13: "grass",
+		14: "wood",
+		15: "wood",
+		16: "stone",
+		17: "cloth",
+		18: "cloth",
+		19: "cloth",
+		20: "cloth",
+		21: "cloth",
+		22: "cloth",
+		23: "cloth",
+		24: "cloth",
+		25: "cloth",
+		26: "cloth",
+		27: "cloth",
+		28: "cloth",
+		29: "cloth",
+		30: "cloth",
+		31: "cloth",
+		32: "cloth"
 	}
 	commands = {
 		"/help": tr("/HELP"),
@@ -132,7 +194,62 @@ func _ready() -> void:
 			await get_tree().create_timer(1).timeout
 		select_world = "world"
 		StaticLoad.change_scene("res://Assets/Scenes/LoadingWorldUI.tscn")
-	
+
+func compare_version(version_1: String, version_2: String):
+	var splits_1
+	var splits_2
+	if version_1 == "unknown":
+		splits_1 = ["0", "1", "0", "1"]
+	else:
+		splits_1 = version_1.split(".")
+	if version_2 == "unknown":
+		splits_2 = ["0", "1", "0", "1"]
+	else:
+		splits_2 = version_2.split(".")
+	var i = 0
+	while i < 4:
+		if int(splits_1[i]) > int(splits_2[i]):
+			return "higher"
+		elif int(splits_1[i]) < int(splits_2[i]):
+			return "lower"
+		i += 1
+	return "equal"
+
+func convert_world(world_name, old_version):
+	var block_ids_old: Dictionary
+	if old_version == "0.1.0.1":
+		block_ids_old = block_ids_0_1_0_1
+	var region_path_tmp = "user://worlds/"+world_name+"/regions"
+	var regions = DirAccess.get_files_at(ProjectSettings.globalize_path(region_path_tmp))
+	if regions.is_empty():
+		return
+	for region in regions:
+		var splits = region.split(".")
+		var chunk_config = ConfigFile.new()
+		var chunk_result = chunk_config.load_encrypted_pass(region_path_tmp+"/"+region, StaticLoad.CONFIG_PASSWORD)
+		if chunk_result != OK:
+			return
+		var blocks = chunk_config.get_value("chunck", "blocks")
+		for i in range(16):
+			for j in range(16):
+				var old_id = blocks[i][j]
+				var new_id
+				if block_ids_old.find_key(old_id) != null:
+					var block_name_tmp = block_ids_old.find_key(old_id)
+					new_id = block_ids[block_name_tmp]
+				else:
+					new_id = old_id
+				blocks[i][j] = new_id
+		var mca = ConfigFile.new()
+		mca.set_value("chunck", "blocks", blocks)
+		mca.save_encrypted_pass(region_path_tmp+"/r."+splits[1]+"."+splits[2]+".mca", StaticLoad.CONFIG_PASSWORD)
+	var world_path_tmp = "user://worlds/"+world_name
+	var level = ConfigFile.new()
+	var current_time = Time.get_datetime_string_from_system(false, true).replace(" ", "  ").replace("-", "/")
+	level.set_value("world", "last_modified", current_time)
+	level.set_value("world", "version", StaticLoad.options["version"])
+	level.save_encrypted_pass(world_path_tmp+"/level.dat", StaticLoad.CONFIG_PASSWORD)
+
 func update_path():
 	if select_world != null:
 		world_path = "user://worlds/"+select_world
@@ -220,17 +337,17 @@ func generate_chunk(pos: Vector2i):
 			var row = []
 			for j in range(16):
 				if i == 0:
-					row.append(3)
+					row.append(10)
 				elif i > 0 and i<=3:
-					row.append(2)
+					row.append(7)
 				else:
-					row.append(6)
+					row.append(16)
 			blocks.append(row)
 	else:
 		for i in range(16):
 			var row = []
 			for j in range(16):
-				row.append(6)
+				row.append(16)
 			blocks.append(row)
 	return blocks
 
@@ -257,10 +374,12 @@ func pop_secondary_confirmation(root, info: String, function: Callable):
 
 func get_atlas_coords_by_block_id(block_id: int):
 	@warning_ignore("integer_division")
-	return Vector2i(block_id-1,(block_id-1)/6)
+	return Vector2i((block_id-1)%10,(block_id-1)/10)
 	
 func get_block_id_by_atlas_coords(atlas_coords: Vector2i):
-	return atlas_coords[0]+1
+	if atlas_coords[0] == -1:
+		return 0
+	return atlas_coords[1]*10+atlas_coords[0]+1
 
 func get_block_selection_box_by_selected(selected):
 	if selected == 0:
@@ -434,10 +553,11 @@ func connect_signal_received(state):
 	elif state == "state_checked":
 		get_node("/root/LoadingServerUI").is_server_state_checked = true
 	elif state == "same_player_name":
-		force_quit_reason = "same_player_name"
-		get_node("/root/LoadingServerUI").is_connect_interrupt = true
+		get_node("/root/LoadingServerUI").connect_interrupt_reason = "same_player_name"
 	elif state == "player_info_updated":
 		game.is_player_info_updated = true
+	elif state == "version_conflict":
+		get_node("/root/LoadingServerUI").connect_interrupt_reason = "version_conflict"
 
 func get_time_string(is_return_day: bool = true):
 	var time_str = Time.get_datetime_string_from_system().split("T")
@@ -483,9 +603,9 @@ func old_peer_replication(peer_ids):
 	for peer_id in peer_ids:
 		game.create_player(peer_id)
 
-@rpc("authority", "call_local", "reliable", 1)
-func same_player_name_connect_interrupt():
-	connect_signal.emit("same_player_name")
+#@rpc("authority", "call_local", "reliable", 1)
+#func same_player_name_connect_interrupt():
+	#connect_signal.emit("same_player_name")
 
 @rpc("any_peer", "call_remote", "reliable", 1)
 func request_for_mark_revised_chunk(chunk_pos):
@@ -495,16 +615,15 @@ func request_for_mark_revised_chunk(chunk_pos):
 
 @rpc("any_peer", "call_remote", "reliable", 1)
 func request_for_server_state(peer_id):
-	rpc_id(peer_id, "apply_for_server_state", online_peer_ids.size(), world_icon_buffer)
+	rpc_id(peer_id, "reply_for_server_state", online_peer_ids.size(), world_icon_buffer, options["version"])
 
 @rpc("authority", "call_remote", "reliable", 1)
-func apply_for_server_state(online_player_number, world_icon_buffer_tmp):
+func reply_for_server_state(online_player_number, world_icon_buffer_tmp, version_tmp):
 	if has_node("/root/MutiMenu"):
 		var muti_menu = get_node("/root/MutiMenu")
 		var selection = muti_menu.server_list_vboxcontainer.get_node(muti_menu.server_detect.current_server_name)
 		if selection == null:
 			return
-		selection.online_info_label.text = tr("ONLINE_PLAYERS")+" : "+str(online_player_number)
 		var icon = Image.new()
 		icon.load_png_from_buffer(world_icon_buffer_tmp)
 		selection.icon = ImageTexture.create_from_image(icon)
@@ -520,15 +639,20 @@ func apply_for_server_state(online_player_number, world_icon_buffer_tmp):
 		server.set_value("server", "port", port_tmp)
 		server.set_value("server", "icon", world_icon_buffer_tmp)
 		server.save_encrypted_pass(server_path_tmp, CONFIG_PASSWORD)
-		muti_menu.server_detect.is_server_info_received = true
+		if version_tmp == options["version"]:
+			selection.online_info_label.text = tr("ONLINE_PLAYERS")+" : "+str(online_player_number)
+			muti_menu.server_detect.is_server_info_received = true
+		else:
+			selection.online_info_label.text = tr("REQUIRED_VERSION")+" : "+str(version_tmp)
+			muti_menu.server_detect.is_server_version_conflict = true
 
 @rpc("any_peer", "call_remote", "reliable", 1)
 func request_for_ping(peer_id, target_peer_id):
-	rpc_id(peer_id, "apply_for_ping", target_peer_id, online_peer_pings[target_peer_id].ping)
+	rpc_id(peer_id, "reply_for_ping", target_peer_id, online_peer_pings[target_peer_id].ping)
 	online_peer_pings[target_peer_id].start_ping()
 
 @rpc("authority", "call_remote", "reliable", 1)
-func apply_for_ping(peer_id, ping):
+func reply_for_ping(peer_id, ping):
 	var online_info = game.online_ui_vbox_container.get_node(str(peer_id))
 	online_info.ping = ping
 	online_info.update_ping()
@@ -538,26 +662,27 @@ func request_for_set_block(pos, id):
 	if not is_in_game:
 		return
 	game.set_block(pos, id)
-	rpc("apply_for_set_block", pos, id)
+	rpc("reply_for_set_block", pos, id)
 
 @rpc("authority", "call_remote", "reliable", 1)
-func apply_for_set_block(pos, id):
+func reply_for_set_block(pos, id):
 	if not is_in_game:
 		return
 	game.set_block(pos, id)
 	
 @rpc("any_peer", "call_remote", "reliable", 1)
-func request_for_connect_state_check(peer_id, player_name):
-	var is_ok: bool = true
+func request_for_connect_state_check(peer_id, player_name, version_tmp):
 	for id in online_peer_ids:
 		if online_peer_ids[id].player_name.to_lower() == player_name.to_lower():
-			rpc_id(peer_id, "apply_for_connect_state_check", "same_player_name")
+			rpc_id(peer_id, "reply_for_connect_state_check", "same_player_name")
 			return
-	if is_ok:
-		rpc_id(peer_id, "apply_for_connect_state_check", "state_checked")
+	if version_tmp != options["version"]:
+		rpc_id(peer_id, "reply_for_connect_state_check", "version_conflict")
+		return
+	rpc_id(peer_id, "reply_for_connect_state_check", "state_checked")
 
 @rpc("authority", "call_remote", "reliable", 1)
-func apply_for_connect_state_check(check_state):
+func reply_for_connect_state_check(check_state):
 	connect_signal.emit(check_state)
 
 @rpc("any_peer", "call_remote", "reliable", 1)
@@ -580,16 +705,16 @@ func request_for_player_info(peer_id, player_name):
 		new_player.position = player_position
 		new_player.face_state = face_state
 		new_player.is_flying = is_flying
-		rpc_id(peer_id, "apply_update_player_info", player_position, face_state, is_flying)
+		rpc_id(peer_id, "reply_update_player_info", player_position, face_state, is_flying)
 		new_player.rpc("init_player", peer_id, player_name, player_position, face_state, is_flying)
 	else:
-		rpc_id(peer_id, "apply_update_player_info", DEFAULT_PLAYER_SPAWN_POS, DEFAULT_PLAYER_FACE_STATE, DEFAULT_PLAYER_IS_FLYING)
+		rpc_id(peer_id, "reply_update_player_info", DEFAULT_PLAYER_SPAWN_POS, DEFAULT_PLAYER_FACE_STATE, DEFAULT_PLAYER_IS_FLYING)
 		new_player.rpc("init_player", peer_id, player_name, DEFAULT_PLAYER_SPAWN_POS, DEFAULT_PLAYER_FACE_STATE, DEFAULT_PLAYER_IS_FLYING)
 	new_player.rpc("broadcast_join_game", player_name)
 
 		
 @rpc("authority", "call_remote", "reliable", 1)
-func apply_update_player_info(player_position, face_state, is_flying):
+func reply_update_player_info(player_position, face_state, is_flying):
 	game.player.position = player_position
 	game.player.face_state = face_state
 	game.player.is_flying = is_flying
@@ -616,10 +741,10 @@ func request_for_update_chunk(peer_id, x_chunk, y_chunk):
 				id = StaticLoad.get_block_id_by_atlas_coords(atlas_coords)
 			row.append(id)
 		blocks.append(row)
-	rpc_id(peer_id, "apply_for_update_chunck",x_chunk, y_chunk, blocks)
+	rpc_id(peer_id, "reply_for_update_chunck",x_chunk, y_chunk, blocks)
 		
 @rpc("authority", "call_remote", "reliable", 1)
-func apply_for_update_chunck(x_chunk, y_chunk, blocks):
+func reply_for_update_chunck(x_chunk, y_chunk, blocks):
 	game.set_chunk(Vector2i(x_chunk, y_chunk), blocks)
 	game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)] = false
 	game.loaded_chunk_num += 1

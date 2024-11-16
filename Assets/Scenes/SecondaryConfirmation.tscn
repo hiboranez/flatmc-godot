@@ -1,12 +1,15 @@
-[gd_scene load_steps=7 format=3 uid="uid://cfkghl4483mvv"]
+[gd_scene load_steps=9 format=3 uid="uid://cfkghl4483mvv"]
 
 [ext_resource type="Script" path="res://Assets/Scripts/SecondaryConfirmation.gd" id="1_yiufh"]
 [ext_resource type="Texture2D" uid="uid://cxywjx6lnb01f" path="res://Assets/Textures/Backgrounds/stone_brick_wall.png" id="2_0gm7v"]
 [ext_resource type="FontFile" uid="uid://csywm01568tlp" path="res://Assets/Fonts/MinecraftAE.ttf" id="3_smxsy"]
 [ext_resource type="Texture2D" uid="uid://b6wbqichdrhpr" path="res://Assets/Textures/GUI/button_normal.png" id="4_prgvy"]
 [ext_resource type="Script" path="res://Assets/Scripts/GameButton.gd" id="5_qsqmk"]
+[ext_resource type="Script" path="res://Assets/Scripts/DragScroll.gd" id="6_pku2u"]
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_lgegj"]
+[sub_resource type="Theme" id="Theme_4kbga"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_84qe7"]
 content_margin_left = 20.0
 content_margin_top = 20.0
 content_margin_right = 20.0
@@ -88,35 +91,52 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 0.509804)
 
-[node name="RichTextLabel" type="RichTextLabel" parent="TextureRect"]
-z_index = 1
+[node name="ScrollContainer" type="ScrollContainer" parent="TextureRect"]
+z_index = 2
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -431.0
-offset_top = -163.0
-offset_right = 431.0
-offset_bottom = 60.0
+offset_left = -432.0
+offset_top = -164.0
+offset_right = 432.0
+offset_bottom = 46.0
 grow_horizontal = 2
 grow_vertical = 2
+theme = SubResource("Theme_4kbga")
+horizontal_scroll_mode = 0
+script = ExtResource("6_pku2u")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="TextureRect/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="RichTextLabel" type="RichTextLabel" parent="TextureRect/ScrollContainer/VBoxContainer"]
+z_index = 1
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 1
 theme_override_constants/line_separation = 10
 theme_override_fonts/normal_font = ExtResource("3_smxsy")
 theme_override_font_sizes/normal_font_size = 40
-theme_override_styles/normal = SubResource("StyleBoxEmpty_lgegj")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_84qe7")
 text = "TEXT"
+fit_content = true
 
-[node name="ColorRect" type="ColorRect" parent="TextureRect/RichTextLabel"]
+[node name="ColorRect" type="ColorRect" parent="TextureRect/ScrollContainer/VBoxContainer/RichTextLabel"]
 z_index = -1
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_bottom = -13.0
+offset_top = -2.0
+offset_bottom = -2.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 1
 color = Color(0, 0, 0, 0.509804)
 
 [node name="FlowContainer" type="FlowContainer" parent="TextureRect"]
@@ -183,4 +203,5 @@ grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("4_prgvy")
 
+[connection signal="gui_input" from="TextureRect/ScrollContainer" to="TextureRect/ScrollContainer" method="_on_scrollcontainer_gui_input"]
 [connection signal="pressed" from="TextureRect/FlowContainer/Button2" to="." method="_on_secondary_confirmation_button_2_button_pressed"]

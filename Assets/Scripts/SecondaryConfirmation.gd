@@ -2,7 +2,7 @@ extends CanvasLayer
 
 @onready var button_1 = $TextureRect/FlowContainer/Button1
 @onready var button_2 = $TextureRect/FlowContainer/Button2
-@onready var rich_text_label = $TextureRect/RichTextLabel
+@onready var rich_text_label = $TextureRect/ScrollContainer/VBoxContainer/RichTextLabel
 @onready var title_label = $TextureRect/Container/Title
 
 func _ready() -> void:

@@ -15,6 +15,14 @@ extends Node
 func _ready() -> void:
 	load_options()
 
+func _notification(what):
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
+		StaticLoad.click_audio_player.play()
+		if StaticLoad.is_in_game:
+			self.visible = false
+		else:
+			StaticLoad.change_scene("res://Assets/Scenes/Menu.tscn")
+
 func _on_options_button_1_pressed() -> void:
 	StaticLoad.click_audio_player.play()
 	if player_name_line_edit.text == "":

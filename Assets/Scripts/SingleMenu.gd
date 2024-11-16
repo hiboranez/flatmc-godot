@@ -29,8 +29,15 @@ func update_world_list():
 		world_list_vboxcontainer.add_child(selection)
 		selection.init("single_menu")
 		selection.icon = ImageTexture.create_from_image(Image.load_from_file(worlds_path+"/"+world+"/icon.png"))
-		selection.last_modified_label.text = tr("LAST_MODIFIED")+" : "+world_config.get_value("world", "last_modified")
+		selection.last_modified_label.text = tr("LAST_MODIFIED")+" : "+world_config.get_value("world", "last_modified", tr("UNKNOWN"))
+		selection.version_label.text = tr("VERSION")+" : "+world_config.get_value("world", "version", tr("UNKNOWN"))
 		selection.text = "   "+world
+
+func _notification(what):
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
+		StaticLoad.click_audio_player.play()
+		StaticLoad.select_world = null
+		StaticLoad.change_scene("res://Assets/Scenes/Menu.tscn")
 
 func enter_world():
 	StaticLoad.change_scene("res://Assets/Scenes/LoadingWorldUI.tscn")
@@ -60,14 +67,34 @@ func create_world(world_name: String):
 	var level = ConfigFile.new()
 	var current_time = Time.get_datetime_string_from_system(false, true).replace(" ", "  ").replace("-", "/")
 	level.set_value("world", "last_modified", current_time)
+	level.set_value("world", "version", StaticLoad.options["version"])
 	level.save_encrypted_pass(world_path+"/level.dat", StaticLoad.CONFIG_PASSWORD)
 	StaticLoad.select_world = null
+
+func convert_world(old_version):
+	var final_old_version
+	if old_version == "unknown":
+		final_old_version = "0.1.0.1"
+	StaticLoad.convert_world(StaticLoad.select_world, final_old_version)
+	update_world_list()
 
 func _on_single_menu_button_1_pressed() -> void:
 	StaticLoad.click_audio_player.play()
 	if StaticLoad.select_world == null:
 		return
-	enter_world()
+	var worlds_path = "user://worlds"
+	var world_config = ConfigFile.new()
+	var world_info = world_config.load_encrypted_pass(worlds_path+"/"+StaticLoad.select_world+"/level.dat", StaticLoad.CONFIG_PASSWORD)
+	if world_info != OK:
+		return
+	var version_tmp = world_config.get_value("world", "version", "unknown")
+	var compare = StaticLoad.compare_version(StaticLoad.options["version"], version_tmp)
+	if compare == "higher":
+		StaticLoad.pop_secondary_confirmation(self, tr("SECONDARY_CONFIRMATION_2"), Callable(self, "convert_world").bind(version_tmp))
+	elif compare == "lower":
+		StaticLoad.pop_notification(self, tr("WARNING"), tr("WARNING_8"))
+	elif compare == "equal":
+		enter_world()
 
 func _on_single_menu_button_2_pressed() -> void:
 	StaticLoad.click_audio_player.play()

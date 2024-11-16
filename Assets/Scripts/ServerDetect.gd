@@ -4,6 +4,7 @@ extends Control
 
 var is_server_connected: bool = false
 var is_server_info_received: bool = false
+var is_server_version_conflict: bool = false
 var connecting_timer: float = 0.001
 var current_server_name
 #var thread: Thread 
@@ -22,6 +23,7 @@ func start_detecting():
 func detect_all():
 	is_server_connected = false
 	is_server_info_received = false
+	is_server_version_conflict = false
 	connecting_timer = 0.001
 	var server_list = DirAccess.get_files_at(StaticLoad.server_path)
 	for server in server_list:
@@ -52,6 +54,7 @@ func detect_server(server_name, ip, port):
 			StaticLoad.clear_connections()
 		is_server_connected = false
 		is_server_info_received = false
+		is_server_version_conflict = false
 		connecting_timer = 0.001
 		return false
 	StaticLoad.multiplayer.multiplayer_peer = StaticLoad.multiplayer_peer
@@ -65,21 +68,24 @@ func detect_server(server_name, ip, port):
 				StaticLoad.clear_connections()
 			is_server_connected = false
 			is_server_info_received = false
+			is_server_version_conflict = false
 			connecting_timer = 0.001
 			return false
 		connecting_timer += 0.001
 		await get_tree().create_timer(0.001).timeout
 	StaticLoad.rpc_id(1, "request_for_server_state", StaticLoad.multiplayer.get_unique_id())
 	while not is_server_info_received:
-		if connecting_timer > 0.1:
+		if connecting_timer > 0.1 or is_server_version_conflict:
 			@warning_ignore("confusable_local_declaration")
 			var server_selection = server_list_vboxcontainer.get_node(server_name)
 			server_selection.animation.animation = "disconnect"
-			server_selection.online_info_label.text = tr("CANNOT_CONNECT")
+			if not is_server_version_conflict:
+				server_selection.online_info_label.text = tr("CANNOT_CONNECT")
 			if StaticLoad.multiplayer.multiplayer_peer != null and StaticLoad.multiplayer.multiplayer_peer.get_connection_status() != StaticLoad.multiplayer.multiplayer_peer.CONNECTION_DISCONNECTED:
 				StaticLoad.clear_connections()
 			is_server_connected = false
 			is_server_info_received = false
+			is_server_version_conflict = false
 			connecting_timer = 0.001
 			return false
 		connecting_timer += 0.001
@@ -92,5 +98,6 @@ func detect_server(server_name, ip, port):
 	server_selection.animation.frame = StaticLoad.get_level_by_ping(ping)
 	is_server_connected = false
 	is_server_info_received = false
+	is_server_version_conflict = false
 	connecting_timer = 0.001
 	return true

@@ -1,0 +1,29 @@
+[gd_scene load_steps=3 format=3 uid="uid://dg1exet246lpi"]
+
+[ext_resource type="FontFile" uid="uid://csywm01568tlp" path="res://Assets/Fonts/MinecraftAE.ttf" id="1_4sogc"]
+[ext_resource type="Script" path="res://Assets/Scripts/MouseItemNameLabel.gd" id="2_f3m6b"]
+
+[node name="MouseItemNameLabel" type="Label"]
+z_index = 1
+offset_right = 1.0
+offset_bottom = 40.0
+theme_override_fonts/font = ExtResource("1_4sogc")
+theme_override_font_sizes/font_size = 40
+text = "测试"
+vertical_alignment = 1
+script = ExtResource("2_f3m6b")
+
+[node name="Background" type="ColorRect" parent="."]
+z_index = -1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -8.0
+offset_top = -9.0
+offset_right = 6.0
+offset_bottom = 9.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 0.588235)

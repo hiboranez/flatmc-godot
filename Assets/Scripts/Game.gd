@@ -12,6 +12,7 @@ extends Node2D
 @onready var loading_server_ui_scene = load("res://Assets/Scenes/LoadingServerUI.tscn") as PackedScene
 @onready var online_info_scene = load("res://Assets/Scenes/OnlineInfo.tscn") as PackedScene
 @onready var time_counter = load("res://Assets/Scenes/TimeCounter.tscn") as PackedScene
+@onready var inventory_grid = load("res://Assets/Scenes/InventoryGrid.tscn") as PackedScene
 @onready var move_center_button_normal = load("res://Assets/Textures/GUI/move_center_button_normal.tres") as AtlasTexture
 @onready var move_center_button_fly = load("res://Assets/Textures/GUI/move_center_button_fly.tres") as AtlasTexture
 #@onready var player_other_scene = load("res://Assets/Scenes/PlayerOther.tscn") as PackedScene
@@ -44,12 +45,16 @@ extends Node2D
 @onready var move_up_left_button = $MobileUI/MoveButtons/UpLeftButton
 @onready var move_up_right_button = $MobileUI/MoveButtons/UpRightButton
 @onready var move_center_button_icon = $MobileUI/MoveButtons/CenterButton/CenterButton
+@onready var inventory_container = $GameUI/InventoryUI/Panel/InventoryContainer
+@onready var inventory_ui = $GameUI/InventoryUI
 
+var mouse_item_name_label
 var touch_list = []
 var block_selection_timer: float = 0
 var block_selection_box
 var render_chunk: int
 var chunk_to_load = []
+var is_inventory: bool = false
 var is_pause: bool = false
 var is_chat: bool = false
 var is_player_info_updated: bool = false
@@ -167,6 +172,25 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion and not is_pause and not is_chat and not player.is_dead:
 		update_block_selection_ui(get_local_mouse_position(), true)
 	
+	if Input.is_action_just_pressed("esc"):
+		if is_chat:
+			close_chat_ui()
+		if is_inventory:
+			inventory_ui.visible = false
+			is_inventory = false
+			player.stop_player_move()
+		else:
+			pause_ui.visible = !pause_ui.visible
+			is_pause = pause_ui.visible
+			if pause_ui.visible:
+				move_input_list.clear()
+				player.stop_player_move()
+				if StaticLoad.is_muti_mode:
+					player.rpc("remote_stop_player_move")
+	
+	if is_pause:
+		return
+	
 	if Input.is_action_just_pressed("screenshot"):
 		screenshot()
 	
@@ -176,22 +200,21 @@ func _input(event: InputEvent) -> void:
 			
 	if Input.is_action_just_released("online_info"):
 		online_ui.visible = false
-		
-	if Input.is_action_just_pressed("esc"):
-		if is_chat:
-			close_chat_ui()
-			
-		else:
-			pause_ui.visible = !pause_ui.visible
-			is_pause = pause_ui.visible
-			if pause_ui.visible:
-				move_input_list.clear()
-				player.stop_player_move()
-				if StaticLoad.is_muti_mode:
-					player.rpc("remote_stop_player_move")
+	
+	if Input.is_action_just_pressed("inventory"):
+		if is_inventory:
+			inventory_ui.visible = false
+			is_inventory = false
+			move_input_list.clear()
+			player.stop_player_move()
+		elif not is_chat:
+			inventory_ui.visible = true
+			is_inventory = true
+			move_input_list.clear()
+			player.stop_player_move()
 			
 	if Input.is_action_just_pressed("chat"):
-		if not is_chat:
+		if not is_inventory and not is_chat:
 			move_input_list.clear()
 			player.stop_player_move()
 			if StaticLoad.is_muti_mode:
@@ -205,7 +228,7 @@ func _input(event: InputEvent) -> void:
 			chat_line_edit.text = ""
 	
 	if Input.is_action_just_pressed("chat_slash"):
-		if not is_chat:
+		if not is_inventory and not is_chat:
 			move_input_list.clear()
 			player.stop_player_move()
 			if StaticLoad.is_muti_mode:
@@ -218,7 +241,7 @@ func _input(event: InputEvent) -> void:
 			chat_line_edit.grab_focus()
 			chat_line_edit.insert_text_at_caret("/")
 	
-	if is_pause or is_chat:
+	if is_pause or is_chat or is_inventory:
 		return
 	
 	if Input.is_action_just_pressed("switch_ui_visibility"):
@@ -298,7 +321,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		if player.selected_item_grid <= 7:
 			select_item_grid(player.selected_item_grid+2)
 		else:
-			select_item_grid(0)
+			select_item_grid(1)
 			
 	var mouse_in_world_pos = tile_map_layer.get_local_mouse_position()
 	var mouse_to_block_pos = tile_map_layer.local_to_map(mouse_in_world_pos)
@@ -317,7 +340,7 @@ func destroy_block(block_pos: Vector2i):
 				#Input.vibrate_handheld(100, 0.5)
 			if StaticLoad.is_muti_mode:
 				if StaticLoad.multiplayer.get_unique_id() == 1:
-					StaticLoad.rpc("apply_for_set_block", block_pos, 0)
+					StaticLoad.rpc("reply_for_set_block", block_pos, 0)
 				else:
 					StaticLoad.rpc_id(1, "request_for_set_block", block_pos, 0)
 		var chunk_pos = get_chunk_position(block_pos)
@@ -334,7 +357,7 @@ func place_block(block_pos):
 				#Input.vibrate_handheld(100, 0.5)
 			if StaticLoad.is_muti_mode:
 				if StaticLoad.multiplayer.get_unique_id() == 1:
-					StaticLoad.rpc("apply_for_set_block", block_pos, block_id)
+					StaticLoad.rpc("reply_for_set_block", block_pos, block_id)
 				else:
 					StaticLoad.rpc_id(1, "request_for_set_block", block_pos, block_id)
 		var chunk_pos = get_chunk_position(block_pos)
@@ -429,6 +452,9 @@ func create_player(peer_id = 1):
 	if StaticLoad.is_dedicated_server:
 		player_instance.unfreeze_player()
 
+func refresh_item_grid(sort):
+	item_grids[sort].get_node("Icon").texture = load("res://Assets//Textures//Items//"+player.item_bar_names[player.selected_item_grid].to_lower()+".png") as Texture2D
+
 func freeze_game():
 	set_process_unhandled_input(false)
 	set_process(false)
@@ -439,7 +465,7 @@ func unfreeze_game():
 	set_process(true)
 	bgm_audio_player.stream_paused = false
 	player.camera.position_smoothing_enabled = true
-	
+
 func refresh_game():
 	if not StaticLoad.is_muti_mode:
 		return
@@ -471,7 +497,7 @@ func refresh_player():
 				player_tmp.rpc_id(id, "refresh_player", player_tmp.position, player_tmp.face_state, player_tmp.move_state, player_tmp.is_flying)
 
 func update_player_state():
-	if player.is_dead or is_pause or is_chat or player.is_frozen:
+	if player.is_dead or is_pause or is_chat or is_inventory or player.is_frozen:
 		return
 	#if StaticLoad.is_muti_mode and not player.is_multiplayer_authority():
 		#return
@@ -693,6 +719,7 @@ func save_world():
 	var level = ConfigFile.new()
 	var current_time = Time.get_datetime_string_from_system(false, true).replace(" ", "  ").replace("-", "/")
 	level.set_value("world", "last_modified", current_time)
+	level.set_value("world", "version", StaticLoad.options["version"])
 	level.save_encrypted_pass(StaticLoad.world_path+"/level.dat", StaticLoad.CONFIG_PASSWORD)
 
 func save_player(peer_id = 0):
@@ -735,16 +762,42 @@ func save_chunk(chunk_pos: Vector2i):
 	level.save_encrypted_pass(StaticLoad.world_path+"/level.dat", StaticLoad.CONFIG_PASSWORD)
 
 func select_item_grid(grid_name) -> void:
+	if str(grid_name) == "More":
+		if is_inventory:
+			return
+		StaticLoad.click_audio_player.play()
+		inventory_ui.visible = true
+		is_inventory = true
+		move_input_list.clear()
+		player.stop_player_move()
+		return
 	for i in range(9):
 		@warning_ignore("confusable_local_declaration")
-		var children = item_grids[i].get_children()
-		children[1].visible = false
+		item_grids[i].get_node("SelectBar").visible = false
 	var sort = int(str(grid_name))-1
 	player.selected_item_grid = sort
-	var children = item_grids[sort].get_children()
-	children[1].visible = true
+	item_grids[sort].get_node("SelectBar").visible = true
 	item_name_label.text = player.item_bar_names[sort]
 	item_name_timer = StaticLoad.ITEM_NAME_SHOW_TIME
+
+func init_inventory():
+	var count: int = 0
+	for key in StaticLoad.block_ids:
+		if key == "AIR":
+			continue
+		var inventory_grid_instance = inventory_grid.instantiate()
+		inventory_grid_instance.init_inventory_grid(key)
+		inventory_grid_instance.name = str(count)
+		inventory_container.add_child(inventory_grid_instance)
+		count += 1
+
+func touch_button(button_name):
+	StaticLoad.click_audio_player.play()
+	if button_name == "InventoryCloseButton":
+		inventory_ui.visible = false
+		is_inventory = false
+		move_input_list.clear()
+		player.stop_player_move()
 
 func broadcast_to_person(player_name: String, text:String, color="white"):
 	if player_name != player.player_name:

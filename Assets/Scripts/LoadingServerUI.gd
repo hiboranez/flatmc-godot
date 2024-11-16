@@ -9,7 +9,7 @@ var scene_load_progress = []
 var scene_load_status = 0
 var is_server_connected: bool = false
 var is_server_state_checked: bool = false
-var is_connect_interrupt: bool = false
+var connect_interrupt_reason = "null"
 var is_loaded_terrain: bool = false
 var connecting_timer
 var ip
@@ -81,10 +81,13 @@ func connect_server():
 	while not is_server_connected:
 		await get_tree().create_timer(1).timeout
 	title.text = tr("CONNECTION_SUCCESS")
-	StaticLoad.rpc_id(1, "request_for_connect_state_check", StaticLoad.multiplayer.get_unique_id(), player_name)
+	StaticLoad.rpc_id(1, "request_for_connect_state_check", StaticLoad.multiplayer.get_unique_id(), player_name, StaticLoad.options["version"])
 	while not is_server_state_checked:
-		if is_connect_interrupt:
-			title.text = tr("SAME_PLAYER_NAME")
+		if connect_interrupt_reason != "null":
+			if connect_interrupt_reason == "same_player_name":
+				title.text = tr("SAME_PLAYER_NAME")
+			elif connect_interrupt_reason == "version_conflict":
+				title.text = tr("VERSION_CONFLICT")
 			title.set("theme_override_colors/font_color", StaticLoad.colors["pink"])
 			if StaticLoad.multiplayer.multiplayer_peer != null and StaticLoad.multiplayer.multiplayer_peer.get_connection_status() != StaticLoad.multiplayer.multiplayer_peer.CONNECTION_DISCONNECTED:
 				StaticLoad.clear_connections()
