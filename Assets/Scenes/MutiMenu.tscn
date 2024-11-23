@@ -1,10 +1,11 @@
-[gd_scene load_steps=11 format=3 uid="uid://b867dgdjiob65"]
+[gd_scene load_steps=12 format=3 uid="uid://b867dgdjiob65"]
 
 [ext_resource type="Script" path="res://Assets/Scripts/MutiMenu.gd" id="1_0dsvw"]
 [ext_resource type="Script" path="res://Assets/Scripts/ServerDetect.gd" id="2_3xwwm"]
 [ext_resource type="Texture2D" uid="uid://b14xkgu1d1omr" path="res://Assets/Textures/Backgrounds/stone_wall.png" id="2_na4yf"]
 [ext_resource type="FontFile" uid="uid://csywm01568tlp" path="res://Assets/Fonts/MinecraftAE.ttf" id="3_6e6p5"]
 [ext_resource type="Texture2D" uid="uid://b6wbqichdrhpr" path="res://Assets/Textures/GUI/button_normal.png" id="4_3ur2f"]
+[ext_resource type="Script" path="res://Assets/Scripts/DragScroll.gd" id="4_cp3ns"]
 [ext_resource type="Script" path="res://Assets/Scripts/GameButton.gd" id="5_dl57o"]
 [ext_resource type="Texture2D" uid="uid://caueuwmlcmeot" path="res://Assets/Textures/GUI/button_disabled.png" id="6_4bqtk"]
 
@@ -63,6 +64,7 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxEmpty_67wvm")
 vertical_scroll_mode = 3
+script = ExtResource("4_cp3ns")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="ColorRect/ScrollContainer"]
 layout_mode = 2
@@ -614,6 +616,7 @@ grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("4_3ur2f")
 
+[connection signal="gui_input" from="ColorRect/ScrollContainer" to="ColorRect/ScrollContainer" method="_on_scrollcontainer_gui_input"]
 [connection signal="pressed" from="ColorRect/GridContainer/Button1" to="." method="_on_muti_menu_button_1_pressed"]
 [connection signal="pressed" from="ColorRect/GridContainer/Button2" to="." method="_on_muti_menu_button_2_pressed"]
 [connection signal="pressed" from="ColorRect/GridContainer/Button3" to="." method="_on_muti_menu_button_3_pressed"]

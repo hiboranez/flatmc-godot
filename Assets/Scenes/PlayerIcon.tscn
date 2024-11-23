@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://dawffcsxvxlwd"]
+
+[ext_resource type="Texture2D" uid="uid://b1tc1fl4ov1h3" path="res://Assets/Textures/GUI/steve_face.png" id="1_fjpjk"]
+
+[node name="PlayerIcon" type="Sprite2D"]
+texture = ExtResource("1_fjpjk")

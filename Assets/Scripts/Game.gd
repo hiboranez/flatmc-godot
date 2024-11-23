@@ -41,19 +41,29 @@ extends Node2D
 @onready var pause_button_6 = $PauseUI/FlowContainer/Button6
 @onready var players = $Players
 @onready var mobile_ui = $MobileUI
-@onready var move_buttons = $MobileUI/MoveButtons
-@onready var move_up_left_button = $MobileUI/MoveButtons/UpLeftButton
-@onready var move_up_right_button = $MobileUI/MoveButtons/UpRightButton
-@onready var move_center_button_icon = $MobileUI/MoveButtons/CenterButton/CenterButton
+@onready var move_buttons_left = $MobileUI/MoveButtonsLeft
+@onready var move_buttons_right = $MobileUI/MoveButtonsRight
+@onready var move_up_left_button = $MobileUI/MoveButtonsLeft/UpLeftButton
+@onready var move_up_right_button = $MobileUI/MoveButtonsLeft/UpRightButton
+@onready var move_jump_button_icon = $MobileUI/MoveButtonsRight/JumpButton/JumpButton
 @onready var inventory_container = $GameUI/InventoryUI/Panel/InventoryContainer
 @onready var inventory_ui = $GameUI/InventoryUI
-
+@onready var mini_map_camera = $GameUI/MiniMap/SubViewportContainer/SubViewport/Camera2D
+@onready var mini_map_tile_map_layer = $GameUI/MiniMap/SubViewportContainer/SubViewport/TileMapLayer
+@onready var mini_map_players = $GameUI/MiniMap/SubViewportContainer/SubViewport/Players
+@onready var mini_map = $GameUI/MiniMap
+var is_chunk_updating: bool = true
+var player_icons = {}
 var mouse_item_name_label
 var touch_list = []
 var block_selection_timer: float = 0
 var block_selection_box
+var mini_map_on
+var mini_map_zoom: float
 var render_chunk: int
 var chunk_to_load = []
+var is_input_frozen: bool = false
+var is_map: bool = false
 var is_inventory: bool = false
 var is_pause: bool = false
 var is_chat: bool = false
@@ -80,6 +90,10 @@ func _notification(what):
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
 		save_world()
 		save_player()
+		var change_value = {
+			"mini_map_zoom": str(int(mini_map_camera.zoom[0]*100))
+		}
+		StaticLoad.save_options(change_value)
 		if not StaticLoad.is_muti_mode:
 			print("窗口意外关闭，游戏已自动保存")
 	elif what == NOTIFICATION_WM_GO_BACK_REQUEST:
@@ -91,6 +105,7 @@ func _notification(what):
 			pause_ui.visible = !pause_ui.visible
 			is_pause = pause_ui.visible
 			if pause_ui.visible:
+				is_input_frozen = true
 				move_input_list.clear()
 				player.stop_player_move()
 				if StaticLoad.is_muti_mode:
@@ -124,14 +139,24 @@ func _process(delta: float) -> void:
 	if StaticLoad.is_dedicated_server:
 		return
 	
+	check_emulate_mouse_from_touch()
 	update_details(false)
 	update_player_state()
+	update_mini_map()
 	show_item_name(delta)
 	update_block_selection_timer(delta)
 	if not StaticLoad.is_on_mobile_platform:
 		update_block_selection_ui(get_local_mouse_position())
 	update_last_mouse_in_world_pos()
 	process_touch_input()
+
+func update_mini_map():
+	mini_map_camera.position = player.camera.get_screen_center_position()
+	var icon_scale = StaticLoad.MINI_MAP_SCALE_FACTOR/mini_map_camera.zoom[0]
+	var half_icon_size = StaticLoad.MINI_MAP_ICON_SIZE*icon_scale*0.5
+	for player_tmp in players.get_children():
+		if player_icons.has(player_tmp.player_name):
+			player_icons[player_tmp.player_name].position = player_tmp.position-Vector2(0, half_icon_size)
 
 func open_online_info_ui():
 	online_ui.visible = true
@@ -169,26 +194,84 @@ func screenshot():
 @warning_ignore("unused_parameter")
 func _input(event: InputEvent) -> void:
 	
-	if event is InputEventMouseMotion and not is_pause and not is_chat and not player.is_dead:
+	if event is InputEventMouseMotion and not is_input_frozen and not player.is_dead:
 		update_block_selection_ui(get_local_mouse_position(), true)
 	
 	if Input.is_action_just_pressed("esc"):
 		if is_chat:
 			close_chat_ui()
-		if is_inventory:
+		elif is_map:
+			mini_map.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+			mini_map.size = Vector2(270, 270)
+			mini_map.position = Vector2(get_viewport_rect().size[0]-270, 0)
+			move_input_list.clear()
+			player.stop_player_move()
+			is_map = false
+			is_input_frozen = false
+		elif is_inventory:
 			inventory_ui.visible = false
+			is_input_frozen = false
 			is_inventory = false
 			player.stop_player_move()
 		else:
 			pause_ui.visible = !pause_ui.visible
 			is_pause = pause_ui.visible
+			is_input_frozen = is_pause
 			if pause_ui.visible:
 				move_input_list.clear()
 				player.stop_player_move()
 				if StaticLoad.is_muti_mode:
 					player.rpc("remote_stop_player_move")
 	
-	if is_pause:
+	if Input.is_action_just_pressed("inventory"):
+		if is_pause:
+			pass
+		elif is_map:
+			mini_map.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+			mini_map.size = Vector2(270, 270)
+			mini_map.position = Vector2(get_viewport_rect().size[0]-270, 0)
+			move_input_list.clear()
+			player.stop_player_move()
+			is_map = false
+			is_input_frozen = false
+		elif is_inventory:
+			inventory_ui.visible = false
+			is_input_frozen = false
+			is_inventory = false
+			move_input_list.clear()
+			player.stop_player_move()
+		elif not is_chat:
+			is_input_frozen = true
+			inventory_ui.visible = true
+			is_inventory = true
+			move_input_list.clear()
+			player.stop_player_move()
+	
+	if Input.is_action_just_pressed("open_map"):
+		if is_pause or is_chat or is_inventory:
+			pass
+		elif is_map:
+			mini_map.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+			mini_map.size = Vector2(270, 270)
+			mini_map.position = Vector2(get_viewport_rect().size[0]-270, 0)
+			move_input_list.clear()
+			player.stop_player_move()
+			if StaticLoad.is_muti_mode:
+				player.rpc("remote_stop_player_move")
+			is_map = false
+			is_input_frozen = false
+		else:
+			mini_map.set_anchors_preset(Control.PRESET_FULL_RECT)
+			mini_map.size = get_viewport_rect().size
+			mini_map.position = Vector2(0, 0)
+			move_input_list.clear()
+			player.stop_player_move()
+			if StaticLoad.is_muti_mode:
+				player.rpc("remote_stop_player_move")
+			is_map = true
+			is_input_frozen = true
+	
+	if is_input_frozen:
 		return
 	
 	if Input.is_action_just_pressed("screenshot"):
@@ -200,49 +283,39 @@ func _input(event: InputEvent) -> void:
 			
 	if Input.is_action_just_released("online_info"):
 		online_ui.visible = false
-	
-	if Input.is_action_just_pressed("inventory"):
-		if is_inventory:
-			inventory_ui.visible = false
-			is_inventory = false
-			move_input_list.clear()
-			player.stop_player_move()
-		elif not is_chat:
-			inventory_ui.visible = true
-			is_inventory = true
-			move_input_list.clear()
-			player.stop_player_move()
 			
 	if Input.is_action_just_pressed("chat"):
-		if not is_inventory and not is_chat:
-			move_input_list.clear()
-			player.stop_player_move()
-			if StaticLoad.is_muti_mode:
-				player.rpc("remote_stop_player_move")
-			is_chat = true
-			chat_message_out.visible = false
-			chat_panel.visible = true
-			chat_history_in.scroll_vertical = 1e9
-			await get_tree().create_timer(0.01).timeout
-			chat_line_edit.grab_focus()
-			chat_line_edit.text = ""
+		move_input_list.clear()
+		player.stop_player_move()
+		if StaticLoad.is_muti_mode:
+			player.rpc("remote_stop_player_move")
+		is_input_frozen = true
+		is_chat = true
+		chat_message_out.visible = false
+		chat_panel.visible = true
+		await get_tree().create_timer(0.001).timeout
+		chat_history_in.scroll_vertical = 1e9
+		chat_line_edit.grab_focus()
+		chat_line_edit.text = ""
+	
+	if Input.is_action_just_pressed("grab_item"):
+		var mouse_in_world_pos = tile_map_layer.get_local_mouse_position()
+		var mouse_to_block_pos = tile_map_layer.local_to_map(mouse_in_world_pos)
+		grab_item(mouse_to_block_pos)
 	
 	if Input.is_action_just_pressed("chat_slash"):
-		if not is_inventory and not is_chat:
-			move_input_list.clear()
-			player.stop_player_move()
-			if StaticLoad.is_muti_mode:
-				player.rpc("remote_stop_player_move")
-			is_chat = true
-			chat_message_out.visible = false
-			chat_panel.visible = true
-			chat_history_in.scroll_vertical = 1e9
-			await get_tree().create_timer(0.01).timeout
-			chat_line_edit.grab_focus()
-			chat_line_edit.insert_text_at_caret("/")
-	
-	if is_pause or is_chat or is_inventory:
-		return
+		move_input_list.clear()
+		player.stop_player_move()
+		if StaticLoad.is_muti_mode:
+			player.rpc("remote_stop_player_move")
+		is_input_frozen = true
+		is_chat = true
+		chat_message_out.visible = false
+		chat_panel.visible = true
+		chat_history_in.scroll_vertical = 1e9
+		await get_tree().create_timer(0.01).timeout
+		chat_line_edit.grab_focus()
+		chat_line_edit.insert_text_at_caret("/")
 	
 	if Input.is_action_just_pressed("switch_ui_visibility"):
 		switch_ui_visibility()
@@ -270,9 +343,13 @@ func _input(event: InputEvent) -> void:
 		select_item_grid(9)
 
 func process_touch_input():
+	if is_input_frozen:
+		return
+	
 	for touch in touch_list:
 		if touch.double_tap:
 			place_block(tile_map_layer.local_to_map(camera_screen_pos_to_local_pos(player.camera, touch.position)))
+			grab_item(tile_map_layer.local_to_map(camera_screen_pos_to_local_pos(player.camera, touch.position)))
 		else:
 			var pressed_time = touch_time_counters.get_node(str(touch.index)).timer
 			if pressed_time >= StaticLoad.LONG_TOUCH_TIME:
@@ -280,7 +357,37 @@ func process_touch_input():
 
 @warning_ignore("unused_parameter")
 func _unhandled_input(event: InputEvent) -> void:
-	if is_pause or is_chat:
+	if Input.is_action_just_released("mouse_scroll_down"):
+		if Input.is_action_pressed("ctrl"):
+			if mini_map_camera.zoom[0] >= 0.2:
+				mini_map_camera.zoom -= Vector2(0.1, 0.1)
+			if mini_map_camera.zoom[0] < 0.1:
+				mini_map_camera.zoom = Vector2(0.1, 0.1)
+			var icon_scale = StaticLoad.MINI_MAP_SCALE_FACTOR/mini_map_camera.zoom[0]
+			for player_icon in mini_map_players.get_children():
+				player_icon.scale = Vector2(icon_scale, icon_scale)
+		else:
+			if player.selected_item_grid >= 1:
+				select_item_grid(player.selected_item_grid)
+			else:
+				select_item_grid(9)
+	
+	if Input.is_action_just_released("mouse_scroll_up"):
+		if Input.is_action_pressed("ctrl"):
+			if mini_map_camera.zoom[0] <= 0.9:
+				mini_map_camera.zoom += Vector2(0.1, 0.1)
+			if mini_map_camera.zoom[0] > 1:
+				mini_map_camera.zoom = Vector2(1, 1)
+			var icon_scale = StaticLoad.MINI_MAP_SCALE_FACTOR/mini_map_camera.zoom[0]
+			for player_icon in mini_map_players.get_children():
+				player_icon.scale = Vector2(icon_scale, icon_scale)
+		else:
+			if player.selected_item_grid <= 7:
+				select_item_grid(player.selected_item_grid+2)
+			else:
+				select_item_grid(1)
+	
+	if is_input_frozen:
 		return
 	
 	if event is InputEventScreenTouch:
@@ -310,18 +417,6 @@ func _unhandled_input(event: InputEvent) -> void:
 			if touch.index == event.index:
 				touch.position = event.position
 				break
-	
-	if Input.is_action_just_released("mouse_scroll_down"):
-		if player.selected_item_grid >= 1:
-			select_item_grid(player.selected_item_grid)
-		else:
-			select_item_grid(9)
-	
-	if Input.is_action_just_released("mouse_scroll_up"):
-		if player.selected_item_grid <= 7:
-			select_item_grid(player.selected_item_grid+2)
-		else:
-			select_item_grid(1)
 			
 	var mouse_in_world_pos = tile_map_layer.get_local_mouse_position()
 	var mouse_to_block_pos = tile_map_layer.local_to_map(mouse_in_world_pos)
@@ -331,6 +426,30 @@ func _unhandled_input(event: InputEvent) -> void:
 	if mouse_in_world_pos != last_mouse_in_world_pos and Input.is_action_pressed("mouse_right"):
 		place_block(mouse_to_block_pos)
 
+
+func grab_item(block_pos):
+	var block_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(block_pos))
+	var player_select_sort = player.selected_item_grid
+	if block_id == 0:
+		return
+	if block_id == StaticLoad.get_block_id_by_name(player.item_bar_names[player.selected_item_grid]):
+		return
+	var existed_item_grid_sort = -1
+	for i in range(9):
+		if StaticLoad.get_block_id_by_name(player.item_bar_names[i]) == block_id:
+			existed_item_grid_sort = i
+			break
+	if player_select_sort == existed_item_grid_sort:
+		return
+	if existed_item_grid_sort != -1:
+		select_item_grid(existed_item_grid_sort+1)
+	else:
+		player.item_bar_names[player_select_sort] = StaticLoad.get_block_name_by_id(block_id)
+		refresh_item_grid(player_select_sort)
+		sound_audio_manager.play_audio_static("player", "pop")
+		item_name_label.text = player.item_bar_names[player_select_sort]
+		item_name_timer = StaticLoad.ITEM_NAME_SHOW_TIME
+	
 func destroy_block(block_pos: Vector2i):
 	var block_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(block_pos))
 	if tile_map_layer.get_cell_source_id(block_pos) != -1 and block_id != 0:
@@ -377,7 +496,24 @@ func init_game_as_single():
 	var result = config.load("user://configs.cfg")
 	if result == OK:
 		render_chunk = int(config.get_value("options", "render_chunk", StaticLoad.options["render_chunk"]))
+		if render_chunk > StaticLoad.RENDER_CHUNK_MAX:
+			render_chunk = StaticLoad.RENDER_CHUNK_MAX
+		if render_chunk < StaticLoad.RENDER_CHUNK_MIN:
+			render_chunk = StaticLoad.RENDER_CHUNK_MIN
 		block_selection_box = config.get_value("options", "block_selection_box", StaticLoad.options["block_selection_box"])
+		mini_map_on = config.get_value("options", "mini_map", StaticLoad.options["mini_map"])
+		mini_map_zoom = float(config.get_value("options", "mini_map_zoom", StaticLoad.options["mini_map_zoom"]))
+		bgm_audio_player.volume_db = linear_to_db(int(config.get_value("options", "bgm_volume", StaticLoad.options["bgm_volume"]))/50.0)
+		sound_audio_manager.volume_db = linear_to_db(int(config.get_value("options", "sound_volume", StaticLoad.options["sound_volume"]))/50.0)
+		var mini_map_zoom_tmp = mini_map_zoom/100
+		mini_map_camera.zoom = Vector2(mini_map_zoom_tmp, mini_map_zoom_tmp)
+		var icon_scale = StaticLoad.MINI_MAP_SCALE_FACTOR/mini_map_camera.zoom[0]
+		for player_icon in mini_map_players.get_children():
+			player_icon.scale = Vector2(icon_scale, icon_scale)
+		if mini_map_on == "off":
+			mini_map.visible = false
+		elif mini_map_on == "on":
+			mini_map.visible = true
 		#player.player_name = config.get_value("options", "player_name", StaticLoad.options["player_name"])
 		#player.name_label.text = player.player_name
 		#var fov_zoom = 1+1.6*(int(config.get_value("options", "fov_zoom", StaticLoad.options["fov_zoom"]))/100.0)
@@ -422,6 +558,23 @@ func init_game_as_client():
 		return
 	render_chunk = int(config.get_value("options", "render_chunk", StaticLoad.options["render_chunk"]))
 	block_selection_box = config.get_value("options", "block_selection_box", StaticLoad.options["block_selection_box"])
+	mini_map_on = config.get_value("options", "mini_map", StaticLoad.options["mini_map"])
+	mini_map_zoom = float(config.get_value("options", "mini_map_zoom", StaticLoad.options["mini_map_zoom"]))
+	bgm_audio_player.volume_db = linear_to_db(int(config.get_value("options", "bgm_volume", StaticLoad.options["bgm_volume"]))/50.0)
+	sound_audio_manager.volume_db = linear_to_db(int(config.get_value("options", "sound_volume", StaticLoad.options["sound_volume"]))/50.0)
+	var mini_map_zoom_tmp = mini_map_zoom/100
+	mini_map_camera.zoom = Vector2(mini_map_zoom_tmp, mini_map_zoom_tmp)
+	var icon_scale = StaticLoad.MINI_MAP_SCALE_FACTOR/mini_map_camera.zoom[0]
+	for player_icon in mini_map_players.get_children():
+		player_icon.scale = Vector2(icon_scale, icon_scale)
+	if mini_map_on == "off":
+		mini_map.visible = false
+	elif mini_map_on == "on":
+		mini_map.visible = true
+	if render_chunk > StaticLoad.RENDER_CHUNK_MAX:
+		render_chunk = StaticLoad.RENDER_CHUNK_MAX
+	if render_chunk < StaticLoad.RENDER_CHUNK_MIN:
+		render_chunk = StaticLoad.RENDER_CHUNK_MIN
 	var player_pos = tile_map_layer.local_to_map(player.position)
 	var chunk_pos = get_chunk_position(player_pos)
 	var x_player_chunk = chunk_pos[0]
@@ -454,6 +607,14 @@ func create_player(peer_id = 1):
 
 func refresh_item_grid(sort):
 	item_grids[sort].get_node("Icon").texture = load("res://Assets//Textures//Items//"+player.item_bar_names[player.selected_item_grid].to_lower()+".png") as Texture2D
+
+func check_emulate_mouse_from_touch():
+	if is_input_frozen:
+		if not Input.emulate_mouse_from_touch:
+			Input.emulate_mouse_from_touch = true
+	else:
+		if Input.emulate_mouse_from_touch:
+			Input.emulate_mouse_from_touch = false
 
 func freeze_game():
 	set_process_unhandled_input(false)
@@ -496,8 +657,14 @@ func refresh_player():
 					continue
 				player_tmp.rpc_id(id, "refresh_player", player_tmp.position, player_tmp.face_state, player_tmp.move_state, player_tmp.is_flying)
 
+func update_jump_button():
+	if player.is_flying:
+		move_jump_button_icon.texture = move_center_button_fly
+	else:
+		move_jump_button_icon.texture = move_center_button_normal
+
 func update_player_state():
-	if player.is_dead or is_pause or is_chat or is_inventory or player.is_frozen:
+	if player.is_dead or player.is_frozen or is_input_frozen:
 		return
 	#if StaticLoad.is_muti_mode and not player.is_multiplayer_authority():
 		#return
@@ -516,10 +683,7 @@ func update_player_state():
 		var current_time = Time.get_ticks_msec() / 1000.0
 		if current_time - last_jump_time < StaticLoad.DOUBLE_CLICK_THRESHOLD:
 			player.is_flying = not player.is_flying
-			if player.is_flying:
-				move_center_button_icon.texture = move_center_button_fly
-			else:
-				move_center_button_icon.texture = move_center_button_normal
+			update_jump_button()
 		last_jump_time = current_time
 	
 	if Input.is_action_just_pressed("move_left"):
@@ -571,9 +735,10 @@ func update_player_state():
 
 func close_chat_ui():
 	is_chat = false
+	is_input_frozen = false
 	chat_panel.visible = false
 	chat_message_out.visible = true
-	await get_tree().create_timer(0.001).timeout
+	await get_tree().create_timer(0.01).timeout
 	chat_history_in.scroll_vertical = 1e9
 	chat_history_out.scroll_vertical = 1e9
 	chat_line_edit.text = ""
@@ -595,7 +760,7 @@ func update_last_mouse_in_world_pos():
 
 func update_block_selection_timer(delta):
 	if block_selection_box == "show_when_changing":
-		if is_pause:
+		if is_input_frozen:
 			block_selection_timer = 0
 		if block_selection_timer > 0 and block_selection_timer <= StaticLoad.BLOCK_SELECTION_DISAPPEAR_TIME:
 			var alpha = block_selection_timer/StaticLoad.BLOCK_SELECTION_DISAPPEAR_TIME
@@ -656,6 +821,8 @@ func get_chunk_position(block_pos: Vector2i):
 	return Vector2i(x_chunk, y_chunk)
 
 func update_new_chunk(is_pre_load: bool):
+	if not is_chunk_updating:
+		return
 	var player_pos = tile_map_layer.local_to_map(player.position)
 	var chunk_pos = get_chunk_position(player_pos)
 	var x_player_chunk = chunk_pos[0]
@@ -667,6 +834,7 @@ func update_new_chunk(is_pre_load: bool):
 				if not loaded_chunks.has(str(x)+"."+str(y)):
 					if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() != 1:
 						StaticLoad.rpc_id(1, "request_for_update_chunk", StaticLoad.multiplayer.get_unique_id(), x, y)
+						loaded_chunks[str(x)+"."+str(y)] = false #防止重复向服务器发送申请
 					else:
 						var mca = ConfigFile.new()
 						var blocks = StaticLoad.generate_chunk(Vector2i(x, y))
@@ -691,6 +859,7 @@ func set_block(block_pos: Vector2i, block_id: int, is_pre_load = false):
 			var atlas_coords = tile_map_layer.get_cell_atlas_coords(block_pos)
 			sound_audio_manager.play_random_audio_at_position("dig", StaticLoad.get_block_type_by_id(StaticLoad.get_block_id_by_atlas_coords(atlas_coords)), tile_map_layer.map_to_local(block_pos))
 		tile_map_layer.set_cell(block_pos)
+		mini_map_tile_map_layer.set_cell(block_pos)
 		return true
 	if tile_map_layer.get_cell_source_id(block_pos) != -1:
 		return false
@@ -704,6 +873,7 @@ func set_block(block_pos: Vector2i, block_id: int, is_pre_load = false):
 				return false
 	var atlas_coords = StaticLoad.get_atlas_coords_by_block_id(block_id)
 	tile_map_layer.set_cell(block_pos, 9999, atlas_coords)
+	mini_map_tile_map_layer.set_cell(block_pos, 9999, atlas_coords)
 	if not is_pre_load:
 		sound_audio_manager.play_random_audio_at_position("dig", StaticLoad.get_block_type_by_id(block_id), tile_map_layer.map_to_local(block_pos))
 	return true
@@ -768,6 +938,7 @@ func select_item_grid(grid_name) -> void:
 		StaticLoad.click_audio_player.play()
 		inventory_ui.visible = true
 		is_inventory = true
+		is_input_frozen = true
 		move_input_list.clear()
 		player.stop_player_move()
 		return
@@ -794,8 +965,10 @@ func init_inventory():
 func touch_button(button_name):
 	StaticLoad.click_audio_player.play()
 	if button_name == "InventoryCloseButton":
+		await get_tree().create_timer(0.01).timeout
 		inventory_ui.visible = false
 		is_inventory = false
+		is_input_frozen = false
 		move_input_list.clear()
 		player.stop_player_move()
 
@@ -811,10 +984,10 @@ func broadcast_to_person(player_name: String, text:String, color="white"):
 		messgae_out_instance.set("theme_override_colors/font_color", StaticLoad.colors[color])
 	chat_message_in.add_child(messgae_in_instance)
 	chat_message_out.add_child(messgae_out_instance)
-	await get_tree().create_timer(0.001).timeout
+	await get_tree().create_timer(0.01).timeout
 	if is_chat:
 		chat_message_out.visible = false
-		chat_history_in.scroll_vertical = 1e9
+	chat_history_in.scroll_vertical = 1e9
 	messgae_out_instance.is_disappearing = true
 	messgae_out_instance.detect_and_disappear()
 	
@@ -828,10 +1001,10 @@ func broadcast_to_all(text:String, color="white"):
 		messgae_out_instance.set("theme_override_colors/font_color", StaticLoad.colors[color])
 	chat_message_in.add_child(messgae_in_instance)
 	chat_message_out.add_child(messgae_out_instance)
-	await get_tree().create_timer(0.001).timeout
+	await get_tree().create_timer(0.01).timeout
 	if is_chat:
 		chat_message_out.visible = false
-		chat_history_in.scroll_vertical = 1e9
+	chat_history_in.scroll_vertical = 1e9
 	messgae_out_instance.is_disappearing = true
 	messgae_out_instance.detect_and_disappear()
 
@@ -841,9 +1014,11 @@ func _on_pause_button_1_pressed() -> void:
 		Input.emulate_mouse_from_touch = false
 	pause_ui.visible = false
 	is_pause = false
+	is_input_frozen = false
 
 func _on_pause_button_2_pressed() -> void:
 	StaticLoad.click_audio_player.play()
+	options_ui.load_in_game_options()
 	options_ui.visible = true
 
 func _on_pause_button_3_pressed() -> void:
@@ -854,6 +1029,7 @@ func _on_pause_button_4_pressed() -> void:
 	StaticLoad.click_audio_player.play()
 	pause_ui.visible = false
 	is_pause = false
+	is_input_frozen = false
 	StaticLoad.start_server()
 
 func _on_pause_button_5_pressed() -> void:
@@ -865,6 +1041,10 @@ func _on_pause_button_5_pressed() -> void:
 		StaticLoad.clear_connections()
 		ServiceDiscovery.close_server()
 		StaticLoad.is_muti_mode = false
+	var change_value = {
+		"mini_map_zoom": str(int(mini_map_camera.zoom[0]*100))
+	}
+	StaticLoad.save_options(change_value)
 	StaticLoad.is_in_game = false
 	StaticLoad.change_scene("res://Assets/Scenes/Menu.tscn")
 	
@@ -893,7 +1073,7 @@ func _on_chat_line_edit_text_submitted(new_text: String) -> void:
 			player.send_message(text)
 		else:
 			player.send_command(text)
-	await get_tree().create_timer(0.001).timeout
+	await get_tree().create_timer(0.01).timeout
 	chat_history_in.scroll_vertical = 1e9
 	chat_history_out.scroll_vertical = 1e9
 	if is_chat:
@@ -908,7 +1088,8 @@ func _on_chat_history_out_pre_sort_children() -> void:
 func _on_mobile_f1_button_pressed():
 	StaticLoad.click_audio_player.play()
 	switch_ui_visibility()
-	move_buttons.visible = game_ui.visible
+	move_buttons_left.visible = game_ui.visible
+	move_buttons_right.visible = game_ui.visible
 
 func _on_mobile_f2_button_pressed():
 	StaticLoad.click_audio_player.play()
@@ -932,11 +1113,12 @@ func _on_mobile_chat_button_pressed():
 		player.stop_player_move()
 		if StaticLoad.is_muti_mode:
 			player.rpc("remote_stop_player_move")
+		is_input_frozen = true
 		is_chat = true
 		chat_message_out.visible = false
 		chat_panel.visible = true
+		await get_tree().create_timer(0.001).timeout
 		chat_history_in.scroll_vertical = 1e9
-		await get_tree().create_timer(0.01).timeout
 		chat_line_edit.grab_focus()
 		chat_line_edit.text = ""
 		Input.emulate_mouse_from_touch = true
@@ -953,11 +1135,35 @@ func _on_mobile_pause_button_pressed():
 		pause_ui.visible = !pause_ui.visible
 		is_pause = pause_ui.visible
 		if pause_ui.visible:
+			is_input_frozen = true
 			move_input_list.clear()
 			player.stop_player_move()
 			if StaticLoad.is_muti_mode:
 				player.rpc("remote_stop_player_move")
 		Input.emulate_mouse_from_touch = true
+
+func _on_mobile_map_button_pressed():
+	StaticLoad.click_audio_player.play()
+	mini_map.set_anchors_preset(Control.PRESET_FULL_RECT)
+	mini_map.size = get_viewport_rect().size
+	mini_map.position = Vector2(0, 0)
+	move_input_list.clear()
+	player.stop_player_move()
+	if StaticLoad.is_muti_mode:
+		player.rpc("remote_stop_player_move")
+	is_input_frozen = true
+	is_map = true
+
+func _on_mobile_map_button_released():
+	mini_map.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	mini_map.size = Vector2(270, 270)
+	mini_map.position = Vector2(get_viewport_rect().size[0]-270, 0)
+	move_input_list.clear()
+	player.stop_player_move()
+	if StaticLoad.is_muti_mode:
+		player.rpc("remote_stop_player_move")
+	is_input_frozen = false
+	is_map = false
 
 func _on_mobile_move_button_up_pressed():
 	Input.action_release("down")
@@ -1036,3 +1242,13 @@ func _on_mobile_move_button_down_right_pressed():
 		Input.action_press("down")
 	if not Input.is_action_pressed("move_right"):
 		Input.action_press("move_right")
+
+func _on_mobile_move_button_jump_pressed():
+	Input.action_release("down")
+	Input.action_release("move_left")
+	Input.action_release("move_right")
+	if not Input.is_action_pressed("jump"):
+		Input.action_press("jump")
+		
+func _on_mobile_move_button_jump_released():
+	Input.action_release("jump")

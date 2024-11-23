@@ -1,6 +1,7 @@
 extends Node2D
 
 @onready var select = load("res://Assets//Sounds//GUI//select.mp3") as AudioStream
+@onready var pop = load("res://Assets//Sounds//Player//pop.mp3") as AudioStream
 @onready var dig_cloth1 = load("res://Assets//Sounds//Dig//cloth1.mp3") as AudioStream
 @onready var dig_cloth2 = load("res://Assets//Sounds//Dig//cloth2.mp3") as AudioStream
 @onready var dig_cloth3 = load("res://Assets//Sounds//Dig//cloth3.mp3") as AudioStream
@@ -116,6 +117,9 @@ func play_audio_static(type, sub_type):
 	if type == "gui":
 		if sub_type == "select":
 			audio_player.stream = select
+	elif type == "player":
+		if sub_type == "pop":
+			audio_player.stream = pop
 	audio_player.connect("finished", _on_audio_finished.bind(audio_player))
 	add_child(audio_player)
 	audio_player.play()

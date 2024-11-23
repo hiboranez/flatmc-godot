@@ -51,7 +51,7 @@ func _ready():
 
 func _process(delta: float) -> void:
 	update_gravity(delta)
-	update_move_by_player_state()
+	update_move_by_player_state(delta)
 	move_and_slide()
 	update_player_sound(delta)
 	
@@ -79,9 +79,16 @@ func init(peer_id):
 				face_state = player_config.get_value("player", "face_state", StaticLoad.DEFAULT_PLAYER_FACE_STATE)
 				turn_state = face_state
 				is_flying = player_config.get_value("player", "is_flying", StaticLoad.DEFAULT_PLAYER_IS_FLYING)
-		if face_state == 1:
-			player_model.look_at(player_model.position + Vector3.BACK)
+		update_player_rotation()
 		StaticLoad.game.update_new_chunk(true)
+	
+	var player_icon_instance = StaticLoad.player_icon_scene.instantiate()
+	var mini_map_camera_zoom = StaticLoad.game.mini_map_camera.zoom[0]
+	var player_icon_scale = StaticLoad.MINI_MAP_SCALE_FACTOR/mini_map_camera_zoom
+	player_icon_instance.scale = Vector2(player_icon_scale, player_icon_scale)
+	player_icon_instance.name = player_name
+	StaticLoad.game.player_icons[player_name] = player_icon_instance
+	StaticLoad.game.mini_map_players.add_child(player_icon_instance)
 	
 	if is_other:
 		camera.queue_free()
@@ -152,11 +159,10 @@ func update_player_sound(delta):
 func update_gravity(delta):
 	if is_flying or is_frozen:
 		return
-	
 	if not is_on_floor():
 		velocity += get_gravity() * delta
 
-func update_move_by_player_state():
+func update_move_by_player_state(delta):
 	if is_frozen:
 		return
 	
@@ -178,15 +184,14 @@ func update_move_by_player_state():
 			velocity.y = 0
 	last_is_down_pressed = is_down_pressed
 	
-	var looking_at = Vector3(0, 90+turn_state*90, 0)
-	player_model.rotation_degrees = looking_at
-	turn_state = turn_state*0.95+face_state*0.05
-	if abs(turn_state-face_state)<0.01:
-		turn_state = face_state
-	#if face_state == -1:
-		#player_model.look_at(player_model.position + Vector3.FORWARD)
-	#elif face_state == 1:
-		#player_model.look_at(player_model.position + Vector3.BACK)
+	if abs(turn_state-face_state) > 0.01:
+		update_player_rotation()
+		var turn_amplitude = delta/StaticLoad.TURN_TIME
+		if turn_amplitude > 1:
+			turn_amplitude = 1
+		turn_state = turn_state*(1-turn_amplitude)+face_state*turn_amplitude
+		if abs(turn_state-face_state)<0.01:
+			turn_state = face_state
 	
 	if move_state == "run":
 		player_animation.play("run")
@@ -203,6 +208,10 @@ func update_move_by_player_state():
 	elif move_state == "stand":
 		player_animation.play("idle")
 		velocity.x = 0
+
+func update_player_rotation():
+	var looking_at = Vector3(0, 90+turn_state*90*StaticLoad.TURN_STATE_SCALE_FACTOR, 0)
+	player_model.rotation_degrees = looking_at
 
 func send_message(message: String):
 	var player_name_mesage =  "<"+player_name+">  "+message
@@ -227,7 +236,9 @@ func send_command(command: String):
 			if abs(x) >= 200000 or abs(y) >= 200000:
 				StaticLoad.game.broadcast_to_person(player_name, tr("RANGE_LIMIT"), "pink")
 			else:
+				StaticLoad.game.is_chunk_updating = false
 				position = Vector2i(x*50+25, -y*50+50)
+				StaticLoad.game.is_chunk_updating = true
 				StaticLoad.game.broadcast_to_person(player_name, tr("TELEPORT_INFO_1")+player_name+tr("TELEPORT_INFO_2")+"x="+str(x)+", y="+str(y), "chartreuse")
 		else:
 			StaticLoad.game.broadcast_to_person(player_name, tr("USAGE")+" : "+StaticLoad.commands["/tp"], "gold")
@@ -261,9 +272,22 @@ func init_player(peer_id, player_name, pos, face_state, is_flying):
 	self.face_state = face_state
 	self.is_flying = is_flying
 	self.unfreeze_player()
+	update_player_rotation()
+	
 	StaticLoad.online_peer_ids[peer_id] = StaticLoad.game.players.get_node(str(peer_id))
 	StaticLoad.game.update_new_chunk(true)
 	StaticLoad.game.update_details()
+	
+	if peer_id == StaticLoad.multiplayer.get_unique_id():
+		return
+	
+	var player_icon_instance = StaticLoad.player_icon_scene.instantiate()
+	var mini_map_camera_zoom = StaticLoad.game.mini_map_camera.zoom[0]
+	var player_icon_scale = StaticLoad.MINI_MAP_SCALE_FACTOR/mini_map_camera_zoom
+	player_icon_instance.scale = Vector2(player_icon_scale, player_icon_scale)
+	player_icon_instance.name = player_name
+	StaticLoad.game.player_icons[player_name] = player_icon_instance
+	StaticLoad.game.mini_map_players.add_child(player_icon_instance)
 
 @rpc("authority", "call_remote", "reliable", 1)
 @warning_ignore("shadowed_variable")

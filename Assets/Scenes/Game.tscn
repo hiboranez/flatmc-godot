@@ -1,4 +1,4 @@
-[gd_scene load_steps=57 format=3 uid="uid://2hv5eany3vpf"]
+[gd_scene load_steps=60 format=3 uid="uid://2hv5eany3vpf"]
 
 [ext_resource type="Script" path="res://Assets/Scripts/Game.gd" id="1_ctu8j"]
 [ext_resource type="Script" path="res://Assets/Scripts/BgmAudioPlayer.gd" id="2_gyse0"]
@@ -31,17 +31,18 @@
 [ext_resource type="Texture2D" uid="uid://cb3c6rd57rnuu" path="res://Assets/Textures/GUI/transparent_background.png" id="18_sydpy"]
 [ext_resource type="PackedScene" uid="uid://dgk4c6ipagqa4" path="res://Assets/Scenes/Language.tscn" id="19_6nn42"]
 [ext_resource type="Texture2D" uid="uid://18usdnqj200e" path="res://Assets/Textures/GUI/more_ui.png" id="21_gulf0"]
+[ext_resource type="Theme" uid="uid://do1xfdxltcv20" path="res://Assets/Themes/gui_theme.tres" id="31_nincb"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_6ugo2"]
 size = Vector2(125, 125)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_b3kjx"]
-atlas = ExtResource("2_mnda3")
-region = Rect2(200, 64, 18, 18)
-
 [sub_resource type="AtlasTexture" id="AtlasTexture_tsrx7"]
 atlas = ExtResource("2_mnda3")
 region = Rect2(200, 82, 18, 18)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_b3kjx"]
+atlas = ExtResource("2_mnda3")
+region = Rect2(200, 64, 18, 18)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_u2aky"]
 atlas = ExtResource("2_mnda3")
@@ -72,6 +73,16 @@ region = Rect2(28, 109, 22, 22)
 [sub_resource type="AtlasTexture" id="AtlasTexture_l0u8a"]
 atlas = ExtResource("2_mnda3")
 region = Rect2(80, 109, 22, 22)
+
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_8lp3y"]
+load_path = "res://.godot/imported/unknown_version_gui.webp-ea970ca1430c74c04c1d43217f01df98.ctex"
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_idmjc"]
+atlas = SubResource("CompressedTexture2D_8lp3y")
+region = Rect2(108, 111, 18, 18)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_kgr7b"]
+size = Vector2(270, 270)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ursv3"]
 bg_color = Color(0, 0, 0, 0.392157)
@@ -136,20 +147,16 @@ texture = ExtResource("18_pg3nf")
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_vad76"]
 texture = ExtResource("18_pg3nf")
 
-[sub_resource type="Theme" id="Theme_nmrmo"]
-default_font = ExtResource("4_nsj5b")
-default_font_size = 40
-
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_3iaxc"]
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_k1gad"]
 content_margin_left = 30.0
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_7e1kb"]
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_t7o14"]
 content_margin_left = 30.0
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_rxh2r"]
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_y24qp"]
 content_margin_left = 30.0
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_rvrxl"]
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_cfs5x"]
 content_margin_left = 30.0
 
 [node name="Game" type="Node2D"]
@@ -178,60 +185,6 @@ script = ExtResource("2_gyse0")
 [node name="MobileUI" type="CanvasLayer" parent="."]
 visible = false
 
-[node name="PauseButton" type="Control" parent="MobileUI"]
-layout_mode = 3
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -130.0
-offset_top = 13.0
-offset_right = -130.0
-offset_bottom = 13.0
-grow_horizontal = 0
-
-[node name="Button" type="TouchScreenButton" parent="MobileUI/PauseButton"]
-z_index = 1
-position = Vector2(45, 45)
-shape = SubResource("RectangleShape2D_6ugo2")
-shape_visible = false
-
-[node name="Icon" type="TextureRect" parent="MobileUI/PauseButton/Button"]
-z_index = -1
-custom_minimum_size = Vector2(90, 90)
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-texture = SubResource("AtlasTexture_b3kjx")
-
-[node name="ChatButton" type="Control" parent="MobileUI"]
-layout_mode = 3
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -238.0
-offset_top = 12.0
-offset_right = -238.0
-offset_bottom = 12.0
-grow_horizontal = 0
-
-[node name="Button" type="TouchScreenButton" parent="MobileUI/ChatButton"]
-z_index = 1
-position = Vector2(45, 45)
-shape = SubResource("RectangleShape2D_6ugo2")
-shape_visible = false
-
-[node name="Icon" type="TextureRect" parent="MobileUI/ChatButton/Button"]
-z_index = -1
-custom_minimum_size = Vector2(90, 90)
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-texture = SubResource("AtlasTexture_tsrx7")
-
 [node name="FunctionButtons" type="Control" parent="MobileUI"]
 layout_mode = 3
 anchors_preset = 5
@@ -243,7 +196,7 @@ grow_horizontal = 2
 
 [node name="F1Button" type="TouchScreenButton" parent="MobileUI/FunctionButtons"]
 z_index = 1
-position = Vector2(-150, 45)
+position = Vector2(-250, 45)
 shape = SubResource("RectangleShape2D_6ugo2")
 shape_visible = false
 
@@ -272,7 +225,7 @@ vertical_alignment = 1
 
 [node name="F2Button" type="TouchScreenButton" parent="MobileUI/FunctionButtons"]
 z_index = 1
-position = Vector2(-50, 45)
+position = Vector2(-150, 45)
 shape = SubResource("RectangleShape2D_6ugo2")
 shape_visible = false
 
@@ -301,7 +254,7 @@ vertical_alignment = 1
 
 [node name="F3Button" type="TouchScreenButton" parent="MobileUI/FunctionButtons"]
 z_index = 1
-position = Vector2(50, 45)
+position = Vector2(-50, 45)
 shape = SubResource("RectangleShape2D_6ugo2")
 shape_visible = false
 
@@ -330,7 +283,7 @@ vertical_alignment = 1
 
 [node name="TabButton" type="TouchScreenButton" parent="MobileUI/FunctionButtons"]
 z_index = 1
-position = Vector2(150, 45)
+position = Vector2(50, 45)
 shape = SubResource("RectangleShape2D_6ugo2")
 shape_visible = false
 
@@ -357,7 +310,40 @@ text = " Tab"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="MoveButtons" type="Control" parent="MobileUI"]
+[node name="ChatButton" type="TouchScreenButton" parent="MobileUI/FunctionButtons"]
+z_index = 1
+position = Vector2(150, 45)
+shape = SubResource("RectangleShape2D_6ugo2")
+shape_visible = false
+
+[node name="Icon" type="TextureRect" parent="MobileUI/FunctionButtons/ChatButton"]
+z_index = -1
+custom_minimum_size = Vector2(90, 90)
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = SubResource("AtlasTexture_tsrx7")
+
+[node name="PauseButton" type="TouchScreenButton" parent="MobileUI/FunctionButtons"]
+z_index = 1
+position = Vector2(250, 45)
+shape = SubResource("RectangleShape2D_6ugo2")
+shape_visible = false
+
+[node name="Icon" type="TextureRect" parent="MobileUI/FunctionButtons/PauseButton"]
+z_index = -1
+custom_minimum_size = Vector2(90, 90)
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = SubResource("AtlasTexture_b3kjx")
+
+[node name="MoveButtonsLeft" type="Control" parent="MobileUI"]
+modulate = Color(1, 1, 1, 0.392157)
 layout_mode = 3
 anchors_preset = 2
 anchor_top = 1.0
@@ -368,14 +354,14 @@ offset_right = 649.0
 offset_bottom = -167.0
 grow_vertical = 0
 
-[node name="UpLeftButton" type="TouchScreenButton" parent="MobileUI/MoveButtons"]
+[node name="UpLeftButton" type="TouchScreenButton" parent="MobileUI/MoveButtonsLeft"]
 z_index = 1
 position = Vector2(102.5, 102.5)
 shape = SubResource("RectangleShape2D_6ugo2")
 shape_visible = false
 passby_press = true
 
-[node name="UpLeftButton" type="TextureRect" parent="MobileUI/MoveButtons/UpLeftButton"]
+[node name="UpLeftButton" type="TextureRect" parent="MobileUI/MoveButtonsLeft/UpLeftButton"]
 z_index = -1
 custom_minimum_size = Vector2(150, 150)
 offset_left = -75.0
@@ -385,14 +371,14 @@ offset_bottom = 75.0
 mouse_filter = 0
 texture = SubResource("AtlasTexture_u2aky")
 
-[node name="UpButton" type="TouchScreenButton" parent="MobileUI/MoveButtons"]
+[node name="UpButton" type="TouchScreenButton" parent="MobileUI/MoveButtonsLeft"]
 z_index = 1
 position = Vector2(262.5, 87.5)
 shape = SubResource("RectangleShape2D_4vujl")
 shape_visible = false
 passby_press = true
 
-[node name="UpButton" type="TextureRect" parent="MobileUI/MoveButtons/UpButton"]
+[node name="UpButton" type="TextureRect" parent="MobileUI/MoveButtonsLeft/UpButton"]
 z_index = -1
 custom_minimum_size = Vector2(175, 175)
 offset_left = -87.5
@@ -402,14 +388,14 @@ offset_bottom = 87.5
 mouse_filter = 0
 texture = SubResource("AtlasTexture_ek5pi")
 
-[node name="UpRightButton" type="TouchScreenButton" parent="MobileUI/MoveButtons"]
+[node name="UpRightButton" type="TouchScreenButton" parent="MobileUI/MoveButtonsLeft"]
 z_index = 1
 position = Vector2(422.5, 102.5)
 shape = SubResource("RectangleShape2D_6ugo2")
 shape_visible = false
 passby_press = true
 
-[node name="UpRightButton" type="TextureRect" parent="MobileUI/MoveButtons/UpRightButton"]
+[node name="UpRightButton" type="TextureRect" parent="MobileUI/MoveButtonsLeft/UpRightButton"]
 z_index = -1
 custom_minimum_size = Vector2(150, 150)
 offset_left = -75.0
@@ -419,14 +405,14 @@ offset_bottom = 75.0
 mouse_filter = 0
 texture = SubResource("AtlasTexture_gw21v")
 
-[node name="DownLeftButton" type="TouchScreenButton" parent="MobileUI/MoveButtons"]
+[node name="DownLeftButton" type="TouchScreenButton" parent="MobileUI/MoveButtonsLeft"]
 z_index = 1
 position = Vector2(102.5, 422.5)
 shape = SubResource("RectangleShape2D_6ugo2")
 shape_visible = false
 passby_press = true
 
-[node name="DownLeftButton" type="TextureRect" parent="MobileUI/MoveButtons/DownLeftButton"]
+[node name="DownLeftButton" type="TextureRect" parent="MobileUI/MoveButtonsLeft/DownLeftButton"]
 z_index = -1
 custom_minimum_size = Vector2(150, 150)
 offset_left = -75.0
@@ -436,14 +422,14 @@ offset_bottom = 75.0
 mouse_filter = 0
 texture = ExtResource("6_rle0m")
 
-[node name="DownButton" type="TouchScreenButton" parent="MobileUI/MoveButtons"]
+[node name="DownButton" type="TouchScreenButton" parent="MobileUI/MoveButtonsLeft"]
 z_index = 1
 position = Vector2(262.5, 437.5)
 shape = SubResource("RectangleShape2D_4vujl")
 shape_visible = false
 passby_press = true
 
-[node name="DownButton" type="TextureRect" parent="MobileUI/MoveButtons/DownButton"]
+[node name="DownButton" type="TextureRect" parent="MobileUI/MoveButtonsLeft/DownButton"]
 z_index = -1
 custom_minimum_size = Vector2(175, 175)
 offset_left = -87.5
@@ -453,14 +439,14 @@ offset_bottom = 87.5
 mouse_filter = 0
 texture = SubResource("AtlasTexture_yavt6")
 
-[node name="DownRightButton" type="TouchScreenButton" parent="MobileUI/MoveButtons"]
+[node name="DownRightButton" type="TouchScreenButton" parent="MobileUI/MoveButtonsLeft"]
 z_index = 1
 position = Vector2(422.5, 422.5)
 shape = SubResource("RectangleShape2D_6ugo2")
 shape_visible = false
 passby_press = true
 
-[node name="DownRightButton" type="TextureRect" parent="MobileUI/MoveButtons/DownRightButton"]
+[node name="DownRightButton" type="TextureRect" parent="MobileUI/MoveButtonsLeft/DownRightButton"]
 z_index = -1
 custom_minimum_size = Vector2(150, 150)
 offset_left = -75.0
@@ -470,14 +456,14 @@ offset_bottom = 75.0
 mouse_filter = 0
 texture = ExtResource("7_aqtia")
 
-[node name="LeftButton" type="TouchScreenButton" parent="MobileUI/MoveButtons"]
+[node name="LeftButton" type="TouchScreenButton" parent="MobileUI/MoveButtonsLeft"]
 z_index = 1
 position = Vector2(87.5, 262.5)
 shape = SubResource("RectangleShape2D_wrpgv")
 shape_visible = false
 passby_press = true
 
-[node name="LeftButton" type="TextureRect" parent="MobileUI/MoveButtons/LeftButton"]
+[node name="LeftButton" type="TextureRect" parent="MobileUI/MoveButtonsLeft/LeftButton"]
 z_index = -1
 custom_minimum_size = Vector2(175, 175)
 offset_left = -87.5
@@ -487,14 +473,14 @@ offset_bottom = 87.5
 mouse_filter = 0
 texture = SubResource("AtlasTexture_e7ss8")
 
-[node name="CenterButton" type="TouchScreenButton" parent="MobileUI/MoveButtons"]
+[node name="CenterButton" type="TouchScreenButton" parent="MobileUI/MoveButtonsLeft"]
 z_index = 1
 position = Vector2(262.5, 262.5)
 shape = SubResource("RectangleShape2D_4vujl")
 shape_visible = false
 passby_press = true
 
-[node name="CenterButton" type="TextureRect" parent="MobileUI/MoveButtons/CenterButton"]
+[node name="CenterButton" type="TextureRect" parent="MobileUI/MoveButtonsLeft/CenterButton"]
 z_index = -1
 custom_minimum_size = Vector2(175, 175)
 offset_left = -87.5
@@ -504,14 +490,14 @@ offset_bottom = 87.5
 mouse_filter = 0
 texture = ExtResource("5_4y7us")
 
-[node name="RightButton" type="TouchScreenButton" parent="MobileUI/MoveButtons"]
+[node name="RightButton" type="TouchScreenButton" parent="MobileUI/MoveButtonsLeft"]
 z_index = 1
 position = Vector2(437.5, 262.5)
 shape = SubResource("RectangleShape2D_wrpgv")
 shape_visible = false
 passby_press = true
 
-[node name="RightButton" type="TextureRect" parent="MobileUI/MoveButtons/RightButton"]
+[node name="RightButton" type="TextureRect" parent="MobileUI/MoveButtonsLeft/RightButton"]
 z_index = -1
 custom_minimum_size = Vector2(175, 175)
 offset_left = -87.5
@@ -520,6 +506,38 @@ offset_right = 87.5
 offset_bottom = 87.5
 mouse_filter = 0
 texture = SubResource("AtlasTexture_l0u8a")
+
+[node name="MoveButtonsRight" type="Control" parent="MobileUI"]
+modulate = Color(1, 1, 1, 0.392157)
+layout_mode = 3
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -384.0
+offset_top = -517.0
+offset_right = -208.0
+offset_bottom = -342.0
+grow_horizontal = 0
+grow_vertical = 0
+
+[node name="JumpButton" type="TouchScreenButton" parent="MobileUI/MoveButtonsRight"]
+z_index = 1
+position = Vector2(88, 88)
+shape = SubResource("RectangleShape2D_4vujl")
+shape_visible = false
+passby_press = true
+
+[node name="JumpButton" type="TextureRect" parent="MobileUI/MoveButtonsRight/JumpButton"]
+z_index = -1
+custom_minimum_size = Vector2(175, 175)
+offset_left = -87.5
+offset_top = -87.5
+offset_right = 87.5
+offset_bottom = 87.5
+mouse_filter = 0
+texture = SubResource("AtlasTexture_idmjc")
 
 [node name="Background" type="CanvasLayer" parent="."]
 layer = -1
@@ -717,6 +735,74 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 1
 color = Color(0, 0, 0, 0.509804)
+
+[node name="MiniMap" type="Control" parent="GameUI"]
+layout_mode = 3
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -269.735
+offset_right = 0.265015
+offset_bottom = 270.0
+grow_horizontal = 0
+
+[node name="WhiteFrame" type="ColorRect" parent="GameUI/MiniMap"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.95158, 0.95158, 0.951579, 1)
+
+[node name="BlueBack" type="ColorRect" parent="GameUI/MiniMap"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 15.0
+offset_top = 15.0
+offset_right = -15.0
+offset_bottom = -15.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.443137, 0.698039, 1, 1)
+
+[node name="SubViewportContainer" type="SubViewportContainer" parent="GameUI/MiniMap"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 15.0
+offset_top = 15.0
+offset_right = -15.0
+offset_bottom = -15.0
+grow_horizontal = 2
+grow_vertical = 2
+stretch = true
+
+[node name="SubViewport" type="SubViewport" parent="GameUI/MiniMap/SubViewportContainer"]
+transparent_bg = true
+handle_input_locally = false
+snap_2d_transforms_to_pixel = true
+canvas_item_default_texture_filter = 2
+size = Vector2i(240, 240)
+render_target_update_mode = 4
+
+[node name="TileMapLayer" type="TileMapLayer" parent="GameUI/MiniMap/SubViewportContainer/SubViewport"]
+tile_set = ExtResource("3_fa3r6")
+
+[node name="Players" type="Node2D" parent="GameUI/MiniMap/SubViewportContainer/SubViewport"]
+
+[node name="Camera2D" type="Camera2D" parent="GameUI/MiniMap/SubViewportContainer/SubViewport"]
+zoom = Vector2(0.1, 0.1)
+
+[node name="TouchButton" type="TouchScreenButton" parent="GameUI/MiniMap"]
+z_index = 1
+position = Vector2(135, 135)
+shape = SubResource("RectangleShape2D_kgr7b")
+shape_visible = false
+visibility_mode = 1
 
 [node name="ChatHistory" type="ScrollContainer" parent="GameUI"]
 custom_minimum_size = Vector2(650, 329)
@@ -1584,7 +1670,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxEmpty_rfgq5")
-vertical_scroll_mode = 3
+script = ExtResource("13_wfnj5")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="Options/ColorRect/ScrollContainer"]
 layout_mode = 2
@@ -1595,6 +1681,7 @@ theme_override_constants/separation = 60
 [node name="PlayerName" type="HSplitContainer" parent="Options/ColorRect/ScrollContainer/VBoxContainer"]
 visible = false
 layout_mode = 2
+collapsed = true
 
 [node name="Title" type="Label" parent="Options/ColorRect/ScrollContainer/VBoxContainer/PlayerName"]
 layout_mode = 2
@@ -1606,6 +1693,8 @@ text = "PLAYER_NAME"
 [node name="LineEdit" type="LineEdit" parent="Options/ColorRect/ScrollContainer/VBoxContainer/PlayerName"]
 custom_minimum_size = Vector2(0, 70)
 layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_constants/caret_width = 5
 theme_override_constants/minimum_character_width = 0
 theme_override_fonts/font = ExtResource("4_nsj5b")
 theme_override_font_sizes/font_size = 40
@@ -1615,6 +1704,7 @@ caret_blink = true
 
 [node name="RenderChunk" type="HSplitContainer" parent="Options/ColorRect/ScrollContainer/VBoxContainer"]
 layout_mode = 2
+collapsed = true
 
 [node name="Title" type="Label" parent="Options/ColorRect/ScrollContainer/VBoxContainer/RenderChunk"]
 layout_mode = 2
@@ -1630,9 +1720,9 @@ theme_override_styles/scroll = SubResource("StyleBoxTexture_7j7y4")
 theme_override_styles/grabber = SubResource("StyleBoxTexture_uu8er")
 theme_override_styles/grabber_highlight = SubResource("StyleBoxTexture_jidev")
 theme_override_styles/grabber_pressed = SubResource("StyleBoxTexture_vad76")
-min_value = 2.0
-max_value = 8.0
-value = 4.0
+min_value = 1.0
+max_value = 3.0
+value = 1.0
 rounded = true
 
 [node name="Label" type="Label" parent="Options/ColorRect/ScrollContainer/VBoxContainer/RenderChunk/HScrollBar"]
@@ -1644,12 +1734,13 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_fonts/font = ExtResource("4_nsj5b")
 theme_override_font_sizes/font_size = 40
-text = "4"
+text = "1"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="FovZoom" type="HSplitContainer" parent="Options/ColorRect/ScrollContainer/VBoxContainer"]
 layout_mode = 2
+collapsed = true
 
 [node name="Title" type="Label" parent="Options/ColorRect/ScrollContainer/VBoxContainer/FovZoom"]
 layout_mode = 2
@@ -1681,8 +1772,134 @@ text = "50%"
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="MiniMap" type="HSplitContainer" parent="Options/ColorRect/ScrollContainer/VBoxContainer"]
+z_index = 1
+layout_mode = 2
+collapsed = true
+
+[node name="Title" type="Label" parent="Options/ColorRect/ScrollContainer/VBoxContainer/MiniMap"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_fonts/font = ExtResource("4_nsj5b")
+theme_override_font_sizes/font_size = 40
+text = "MINI_MAP"
+
+[node name="OptionButton" type="OptionButton" parent="Options/ColorRect/ScrollContainer/VBoxContainer/MiniMap"]
+custom_minimum_size = Vector2(0, 70)
+layout_mode = 2
+size_flags_horizontal = 3
+theme = ExtResource("31_nincb")
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_constants/h_separation = 10
+theme_override_fonts/font = ExtResource("4_nsj5b")
+theme_override_font_sizes/font_size = 40
+theme_override_styles/focus = SubResource("StyleBoxEmpty_k1gad")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_t7o14")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_y24qp")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_cfs5x")
+theme_override_constants/arrow_margin = 30
+flat = true
+selected = 0
+item_count = 2
+popup/item_0/text = "ON"
+popup/item_1/text = "OFF"
+popup/item_1/id = 1
+
+[node name="TextureRect" type="TextureRect" parent="Options/ColorRect/ScrollContainer/VBoxContainer/MiniMap/OptionButton"]
+z_index = -1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("31_nincb")
+texture = ExtResource("16_pttjf")
+
+[node name="MiniMapZoom" type="HSplitContainer" parent="Options/ColorRect/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+collapsed = true
+
+[node name="Title" type="Label" parent="Options/ColorRect/ScrollContainer/VBoxContainer/MiniMapZoom"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_fonts/font = ExtResource("4_nsj5b")
+theme_override_font_sizes/font_size = 40
+text = "MINI_MAP_ZOOM"
+
+[node name="HScrollBar" type="HScrollBar" parent="Options/ColorRect/ScrollContainer/VBoxContainer/MiniMapZoom"]
+custom_minimum_size = Vector2(0, 70)
+layout_mode = 2
+theme_override_styles/scroll = SubResource("StyleBoxTexture_7j7y4")
+theme_override_styles/grabber = SubResource("StyleBoxTexture_uu8er")
+theme_override_styles/grabber_highlight = SubResource("StyleBoxTexture_jidev")
+theme_override_styles/grabber_pressed = SubResource("StyleBoxTexture_vad76")
+min_value = 10.0
+value = 50.0
+rounded = true
+
+[node name="Label" type="Label" parent="Options/ColorRect/ScrollContainer/VBoxContainer/MiniMapZoom/HScrollBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("4_nsj5b")
+theme_override_font_sizes/font_size = 40
+text = "50%"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="BlockSelectionBox" type="HSplitContainer" parent="Options/ColorRect/ScrollContainer/VBoxContainer"]
+z_index = 1
+layout_mode = 2
+collapsed = true
+
+[node name="Title" type="Label" parent="Options/ColorRect/ScrollContainer/VBoxContainer/BlockSelectionBox"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_fonts/font = ExtResource("4_nsj5b")
+theme_override_font_sizes/font_size = 40
+text = "BLOCK_SELECTION_BOX"
+
+[node name="OptionButton" type="OptionButton" parent="Options/ColorRect/ScrollContainer/VBoxContainer/BlockSelectionBox"]
+custom_minimum_size = Vector2(0, 70)
+layout_mode = 2
+size_flags_horizontal = 3
+theme = ExtResource("31_nincb")
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_constants/h_separation = 10
+theme_override_fonts/font = ExtResource("4_nsj5b")
+theme_override_font_sizes/font_size = 40
+theme_override_styles/focus = SubResource("StyleBoxEmpty_k1gad")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_t7o14")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_y24qp")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_cfs5x")
+theme_override_constants/arrow_margin = 30
+flat = true
+selected = 0
+item_count = 3
+popup/item_0/text = "SHOW_WHEN_CHANGING"
+popup/item_1/text = "ALWAYS_SHOW"
+popup/item_1/id = 1
+popup/item_2/text = "NEVER_SHOW"
+popup/item_2/id = 2
+
+[node name="TextureRect" type="TextureRect" parent="Options/ColorRect/ScrollContainer/VBoxContainer/BlockSelectionBox/OptionButton"]
+z_index = -1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("31_nincb")
+texture = ExtResource("16_pttjf")
+
 [node name="BgmVolume" type="HSplitContainer" parent="Options/ColorRect/ScrollContainer/VBoxContainer"]
 layout_mode = 2
+collapsed = true
 
 [node name="Title" type="Label" parent="Options/ColorRect/ScrollContainer/VBoxContainer/BgmVolume"]
 layout_mode = 2
@@ -1716,6 +1933,7 @@ vertical_alignment = 1
 
 [node name="SoundVolume" type="HSplitContainer" parent="Options/ColorRect/ScrollContainer/VBoxContainer"]
 layout_mode = 2
+collapsed = true
 
 [node name="Title" type="Label" parent="Options/ColorRect/ScrollContainer/VBoxContainer/SoundVolume"]
 layout_mode = 2
@@ -1746,51 +1964,6 @@ theme_override_font_sizes/font_size = 40
 text = "50%"
 horizontal_alignment = 1
 vertical_alignment = 1
-
-[node name="BlockSelectionBox" type="HSplitContainer" parent="Options/ColorRect/ScrollContainer/VBoxContainer"]
-z_index = 1
-layout_mode = 2
-collapsed = true
-
-[node name="Title" type="Label" parent="Options/ColorRect/ScrollContainer/VBoxContainer/BlockSelectionBox"]
-layout_mode = 2
-size_flags_horizontal = 0
-theme_override_fonts/font = ExtResource("4_nsj5b")
-theme_override_font_sizes/font_size = 40
-text = "BLOCK_SELECTION_BOX"
-
-[node name="OptionButton" type="OptionButton" parent="Options/ColorRect/ScrollContainer/VBoxContainer/BlockSelectionBox"]
-custom_minimum_size = Vector2(0, 70)
-layout_mode = 2
-size_flags_horizontal = 3
-theme = SubResource("Theme_nmrmo")
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_constants/h_separation = 10
-theme_override_fonts/font = ExtResource("4_nsj5b")
-theme_override_font_sizes/font_size = 40
-theme_override_styles/focus = SubResource("StyleBoxEmpty_3iaxc")
-theme_override_styles/hover = SubResource("StyleBoxEmpty_7e1kb")
-theme_override_styles/pressed = SubResource("StyleBoxEmpty_rxh2r")
-theme_override_styles/normal = SubResource("StyleBoxEmpty_rvrxl")
-theme_override_constants/arrow_margin = 30
-flat = true
-selected = 0
-item_count = 3
-popup/item_0/text = "SHOW_WHEN_CHANGING"
-popup/item_1/text = "ALWAYS_SHOW"
-popup/item_1/id = 1
-popup/item_2/text = "NEVER_SHOW"
-popup/item_2/id = 2
-
-[node name="TextureRect" type="TextureRect" parent="Options/ColorRect/ScrollContainer/VBoxContainer/BlockSelectionBox/OptionButton"]
-z_index = -1
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-texture = ExtResource("16_pttjf")
 
 [node name="GridContainer" type="GridContainer" parent="Options/ColorRect"]
 layout_mode = 1
@@ -1872,24 +2045,28 @@ horizontal_alignment = 1
 [node name="Language" parent="." instance=ExtResource("19_6nn42")]
 visible = false
 
-[connection signal="pressed" from="MobileUI/PauseButton/Button" to="." method="_on_mobile_pause_button_pressed"]
-[connection signal="pressed" from="MobileUI/ChatButton/Button" to="." method="_on_mobile_chat_button_pressed"]
 [connection signal="pressed" from="MobileUI/FunctionButtons/F1Button" to="." method="_on_mobile_f1_button_pressed"]
 [connection signal="pressed" from="MobileUI/FunctionButtons/F2Button" to="." method="_on_mobile_f2_button_pressed"]
 [connection signal="pressed" from="MobileUI/FunctionButtons/F3Button" to="." method="_on_mobile_f3_button_pressed"]
 [connection signal="pressed" from="MobileUI/FunctionButtons/TabButton" to="." method="_on_mobile_tab_button_pressed"]
-[connection signal="pressed" from="MobileUI/MoveButtons/UpLeftButton" to="." method="_on_mobile_move_button_up_left_pressed"]
-[connection signal="pressed" from="MobileUI/MoveButtons/UpButton" to="." method="_on_mobile_move_button_up_pressed"]
-[connection signal="released" from="MobileUI/MoveButtons/UpButton" to="." method="_on_mobile_move_button_up_released"]
-[connection signal="pressed" from="MobileUI/MoveButtons/UpRightButton" to="." method="_on_mobile_move_button_up_right_pressed"]
-[connection signal="pressed" from="MobileUI/MoveButtons/DownLeftButton" to="." method="_on_mobile_move_button_down_left_pressed"]
-[connection signal="pressed" from="MobileUI/MoveButtons/DownButton" to="." method="_on_mobile_move_button_down_pressed"]
-[connection signal="released" from="MobileUI/MoveButtons/DownButton" to="." method="_on_mobile_move_button_down_released"]
-[connection signal="pressed" from="MobileUI/MoveButtons/DownRightButton" to="." method="_on_mobile_move_button_down_right_pressed"]
-[connection signal="pressed" from="MobileUI/MoveButtons/LeftButton" to="." method="_on_mobile_move_button_left_pressed"]
-[connection signal="released" from="MobileUI/MoveButtons/LeftButton" to="." method="_on_mobile_move_button_left_released"]
-[connection signal="pressed" from="MobileUI/MoveButtons/RightButton" to="." method="_on_mobile_move_button_right_pressed"]
-[connection signal="released" from="MobileUI/MoveButtons/RightButton" to="." method="_on_mobile_move_button_right_released"]
+[connection signal="pressed" from="MobileUI/FunctionButtons/ChatButton" to="." method="_on_mobile_chat_button_pressed"]
+[connection signal="pressed" from="MobileUI/FunctionButtons/PauseButton" to="." method="_on_mobile_pause_button_pressed"]
+[connection signal="pressed" from="MobileUI/MoveButtonsLeft/UpLeftButton" to="." method="_on_mobile_move_button_up_left_pressed"]
+[connection signal="pressed" from="MobileUI/MoveButtonsLeft/UpButton" to="." method="_on_mobile_move_button_up_pressed"]
+[connection signal="released" from="MobileUI/MoveButtonsLeft/UpButton" to="." method="_on_mobile_move_button_up_released"]
+[connection signal="pressed" from="MobileUI/MoveButtonsLeft/UpRightButton" to="." method="_on_mobile_move_button_up_right_pressed"]
+[connection signal="pressed" from="MobileUI/MoveButtonsLeft/DownLeftButton" to="." method="_on_mobile_move_button_down_left_pressed"]
+[connection signal="pressed" from="MobileUI/MoveButtonsLeft/DownButton" to="." method="_on_mobile_move_button_down_pressed"]
+[connection signal="released" from="MobileUI/MoveButtonsLeft/DownButton" to="." method="_on_mobile_move_button_down_released"]
+[connection signal="pressed" from="MobileUI/MoveButtonsLeft/DownRightButton" to="." method="_on_mobile_move_button_down_right_pressed"]
+[connection signal="pressed" from="MobileUI/MoveButtonsLeft/LeftButton" to="." method="_on_mobile_move_button_left_pressed"]
+[connection signal="released" from="MobileUI/MoveButtonsLeft/LeftButton" to="." method="_on_mobile_move_button_left_released"]
+[connection signal="pressed" from="MobileUI/MoveButtonsLeft/RightButton" to="." method="_on_mobile_move_button_right_pressed"]
+[connection signal="released" from="MobileUI/MoveButtonsLeft/RightButton" to="." method="_on_mobile_move_button_right_released"]
+[connection signal="pressed" from="MobileUI/MoveButtonsRight/JumpButton" to="." method="_on_mobile_move_button_jump_pressed"]
+[connection signal="released" from="MobileUI/MoveButtonsRight/JumpButton" to="." method="_on_mobile_move_button_jump_released"]
+[connection signal="pressed" from="GameUI/MiniMap/TouchButton" to="." method="_on_mobile_map_button_pressed"]
+[connection signal="released" from="GameUI/MiniMap/TouchButton" to="." method="_on_mobile_map_button_released"]
 [connection signal="pre_sort_children" from="GameUI/ChatHistory" to="." method="_on_chat_history_out_pre_sort_children"]
 [connection signal="gui_input" from="GameUI/ChatPanel/ChatHistory" to="GameUI/ChatPanel/ChatHistory" method="_on_scrollcontainer_gui_input"]
 [connection signal="text_submitted" from="GameUI/ChatPanel/ChatLineEdit" to="." method="_on_chat_line_edit_text_submitted"]
@@ -1921,8 +2098,10 @@ visible = false
 [connection signal="pressed" from="PauseUI/FlowContainer/Button4" to="." method="_on_pause_button_4_pressed"]
 [connection signal="pressed" from="PauseUI/FlowContainer/Button5" to="." method="_on_pause_button_5_pressed"]
 [connection signal="pressed" from="PauseUI/FlowContainer/Button6" to="." method="_on_pause_button_6_pressed"]
+[connection signal="gui_input" from="Options/ColorRect/ScrollContainer" to="Options/ColorRect/ScrollContainer" method="_on_scrollcontainer_gui_input"]
 [connection signal="scrolling" from="Options/ColorRect/ScrollContainer/VBoxContainer/RenderChunk/HScrollBar" to="Options" method="_on_options_render_chunk_scroll_bar_scrolling"]
 [connection signal="scrolling" from="Options/ColorRect/ScrollContainer/VBoxContainer/FovZoom/HScrollBar" to="Options" method="_on_options_fov_zoom_scroll_bar_scrolling"]
+[connection signal="scrolling" from="Options/ColorRect/ScrollContainer/VBoxContainer/MiniMapZoom/HScrollBar" to="Options" method="_on_options_mini_map_zoom_scroll_bar_scrolling"]
 [connection signal="scrolling" from="Options/ColorRect/ScrollContainer/VBoxContainer/BgmVolume/HScrollBar" to="Options" method="_on_options_bgm_volume_scroll_bar_scrolling"]
 [connection signal="scrolling" from="Options/ColorRect/ScrollContainer/VBoxContainer/SoundVolume/HScrollBar" to="Options" method="_on_options_sound_volume_scroll_bar_scrolling"]
 [connection signal="pressed" from="Options/ColorRect/GridContainer/Button1" to="Options" method="_on_options_button_1_pressed"]

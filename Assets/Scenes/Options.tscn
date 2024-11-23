@@ -1,8 +1,9 @@
-[gd_scene load_steps=20 format=3 uid="uid://c2xj82s25mlo"]
+[gd_scene load_steps=21 format=3 uid="uid://c2xj82s25mlo"]
 
 [ext_resource type="Texture2D" uid="uid://b14xkgu1d1omr" path="res://Assets/Textures/Backgrounds/stone_wall.png" id="1_cg14s"]
 [ext_resource type="Script" path="res://Assets/Scripts/Options.gd" id="1_d0p62"]
 [ext_resource type="FontFile" uid="uid://csywm01568tlp" path="res://Assets/Fonts/MinecraftAE.ttf" id="2_5ysu4"]
+[ext_resource type="Script" path="res://Assets/Scripts/DragScroll.gd" id="3_whodl"]
 [ext_resource type="Texture2D" uid="uid://b6wbqichdrhpr" path="res://Assets/Textures/GUI/button_normal.png" id="4_cgyyv"]
 [ext_resource type="Texture2D" uid="uid://caueuwmlcmeot" path="res://Assets/Textures/GUI/button_disabled.png" id="4_tjirk"]
 [ext_resource type="Script" path="res://Assets/Scripts/GameButton.gd" id="5_i8g0f"]
@@ -77,7 +78,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxEmpty_rfgq5")
-vertical_scroll_mode = 3
+script = ExtResource("3_whodl")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="ColorRect/ScrollContainer"]
 layout_mode = 2
@@ -126,9 +127,9 @@ theme_override_styles/scroll = SubResource("StyleBoxTexture_7j7y4")
 theme_override_styles/grabber = SubResource("StyleBoxTexture_uu8er")
 theme_override_styles/grabber_highlight = SubResource("StyleBoxTexture_jidev")
 theme_override_styles/grabber_pressed = SubResource("StyleBoxTexture_vad76")
-min_value = 2.0
-max_value = 8.0
-value = 4.0
+min_value = 1.0
+max_value = 3.0
+value = 1.0
 rounded = true
 
 [node name="Label" type="Label" parent="ColorRect/ScrollContainer/VBoxContainer/RenderChunk/HScrollBar"]
@@ -140,7 +141,7 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_fonts/font = ExtResource("2_5ysu4")
 theme_override_font_sizes/font_size = 40
-text = "4"
+text = "1"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -177,6 +178,131 @@ theme_override_font_sizes/font_size = 40
 text = "50%"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="MiniMap" type="HSplitContainer" parent="ColorRect/ScrollContainer/VBoxContainer"]
+z_index = 1
+layout_mode = 2
+collapsed = true
+
+[node name="Title" type="Label" parent="ColorRect/ScrollContainer/VBoxContainer/MiniMap"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_fonts/font = ExtResource("2_5ysu4")
+theme_override_font_sizes/font_size = 40
+text = "MINI_MAP"
+
+[node name="OptionButton" type="OptionButton" parent="ColorRect/ScrollContainer/VBoxContainer/MiniMap"]
+custom_minimum_size = Vector2(0, 70)
+layout_mode = 2
+size_flags_horizontal = 3
+theme = ExtResource("7_tggb6")
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_constants/h_separation = 10
+theme_override_fonts/font = ExtResource("2_5ysu4")
+theme_override_font_sizes/font_size = 40
+theme_override_styles/focus = SubResource("StyleBoxEmpty_k1gad")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_t7o14")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_y24qp")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_cfs5x")
+theme_override_constants/arrow_margin = 30
+flat = true
+selected = 0
+item_count = 2
+popup/item_0/text = "ON"
+popup/item_1/text = "OFF"
+popup/item_1/id = 1
+
+[node name="TextureRect" type="TextureRect" parent="ColorRect/ScrollContainer/VBoxContainer/MiniMap/OptionButton"]
+z_index = -1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("7_tggb6")
+texture = ExtResource("4_tjirk")
+
+[node name="MiniMapZoom" type="HSplitContainer" parent="ColorRect/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+collapsed = true
+
+[node name="Title" type="Label" parent="ColorRect/ScrollContainer/VBoxContainer/MiniMapZoom"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_fonts/font = ExtResource("2_5ysu4")
+theme_override_font_sizes/font_size = 40
+text = "MINI_MAP_ZOOM"
+
+[node name="HScrollBar" type="HScrollBar" parent="ColorRect/ScrollContainer/VBoxContainer/MiniMapZoom"]
+custom_minimum_size = Vector2(0, 70)
+layout_mode = 2
+theme_override_styles/scroll = SubResource("StyleBoxTexture_7j7y4")
+theme_override_styles/grabber = SubResource("StyleBoxTexture_uu8er")
+theme_override_styles/grabber_highlight = SubResource("StyleBoxTexture_jidev")
+theme_override_styles/grabber_pressed = SubResource("StyleBoxTexture_vad76")
+min_value = 10.0
+value = 50.0
+rounded = true
+
+[node name="Label" type="Label" parent="ColorRect/ScrollContainer/VBoxContainer/MiniMapZoom/HScrollBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("2_5ysu4")
+theme_override_font_sizes/font_size = 40
+text = "50%"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="BlockSelectionBox" type="HSplitContainer" parent="ColorRect/ScrollContainer/VBoxContainer"]
+z_index = 1
+layout_mode = 2
+collapsed = true
+
+[node name="Title" type="Label" parent="ColorRect/ScrollContainer/VBoxContainer/BlockSelectionBox"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_fonts/font = ExtResource("2_5ysu4")
+theme_override_font_sizes/font_size = 40
+text = "BLOCK_SELECTION_BOX"
+
+[node name="OptionButton" type="OptionButton" parent="ColorRect/ScrollContainer/VBoxContainer/BlockSelectionBox"]
+custom_minimum_size = Vector2(0, 70)
+layout_mode = 2
+size_flags_horizontal = 3
+theme = ExtResource("7_tggb6")
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_constants/h_separation = 10
+theme_override_fonts/font = ExtResource("2_5ysu4")
+theme_override_font_sizes/font_size = 40
+theme_override_styles/focus = SubResource("StyleBoxEmpty_k1gad")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_t7o14")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_y24qp")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_cfs5x")
+theme_override_constants/arrow_margin = 30
+flat = true
+selected = 0
+item_count = 3
+popup/item_0/text = "SHOW_WHEN_CHANGING"
+popup/item_1/text = "ALWAYS_SHOW"
+popup/item_1/id = 1
+popup/item_2/text = "NEVER_SHOW"
+popup/item_2/id = 2
+
+[node name="TextureRect" type="TextureRect" parent="ColorRect/ScrollContainer/VBoxContainer/BlockSelectionBox/OptionButton"]
+z_index = -1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("7_tggb6")
+texture = ExtResource("4_tjirk")
 
 [node name="BgmVolume" type="HSplitContainer" parent="ColorRect/ScrollContainer/VBoxContainer"]
 layout_mode = 2
@@ -245,52 +371,6 @@ theme_override_font_sizes/font_size = 40
 text = "50%"
 horizontal_alignment = 1
 vertical_alignment = 1
-
-[node name="BlockSelectionBox" type="HSplitContainer" parent="ColorRect/ScrollContainer/VBoxContainer"]
-z_index = 1
-layout_mode = 2
-collapsed = true
-
-[node name="Title" type="Label" parent="ColorRect/ScrollContainer/VBoxContainer/BlockSelectionBox"]
-layout_mode = 2
-size_flags_horizontal = 0
-theme_override_fonts/font = ExtResource("2_5ysu4")
-theme_override_font_sizes/font_size = 40
-text = "BLOCK_SELECTION_BOX"
-
-[node name="OptionButton" type="OptionButton" parent="ColorRect/ScrollContainer/VBoxContainer/BlockSelectionBox"]
-custom_minimum_size = Vector2(0, 70)
-layout_mode = 2
-size_flags_horizontal = 3
-theme = ExtResource("7_tggb6")
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_constants/h_separation = 10
-theme_override_fonts/font = ExtResource("2_5ysu4")
-theme_override_font_sizes/font_size = 40
-theme_override_styles/focus = SubResource("StyleBoxEmpty_k1gad")
-theme_override_styles/hover = SubResource("StyleBoxEmpty_t7o14")
-theme_override_styles/pressed = SubResource("StyleBoxEmpty_y24qp")
-theme_override_styles/normal = SubResource("StyleBoxEmpty_cfs5x")
-theme_override_constants/arrow_margin = 30
-flat = true
-selected = 0
-item_count = 3
-popup/item_0/text = "SHOW_WHEN_CHANGING"
-popup/item_1/text = "ALWAYS_SHOW"
-popup/item_1/id = 1
-popup/item_2/text = "NEVER_SHOW"
-popup/item_2/id = 2
-
-[node name="TextureRect" type="TextureRect" parent="ColorRect/ScrollContainer/VBoxContainer/BlockSelectionBox/OptionButton"]
-z_index = -1
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme = ExtResource("7_tggb6")
-texture = ExtResource("4_tjirk")
 
 [node name="GridContainer" type="GridContainer" parent="ColorRect"]
 layout_mode = 1
@@ -369,8 +449,10 @@ theme_override_font_sizes/font_size = 50
 text = "OPTIONS"
 horizontal_alignment = 1
 
+[connection signal="gui_input" from="ColorRect/ScrollContainer" to="ColorRect/ScrollContainer" method="_on_scrollcontainer_gui_input"]
 [connection signal="scrolling" from="ColorRect/ScrollContainer/VBoxContainer/RenderChunk/HScrollBar" to="." method="_on_options_render_chunk_scroll_bar_scrolling"]
 [connection signal="scrolling" from="ColorRect/ScrollContainer/VBoxContainer/FovZoom/HScrollBar" to="." method="_on_options_fov_zoom_scroll_bar_scrolling"]
+[connection signal="scrolling" from="ColorRect/ScrollContainer/VBoxContainer/MiniMapZoom/HScrollBar" to="." method="_on_options_mini_map_zoom_scroll_bar_scrolling"]
 [connection signal="scrolling" from="ColorRect/ScrollContainer/VBoxContainer/BgmVolume/HScrollBar" to="." method="_on_options_bgm_volume_scroll_bar_scrolling"]
 [connection signal="scrolling" from="ColorRect/ScrollContainer/VBoxContainer/SoundVolume/HScrollBar" to="." method="_on_options_sound_volume_scroll_bar_scrolling"]
 [connection signal="pressed" from="ColorRect/GridContainer/Button1" to="." method="_on_options_button_1_pressed"]

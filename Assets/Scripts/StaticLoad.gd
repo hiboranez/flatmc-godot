@@ -8,6 +8,7 @@ extends Node2D
 @onready var ping_scene = load("res://Assets/Scenes/Ping.tscn") as PackedScene
 @onready var online_info_scene = load("res://Assets/Scenes/OnlineInfo.tscn") as PackedScene
 @onready var mouse_item_name_label_scene = load("res://Assets/Scenes/MouseItemNameLabel.tscn") as PackedScene
+@onready var player_icon_scene = load("res://Assets/Scenes/PlayerIcon.tscn") as PackedScene
 @onready var animation:AnimationPlayer = $AnimationPlayer
 @onready var click_audio_player = $ClickAudioPlayer
 
@@ -28,6 +29,13 @@ const CONNECTING_TIME = 10
 const LONG_TOUCH_TIME = 0.4
 const POSITION_MAX_DIFFERENCE = 5
 const INVENTORY_NAME_SHOW_STAY_TIME = 1
+const RENDER_CHUNK_MIN = 1
+const RENDER_CHUNK_MAX = 3
+const TURN_STATE_SCALE_FACTOR = 0.5
+const TURN_TIME: float = 0.1
+const MINI_MAP_SCALE_FACTOR = 0.07
+const MINI_MAP_ICON_SIZE = 256
+const MAP_SCALE_FACTOR = 0.7
 
 var is_dedicated_server: bool = false
 var is_on_mobile_platform: bool = false
@@ -90,7 +98,7 @@ func _ready() -> void:
 	default_icon_gray_image = load("res://Assets/Textures/GUI/default_icon_gray.png").get_image()
 	game_icon_image = load("res://Assets/Textures/GUI/icon.png").get_image()
 	options = {
-		"version": "0.1.1.0",
+		"version": "0.1.1.1",
 		"updated": "false",
 		"player_name": "Steve",
 		"language": "zh",
@@ -98,7 +106,9 @@ func _ready() -> void:
 		'fov_zoom':50,
 		"bgm_volume": 50,
 		"sound_volume": 50,
-		"block_selection_box": "show_when_changing"
+		"block_selection_box": "show_when_changing",
+		"mini_map": "on",
+		"mini_map_zoom": 50
 		}
 	block_ids = {
 		"AIR": 0,
@@ -275,6 +285,11 @@ func get_block_id_by_name(block_name: String) -> int:
 		value = block_ids[block_name]
 	return value
 
+func get_block_name_by_id(block_id: int):
+	var value = "null"
+	value = block_ids.find_key(block_id)
+	return value
+
 func get_block_type_by_id(id: int) -> String:
 	var value = "air"
 	if StaticLoad.block_types.has(id):
@@ -395,6 +410,30 @@ func get_selected_by_block_selection_box(block_selection_box):
 		return 1
 	return 2
 
+func get_on_or_off_by_selection(selected, default="on"):
+	if default == "on":
+		if selected == 0:
+			return "on"
+		elif selected == 1:
+			return "off"
+	else:
+		if selected == 1:
+			return "on"
+		elif selected == 0:
+			return "off"
+
+func get_selection_by_on_or_off(on_or_off, default="on"):
+	if default == "on":
+		if on_or_off == "on":
+			return 0
+		elif on_or_off == "off":
+			return 1
+	else:
+		if on_or_off == "on":
+			return 1
+		elif on_or_off == "off":
+			return 0
+
 func get_level_by_ping(ping: int):
 	if ping <= 50:
 		return 5
@@ -474,8 +513,12 @@ func destroy_peer(peer_id):
 		#print("1 : server closed")
 		clear_connections()
 		return
-	online_peer_ids[peer_id].queue_free()
+	var player_name = online_peer_ids[peer_id].player_name
+	game.player_icons[player_name].queue_free()
+	game.player_icons.erase(player_name)
+	var player_tmp = online_peer_ids[peer_id]
 	online_peer_ids.erase(peer_id)
+	player_tmp.queue_free()
 	if game.online_ui_vbox_container.has_node(str(peer_id)):
 		game.online_ui_vbox_container.get_node(str(peer_id)).queue_free()
 	
@@ -568,6 +611,14 @@ func get_time_string(is_return_day: bool = true):
 		time = day + " " + moment
 	return time
 
+func check_server_version(check_version):
+	var splits_1 = check_version.split(".")
+	var splits_2 = options["version"].split(".")
+	for i in range(3):
+		if splits_1[i] != splits_2[i]:
+			return false
+	return true
+
 @rpc("authority", "call_remote", "reliable", 1)
 func check_ping():
 	rpc_id(1, "got_ping", multiplayer.get_unique_id())
@@ -639,11 +690,13 @@ func reply_for_server_state(online_player_number, world_icon_buffer_tmp, version
 		server.set_value("server", "port", port_tmp)
 		server.set_value("server", "icon", world_icon_buffer_tmp)
 		server.save_encrypted_pass(server_path_tmp, CONFIG_PASSWORD)
-		if version_tmp == options["version"]:
+		if check_server_version(version_tmp):
 			selection.online_info_label.text = tr("ONLINE_PLAYERS")+" : "+str(online_player_number)
 			muti_menu.server_detect.is_server_info_received = true
 		else:
-			selection.online_info_label.text = tr("REQUIRED_VERSION")+" : "+str(version_tmp)
+			var splits = version_tmp.split(".")
+			var server_version = splits[0]+"."+splits[1]+"."+splits[2]+".x"
+			selection.online_info_label.text = tr("REQUIRED_VERSION")+" : "+str(server_version)
 			muti_menu.server_detect.is_server_version_conflict = true
 
 @rpc("any_peer", "call_remote", "reliable", 1)
@@ -718,6 +771,9 @@ func reply_update_player_info(player_position, face_state, is_flying):
 	game.player.position = player_position
 	game.player.face_state = face_state
 	game.player.is_flying = is_flying
+	if is_flying:
+		game.update_jump_button()
+		game.player.velocity.y = 0
 	connect_signal.emit("player_info_updated")
 
 @rpc("any_peer", "call_remote", "reliable", 1)
