@@ -24,10 +24,9 @@ const MESSAGE_DISAPPEAR_TIME: float = 0.2
 const BLOCK_SELECTION_TIME = 3
 const BLOCK_SELECTION_DISAPPEAR_TIME: float = 0.2
 const HOST_IP = "127.0.0.1"
-const REFRESH_TIME = 1
+const REFRESH_TIME = 5
 const CONNECTING_TIME = 10
 const LONG_TOUCH_TIME = 0.4
-const POSITION_MAX_DIFFERENCE = 5
 const INVENTORY_NAME_SHOW_STAY_TIME = 1
 const RENDER_CHUNK_MIN = 1
 const RENDER_CHUNK_MAX = 3
@@ -36,6 +35,13 @@ const TURN_TIME: float = 0.1
 const MINI_MAP_SCALE_FACTOR = 0.07
 const MINI_MAP_ICON_SIZE = 256
 const MAP_SCALE_FACTOR = 0.7
+const CHUNK_FREE_TIME = 5
+const UPDATE_CHUNK_TIME = 0.5
+const POSITION_MAX_DIFFERENCE = 100
+const REFRESH_DELTA_TIME = 0.01
+const REFRESH_DELTA_TIME_LONG = 0.2
+const MAX_NAME_LENGTH = 16
+const MAX_SPEED = 2000
 
 var is_dedicated_server: bool = false
 var is_on_mobile_platform: bool = false
@@ -72,7 +78,8 @@ var region_path
 var player_path
 var server_path = "user://servers"
 var screenshot_path = "user://screenshots"
-var block_ids_0_1_0_1 = {
+var server_log_path = "user://server_logs"
+var block_ids_default = {
 		"AIR": 0,
 		"COBBLESTONE": 1,
 		"DIRT": 2,
@@ -80,6 +87,41 @@ var block_ids_0_1_0_1 = {
 		"OAK_LOG": 4,
 		"OAK_PLANKS": 5,
 		"STONE": 6
+	}
+var block_ids_0_1 = {
+		"AIR": 0,
+		"BEDROCK": 1,
+		"COAL_ORE": 2,
+		"COBBLESTONE": 3,
+		"CRAFTING_TABLE": 4,
+		"DIAMOND_BLOCK": 5,
+		"DIAMOND_ORE": 6,
+		"DIRT": 7,
+		"GOLD_BLOCK": 8,
+		"GOLD_ORE": 9,
+		"GRASS_BLOCK": 10,
+		"IRON_BLOCK": 11,
+		"IRON_ORE": 12,
+		"LEAVES": 13,
+		"OAK_LOG": 14,
+		"OAK_PLANKS": 15,
+		"STONE": 16,
+		"WOOL_BLACK": 17,
+		"WOOL_BLUE": 18,
+		"WOOL_BROWN": 19,
+		"WOOL_CYAN": 20,
+		"WOOL_GRAY": 21,
+		"WOOL_GREEN": 22,
+		"WOOL_LIGHT_BLUE": 23,
+		"WOOL_LIGHT_GRAY": 24,
+		"WOOL_LIME": 25,
+		"WOOL_MAGENTA": 26,
+		"WOOL_ORANGE": 27,
+		"WOOL_PINK": 28,
+		"WOOL_PURPLE": 29,
+		"WOOL_RED": 30,
+		"WOOL_WHITE": 31,
+		"WOOL_YELLOW": 32,
 	}
 
 func _ready() -> void:
@@ -98,11 +140,11 @@ func _ready() -> void:
 	default_icon_gray_image = load("res://Assets/Textures/GUI/default_icon_gray.png").get_image()
 	game_icon_image = load("res://Assets/Textures/GUI/icon.png").get_image()
 	options = {
-		"version": "0.1.1.1",
+		"version": "0.1.2.0",
 		"updated": "false",
 		"player_name": "Steve",
 		"language": "zh",
-		"render_chunk": 4,
+		"render_chunk": 1,
 		'fov_zoom':50,
 		"bgm_volume": 50,
 		"sound_volume": 50,
@@ -203,6 +245,8 @@ func _ready() -> void:
 			create_server_world()
 			await get_tree().create_timer(1).timeout
 		select_world = "world"
+		if not DirAccess.dir_exists_absolute(server_log_path):
+			DirAccess.make_dir_recursive_absolute(server_log_path)
 		StaticLoad.change_scene("res://Assets/Scenes/LoadingWorldUI.tscn")
 
 func compare_version(version_1: String, version_2: String):
@@ -226,9 +270,10 @@ func compare_version(version_1: String, version_2: String):
 	return "equal"
 
 func convert_world(world_name, old_version):
-	var block_ids_old: Dictionary
-	if old_version == "0.1.0.1":
-		block_ids_old = block_ids_0_1_0_1
+	var block_ids_old = block_ids_default
+	var old_version_splits = old_version.split(".")
+	if old_version_splits[1] == "1":
+		block_ids_old = block_ids_0_1
 	var region_path_tmp = "user://worlds/"+world_name+"/regions"
 	var regions = DirAccess.get_files_at(ProjectSettings.globalize_path(region_path_tmp))
 	if regions.is_empty():
@@ -331,6 +376,8 @@ func save_options(change_value: Dictionary):
 		return
 	for key in options.keys():
 		var current_value = current_config.get_value("options", key)
+		if key == "player_name" and current_value.length() > MAX_NAME_LENGTH:
+			current_value = current_value.substr(0,MAX_NAME_LENGTH)
 		config.set_value("options", key, current_value)
 	for key in change_value.keys():
 		config.set_value("options", key, change_value[key])
@@ -574,7 +621,9 @@ func start_server():
 		game.broadcast_to_person(game.player.player_name, tr("OPEN_SERVER_FAIL_1")+StaticLoad.HOST_IP+":"+str(port)+tr("OPEN_SERVER_FAIL_2"), "pink")
 		return
 	if is_dedicated_server:
-		print("["+get_time_string(false)+" INFO]: "+"Server opened on 127.0.0.1:12419")
+		var text = "["+get_time_string(false)+" INFO]: "+"Server opened on 127.0.0.1:12419"
+		print(text)
+		record_log(Time.get_date_string_from_system(), text)
 	multiplayer.multiplayer_peer = multiplayer_peer
 	if not is_dedicated_server:
 		game.pause_button_4.disabled = true
@@ -601,7 +650,10 @@ func connect_signal_received(state):
 		game.is_player_info_updated = true
 	elif state == "version_conflict":
 		get_node("/root/LoadingServerUI").connect_interrupt_reason = "version_conflict"
-
+	elif state == "player_name_exceed":
+		get_node("/root/LoadingServerUI").connect_interrupt_reason = "player_name_exceed"
+	elif state == "player_name_space":
+		get_node("/root/LoadingServerUI").connect_interrupt_reason = "player_name_space"
 func get_time_string(is_return_day: bool = true):
 	var time_str = Time.get_datetime_string_from_system().split("T")
 	var day = time_str[0].replace("-","/")
@@ -618,6 +670,20 @@ func check_server_version(check_version):
 		if splits_1[i] != splits_2[i]:
 			return false
 	return true
+
+func record_log(log_name, content, is_endl = true):
+	if not FileAccess.file_exists(server_log_path+"/"+log_name+".txt"):
+		var log_config = ConfigFile.new()
+		log_config.save(server_log_path+"/"+log_name+".txt")
+	var file_read = FileAccess.open(server_log_path+"/"+log_name+".txt", FileAccess.READ)
+	var content_read = file_read.get_as_text()
+	var file = FileAccess.open(server_log_path+"/"+log_name+".txt", FileAccess.WRITE)
+	file.store_string(content_read)
+	if is_endl:
+		file.store_string(content+"\n")
+	else:
+		file.store_string(content)
+	file.close()
 
 @rpc("authority", "call_remote", "reliable", 1)
 func check_ping():
@@ -646,7 +712,9 @@ func peer_disconnect_broadcast(peer_id):
 		return
 	game.broadcast_to_all(online_peer_ids[peer_id].player_name+tr("LEFT_GAME"), "gold")
 	if StaticLoad.is_dedicated_server:
-		print("["+get_time_string(false)+" INFO]: "+online_peer_ids[peer_id].player_name+" left the game")
+		var text = "["+get_time_string(false)+" INFO]: "+online_peer_ids[peer_id].player_name+" left the game"
+		print(text)
+		record_log(Time.get_date_string_from_system(), text)
 	destroy_peer(peer_id)
 
 @rpc("authority", "call_remote", "reliable", 1)
@@ -732,6 +800,12 @@ func request_for_connect_state_check(peer_id, player_name, version_tmp):
 	if version_tmp != options["version"]:
 		rpc_id(peer_id, "reply_for_connect_state_check", "version_conflict")
 		return
+	if player_name.length() > MAX_NAME_LENGTH:
+		rpc_id(peer_id, "reply_for_connect_state_check", "player_name_exceed")
+		return
+	if player_name.contains(" "):
+		rpc_id(peer_id, "reply_for_connect_state_check", "player_name_space")
+		return
 	rpc_id(peer_id, "reply_for_connect_state_check", "state_checked")
 
 @rpc("authority", "call_remote", "reliable", 1)
@@ -765,7 +839,6 @@ func request_for_player_info(peer_id, player_name):
 		new_player.rpc("init_player", peer_id, player_name, DEFAULT_PLAYER_SPAWN_POS, DEFAULT_PLAYER_FACE_STATE, DEFAULT_PLAYER_IS_FLYING)
 	new_player.rpc("broadcast_join_game", player_name)
 
-		
 @rpc("authority", "call_remote", "reliable", 1)
 func reply_update_player_info(player_position, face_state, is_flying):
 	game.player.position = player_position
@@ -775,32 +848,46 @@ func reply_update_player_info(player_position, face_state, is_flying):
 		game.update_jump_button()
 		game.player.velocity.y = 0
 	connect_signal.emit("player_info_updated")
-
+	
 @rpc("any_peer", "call_remote", "reliable", 1)
 func request_for_update_chunk(peer_id, x_chunk, y_chunk):
 	var blocks = []
-	if not game.loaded_chunks.has(str(x_chunk)+"."+str(y_chunk)):
+	if game.loaded_chunks.has(str(x_chunk)+"."+str(y_chunk)):
+		for y in range(16):
+			var row = []
+			for x in range(16):
+				var block_pos = Vector2i(x_chunk*16+x, y_chunk*16+y)
+				var id = 0
+				if game.tile_map_layer.get_cell_source_id(block_pos) != -1:
+					var atlas_coords = game.tile_map_layer.get_cell_atlas_coords(block_pos)
+					id = StaticLoad.get_block_id_by_atlas_coords(atlas_coords)
+				row.append(id)
+			blocks.append(row)
+	elif game.database_chunks.has(str(x_chunk)+"."+str(y_chunk)):
+		var chunk_config = ConfigFile.new()
+		var chunk_result = chunk_config.load_encrypted_pass(StaticLoad.region_path+"/r."+str(x_chunk)+"."+str(y_chunk)+".mca", CONFIG_PASSWORD)
+		if chunk_result != OK:
+			return
+		blocks = chunk_config.get_value("chunck", "blocks")
+		game.loaded_chunk_num += 1
+		game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)] = false
+		game.loaded_chunks_timer[str(x_chunk)+"."+str(y_chunk)] = StaticLoad.CHUNK_FREE_TIME
+		game.set_chunk(Vector2i(x_chunk, y_chunk), blocks)
+	else:
 		var mca = ConfigFile.new()
 		blocks = StaticLoad.generate_chunk(Vector2i(x_chunk, y_chunk))
-		game.set_chunk(Vector2i(x_chunk, y_chunk), blocks)
 		game.loaded_chunk_num += 1
 		mca.set_value("chunck", "blocks", blocks)
 		mca.save_encrypted_pass(region_path+"/r."+str(x_chunk)+"."+str(y_chunk)+".mca", CONFIG_PASSWORD)
 		game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)] = false
-	for y in range(16):
-		var row = []
-		for x in range(16):
-			var block_pos = Vector2i(x_chunk*16+x, y_chunk*16+y)
-			var id = 0
-			if game.tile_map_layer.get_cell_source_id(block_pos) != -1:
-				var atlas_coords = game.tile_map_layer.get_cell_atlas_coords(block_pos)
-				id = StaticLoad.get_block_id_by_atlas_coords(atlas_coords)
-			row.append(id)
-		blocks.append(row)
+		game.loaded_chunks_timer[str(x_chunk)+"."+str(y_chunk)] = StaticLoad.CHUNK_FREE_TIME
+		game.database_chunks.push_back(str(x_chunk)+"."+str(y_chunk))
+		game.set_chunk(Vector2i(x_chunk, y_chunk), blocks)
 	rpc_id(peer_id, "reply_for_update_chunck",x_chunk, y_chunk, blocks)
 		
 @rpc("authority", "call_remote", "reliable", 1)
 func reply_for_update_chunck(x_chunk, y_chunk, blocks):
 	game.set_chunk(Vector2i(x_chunk, y_chunk), blocks)
 	game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)] = false
+	game.loaded_chunks_timer[str(x_chunk)+"."+str(y_chunk)] = StaticLoad.CHUNK_FREE_TIME
 	game.loaded_chunk_num += 1

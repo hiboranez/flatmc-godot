@@ -74,8 +74,11 @@ func create_world(world_name: String):
 func convert_world(old_version):
 	var final_old_version
 	if old_version == "unknown":
-		final_old_version = "0.1.0.1"
+		final_old_version = "0.1.0.0"
+	else:
+		final_old_version = old_version
 	StaticLoad.convert_world(StaticLoad.select_world, final_old_version)
+	StaticLoad.select_world = null
 	update_world_list()
 
 func _on_single_menu_button_1_pressed() -> void:

@@ -32,7 +32,7 @@ func _on_options_button_1_pressed() -> void:
 	if player_name_line_edit.text == "":
 		StaticLoad.pop_notification(self, "WARNING", "WARNING_2")
 		return
-	if player_name_line_edit.text.length() > 16:
+	if player_name_line_edit.text.length() > StaticLoad.MAX_NAME_LENGTH:
 		StaticLoad.pop_notification(self, "WARNING", "WARNING_9")
 		return
 	if player_name_line_edit.text.contains(" "):
@@ -52,7 +52,7 @@ func _on_options_button_1_pressed() -> void:
 	StaticLoad.click_audio_player.volume_db = linear_to_db(int(change_value["sound_volume"])/50.0)
 	if StaticLoad.is_in_game:
 		var game = $".."
-		game.render_chunk = int(change_value["render_chunk"])
+		game.player.render_chunk = int(change_value["render_chunk"])
 		var fov_zoom = 1+1.6*(int(change_value["fov_zoom"])/100.0)
 		game.player.camera.zoom = Vector2(fov_zoom, fov_zoom)
 		game.bgm_audio_player.volume_db = linear_to_db(int(change_value["bgm_volume"])/50.0)
@@ -70,6 +70,9 @@ func _on_options_button_1_pressed() -> void:
 		elif game.mini_map_on == "on":
 			game.mini_map.visible = true
 		self.visible = false
+		game.player.update_player_state()
+		if StaticLoad.is_muti_mode:
+			game.player.broadcast_player_state_to_all()
 		game.update_new_chunk(true)
 	else:
 		StaticLoad.change_scene("res://Assets/Scenes/Menu.tscn")

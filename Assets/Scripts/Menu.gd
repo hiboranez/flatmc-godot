@@ -36,6 +36,8 @@ func _ready() -> void:
 		DirAccess.make_dir_recursive_absolute(StaticLoad.screenshot_path)
 	if not DirAccess.dir_exists_absolute(StaticLoad.server_path):
 		DirAccess.make_dir_recursive_absolute(StaticLoad.server_path)
+	if not DirAccess.dir_exists_absolute(StaticLoad.server_log_path):
+		DirAccess.make_dir_recursive_absolute(StaticLoad.server_log_path)
 
 func _notification(what):
 	if what == NOTIFICATION_WM_GO_BACK_REQUEST:

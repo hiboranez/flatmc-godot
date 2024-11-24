@@ -41,6 +41,7 @@ func _process(delta: float) -> void:
 			return
 		title.text = tr("COMPLETED")
 		await get_tree().create_timer(1).timeout
+		StaticLoad.game.player.rpc("remote_unfreeze_player")
 		load_finished()
 
 func start_connecting_timer():
@@ -88,6 +89,10 @@ func connect_server():
 				title.text = tr("SAME_PLAYER_NAME")
 			elif connect_interrupt_reason == "version_conflict":
 				title.text = tr("VERSION_CONFLICT")
+			elif connect_interrupt_reason == "player_name_exceed":
+				title.text = tr("PLAYER_NAME_EXCEED")
+			elif connect_interrupt_reason == "player_name_space":
+				title.text = tr("PLAYER_NAME_SPACE")
 			title.set("theme_override_colors/font_color", StaticLoad.colors["pink"])
 			if StaticLoad.multiplayer.multiplayer_peer != null and StaticLoad.multiplayer.multiplayer_peer.get_connection_status() != StaticLoad.multiplayer.multiplayer_peer.CONNECTION_DISCONNECTED:
 				StaticLoad.clear_connections()

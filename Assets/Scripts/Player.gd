@@ -5,6 +5,7 @@ const JUMP_VELOCITY = -550.0
 const WALK_PERIOD = 0.83
 const RUN_PERIOD = 0.42
 
+var render_chunk: int = 1
 var player_peer_id: int
 var player_name: String
 var is_jump_pressed: bool = false
@@ -12,6 +13,7 @@ var last_is_jump_pressed: bool = false
 var is_down_pressed: bool = false
 var last_is_down_pressed: bool = false
 var is_other: bool = false
+var is_pause: bool = false
 var is_frozen: bool = false
 var is_dead: bool = false
 var is_in_water: bool = false
@@ -24,12 +26,14 @@ var last_y_velocity = 0.0
 var step_sound_timer = 0.0
 var refresh_timer = 0.0
 var turn_state: float = -1
+var velocity_before_pause
 var player_state = {
 	"face_state": StaticLoad.DEFAULT_PLAYER_FACE_STATE,
 	"move_state": "idle",
 	"is_jump_pressed": false,
 	"is_down_pressed": false,
-	"is_flying": false
+	"is_flying": false,
+	"render_chunk": 1
 	}
 
 @onready var player_animation = $SubViewportContainer/SubViewport/AnimationPlayer
@@ -39,6 +43,7 @@ var player_state = {
 @onready var name_label = $Sprite2D/NameLable
 
 func _ready():
+	velocity_before_pause = velocity
 	var count:int = 0
 	for key in StaticLoad.block_ids:
 		if count < 13:
@@ -54,7 +59,6 @@ func _process(delta: float) -> void:
 	update_move_by_player_state(delta)
 	move_and_slide()
 	update_player_sound(delta)
-	
 	if not StaticLoad.is_muti_mode:
 		return
 	update_refresh_timer(delta)
@@ -69,6 +73,11 @@ func init(peer_id):
 		StaticLoad.online_peer_ids[player_peer_id] = StaticLoad.game.player
 		var fov_zoom = 1+1.6*(int(config.get_value("options", "fov_zoom", StaticLoad.options["fov_zoom"]))/100.0)
 		camera.zoom = Vector2(fov_zoom, fov_zoom)
+		render_chunk = int(config.get_value("options", "render_chunk", StaticLoad.options["render_chunk"]))
+		if render_chunk > StaticLoad.RENDER_CHUNK_MAX:
+			render_chunk = StaticLoad.RENDER_CHUNK_MAX
+		if render_chunk < StaticLoad.RENDER_CHUNK_MIN:
+			render_chunk = StaticLoad.RENDER_CHUNK_MIN
 	if not StaticLoad.is_muti_mode:
 		var player_infos = DirAccess.get_files_at(ProjectSettings.globalize_path(StaticLoad.player_path))
 		for player_info in player_infos:
@@ -105,11 +114,13 @@ func init(peer_id):
 	StaticLoad.rpc("new_peer_broadcast", player_peer_id)
 	
 func freeze_player():
+	velocity.y = 0
 	is_frozen = true
 	$CollisionShape2D.disabled = true
 	self.visible = false
 
 func unfreeze_player():
+	velocity.y = 0
 	is_frozen = false
 	$CollisionShape2D.disabled = false
 	self.visible = true
@@ -120,13 +131,14 @@ func update_player_state():
 	player_state["is_jump_pressed"] = is_jump_pressed
 	player_state["is_down_pressed"] = is_down_pressed
 	player_state["is_flying"] = is_flying
+	player_state["render_chunk"] = render_chunk
 
 func broadcast_player_state_to_all():
 	if not StaticLoad.online_peer_ids.has(1):
-		rpc_id(1, "remote_update_player_state", face_state, move_state, is_jump_pressed, is_down_pressed, is_flying)
+		rpc_id(1, "remote_update_player_state", player_state)
 	for peer_id in StaticLoad.online_peer_ids:
 		if peer_id != StaticLoad.multiplayer_peer.get_unique_id():
-			rpc_id(peer_id, "remote_update_player_state", face_state, move_state, is_jump_pressed, is_down_pressed, is_flying)
+			rpc_id(peer_id, "remote_update_player_state", player_state)
 
 func update_refresh_timer(delta):
 	if refresh_timer >= 0:
@@ -157,6 +169,26 @@ func update_player_sound(delta):
 		step_sound_timer -= delta
 
 func update_gravity(delta):
+	if StaticLoad.is_muti_mode:
+		var player_block_pos = StaticLoad.game.tile_map_layer.local_to_map(position-Vector2(0,24))
+		var chunk_pos_tmp = StaticLoad.game.get_chunk_position(player_block_pos)
+		if not StaticLoad.game.loaded_chunks.has(str(chunk_pos_tmp[0])+"."+str(chunk_pos_tmp[1])):
+			if not is_pause:
+				is_pause = true
+				velocity_before_pause = velocity
+				velocity = Vector2(0, -0.01)
+				if StaticLoad.multiplayer.get_unique_id() == 1:
+					rpc_id(player_peer_id, "refresh_player", position, velocity, face_state, move_state, is_flying)
+			return
+	if is_pause:
+		velocity = velocity_before_pause
+		if StaticLoad.multiplayer.get_unique_id() == 1:
+			rpc_id(player_peer_id, "refresh_player", position, velocity, face_state, move_state, is_flying)
+		is_pause = false
+	if velocity.x > StaticLoad.MAX_SPEED:
+		velocity.x = StaticLoad.MAX_SPEED
+	if velocity.y > StaticLoad.MAX_SPEED:
+		velocity.y = StaticLoad.MAX_SPEED
 	if is_flying or is_frozen:
 		return
 	if not is_on_floor():
@@ -217,12 +249,16 @@ func send_message(message: String):
 	var player_name_mesage =  "<"+player_name+">  "+message
 	StaticLoad.game.broadcast_to_all(player_name_mesage)
 	if StaticLoad.is_dedicated_server:
-		print("["+StaticLoad.get_time_string(false)+" INFO]: "+"<"+player_name+"> "+message)
+		var text = "["+StaticLoad.get_time_string(false)+" INFO]: "+"<"+player_name+"> "+message
+		print(text)
+		StaticLoad.record_log(Time.get_date_string_from_system(), text)
 
 func send_command(command: String):
 	var splits = command.split(" ")
 	if StaticLoad.is_dedicated_server:
-		print("["+StaticLoad.get_time_string(false)+" INFO]: "+"<"+player_name+"> "+command)
+		var text = "["+StaticLoad.get_time_string(false)+" INFO]: "+"<"+player_name+"> "+command
+		print(text)
+		StaticLoad.record_log(Time.get_date_string_from_system(), text)
 	if splits[0] == "/help":
 		StaticLoad.game.close_chat_ui()
 		StaticLoad.game.broadcast_to_person(player_name, tr("COMMAND_LIST"), "gold")
@@ -236,10 +272,16 @@ func send_command(command: String):
 			if abs(x) >= 200000 or abs(y) >= 200000:
 				StaticLoad.game.broadcast_to_person(player_name, tr("RANGE_LIMIT"), "pink")
 			else:
-				StaticLoad.game.is_chunk_updating = false
+				freeze_player()
+				if StaticLoad.is_muti_mode:
+					rpc("remote_freeze_player")
 				position = Vector2i(x*50+25, -y*50+50)
-				StaticLoad.game.is_chunk_updating = true
+				StaticLoad.game.update_new_chunk(false)
 				StaticLoad.game.broadcast_to_person(player_name, tr("TELEPORT_INFO_1")+player_name+tr("TELEPORT_INFO_2")+"x="+str(x)+", y="+str(y), "chartreuse")
+				await get_tree().create_timer(0.01).timeout
+				unfreeze_player()
+				if StaticLoad.is_muti_mode:
+					rpc("remote_unfreeze_player")
 		else:
 			StaticLoad.game.broadcast_to_person(player_name, tr("USAGE")+" : "+StaticLoad.commands["/tp"], "gold")
 	else:
@@ -261,17 +303,19 @@ func stop_player_move():
 func broadcast_join_game(player_name):
 	StaticLoad.game.broadcast_to_all(player_name+tr("JOINED_GAME"), "gold")
 	if StaticLoad.is_dedicated_server:
-		print("["+StaticLoad.get_time_string(false)+" INFO]: "+player_name+" joined the game")
+		var text = "["+StaticLoad.get_time_string(false)+" INFO]: "+player_name+" joined the game"
+		print(text)
+		StaticLoad.record_log(Time.get_date_string_from_system(), text)
 
 @rpc("any_peer", "call_local", "reliable", 1)
 @warning_ignore("shadowed_variable")
 func init_player(peer_id, player_name, pos, face_state, is_flying):
+	self.player_peer_id = peer_id
 	self.player_name = player_name
 	self.name_label.text = player_name
 	self.position = pos
 	self.face_state = face_state
 	self.is_flying = is_flying
-	self.unfreeze_player()
 	update_player_rotation()
 	
 	StaticLoad.online_peer_ids[peer_id] = StaticLoad.game.players.get_node(str(peer_id))
@@ -281,6 +325,7 @@ func init_player(peer_id, player_name, pos, face_state, is_flying):
 	if peer_id == StaticLoad.multiplayer.get_unique_id():
 		return
 	
+	unfreeze_player()
 	var player_icon_instance = StaticLoad.player_icon_scene.instantiate()
 	var mini_map_camera_zoom = StaticLoad.game.mini_map_camera.zoom[0]
 	var player_icon_scale = StaticLoad.MINI_MAP_SCALE_FACTOR/mini_map_camera_zoom
@@ -288,33 +333,87 @@ func init_player(peer_id, player_name, pos, face_state, is_flying):
 	player_icon_instance.name = player_name
 	StaticLoad.game.player_icons[player_name] = player_icon_instance
 	StaticLoad.game.mini_map_players.add_child(player_icon_instance)
+	
+	if StaticLoad.multiplayer.get_unique_id() == 1:
+		return
+	if not StaticLoad.game.online_ui_vbox_container.has_node(str(peer_id)):
+		var online_info_instance = StaticLoad.online_info_scene.instantiate()
+		StaticLoad.game.online_ui_vbox_container.add_child(online_info_instance)
+		online_info_instance.name = str(peer_id)
+		online_info_instance.player_name.text = self.player_name
+		#var online_info = StaticLoad.game.online_ui_vbox_container.get_node(str(peer_id))
+		await get_tree().create_timer(0.5).timeout
+		StaticLoad.rpc_id(1, "request_for_ping", StaticLoad.multiplayer.get_unique_id(), peer_id)
 
 @rpc("authority", "call_remote", "reliable", 1)
 @warning_ignore("shadowed_variable")
-func refresh_player(pos, face_state, move_state, is_flying):
-	self.global_position = pos
+func refresh_player(pos, velo, face_state, move_state, is_flying):
+	self.position = pos
+	self.velocity = velo
 	self.face_state = face_state
 	self.move_state = move_state
 	self.is_flying = is_flying
+
+@rpc("any_peer", "call_remote", "reliable", 1)
+func request_for_set_self_player_position(peer_id, pos):
+	if position.distance_to(pos) <= StaticLoad.POSITION_MAX_DIFFERENCE:
+		var tween = get_tree().create_tween()
+		tween.tween_property(self, "position", pos, StaticLoad.REFRESH_DELTA_TIME)
+		for id in StaticLoad.online_peer_ids:
+			if id == peer_id or id == 1:
+				continue
+			rpc_id(id, "reply_for_set_self_player_position", pos)
+
+@rpc("authority", "call_remote", "reliable", 1)
+func reply_for_set_self_player_position(pos):
+	var tween = get_tree().create_tween()
+	tween.tween_property(self, "position", pos, StaticLoad.REFRESH_DELTA_TIME)
 
 @rpc("authority", "call_remote", "unreliable", 1)
 func remote_check_player_position(pos):
 	if position.distance_to(pos) >= StaticLoad.POSITION_MAX_DIFFERENCE:
-		position = pos
+		#var player_pos = StaticLoad.game.tile_map_layer.local_to_map(position)
+		#if StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.tile_map_layer.get_cell_atlas_coords(player_pos)) == 0:
+			#return
+		#if StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.tile_map_layer.get_cell_atlas_coords(player_pos - Vector2i(0, 1))) == 0:
+			#return
+		if abs(velocity.x) > 1000 or abs(velocity.y) > 1000:
+			return
+		var tween = get_tree().create_tween()
+		tween.tween_property(self, "position", pos, StaticLoad.REFRESH_DELTA_TIME_LONG)
+	else:
+		rpc_id(1, "request_for_set_self_player_position", StaticLoad.multiplayer.get_unique_id() ,position)
 
-@rpc("any_peer", "call_remote", "unreliable", 1)
+@rpc("any_peer", "call_remote", "reliable", 1)
+func remote_freeze_player():
+	self.freeze_player()
+	if StaticLoad.multiplayer.get_unique_id() == 1:
+		rpc_id(player_peer_id, "remote_check_player_position", position)
+
+@rpc("any_peer", "call_remote", "reliable", 1)
+func remote_unfreeze_player():
+	self.unfreeze_player()
+	if StaticLoad.multiplayer.get_unique_id() == 1:
+		rpc_id(player_peer_id, "remote_check_player_position", position)
+
+@rpc("any_peer", "call_remote", "reliable", 1)
 func remote_stop_player_move():
 	stop_player_move()
+	if StaticLoad.multiplayer.get_unique_id() == 1:
+		rpc_id(player_peer_id, "remote_check_player_position", position)
 
 @rpc("any_peer", "call_remote", "unreliable", 1)
 @warning_ignore("shadowed_variable")
-func remote_update_player_state(face_state, move_state, is_jump_pressed, is_down_pressed, is_flying):
-	self.face_state = face_state
-	self.move_state = move_state
-	self.is_jump_pressed = is_jump_pressed
-	self.is_down_pressed = is_down_pressed
-	self.is_flying = is_flying
-	self.refresh_timer = StaticLoad.REFRESH_TIME
+func remote_update_player_state(player_state):
+	self.face_state = player_state["face_state"]
+	self.move_state = player_state["move_state"]
+	self.is_jump_pressed = player_state["is_jump_pressed"]
+	self.is_down_pressed = player_state["is_down_pressed"]
+	self.is_flying = player_state["is_flying"]
+	self.render_chunk = player_state["render_chunk"]
+	if StaticLoad.multiplayer.get_unique_id() == 1:
+		rpc_id(player_peer_id, "remote_check_player_position", position)
+	#self.refresh_timer = StaticLoad.REFRESH_TIME
 
 @rpc("any_peer", "call_remote", "reliable", 1)
 func remote_update_message(peer_id, message):
