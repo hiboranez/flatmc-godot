@@ -14,6 +14,7 @@ extends Node2D
 @onready var time_counter = load("res://Assets/Scenes/TimeCounter.tscn") as PackedScene
 @onready var inventory_grid = load("res://Assets/Scenes/InventoryGrid.tscn") as PackedScene
 @onready var move_center_button_normal = load("res://Assets/Textures/GUI/move_center_button_normal.tres") as AtlasTexture
+@onready var jump_button_normal = load("res://Assets/Textures/GUI/jump_button_normal.tres") as AtlasTexture
 @onready var move_center_button_fly = load("res://Assets/Textures/GUI/move_center_button_fly.tres") as AtlasTexture
 #@onready var player_other_scene = load("res://Assets/Scenes/PlayerOther.tscn") as PackedScene
 @onready var player
@@ -52,7 +53,6 @@ extends Node2D
 @onready var mini_map_tile_map_layer = $GameUI/MiniMap/SubViewportContainer/SubViewport/TileMapLayer
 @onready var mini_map_players = $GameUI/MiniMap/SubViewportContainer/SubViewport/Players
 @onready var mini_map = $GameUI/MiniMap
-var is_chunk_updating: bool = true
 var player_icons = {}
 var mouse_item_name_label
 var touch_list = []
@@ -60,19 +60,23 @@ var block_selection_timer: float = 0
 var block_selection_box
 var mini_map_on
 var mini_map_zoom: float
-var render_chunk: int
 var chunk_to_load = []
+var is_online_info: bool = false
 var is_input_frozen: bool = false
 var is_map: bool = false
 var is_inventory: bool = false
 var is_pause: bool = false
 var is_chat: bool = false
 var is_player_info_updated: bool = false
+var is_chunk_modifing: bool = false
 var player_last_chunk: Vector2i
 var loaded_chunks: Dictionary #true代表已修改，需要最后保存
+var loaded_chunks_timer: Dictionary
+var database_chunks = []
 var total_chunk_num = 0
 var loaded_chunk_num = 0
 var item_name_timer: float = 0
+var update_chunk_timer: float = 0
 var last_mouse_in_world_pos: Vector2 = Vector2(0, 0)
 var move_input_list = []
 var last_left_time = 0.0
@@ -83,7 +87,8 @@ var last_player_state = {
 	"move_state": "idle",
 	"is_jump_pressed": false,
 	"is_down_pressed": false,
-	"is_flying": false
+	"is_flying": false,
+	"render_chunk": 0
 }
 
 func _notification(what):
@@ -125,7 +130,10 @@ func _ready() -> void:
 		freeze_game()
 		var loading_ui = loading_world_ui_scene.instantiate()
 		add_child(loading_ui)
-		init_game_as_single()
+		if StaticLoad.is_dedicated_server:
+			init_game_as_dedicated_server()
+		else:
+			init_game_as_single()
 		if StaticLoad.is_dedicated_server:
 			StaticLoad.start_server()
 			unfreeze_game()
@@ -133,8 +141,8 @@ func _ready() -> void:
 			create_player()
 
 func _process(delta: float) -> void:
-	refresh_game()
-	update_new_chunk(false)
+	refresh_game(delta)
+	update_loaded_chunks_timer(delta)
 	
 	if StaticLoad.is_dedicated_server:
 		return
@@ -159,6 +167,7 @@ func update_mini_map():
 			player_icons[player_tmp.player_name].position = player_tmp.position-Vector2(0, half_icon_size)
 
 func open_online_info_ui():
+	is_online_info = true
 	online_ui.visible = true
 	for peer_id in StaticLoad.online_peer_ids:
 		if online_ui_vbox_container.has_node(str(peer_id)):
@@ -283,6 +292,7 @@ func _input(event: InputEvent) -> void:
 			
 	if Input.is_action_just_released("online_info"):
 		online_ui.visible = false
+		is_online_info = false
 			
 	if Input.is_action_just_pressed("chat"):
 		move_input_list.clear()
@@ -348,12 +358,24 @@ func process_touch_input():
 	
 	for touch in touch_list:
 		if touch.double_tap:
-			place_block(tile_map_layer.local_to_map(camera_screen_pos_to_local_pos(player.camera, touch.position)))
-			grab_item(tile_map_layer.local_to_map(camera_screen_pos_to_local_pos(player.camera, touch.position)))
+			var block_pos = tile_map_layer.local_to_map(camera_screen_pos_to_local_pos(player.camera, touch.position))
+			if check_place_block_state(block_pos):
+				place_block(block_pos)
+			grab_item(block_pos)
 		else:
 			var pressed_time = touch_time_counters.get_node(str(touch.index)).timer
 			if pressed_time >= StaticLoad.LONG_TOUCH_TIME:
 				destroy_block(tile_map_layer.local_to_map(camera_screen_pos_to_local_pos(player.camera, touch.position)))
+
+func check_place_block_state(block_pos):
+	for id in StaticLoad.online_peer_ids:
+		var player_tmp = StaticLoad.online_peer_ids[id]
+		var player_pos = tile_map_layer.local_to_map(player_tmp.position)
+		if player_pos == block_pos:
+			return false
+		if player_pos - Vector2i(0, 1) == block_pos:
+			return false
+	return true
 
 @warning_ignore("unused_parameter")
 func _unhandled_input(event: InputEvent) -> void:
@@ -366,6 +388,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			var icon_scale = StaticLoad.MINI_MAP_SCALE_FACTOR/mini_map_camera.zoom[0]
 			for player_icon in mini_map_players.get_children():
 				player_icon.scale = Vector2(icon_scale, icon_scale)
+		elif is_online_info:
+			pass
 		else:
 			if player.selected_item_grid >= 1:
 				select_item_grid(player.selected_item_grid)
@@ -381,6 +405,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			var icon_scale = StaticLoad.MINI_MAP_SCALE_FACTOR/mini_map_camera.zoom[0]
 			for player_icon in mini_map_players.get_children():
 				player_icon.scale = Vector2(icon_scale, icon_scale)
+		elif is_online_info:
+			pass
 		else:
 			if player.selected_item_grid <= 7:
 				select_item_grid(player.selected_item_grid+2)
@@ -400,7 +426,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		else:
 			var pressed_time = touch_time_counters.get_node(str(event.index)).timer
 			if pressed_time < StaticLoad.LONG_TOUCH_TIME:
-				place_block(tile_map_layer.local_to_map(camera_screen_pos_to_local_pos(player.camera, event.position)))
+				var block_pos = tile_map_layer.local_to_map(camera_screen_pos_to_local_pos(player.camera, event.position))
+				if check_place_block_state(block_pos):
+					place_block(block_pos)
 			var touch_to_remove_index
 			for i in range(touch_list.size()):
 				if touch_list[i].index == event.index:
@@ -424,7 +452,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		destroy_block(mouse_to_block_pos)
 	
 	if mouse_in_world_pos != last_mouse_in_world_pos and Input.is_action_pressed("mouse_right"):
-		place_block(mouse_to_block_pos)
+		if check_place_block_state(mouse_to_block_pos):
+			place_block(mouse_to_block_pos)
 
 
 func grab_item(block_pos):
@@ -463,7 +492,9 @@ func destroy_block(block_pos: Vector2i):
 				else:
 					StaticLoad.rpc_id(1, "request_for_set_block", block_pos, 0)
 		var chunk_pos = get_chunk_position(block_pos)
-		loaded_chunks[str(chunk_pos[0])+"."+str(chunk_pos[1])] = true
+		if loaded_chunks.has(str(chunk_pos[0])+"."+str(chunk_pos[1])):
+			loaded_chunks[str(chunk_pos[0])+"."+str(chunk_pos[1])] = true
+			loaded_chunks_timer[str(chunk_pos[0])+"."+str(chunk_pos[1])] = StaticLoad.CHUNK_FREE_TIME
 		if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() != 1:
 			StaticLoad.rpc_id(1, "request_for_mark_revised_chunk", chunk_pos)
 
@@ -480,9 +511,46 @@ func place_block(block_pos):
 				else:
 					StaticLoad.rpc_id(1, "request_for_set_block", block_pos, block_id)
 		var chunk_pos = get_chunk_position(block_pos)
-		loaded_chunks[str(chunk_pos[0])+"."+str(chunk_pos[1])] = true
+		if loaded_chunks.has(str(chunk_pos[0])+"."+str(chunk_pos[1])):
+			loaded_chunks[str(chunk_pos[0])+"."+str(chunk_pos[1])] = true
+			loaded_chunks_timer[str(chunk_pos[0])+"."+str(chunk_pos[1])] = StaticLoad.CHUNK_FREE_TIME
 		if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() != 1:
 			StaticLoad.rpc_id(1, "request_for_mark_revised_chunk", chunk_pos)
+
+func update_loaded_chunks_timer(delta):
+	is_chunk_modifing = true
+	if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() != 1:
+		var player_block_pos = tile_map_layer.local_to_map(player.position-Vector2(0,24))
+		var chunk_pos_tmp = get_chunk_position(player_block_pos)
+		var x_player_chunk = chunk_pos_tmp[0]
+		var y_player_chunk = chunk_pos_tmp[1]
+		for x in range(x_player_chunk-player.render_chunk, x_player_chunk+player.render_chunk+1):
+			for y in range(y_player_chunk-player.render_chunk, y_player_chunk+player.render_chunk+1):	
+				if loaded_chunks.has(str(x)+"."+str(y)):
+					loaded_chunks_timer[str(x)+"."+str(y)] = StaticLoad.CHUNK_FREE_TIME
+	else:
+		for player_tmp in players.get_children():
+			var player_block_pos = tile_map_layer.local_to_map(player_tmp.position-Vector2(0,24))
+			var chunk_pos_tmp = get_chunk_position(player_block_pos)
+			var x_player_chunk = chunk_pos_tmp[0]
+			var y_player_chunk = chunk_pos_tmp[1]
+			for x in range(x_player_chunk-player_tmp.render_chunk, x_player_chunk+player_tmp.render_chunk+1):
+				for y in range(y_player_chunk-player_tmp.render_chunk, y_player_chunk+player_tmp.render_chunk+1):	
+					if loaded_chunks.has(str(x)+"."+str(y)):
+						loaded_chunks_timer[str(x)+"."+str(y)] = StaticLoad.CHUNK_FREE_TIME
+	var to_removed_timers = []
+	for key in loaded_chunks_timer.keys():
+		loaded_chunks_timer[key] -= delta
+		if loaded_chunks_timer[key] <= 0:
+			to_removed_timers.push_back(key)
+	for timer in to_removed_timers:
+		var splits = timer.split(".")
+		var chunk_pos = Vector2i(int(splits[0]), int(splits[1]))
+		save_chunk(chunk_pos)
+		loaded_chunks.erase(timer)
+		loaded_chunks_timer.erase(timer)
+		free_chunk(chunk_pos)
+	is_chunk_modifing = false
 
 func camera_screen_pos_to_local_pos(camera, pos):
 	var inv_canv_tfm: Transform2D = camera.get_canvas_transform().affine_inverse()
@@ -490,16 +558,24 @@ func camera_screen_pos_to_local_pos(camera, pos):
 	var actual_screen_center_pos: Vector2 = inv_canv_tfm * half_screen * Vector2(0, 0)
 	return actual_screen_center_pos
 
+func init_game_as_dedicated_server():
+	var regions = DirAccess.get_files_at(ProjectSettings.globalize_path(StaticLoad.region_path))
+	if regions.is_empty():
+		return
+	for region in regions:
+		var splits = region.split(".")
+		database_chunks.push_back(splits[1]+"."+splits[2])
+	total_chunk_num = 1
+	loaded_chunk_num = 1
 
 func init_game_as_single():
 	var config = ConfigFile.new()
 	var result = config.load("user://configs.cfg")
+	var player_name_tmp
+	var render_chunk_tmp = 1
 	if result == OK:
-		render_chunk = int(config.get_value("options", "render_chunk", StaticLoad.options["render_chunk"]))
-		if render_chunk > StaticLoad.RENDER_CHUNK_MAX:
-			render_chunk = StaticLoad.RENDER_CHUNK_MAX
-		if render_chunk < StaticLoad.RENDER_CHUNK_MIN:
-			render_chunk = StaticLoad.RENDER_CHUNK_MIN
+		player_name_tmp = config.get_value("options", "player_name", StaticLoad.options["player_name"])
+		render_chunk_tmp = int(config.get_value("options", "render_chunk", StaticLoad.options["render_chunk"]))
 		block_selection_box = config.get_value("options", "block_selection_box", StaticLoad.options["block_selection_box"])
 		mini_map_on = config.get_value("options", "mini_map", StaticLoad.options["mini_map"])
 		mini_map_zoom = float(config.get_value("options", "mini_map_zoom", StaticLoad.options["mini_map_zoom"]))
@@ -522,30 +598,35 @@ func init_game_as_single():
 	var regions = DirAccess.get_files_at(ProjectSettings.globalize_path(StaticLoad.region_path))
 	if regions.is_empty():
 		return
-	total_chunk_num = regions.size()
 	for region in regions:
 		var splits = region.split(".")
-		var x_chunk = int(splits[1])
-		var y_chunk = int(splits[2])
-		var chunk_config = ConfigFile.new()
-		var chunk_result = chunk_config.load_encrypted_pass(StaticLoad.region_path+"/"+region, StaticLoad.CONFIG_PASSWORD)
-		if chunk_result != OK:
-			return
-		var blocks = chunk_config.get_value("chunck", "blocks")
-		set_chunk(Vector2i(x_chunk, y_chunk), blocks)
-		loaded_chunks[str(x_chunk)+"."+str(y_chunk)] = false
-		loaded_chunk_num += 1
-	#var player_infos = DirAccess.get_files_at(ProjectSettings.globalize_path(StaticLoad.player_path))
-	#for player_info in player_infos:
-		#var player_config = ConfigFile.new()
-		#var player_result = player_config.load_encrypted_pass(StaticLoad.player_path+"/"+player.player_name+".dat", StaticLoad.CONFIG_PASSWORD)
-		#if player_result == OK:
-			#player.position = player_config.get_value("player", "position", StaticLoad.DEFAULT_PLAYER_SPAWN_POS)
-			#player.face_state = player_config.get_value("player", "face_state", StaticLoad.DEFAULT_PLAYER_FACE_STATE)
-			#player.is_flying = player_config.get_value("player", "is_flying", false)
-	#player.init()
+		database_chunks.push_back(splits[1]+"."+splits[2])
+	var player_config = ConfigFile.new()
+	var player_position_tmp = Vector2(0, 1)
+	if FileAccess.file_exists(StaticLoad.player_path+"/"+player_name_tmp.to_lower()+".dat"):
+		var player_result = player_config.load_encrypted_pass(StaticLoad.player_path+"/"+player_name_tmp.to_lower()+".dat", StaticLoad.CONFIG_PASSWORD)
+		if player_result == OK:
+			player_position_tmp = player_config.get_value("player", "position", StaticLoad.DEFAULT_PLAYER_SPAWN_POS)
+	var chunk_pos = get_chunk_position(player_position_tmp)
+	var x_player_chunk = chunk_pos[0]
+	var y_player_chunk = chunk_pos[1]
+	var count = 0
+	count += range(x_player_chunk-render_chunk_tmp, x_player_chunk+render_chunk_tmp+1).size()
+	count += range(y_player_chunk-render_chunk_tmp, y_player_chunk+render_chunk_tmp+1).size()
+	total_chunk_num = count
+	for x in range(x_player_chunk-render_chunk_tmp, x_player_chunk+render_chunk_tmp+1):
+		for y in range(y_player_chunk-render_chunk_tmp, y_player_chunk+render_chunk_tmp+1):
+			var chunk_config = ConfigFile.new()
+			var chunk_result = chunk_config.load_encrypted_pass(StaticLoad.region_path+"/r."+str(x)+"."+str(y)+".mca", StaticLoad.CONFIG_PASSWORD)
+			if chunk_result != OK:
+				return
+			var blocks = chunk_config.get_value("chunck", "blocks")
+			set_chunk(Vector2i(x, y), blocks)
+			loaded_chunks[str(x)+"."+str(y)] = false
+			loaded_chunks_timer[str(x)+"."+str(y)] = StaticLoad.CHUNK_FREE_TIME
+			loaded_chunk_num += 1
 	update_block_selection_ui(get_local_mouse_position())
-	
+
 func init_game_as_client():
 	StaticLoad.select_world = "new world"
 	StaticLoad.update_path()
@@ -556,7 +637,11 @@ func init_game_as_client():
 	var result = config.load("user://configs.cfg")
 	if result != OK:
 		return
-	render_chunk = int(config.get_value("options", "render_chunk", StaticLoad.options["render_chunk"]))
+	player.render_chunk = int(config.get_value("options", "render_chunk", StaticLoad.options["render_chunk"]))
+	if player.render_chunk > StaticLoad.RENDER_CHUNK_MAX:
+		player.render_chunk = StaticLoad.RENDER_CHUNK_MAX
+	if player.render_chunk < StaticLoad.RENDER_CHUNK_MIN:
+		player.render_chunk = StaticLoad.RENDER_CHUNK_MIN
 	block_selection_box = config.get_value("options", "block_selection_box", StaticLoad.options["block_selection_box"])
 	mini_map_on = config.get_value("options", "mini_map", StaticLoad.options["mini_map"])
 	mini_map_zoom = float(config.get_value("options", "mini_map_zoom", StaticLoad.options["mini_map_zoom"]))
@@ -571,21 +656,17 @@ func init_game_as_client():
 		mini_map.visible = false
 	elif mini_map_on == "on":
 		mini_map.visible = true
-	if render_chunk > StaticLoad.RENDER_CHUNK_MAX:
-		render_chunk = StaticLoad.RENDER_CHUNK_MAX
-	if render_chunk < StaticLoad.RENDER_CHUNK_MIN:
-		render_chunk = StaticLoad.RENDER_CHUNK_MIN
 	var player_pos = tile_map_layer.local_to_map(player.position)
 	var chunk_pos = get_chunk_position(player_pos)
 	var x_player_chunk = chunk_pos[0]
 	var y_player_chunk = chunk_pos[1]
 	var loading_chunk_total_sum = 0
-	for x in range(x_player_chunk-render_chunk, x_player_chunk+render_chunk+1):
-		for y in range(y_player_chunk-render_chunk, y_player_chunk+render_chunk+1):
+	for x in range(x_player_chunk-player.render_chunk, x_player_chunk+player.render_chunk+1):
+		for y in range(y_player_chunk-player.render_chunk, y_player_chunk+player.render_chunk+1):
 			loading_chunk_total_sum += 1
 	total_chunk_num = loading_chunk_total_sum
-	for x in range(x_player_chunk-render_chunk, x_player_chunk+render_chunk+1):
-		for y in range(y_player_chunk-render_chunk, y_player_chunk+render_chunk+1):
+	for x in range(x_player_chunk-player.render_chunk, x_player_chunk+player.render_chunk+1):
+		for y in range(y_player_chunk-player.render_chunk, y_player_chunk+player.render_chunk+1):
 			StaticLoad.rpc_id(1, "request_for_update_chunk", StaticLoad.multiplayer.get_unique_id(), x, y)
 	update_block_selection_ui(get_local_mouse_position())
 
@@ -627,7 +708,12 @@ func unfreeze_game():
 	bgm_audio_player.stream_paused = false
 	player.camera.position_smoothing_enabled = true
 
-func refresh_game():
+func refresh_game(delta):
+	if update_chunk_timer > 0:
+		update_chunk_timer -= delta
+	else:
+		update_chunk_timer = StaticLoad.UPDATE_CHUNK_TIME
+		update_new_chunk(false)
 	if not StaticLoad.is_muti_mode:
 		return
 	if StaticLoad.multiplayer.get_unique_id() != 1 and not StaticLoad.is_dedicated_server:
@@ -648,20 +734,18 @@ func refresh_player():
 	for peer_id in StaticLoad.online_peer_ids:
 		var player_tmp = StaticLoad.online_peer_ids[peer_id]
 		if peer_id != 1 and not player_tmp.is_frozen:
-			player_tmp.rpc_id(peer_id, "remote_check_player_position", player_tmp.position)
-		var player_refresh_timer = player_tmp.refresh_timer
-		if player_refresh_timer <= 0:
-			player_refresh_timer = StaticLoad.REFRESH_TIME
-			for id in StaticLoad.online_peer_ids:
-				if id == 1 or player_tmp.is_frozen:
-					continue
-				player_tmp.rpc_id(id, "refresh_player", player_tmp.position, player_tmp.face_state, player_tmp.move_state, player_tmp.is_flying)
+			if not StaticLoad.is_dedicated_server:
+				player.rpc_id(peer_id, "refresh_player", player.position, player.velocity, player.face_state, player.move_state, player.is_flying)
+			#var player_refresh_timer = player_tmp.refresh_timer
+			#if player_refresh_timer <= 0:
+				#player_refresh_timer = StaticLoad.REFRESH_TIME
+				#player_tmp.rpc_id(peer_id, "remote_check_player_position", player_tmp.position)
 
 func update_jump_button():
 	if player.is_flying:
 		move_jump_button_icon.texture = move_center_button_fly
 	else:
-		move_jump_button_icon.texture = move_center_button_normal
+		move_jump_button_icon.texture = jump_button_normal
 
 func update_player_state():
 	if player.is_dead or player.is_frozen or is_input_frozen:
@@ -821,29 +905,46 @@ func get_chunk_position(block_pos: Vector2i):
 	return Vector2i(x_chunk, y_chunk)
 
 func update_new_chunk(is_pre_load: bool):
-	if not is_chunk_updating:
-		return
 	var player_pos = tile_map_layer.local_to_map(player.position)
 	var chunk_pos = get_chunk_position(player_pos)
 	var x_player_chunk = chunk_pos[0]
 	var y_player_chunk = chunk_pos[1]
 	if is_pre_load or player_last_chunk != Vector2i(x_player_chunk, y_player_chunk):
-		for x in range(x_player_chunk-render_chunk, x_player_chunk+render_chunk+1):
-			for y in range(y_player_chunk-render_chunk, y_player_chunk+render_chunk+1):
-				#if not FileAccess.file_exists(region_path+"/r."+str(x)+"."+str(y)+".mca"):
+		for x in range(x_player_chunk-player.render_chunk, x_player_chunk+player.render_chunk+1):
+			for y in range(y_player_chunk-player.render_chunk, y_player_chunk+player.render_chunk+1):
 				if not loaded_chunks.has(str(x)+"."+str(y)):
 					if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() != 1:
 						StaticLoad.rpc_id(1, "request_for_update_chunk", StaticLoad.multiplayer.get_unique_id(), x, y)
 						loaded_chunks[str(x)+"."+str(y)] = false #防止重复向服务器发送申请
+						loaded_chunks_timer[str(x)+"."+str(y)] = StaticLoad.CHUNK_FREE_TIME
 					else:
-						var mca = ConfigFile.new()
-						var blocks = StaticLoad.generate_chunk(Vector2i(x, y))
-						set_chunk(Vector2i(x, y), blocks)
-						loaded_chunk_num += 1
-						mca.set_value("chunck", "blocks", blocks)
-						mca.save_encrypted_pass(StaticLoad.region_path+"/r."+str(x)+"."+str(y)+".mca", StaticLoad.CONFIG_PASSWORD)
-						loaded_chunks[str(x)+"."+str(y)] = false
+						if database_chunks.has(str(x)+"."+str(y)):
+							var chunk_config = ConfigFile.new()
+							var chunk_result = chunk_config.load_encrypted_pass(StaticLoad.region_path+"/r."+str(x)+"."+str(y)+".mca", StaticLoad.CONFIG_PASSWORD)
+							if chunk_result != OK:
+								return
+							var blocks = chunk_config.get_value("chunck", "blocks")
+							set_chunk(Vector2i(x, y), blocks)
+							loaded_chunk_num += 1
+							loaded_chunks[str(x)+"."+str(y)] = false
+							loaded_chunks_timer[str(x)+"."+str(y)] = StaticLoad.CHUNK_FREE_TIME
+						else:
+							var mca = ConfigFile.new()
+							var blocks = StaticLoad.generate_chunk(Vector2i(x, y))
+							set_chunk(Vector2i(x, y), blocks)
+							loaded_chunk_num += 1
+							mca.set_value("chunck", "blocks", blocks)
+							mca.save_encrypted_pass(StaticLoad.region_path+"/r."+str(x)+"."+str(y)+".mca", StaticLoad.CONFIG_PASSWORD)
+							loaded_chunks[str(x)+"."+str(y)] = false
+							loaded_chunks_timer[str(x)+"."+str(y)] = StaticLoad.CHUNK_FREE_TIME
+							database_chunks.push_back(str(x)+"."+str(y))
 		player_last_chunk = Vector2i(x_player_chunk, y_player_chunk)
+
+func free_chunk(pos: Vector2i) -> void:
+	for x in range(0, 16):
+		for y in range(0, 16):
+			set_block(Vector2i(pos[0] * 16 + x, pos[1] * 16 + y), 0, true)
+	loaded_chunk_num -= 1
 
 func set_chunk(pos: Vector2i, blocks) -> void:
 	for x in range(0, 16):
@@ -859,21 +960,23 @@ func set_block(block_pos: Vector2i, block_id: int, is_pre_load = false):
 			var atlas_coords = tile_map_layer.get_cell_atlas_coords(block_pos)
 			sound_audio_manager.play_random_audio_at_position("dig", StaticLoad.get_block_type_by_id(StaticLoad.get_block_id_by_atlas_coords(atlas_coords)), tile_map_layer.map_to_local(block_pos))
 		tile_map_layer.set_cell(block_pos)
-		mini_map_tile_map_layer.set_cell(block_pos)
+		if not StaticLoad.is_dedicated_server:
+			mini_map_tile_map_layer.set_cell(block_pos)
 		return true
 	if tile_map_layer.get_cell_source_id(block_pos) != -1:
 		return false
-	if not is_pre_load:
-		for id in StaticLoad.online_peer_ids:
-			var player_tmp = StaticLoad.online_peer_ids[id]
-			var player_pos = tile_map_layer.local_to_map(player_tmp.position)
-			if player_pos == block_pos:
-				return false
-			if player_pos - Vector2i(0, 1) == block_pos:
-				return false
+	#if not is_pre_load:
+		#for id in StaticLoad.online_peer_ids:
+			#var player_tmp = StaticLoad.online_peer_ids[id]
+			#var player_pos = tile_map_layer.local_to_map(player_tmp.position)
+			#if player_pos == block_pos:
+				#return false
+			#if player_pos - Vector2i(0, 1) == block_pos:
+				#return false
 	var atlas_coords = StaticLoad.get_atlas_coords_by_block_id(block_id)
 	tile_map_layer.set_cell(block_pos, 9999, atlas_coords)
-	mini_map_tile_map_layer.set_cell(block_pos, 9999, atlas_coords)
+	if not StaticLoad.is_dedicated_server:
+		mini_map_tile_map_layer.set_cell(block_pos, 9999, atlas_coords)
 	if not is_pre_load:
 		sound_audio_manager.play_random_audio_at_position("dig", StaticLoad.get_block_type_by_id(block_id), tile_map_layer.map_to_local(block_pos))
 	return true
@@ -1081,6 +1184,7 @@ func _on_chat_line_edit_text_submitted(new_text: String) -> void:
 	chat_line_edit.text = ""
 	if StaticLoad.is_on_mobile_platform:
 		close_chat_ui()
+		Input.emulate_mouse_from_touch = false
 
 func _on_chat_history_out_pre_sort_children() -> void:
 	chat_history_out.scroll_vertical = 1e9
@@ -1245,8 +1349,8 @@ func _on_mobile_move_button_down_right_pressed():
 
 func _on_mobile_move_button_jump_pressed():
 	Input.action_release("down")
-	Input.action_release("move_left")
-	Input.action_release("move_right")
+	#Input.action_release("move_left")
+	#Input.action_release("move_right")
 	if not Input.is_action_pressed("jump"):
 		Input.action_press("jump")
 		

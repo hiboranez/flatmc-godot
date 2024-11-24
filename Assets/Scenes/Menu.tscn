@@ -92,7 +92,7 @@ offset_right = 1920.0
 grow_vertical = 0
 theme_override_fonts/font = ExtResource("2_vj7ds")
 theme_override_font_sizes/font_size = 20
-text = "Alpha v0.1.1.1
+text = "Alpha v0.1.2.0
 @"
 label_settings = SubResource("LabelSettings_ig0yt")
 vertical_alignment = 1

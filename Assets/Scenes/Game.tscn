@@ -9,7 +9,6 @@
 [ext_resource type="Texture2D" uid="uid://d02e418c7jdla" path="res://Assets/Textures/GUI/mobile_small_button.png" id="4_5q8xe"]
 [ext_resource type="FontFile" uid="uid://csywm01568tlp" path="res://Assets/Fonts/MinecraftAE.ttf" id="4_nsj5b"]
 [ext_resource type="Texture2D" uid="uid://b6wbqichdrhpr" path="res://Assets/Textures/GUI/button_normal.png" id="5_0o0wo"]
-[ext_resource type="Texture2D" uid="uid://coihp1mu84fi0" path="res://Assets/Textures/GUI/move_center_button_normal.tres" id="5_4y7us"]
 [ext_resource type="Texture2D" uid="uid://bmsf550ow4gf1" path="res://Assets/Textures/Items/cobblestone.png" id="5_m7jp6"]
 [ext_resource type="Script" path="res://Assets/Scripts/ItemGrid.gd" id="5_taigv"]
 [ext_resource type="Texture2D" uid="uid://bcse7navndyua" path="res://Assets/Textures/GUI/selected_item_bar.png" id="6_d227v"]
@@ -18,6 +17,7 @@
 [ext_resource type="Script" path="res://Assets/Scripts/GameButton.gd" id="6_u15tu"]
 [ext_resource type="Texture2D" uid="uid://bve61l2aynnoa" path="res://Assets/Textures/GUI/move_button_right_down.png" id="7_aqtia"]
 [ext_resource type="Texture2D" uid="uid://dggx0hmyex5x6" path="res://Assets/Textures/GUI/item_bar.png" id="7_cjy4x"]
+[ext_resource type="Texture2D" uid="uid://blyp4dmrxrl8o" path="res://Assets/Textures/GUI/jump_button_normal.tres" id="11_as60q"]
 [ext_resource type="Script" path="res://Assets/Scripts/DragScroll.gd" id="13_wfnj5"]
 [ext_resource type="Script" path="res://Assets/Scripts/Options.gd" id="14_ic0qm"]
 [ext_resource type="Texture2D" uid="uid://b14xkgu1d1omr" path="res://Assets/Textures/Backgrounds/stone_wall.png" id="15_e4i4j"]
@@ -70,19 +70,16 @@ size = Vector2(175, 525)
 atlas = ExtResource("2_mnda3")
 region = Rect2(28, 109, 22, 22)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_l0u8a"]
-atlas = ExtResource("2_mnda3")
-region = Rect2(80, 109, 22, 22)
-
 [sub_resource type="CompressedTexture2D" id="CompressedTexture2D_8lp3y"]
 load_path = "res://.godot/imported/unknown_version_gui.webp-ea970ca1430c74c04c1d43217f01df98.ctex"
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_idmjc"]
+[sub_resource type="AtlasTexture" id="AtlasTexture_omkwn"]
 atlas = SubResource("CompressedTexture2D_8lp3y")
-region = Rect2(108, 111, 18, 18)
+region = Rect2(218, 82, 18, 18)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_kgr7b"]
-size = Vector2(270, 270)
+[sub_resource type="AtlasTexture" id="AtlasTexture_l0u8a"]
+atlas = ExtResource("2_mnda3")
+region = Rect2(80, 109, 22, 22)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ursv3"]
 bg_color = Color(0, 0, 0, 0.392157)
@@ -122,6 +119,9 @@ animations = [{
 "name": &"transparent",
 "speed": 5.0
 }]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_kgr7b"]
+size = Vector2(270, 270)
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_rfgq5"]
 content_margin_left = 30.0
@@ -488,7 +488,7 @@ offset_top = -87.5
 offset_right = 87.5
 offset_bottom = 87.5
 mouse_filter = 0
-texture = ExtResource("5_4y7us")
+texture = SubResource("AtlasTexture_omkwn")
 
 [node name="RightButton" type="TouchScreenButton" parent="MobileUI/MoveButtonsLeft"]
 z_index = 1
@@ -537,7 +537,7 @@ offset_top = -87.5
 offset_right = 87.5
 offset_bottom = 87.5
 mouse_filter = 0
-texture = SubResource("AtlasTexture_idmjc")
+texture = ExtResource("11_as60q")
 
 [node name="Background" type="CanvasLayer" parent="."]
 layer = -1
@@ -576,6 +576,7 @@ anchor_bottom = 1.0
 offset_top = 57.0
 grow_horizontal = 2
 grow_vertical = 2
+script = ExtResource("13_wfnj5")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="OnlineUI/OnlineList/ScrollContainer"]
 layout_mode = 2
@@ -608,6 +609,7 @@ vertical_alignment = 1
 
 [node name="Details" type="VFlowContainer" parent="GameUI"]
 visible = false
+z_index = 1
 layout_direction = 3
 anchors_preset = 2
 anchor_top = 1.0
@@ -735,74 +737,6 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 1
 color = Color(0, 0, 0, 0.509804)
-
-[node name="MiniMap" type="Control" parent="GameUI"]
-layout_mode = 3
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -269.735
-offset_right = 0.265015
-offset_bottom = 270.0
-grow_horizontal = 0
-
-[node name="WhiteFrame" type="ColorRect" parent="GameUI/MiniMap"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-color = Color(0.95158, 0.95158, 0.951579, 1)
-
-[node name="BlueBack" type="ColorRect" parent="GameUI/MiniMap"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 15.0
-offset_top = 15.0
-offset_right = -15.0
-offset_bottom = -15.0
-grow_horizontal = 2
-grow_vertical = 2
-color = Color(0.443137, 0.698039, 1, 1)
-
-[node name="SubViewportContainer" type="SubViewportContainer" parent="GameUI/MiniMap"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 15.0
-offset_top = 15.0
-offset_right = -15.0
-offset_bottom = -15.0
-grow_horizontal = 2
-grow_vertical = 2
-stretch = true
-
-[node name="SubViewport" type="SubViewport" parent="GameUI/MiniMap/SubViewportContainer"]
-transparent_bg = true
-handle_input_locally = false
-snap_2d_transforms_to_pixel = true
-canvas_item_default_texture_filter = 2
-size = Vector2i(240, 240)
-render_target_update_mode = 4
-
-[node name="TileMapLayer" type="TileMapLayer" parent="GameUI/MiniMap/SubViewportContainer/SubViewport"]
-tile_set = ExtResource("3_fa3r6")
-
-[node name="Players" type="Node2D" parent="GameUI/MiniMap/SubViewportContainer/SubViewport"]
-
-[node name="Camera2D" type="Camera2D" parent="GameUI/MiniMap/SubViewportContainer/SubViewport"]
-zoom = Vector2(0.1, 0.1)
-
-[node name="TouchButton" type="TouchScreenButton" parent="GameUI/MiniMap"]
-z_index = 1
-position = Vector2(135, 135)
-shape = SubResource("RectangleShape2D_kgr7b")
-shape_visible = false
-visibility_mode = 1
 
 [node name="ChatHistory" type="ScrollContainer" parent="GameUI"]
 custom_minimum_size = Vector2(650, 329)
@@ -1462,6 +1396,74 @@ shape_visible = false
 passby_press = true
 visibility_mode = 1
 
+[node name="MiniMap" type="Control" parent="GameUI"]
+layout_mode = 3
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -269.735
+offset_right = 0.265015
+offset_bottom = 270.0
+grow_horizontal = 0
+
+[node name="WhiteFrame" type="ColorRect" parent="GameUI/MiniMap"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.95158, 0.95158, 0.951579, 1)
+
+[node name="BlueBack" type="ColorRect" parent="GameUI/MiniMap"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 15.0
+offset_top = 15.0
+offset_right = -15.0
+offset_bottom = -15.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.443137, 0.698039, 1, 1)
+
+[node name="SubViewportContainer" type="SubViewportContainer" parent="GameUI/MiniMap"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 15.0
+offset_top = 15.0
+offset_right = -15.0
+offset_bottom = -15.0
+grow_horizontal = 2
+grow_vertical = 2
+stretch = true
+
+[node name="SubViewport" type="SubViewport" parent="GameUI/MiniMap/SubViewportContainer"]
+transparent_bg = true
+handle_input_locally = false
+snap_2d_transforms_to_pixel = true
+canvas_item_default_texture_filter = 2
+size = Vector2i(240, 240)
+render_target_update_mode = 4
+
+[node name="TileMapLayer" type="TileMapLayer" parent="GameUI/MiniMap/SubViewportContainer/SubViewport"]
+tile_set = ExtResource("3_fa3r6")
+
+[node name="Players" type="Node2D" parent="GameUI/MiniMap/SubViewportContainer/SubViewport"]
+
+[node name="Camera2D" type="Camera2D" parent="GameUI/MiniMap/SubViewportContainer/SubViewport"]
+zoom = Vector2(0.1, 0.1)
+
+[node name="TouchButton" type="TouchScreenButton" parent="GameUI/MiniMap"]
+z_index = 1
+position = Vector2(135, 135)
+shape = SubResource("RectangleShape2D_kgr7b")
+shape_visible = false
+visibility_mode = 1
+
 [node name="PauseUI" type="CanvasLayer" parent="."]
 visible = false
 
@@ -2065,8 +2067,7 @@ visible = false
 [connection signal="released" from="MobileUI/MoveButtonsLeft/RightButton" to="." method="_on_mobile_move_button_right_released"]
 [connection signal="pressed" from="MobileUI/MoveButtonsRight/JumpButton" to="." method="_on_mobile_move_button_jump_pressed"]
 [connection signal="released" from="MobileUI/MoveButtonsRight/JumpButton" to="." method="_on_mobile_move_button_jump_released"]
-[connection signal="pressed" from="GameUI/MiniMap/TouchButton" to="." method="_on_mobile_map_button_pressed"]
-[connection signal="released" from="GameUI/MiniMap/TouchButton" to="." method="_on_mobile_map_button_released"]
+[connection signal="gui_input" from="OnlineUI/OnlineList/ScrollContainer" to="OnlineUI/OnlineList/ScrollContainer" method="_on_scrollcontainer_gui_input"]
 [connection signal="pre_sort_children" from="GameUI/ChatHistory" to="." method="_on_chat_history_out_pre_sort_children"]
 [connection signal="gui_input" from="GameUI/ChatPanel/ChatHistory" to="GameUI/ChatPanel/ChatHistory" method="_on_scrollcontainer_gui_input"]
 [connection signal="text_submitted" from="GameUI/ChatPanel/ChatLineEdit" to="." method="_on_chat_line_edit_text_submitted"]
@@ -2092,6 +2093,8 @@ visible = false
 [connection signal="pressed" from="GameUI/ItemBarPanel/ItemBar/9/9" to="GameUI/ItemBarPanel/ItemBar/9" method="_on_item_bar_focus_entered"]
 [connection signal="focus_entered" from="GameUI/ItemBarPanel/ItemBar/More" to="GameUI/ItemBarPanel/ItemBar/More" method="_on_item_bar_focus_entered"]
 [connection signal="pressed" from="GameUI/ItemBarPanel/ItemBar/More/More" to="GameUI/ItemBarPanel/ItemBar/More" method="_on_item_bar_focus_entered"]
+[connection signal="pressed" from="GameUI/MiniMap/TouchButton" to="." method="_on_mobile_map_button_pressed"]
+[connection signal="released" from="GameUI/MiniMap/TouchButton" to="." method="_on_mobile_map_button_released"]
 [connection signal="pressed" from="PauseUI/FlowContainer/Button1" to="." method="_on_pause_button_1_pressed"]
 [connection signal="pressed" from="PauseUI/FlowContainer/Button2" to="." method="_on_pause_button_2_pressed"]
 [connection signal="pressed" from="PauseUI/FlowContainer/Button3" to="." method="_on_pause_button_3_pressed"]
