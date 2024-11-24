@@ -1,4 +1,4 @@
-[gd_resource type="AtlasTexture" load_steps=2 format=3 uid="uid://blyp4dmrxrl8o"]
+[gd_resource type="AtlasTexture" load_steps=2 format=3 uid="uid://gkbqtdcsmhs0"]
 
 [sub_resource type="CompressedTexture2D" id="CompressedTexture2D_jdxul"]
 load_path = "res://.godot/imported/unknown_version_gui.webp-ea970ca1430c74c04c1d43217f01df98.ctex"

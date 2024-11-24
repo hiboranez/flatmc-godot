@@ -17,7 +17,7 @@
 [ext_resource type="Script" path="res://Assets/Scripts/GameButton.gd" id="6_u15tu"]
 [ext_resource type="Texture2D" uid="uid://bve61l2aynnoa" path="res://Assets/Textures/GUI/move_button_right_down.png" id="7_aqtia"]
 [ext_resource type="Texture2D" uid="uid://dggx0hmyex5x6" path="res://Assets/Textures/GUI/item_bar.png" id="7_cjy4x"]
-[ext_resource type="Texture2D" uid="uid://blyp4dmrxrl8o" path="res://Assets/Textures/GUI/jump_button_normal.tres" id="11_as60q"]
+[ext_resource type="Texture2D" uid="uid://gkbqtdcsmhs0" path="res://Assets/Textures/GUI/jump_button_normal.tres" id="11_as60q"]
 [ext_resource type="Script" path="res://Assets/Scripts/DragScroll.gd" id="13_wfnj5"]
 [ext_resource type="Script" path="res://Assets/Scripts/Options.gd" id="14_ic0qm"]
 [ext_resource type="Texture2D" uid="uid://b14xkgu1d1omr" path="res://Assets/Textures/Backgrounds/stone_wall.png" id="15_e4i4j"]
