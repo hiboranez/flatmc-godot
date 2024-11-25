@@ -1,89 +1,89 @@
-# 输入控制
+# Input Controls
 
-## **1. 键盘操作**
-- **W**: 跳跃/向上飞（双击开启/关闭飞行模式）
-- **A**: 向左走（双击向左跑）
-- **D**: 向右走（双击向右跑）
-- **S**: 向下飞（仅飞行模式下）
-- **E**: 打开物品栏
-- **M**: 全屏化小地图
-- **F1**: 显示/隐藏 GUI
-- **F2**: 截图
-- **F3**: 显示/隐藏坐标信息
-- **Tab**: 显示/隐藏在线玩家信息（需开启服务器）
-- **T**: 开启/关闭聊天框
-- **Esc**: 暂停/关闭上一级 UI
-- **1 至 9**: 切换 1 至 9 号快捷栏
+## **1. Keyboard Controls**
+- **W**: Jump/Fly up (double-tap to toggle flight mode)  
+- **A**: Move left (double-tap to sprint left)  
+- **D**: Move right (double-tap to sprint right)  
+- **S**: Fly down (only in flight mode)  
+- **E**: Open inventory  
+- **M**: Maximize/minimize the minimap  
+- **F1**: Show/Hide GUI  
+- **F2**: Take a screenshot  
+- **F3**: Show/Hide coordinates  
+- **Tab**: Show/Hide online player list (requires server)  
+- **T**: Open/Close chat box  
+- **Esc**: Pause/Close the current UI layer  
+- **1 to 9**: Switch between quick access slots 1–9  
 
-## **2. 鼠标操作**
-- **左键**: 破坏方块
-- **右键**: 放置方块
-- **中键**: 拾取方块
-- **滚轮**: 切换快捷栏
-- **Ctrl + 滚轮**: 缩放小地图
-- **单击快捷栏**: 切换快捷栏
+## **2. Mouse Controls**
+- **Left Click**: Break blocks  
+- **Right Click**: Place blocks  
+- **Middle Click**: Pick up blocks  
+- **Scroll Wheel**: Switch quick access slots  
+- **Ctrl + Scroll Wheel**: Zoom in/out on minimap  
+- **Single Click on Quick Access Bar**: Switch selected slot  
 
-## **3. 移动端操作**
-- **方向键**: 控制移动与跳跃  
-  - 双击左方向键：向左跑  
-  - 双击右方向键：向右跑  
-  - 双击上方向键：开启/关闭飞行模式
-- **跳跃键**: 双击开启/关闭飞行模式
-- **短按**: 放置单个方块
-- **长按**: 持续破坏方块
-- **双击**: 拾取方块
-- **双击拖动**: 持续放置方块
-- **滑动快捷栏**: 切换快捷栏
-- **更多快捷栏**: 打开物品栏
-- **F1**: 显示/隐藏 GUI
-- **F2**: 截图
-- **F3**: 显示/隐藏坐标信息
-- **Tab**: 显示/隐藏在线玩家信息（需开启服务器）
-- **聊天按钮**: 开启/关闭聊天框
-- **暂停按钮**: 暂停/关闭上一级 UI
-- **右上角小地图**: 按住不放全屏化小地图
-
----
-
-# **现有指令**
-
-- `/help`: 查看指令列表  
-- `/tp <x坐标> <y坐标>`: 传送至对应坐标
+## **3. Mobile Controls**
+- **Directional Buttons**: Move and jump  
+  - Double-tap the left button to sprint left  
+  - Double-tap the right button to sprint right  
+  - Double-tap the up button to toggle flight mode  
+- **Jump Button**: Double-tap to toggle flight mode  
+- **Tap**: Place a single block  
+- **Long Press**: Continuously break blocks  
+- **Double-tap**: Pick up blocks  
+- **Double-tap and Drag**: Continuously place blocks  
+- **Slide on Quick Access Bar**: Switch slots  
+- **More Quick Access Options**: Open inventory  
+- **F1**: Show/Hide GUI  
+- **F2**: Take a screenshot  
+- **F3**: Show/Hide coordinates  
+- **Tab**: Show/Hide online player list (requires server)  
+- **Chat Button**: Open/Close chat box  
+- **Pause Button**: Pause/Close the current UI layer  
+- **Top-right Minimap**: Hold to maximize the minimap  
 
 ---
 
-# **联机手册**
+# **Available Commands**
 
-## **1. 局域网联机**
-1. 在服务器设备上，单人模式下选择进入一个世界。
-2. 暂停游戏，点击**对局域网开放**。
-3. 在其他设备上（同一局域网下），游戏会自动探测服务器，点击**加入**即可。
+- `/help`: Display the list of commands  
+- `/tp <x_coordinate> <y_coordinate>`: Teleport to the specified coordinates  
 
-## **2. 服务器联机**
-1. **添加服务器**: 输入正确的 IP 和端口。
-2. 保存后会显示服务器连接信息。
-3. 若服务器信息正确，点击**加入**即可。
+---
+
+# **Multiplayer Guide**
+
+## **1. LAN Multiplayer**
+1. On the host device, start a singleplayer world.  
+2. Pause the game and click **Open to LAN**.  
+3. Other devices on the same LAN will automatically detect the server. Click **Join** to connect.  
+
+## **2. Server Multiplayer**
+1. **Add Server**: Input the correct IP and port.  
+2. Save the details to display the server connection info.  
+3. If the server information is correct, click **Join** to connect.  
 
 ---
 
 # **Q&A**
 
-### **1. 移动端和主机端可以联机互通吗？**
-**A**: 互通的，只要服务器地址输入正确即可联机游玩。
+### **1. Can mobile and PC players play together?**
+**A**: Yes, cross-platform play is supported. Ensure the correct server address is entered to connect.
 
-### **2. 游戏存档文件夹在哪？**
-**A**: 
-- **Windows**: `C:/Users/用户名/AppData/Roaming/Godot`  
-- **安卓**: `Android/data/org.godotengine.godot`  
-  世界存档在 `worlds` 文件夹下，需转移存档时请将文件放入该文件夹。
+### **2. Where is the game save folder?**
+**A**:  
+- **Windows**: `C:/Users/YourUsername/AppData/Roaming/Godot`  
+- **Android**: `Android/data/org.godotengine.godot`  
+  World saves are located in the `worlds` folder. Transfer saves by placing them in this folder.
 
-### **3. 游戏中途退出会自动保存吗？**
-**A**: 
-- **主机端**: 一般会自动保存，但强制退出可能丢失数据，建议从暂停菜单保存后退出。
-- **安卓端**: 直接退出可能丢失数据。
+### **3. Does the game auto-save when I exit?**
+**A**:  
+- **PC**: Generally, it auto-saves, but forced exits may result in data loss. It is recommended to save from the pause menu before quitting.  
+- **Android**: Exiting directly may lead to data loss.
 
-### **4. 无限世界存档会越玩越大吗？**
-**A**: 会。世界以区块形式加载存储，走过的区块越多，存档越大。
+### **4. Will infinite worlds increase save file size over time?**
+**A**: Yes. The world is stored in chunks, and the more chunks you explore, the larger the save file becomes.
 
-### **5. 我可以宣传本游戏吗？**
-**A**: 可以，但必须注明**作者名称**和**游戏官方下载方式**，禁止私下贩卖传播。
+### **5. Can I promote this game?**
+**A**: Yes, but you must credit the **author's name** and **official download method**. Unauthorized sales or distribution are prohibited.
