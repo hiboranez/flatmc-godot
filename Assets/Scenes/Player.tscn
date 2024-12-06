@@ -1,6 +1,7 @@
-[gd_scene load_steps=35 format=4 uid="uid://d2gan73x74ccr"]
+[gd_scene load_steps=37 format=4 uid="uid://d2gan73x74ccr"]
 
 [ext_resource type="Script" path="res://Assets/Scripts/Player.gd" id="1_dne4j"]
+[ext_resource type="Shader" path="res://Assets/Shaders/Blink.gdshader" id="3_nde70"]
 [ext_resource type="Material" uid="uid://xffbfmc4nkjq" path="res://Assets/Materials/PlayerSkin.tres" id="3_r5p52"]
 [ext_resource type="FontFile" uid="uid://csywm01568tlp" path="res://Assets/Fonts/MinecraftAE.ttf" id="4_07vdp"]
 
@@ -722,6 +723,14 @@ _data = {
 "wander": SubResource("Animation_8ypb4")
 }
 
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_scabt"]
+resource_local_to_scene = true
+shader = ExtResource("3_nde70")
+shader_parameter/blink_color = Color(1, 0, 0, 1)
+shader_parameter/blink_intensity = 0.0
+shader_parameter/dissolve_intensity = -0.6
+shader_parameter/transparent_intensity = 0.0
+
 [sub_resource type="ViewportTexture" id="ViewportTexture_c583f"]
 viewport_path = NodePath("SubViewportContainer/SubViewport")
 
@@ -732,9 +741,10 @@ content_margin_right = 0.0
 content_margin_bottom = 0.0
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_rj0cj"]
-size = Vector2(18.0708, 95)
+size = Vector2(24, 95)
 
 [node name="Player" type="CharacterBody2D"]
+collision_layer = 2
 script = ExtResource("1_dne4j")
 
 [node name="SubViewportContainer" type="SubViewportContainer" parent="."]
@@ -752,6 +762,7 @@ handle_input_locally = false
 render_target_update_mode = 4
 
 [node name="PlayerModel" type="Node3D" parent="SubViewportContainer/SubViewport"]
+transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 0, 0, 0)
 
 [node name="Root" type="Node3D" parent="SubViewportContainer/SubViewport/PlayerModel"]
 transform = Transform3D(0.95181, 0, 0, 0, 0.95181, 0, 0, 0, 0.95181, 0, -2.84963, 0)
@@ -795,7 +806,7 @@ bones/4/parent = 2
 bones/4/rest = Transform3D(1, -2.27374e-15, 5.07522e-08, 5.64511e-15, 1, -6.64281e-08, -5.07522e-08, 6.64281e-08, 1, -5.22757e-15, 2.86134, 1.52726e-07)
 bones/4/enabled = true
 bones/4/position = Vector3(-5.22757e-15, 2.86134, 1.52726e-07)
-bones/4/rotation = Quaternion(3.32141e-08, 3.5204e-09, 1.2538e-15, 1)
+bones/4/rotation = Quaternion(3.32141e-08, 2.53761e-08, 1.97971e-15, 1)
 bones/4/scale = Vector3(1, 1, 1)
 bones/5/name = "Perna.L_7"
 bones/5/parent = 2
@@ -961,19 +972,23 @@ projection = 1
 size = 7.93265
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
+visibility_layer = 513
+material = SubResource("ShaderMaterial_scabt")
 position = Vector2(0, -49.336)
 scale = Vector2(0.194, 0.194)
 texture = SubResource("ViewportTexture_c583f")
 
 [node name="NameLable" type="Label" parent="Sprite2D"]
-z_index = 1
-anchors_preset = 5
+light_mask = 2
+z_index = 2
+anchors_preset = -1
 anchor_left = 0.5
+anchor_top = -1.95503e-05
 anchor_right = 0.5
-offset_left = -261.0
+offset_left = -257.0
 offset_top = -342.99
-offset_right = -251.0
-offset_bottom = -272.79
+offset_right = -256.0
+offset_bottom = -272.0
 grow_horizontal = 2
 size_flags_horizontal = 6
 size_flags_vertical = 0
@@ -1006,7 +1021,8 @@ color = Color(0, 0, 0, 0.509804)
 metadata/_edit_use_anchors_ = true
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(0, -47.5)
+visible = false
+position = Vector2(-4.76837e-07, -47.5)
 scale = Vector2(0.99608, 1)
 shape = SubResource("RectangleShape2D_rj0cj")
 

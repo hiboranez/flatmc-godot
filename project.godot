@@ -34,6 +34,10 @@ window/size/window_height_override=720
 window/stretch/mode="viewport"
 window/stretch/aspect="expand"
 
+[dotnet]
+
+project/assembly_name="FlatMC"
+
 [editor_plugins]
 
 enabled=PackedStringArray("res://addons/lan_servers_discovery/plugin.cfg")

@@ -1,4 +1,4 @@
-[gd_resource type="TileSet" load_steps=67 format=3 uid="uid://2rlvh0e0mfoo"]
+[gd_resource type="TileSet" load_steps=69 format=3 uid="uid://2rlvh0e0mfoo"]
 
 [ext_resource type="Texture2D" uid="uid://b7imblweaorig" path="res://Assets/Textures/Blocks/cobblestone.png" id="1_bei53"]
 [ext_resource type="Texture2D" uid="uid://bagwu58sqjg5j" path="res://Assets/Textures/Blocks/bedrock.png" id="1_wp6c7"]
@@ -29,6 +29,7 @@
 [ext_resource type="Texture2D" uid="uid://blrd51ieks31f" path="res://Assets/Textures/Blocks/crafting_table.png" id="24_moxoj"]
 [ext_resource type="Texture2D" uid="uid://dtih8kdyf0won" path="res://Assets/Textures/Blocks/wool_white.png" id="25_40ouv"]
 [ext_resource type="Texture2D" uid="uid://b6epv5ogdytcs" path="res://Assets/Textures/Blocks/wool_yellow.png" id="26_t7hw7"]
+[ext_resource type="Texture2D" uid="uid://bfyqb6o31l2im" path="res://Assets/Textures/Blocks/torch.png" id="27_kgduj"]
 [ext_resource type="Texture2D" uid="uid://dtd1mxxbiou86" path="res://Assets/Textures/Blocks/diamond_block.png" id="27_midve"]
 [ext_resource type="Texture2D" uid="uid://dg37hhlvwgkbj" path="res://Assets/Textures/Blocks/diamond_ore.png" id="28_qaivb"]
 [ext_resource type="Texture2D" uid="uid://bwh6xy8yjgnm8" path="res://Assets/Textures/Blocks/gold_block.png" id="30_se4qa"]
@@ -164,6 +165,11 @@ texture = ExtResource("26_t7hw7")
 texture_region_size = Vector2i(50, 50)
 0:0/0 = 0
 
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_bgskk"]
+texture = ExtResource("27_kgduj")
+texture_region_size = Vector2i(50, 50)
+0:0/0 = 0
+
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_b7wxi"]
 texture = ExtResource("27_midve")
 texture_region_size = Vector2i(50, 50)
@@ -261,6 +267,7 @@ texture_region_size = Vector2i(50, 50)
 0:3/0/physics_layer_0/polygon_0/points = PackedVector2Array(-25, -25, 25, -25, 25, 25, -25, 25)
 1:3/0 = 0
 1:3/0/physics_layer_0/polygon_0/points = PackedVector2Array(-25, -25, 25, -25, 25, 25, -25, 25)
+2:3/0 = 0
 
 [resource]
 tile_size = Vector2i(50, 50)
@@ -298,3 +305,4 @@ sources/29 = SubResource("TileSetAtlasSource_w4fr0")
 sources/30 = SubResource("TileSetAtlasSource_wq01m")
 sources/31 = SubResource("TileSetAtlasSource_twnuo")
 sources/9999 = SubResource("TileSetAtlasSource_mbblw")
+sources/32 = SubResource("TileSetAtlasSource_bgskk")

@@ -40,6 +40,7 @@ func _process(delta: float) -> void:
 		if StaticLoad.game.player == null or StaticLoad.game.player.is_frozen:
 			return
 		title.text = tr("COMPLETED")
+		StaticLoad.game.init_light()
 		await get_tree().create_timer(1).timeout
 		StaticLoad.game.player.rpc("remote_unfreeze_player")
 		load_finished()
@@ -126,6 +127,8 @@ func load_finished():
 	StaticLoad.game.pause_button_4.visible = false
 	StaticLoad.game.pause_button_5.visible = false
 	StaticLoad.game.pause_button_6.visible = true
+	StaticLoad.game.death_button_2.visible = false
+	StaticLoad.game.death_button_3.visible = true
 	StaticLoad.game.unfreeze_game()
 	self.visible = false
 	set_process(false)

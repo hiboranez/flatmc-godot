@@ -2,6 +2,10 @@ extends Node2D
 
 @onready var select = load("res://Assets//Sounds//GUI//select.mp3") as AudioStream
 @onready var pop = load("res://Assets//Sounds//Player//pop.mp3") as AudioStream
+@onready var hurt = load("res://Assets//Sounds//Player//hurt.mp3") as AudioStream
+@onready var hit1 = load("res://Assets//Sounds//Damage//hit1.mp3") as AudioStream
+@onready var hit2 = load("res://Assets//Sounds//Damage//hit2.mp3") as AudioStream
+@onready var hit3 = load("res://Assets//Sounds//Damage//hit3.mp3") as AudioStream
 @onready var dig_cloth1 = load("res://Assets//Sounds//Dig//cloth1.mp3") as AudioStream
 @onready var dig_cloth2 = load("res://Assets//Sounds//Dig//cloth2.mp3") as AudioStream
 @onready var dig_cloth3 = load("res://Assets//Sounds//Dig//cloth3.mp3") as AudioStream
@@ -91,6 +95,8 @@ var step_stone_sound_list = []
 var step_wood_sound_list = []
 var damage_fallsmall_sound_list = []
 var damage_fallbig_sound_list = []
+var hurt_sound_list = []
+var hit_sound_list = []
 
 func _ready() -> void:
 	dig_cloth_sound_list = [dig_cloth1, dig_cloth2, dig_cloth3, dig_cloth4]
@@ -111,6 +117,8 @@ func _ready() -> void:
 	step_wood_sound_list = [step_wood1, step_wood2, step_wood3, step_wood4, step_wood5, step_wood6]
 	damage_fallsmall_sound_list = [fall_small]
 	damage_fallbig_sound_list = [fall_big]
+	hurt_sound_list = [hurt]
+	hit_sound_list = [hit1, hit2, hit3]
 
 func play_audio_static(type, sub_type):
 	var audio_player = AudioStreamPlayer.new()
@@ -146,6 +154,11 @@ func play_random_audio_at_position(type, sub_type, sound_position: Vector2) -> v
 			sound_list = damage_fallsmall_sound_list
 		elif sub_type == "fallbig":
 			sound_list = damage_fallbig_sound_list
+		elif sub_type == "hit":
+			sound_list = hit_sound_list
+	elif type == "player":
+		if sub_type == "hurt":
+			sound_list = hurt_sound_list
 	elif type == "step":
 		if sub_type == "cloth":
 			sound_list = step_cloth_sound_list

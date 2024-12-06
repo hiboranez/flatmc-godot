@@ -49,6 +49,8 @@ func delete_world(world_name: String):
 	OS.move_to_trash(ProjectSettings.globalize_path(delete_path))
 	update_world_list()
 	StaticLoad.select_world = null
+	if StaticLoad.is_secondary_confirmation_poped:
+		StaticLoad.is_secondary_confirmation_poped = false
 
 func create_world(world_name: String):
 	var world_path = "user://worlds/"+world_name
@@ -59,8 +61,8 @@ func create_world(world_name: String):
 	for x in range(-1,1):
 		for y in range(-1,1):
 			var mca = ConfigFile.new()
-			var blocks = StaticLoad.generate_chunk(Vector2i(x, y))
-			mca.set_value("chunck", "blocks", blocks)
+			var blocks = StaticLoad.generate_chunk(Vector2i(x, y), 1241999312)
+			mca.set_value("chunk", "blocks", blocks)
 			mca.save_encrypted_pass(region_path+"/r."+str(x)+"."+str(y)+".mca", StaticLoad.CONFIG_PASSWORD)
 	var image = load("res://Assets/Textures/GUI/default_icon.png").get_image()
 	image.save_png(world_path+"/icon.png")
@@ -80,6 +82,8 @@ func convert_world(old_version):
 	StaticLoad.convert_world(StaticLoad.select_world, final_old_version)
 	StaticLoad.select_world = null
 	update_world_list()
+	if StaticLoad.is_secondary_confirmation_poped:
+		StaticLoad.is_secondary_confirmation_poped = false
 
 func _on_single_menu_button_1_pressed() -> void:
 	StaticLoad.click_audio_player.play()
@@ -93,7 +97,9 @@ func _on_single_menu_button_1_pressed() -> void:
 	var version_tmp = world_config.get_value("world", "version", "unknown")
 	var compare = StaticLoad.compare_version(StaticLoad.options["version"], version_tmp)
 	if compare == "higher":
-		StaticLoad.pop_secondary_confirmation(self, tr("SECONDARY_CONFIRMATION_2"), Callable(self, "convert_world").bind(version_tmp))
+		if not StaticLoad.is_secondary_confirmation_poped:
+			StaticLoad.pop_secondary_confirmation(self, tr("SECONDARY_CONFIRMATION_2"), Callable(self, "convert_world").bind(version_tmp))
+			StaticLoad.is_secondary_confirmation_poped = true
 	elif compare == "lower":
 		StaticLoad.pop_notification(self, tr("WARNING"), tr("WARNING_8"))
 	elif compare == "equal":
@@ -120,7 +126,9 @@ func _on_single_menu_button_5_pressed() -> void:
 	StaticLoad.click_audio_player.play()
 	if StaticLoad.select_world == null:
 		return
-	StaticLoad.pop_secondary_confirmation(self, StaticLoad.select_world + tr("SECONDARY_CONFIRMATION_1"), Callable(self, "delete_world").bind(StaticLoad.select_world))
+	if not StaticLoad.is_secondary_confirmation_poped:
+		StaticLoad.pop_secondary_confirmation(self, StaticLoad.select_world + tr("SECONDARY_CONFIRMATION_1"), Callable(self, "delete_world").bind(StaticLoad.select_world))
+		StaticLoad.is_secondary_confirmation_poped = true
 
 func _on_create_world_button_1_pressed() -> void:
 	StaticLoad.click_audio_player.play()

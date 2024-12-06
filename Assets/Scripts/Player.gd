@@ -5,6 +5,8 @@ const JUMP_VELOCITY = -550.0
 const WALK_PERIOD = 0.83
 const RUN_PERIOD = 0.42
 
+var gamemode: String = "survival"
+var health: int = StaticLoad.DEFAULT_PLAYER_HEALTH
 var render_chunk: int = 1
 var player_peer_id: int
 var player_name: String
@@ -18,13 +20,13 @@ var is_frozen: bool = false
 var is_dead: bool = false
 var is_in_water: bool = false
 var is_flying: bool = false
-var move_state: String = "stand"
+var move_state: String = "idle"
 var face_state: int = -1
 var selected_item_grid: int = 0
 var item_bar_names = []
-var last_y_velocity = 0.0
+var current_velocity = Vector2(0, 0)
+var last_velocity = Vector2(0, 0)
 var step_sound_timer = 0.0
-var refresh_timer = 0.0
 var turn_state: float = -1
 var velocity_before_pause
 var player_state = {
@@ -43,6 +45,7 @@ var player_state = {
 @onready var name_label = $Sprite2D/NameLable
 
 func _ready():
+	freeze_player()
 	velocity_before_pause = velocity
 	var count:int = 0
 	for key in StaticLoad.block_ids:
@@ -55,13 +58,13 @@ func _ready():
 			break
 
 func _process(delta: float) -> void:
-	update_gravity(delta)
-	update_move_by_player_state(delta)
 	move_and_slide()
-	update_player_sound(delta)
-	if not StaticLoad.is_muti_mode:
+	update_player_speed_related(delta)
+	update_animation_by_player_state(delta)
+	if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id()!=1 and is_other:
 		return
-	update_refresh_timer(delta)
+	update_gravity(delta)
+	update_move_by_player_state()
 
 func init(peer_id):
 	player_peer_id = peer_id
@@ -88,7 +91,7 @@ func init(peer_id):
 				face_state = player_config.get_value("player", "face_state", StaticLoad.DEFAULT_PLAYER_FACE_STATE)
 				turn_state = face_state
 				is_flying = player_config.get_value("player", "is_flying", StaticLoad.DEFAULT_PLAYER_IS_FLYING)
-		update_player_rotation()
+		update_player_face_rotation()
 		StaticLoad.game.update_new_chunk(true)
 	
 	var player_icon_instance = StaticLoad.player_icon_scene.instantiate()
@@ -140,18 +143,80 @@ func broadcast_player_state_to_all():
 		if peer_id != StaticLoad.multiplayer_peer.get_unique_id():
 			rpc_id(peer_id, "remote_update_player_state", player_state)
 
-func update_refresh_timer(delta):
-	if refresh_timer >= 0:
-		refresh_timer -= delta
+func get_damage(damage):
+	var final_damage = damage
+	if final_damage > StaticLoad.DEFAULT_PLAYER_HEALTH:
+		final_damage = damage
+	health -= final_damage
+	var tween = get_tree().create_tween()
+	tween.tween_method(set_shader_blink_intensity, 0.5, 0, StaticLoad.HURT_TIME)
+	if health <= 0:
+		player_die()
+		var tween1 = get_tree().create_tween()
+		tween1.tween_method(set_name_label_modulate, Color(1,1,1,1), Color(1,1,1,0), StaticLoad.DISSOLVE_TIME)
+		StaticLoad.game.sound_audio_manager.play_random_audio_at_position("player", "hurt", position)
+		var tween2 = get_tree().create_tween()
+		tween2.tween_method(set_shader_dissolve_intensity, -0.6, 0.6, StaticLoad.DISSOLVE_TIME)
+	else:
+		StaticLoad.game.sound_audio_manager.play_random_audio_at_position("damage", "hit", position)
 
-func update_player_sound(delta):
-	var current_y_velocity = velocity.y
-	if current_y_velocity == 0 and last_y_velocity > 1100:
-		if last_y_velocity > 1300:
+func set_shader_blink_intensity(value):
+	player_sprite.material.set_shader_parameter("blink_intensity", value)
+
+func set_shader_dissolve_intensity(value):
+	player_sprite.material.set_shader_parameter("dissolve_intensity", value)
+
+func set_shader_transparent_intensity(value):
+	player_sprite.material.set_shader_parameter("transparent_intensity", value)
+
+func player_die():
+	is_dead = true
+	stop_player_move()
+	if is_other:
+		return
+	
+	StaticLoad.game.death_ui.visible = true
+	StaticLoad.game.move_input_list.clear()
+	if StaticLoad.is_muti_mode:
+		rpc("remote_stop_player_move")
+	
+func update_player_speed_related(delta):
+	if not is_other:
+		current_velocity = velocity
+	if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id()==1:
+		current_velocity = velocity
+	#更新声音
+	if abs(current_velocity.y) < StaticLoad.FLOAT_DELTA and last_velocity.y > 1100:
+		if last_velocity.y > 1300:
 			StaticLoad.game.sound_audio_manager.play_random_audio_at_position("damage", "fallbig", position)
 		else:
 			StaticLoad.game.sound_audio_manager.play_random_audio_at_position("damage", "fallsmall", position)
-	last_y_velocity = current_y_velocity
+	#更新摔落
+	if gamemode == "survival":
+		if not StaticLoad.is_muti_mode:
+			if abs(current_velocity.y) < StaticLoad.FLOAT_DELTA and last_velocity.y > 1000:
+				@warning_ignore("integer_division")
+				var damage = (int(last_velocity.y)-1000)/50
+				get_damage(damage)
+		elif StaticLoad.multiplayer.get_unique_id() == 1:
+			if abs(current_velocity.y) < StaticLoad.FLOAT_DELTA and last_velocity.y > 1000:
+				@warning_ignore("integer_division")
+				var damage = (int(last_velocity.y)-1000)/50
+				get_damage(damage)
+				rpc("remote_damage_player", damage)
+				for peer_id in StaticLoad.online_peer_ids:
+					if peer_id == 1 or peer_id == player_peer_id:
+						continue
+					rpc_id(peer_id, "reply_for_update_player_velocity", velocity)
+	
+	#插入在这里，如果速度归零再发一遍更新位置
+	if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() != 1 and StaticLoad.multiplayer.get_unique_id() == player_peer_id:
+		if abs(current_velocity.y) < StaticLoad.FLOAT_DELTA and abs(last_velocity.y) > StaticLoad.FLOAT_DELTA:
+			rpc_id(1, "request_for_set_self_player_position", player_peer_id, position)
+	elif StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == 1 and StaticLoad.multiplayer.get_unique_id() == player_peer_id:
+		if abs(current_velocity.y) < StaticLoad.FLOAT_DELTA and abs(last_velocity.y) > StaticLoad.FLOAT_DELTA:
+			rpc("reply_for_set_self_player_position", position)
+	last_velocity = current_velocity
 	
 	if move_state != "idle":
 		var block_pos = StaticLoad.game.tile_map_layer.local_to_map(position+Vector2(0, 5))
@@ -177,13 +242,13 @@ func update_gravity(delta):
 				is_pause = true
 				velocity_before_pause = velocity
 				velocity = Vector2(0, -0.01)
-				if StaticLoad.multiplayer.get_unique_id() == 1:
-					rpc_id(player_peer_id, "refresh_player", position, velocity, face_state, move_state, is_flying)
+				#if StaticLoad.multiplayer.get_unique_id() == 1:
+					#rpc_id(player_peer_id, "refresh_player", position, velocity, face_state, move_state, is_flying)
 			return
 	if is_pause:
 		velocity = velocity_before_pause
-		if StaticLoad.multiplayer.get_unique_id() == 1:
-			rpc_id(player_peer_id, "refresh_player", position, velocity, face_state, move_state, is_flying)
+		#if StaticLoad.multiplayer.get_unique_id() == 1:
+			#rpc_id(player_peer_id, "refresh_player", position, velocity, face_state, move_state, is_flying)
 		is_pause = false
 	if velocity.x > StaticLoad.MAX_SPEED:
 		velocity.x = StaticLoad.MAX_SPEED
@@ -194,10 +259,30 @@ func update_gravity(delta):
 	if not is_on_floor():
 		velocity += get_gravity() * delta
 
-func update_move_by_player_state(delta):
+func update_animation_by_player_state(delta):
 	if is_frozen:
 		return
+	if move_state == "run":
+		player_animation.play("run")
+	elif move_state == "walk":
+		player_animation.play("walk")
+	elif move_state == "idle":
+		player_animation.play("idle")
 	
+	if abs(turn_state-face_state) > 0.01:
+		update_player_face_rotation()
+		var turn_amplitude = delta/StaticLoad.TURN_TIME
+		if turn_amplitude > 1:
+			turn_amplitude = 1
+		turn_state = turn_state*(1-turn_amplitude)+face_state*turn_amplitude
+		if abs(turn_state-face_state)<0.01:
+			turn_state = face_state
+
+func update_move_by_player_state():
+	if is_frozen:
+		if velocity.length() > StaticLoad.FLOAT_DELTA:
+			velocity = Vector2(0, 0)
+		return
 	if is_jump_pressed:
 		if not is_flying and is_on_floor():
 			velocity.y = JUMP_VELOCITY
@@ -216,33 +301,31 @@ func update_move_by_player_state(delta):
 			velocity.y = 0
 	last_is_down_pressed = is_down_pressed
 	
-	if abs(turn_state-face_state) > 0.01:
-		update_player_rotation()
-		var turn_amplitude = delta/StaticLoad.TURN_TIME
-		if turn_amplitude > 1:
-			turn_amplitude = 1
-		turn_state = turn_state*(1-turn_amplitude)+face_state*turn_amplitude
-		if abs(turn_state-face_state)<0.01:
-			turn_state = face_state
-	
 	if move_state == "run":
-		player_animation.play("run")
 		if is_in_water:
 			velocity.x = face_state * MOVE_SPEED
 		else:
 			velocity.x = face_state * MOVE_SPEED * 2
 	elif move_state == "walk":
-		player_animation.play("walk")
 		if is_in_water:
 			velocity.x = face_state * MOVE_SPEED * 0.5
 		else:
 			velocity.x = face_state * MOVE_SPEED
-	elif move_state == "stand":
-		player_animation.play("idle")
+	elif move_state == "idle":
 		velocity.x = 0
-
-func update_player_rotation():
-	var looking_at = Vector3(0, 90+turn_state*90*StaticLoad.TURN_STATE_SCALE_FACTOR, 0)
+	
+	if velocity.length() > StaticLoad.FLOAT_DELTA:
+		var player_block_pos = StaticLoad.game.tile_map_layer.local_to_map(position-Vector2(0,24))
+		var block_id_down = StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.tile_map_layer.get_cell_atlas_coords(player_block_pos))
+		var block_id_up = StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.tile_map_layer.get_cell_atlas_coords(player_block_pos-Vector2i(0,1)))
+		if not StaticLoad.get_is_untouchable_by_id(block_id_down):
+			velocity = Vector2(0, 0)
+		if not StaticLoad.get_is_untouchable_by_id(block_id_up):
+			velocity = Vector2(0, 0)
+		
+func update_player_face_rotation():
+	var current_rotation = player_model.rotation_degrees
+	var looking_at = Vector3(current_rotation.x, 90+turn_state*90*StaticLoad.TURN_STATE_SCALE_FACTOR, current_rotation.z)
 	player_model.rotation_degrees = looking_at
 
 func send_message(message: String):
@@ -272,20 +355,62 @@ func send_command(command: String):
 			if abs(x) >= 200000 or abs(y) >= 200000:
 				StaticLoad.game.broadcast_to_person(player_name, tr("RANGE_LIMIT"), "pink")
 			else:
+				var tween1 = get_tree().create_tween()
+				tween1.tween_method(set_shader_blink_intensity, 0.0, -1.0, StaticLoad.TELEPORT_TIME/2.0)
+				var tween2 = get_tree().create_tween()
+				tween2.tween_method(set_shader_transparent_intensity, 0.0, 1.0, StaticLoad.TELEPORT_TIME/2.0)
+				var tween3 = get_tree().create_tween()
+				tween3.tween_method(set_name_label_modulate, Color(1,1,1,1), Color(1,1,1,0), StaticLoad.TELEPORT_TIME/2.0)
+				await tween3.finished
 				freeze_player()
 				if StaticLoad.is_muti_mode:
 					rpc("remote_freeze_player")
 				position = Vector2i(x*50+25, -y*50+50)
+				unfreeze_player()
+				if StaticLoad.is_muti_mode:
+					rpc("remote_unfreeze_player")	
+				var tween4 = get_tree().create_tween()
+				tween4.tween_method(set_shader_transparent_intensity, 1.0, 0.0, StaticLoad.TELEPORT_TIME/2.0)
+				var tween5 = get_tree().create_tween()
+				tween5.tween_method(set_name_label_modulate, Color(1,1,1,0), Color(1,1,1,1), StaticLoad.TELEPORT_TIME/2.0)
+				var tween6 = get_tree().create_tween()
+				tween6.tween_method(set_shader_blink_intensity, -1.0, 0.0, StaticLoad.TELEPORT_TIME/2.0)
 				StaticLoad.game.update_new_chunk(false)
 				StaticLoad.game.broadcast_to_person(player_name, tr("TELEPORT_INFO_1")+player_name+tr("TELEPORT_INFO_2")+"x="+str(x)+", y="+str(y), "chartreuse")
 				await get_tree().create_timer(0.01).timeout
-				unfreeze_player()
-				if StaticLoad.is_muti_mode:
-					rpc("remote_unfreeze_player")
 		else:
 			StaticLoad.game.broadcast_to_person(player_name, tr("USAGE")+" : "+StaticLoad.commands["/tp"], "gold")
+	elif splits[0] == "/gamemode":
+		StaticLoad.game.close_chat_ui()
+		if splits.size() == 2 and splits[1] != "":
+			if splits[1].is_valid_int():
+				gamemode = StaticLoad.get_gamemode_from_sort(int(splits[1]))
+				StaticLoad.game.broadcast_to_person(player_name, player_name+tr("GAMEMODE_SET_TO")+gamemode, "chartreuse")
+				change_gamemode()
+				if StaticLoad.is_muti_mode:
+					rpc("remote_change_gamemode", gamemode)
+			elif StaticLoad.get_is_valid_gamemode(splits[1]):
+				gamemode = splits[1]
+				StaticLoad.game.broadcast_to_person(player_name, player_name+tr("GAMEMODE_SET_TO")+gamemode, "chartreuse")
+				change_gamemode()
+				if StaticLoad.is_muti_mode:
+					rpc("remote_change_gamemode", gamemode)
+			else:
+				StaticLoad.game.broadcast_to_person(player_name, splits[1]+tr("NOT_VALID_MODE_OR_NUM"), "pink")
+		else:
+			StaticLoad.game.broadcast_to_person(player_name, tr("USAGE")+" : "+StaticLoad.commands["/gamemode"], "gold")
 	else:
 		StaticLoad.game.broadcast_to_person(player_name, tr("UNKNOWN_COMMAND"), "pink")
+
+func change_gamemode():
+	if gamemode == "creative":
+		if not is_other:
+			StaticLoad.game.health_bar.visible = false
+	elif gamemode == "survival":
+		if not is_other:
+			StaticLoad.game.health_bar.visible = true
+		if is_flying:
+			is_flying = false
 
 func stop_player_move():
 	last_is_down_pressed = false
@@ -297,6 +422,32 @@ func stop_player_move():
 	velocity.x = 0
 	if is_flying:
 		velocity.y = 0
+
+func respawn_player(is_animation = true):
+	position = Vector2(0, -1)
+	health = StaticLoad.DEFAULT_PLAYER_HEALTH
+	is_dead = false
+	
+	if not is_animation:
+		return
+	
+	var tween1 = get_tree().create_tween()
+	tween1.tween_method(set_name_label_modulate, Color(1,1,1,0), Color(1,1,1,1), StaticLoad.DISSOLVE_TIME)
+	var tween2 = get_tree().create_tween()
+	tween2.tween_method(set_shader_dissolve_intensity, 0.6, -0.6, StaticLoad.DISSOLVE_TIME)
+	
+func set_name_label_modulate(color):
+	name_label.modulate = color
+
+func leave_server_and_destroy():
+	var tween1 = get_tree().create_tween()
+	tween1.tween_method(set_shader_blink_intensity, 0.0, -1.0, StaticLoad.TELEPORT_TIME/2.0)
+	var tween2 = get_tree().create_tween()
+	tween2.tween_method(set_shader_transparent_intensity, 0.0, 1.0, StaticLoad.TELEPORT_TIME/2.0)
+	var tween3 = get_tree().create_tween()
+	tween3.tween_method(set_name_label_modulate, Color(1,1,1,1), Color(1,1,1,0), StaticLoad.TELEPORT_TIME/2.0)
+	await tween3.finished
+	self.queue_free()
 
 @rpc("any_peer", "call_local", "reliable", 1)
 @warning_ignore("shadowed_variable")
@@ -316,7 +467,7 @@ func init_player(peer_id, player_name, pos, face_state, is_flying):
 	self.position = pos
 	self.face_state = face_state
 	self.is_flying = is_flying
-	update_player_rotation()
+	update_player_face_rotation()
 	
 	StaticLoad.online_peer_ids[peer_id] = StaticLoad.game.players.get_node(str(peer_id))
 	StaticLoad.game.update_new_chunk(true)
@@ -355,46 +506,72 @@ func refresh_player(pos, velo, face_state, move_state, is_flying):
 	self.is_flying = is_flying
 
 @rpc("any_peer", "call_remote", "reliable", 1)
-func request_for_set_self_player_position(peer_id, pos):
+func request_for_set_self_player_position(client_peer_id, pos):
 	if position.distance_to(pos) <= StaticLoad.POSITION_MAX_DIFFERENCE:
 		var tween = get_tree().create_tween()
 		tween.tween_property(self, "position", pos, StaticLoad.REFRESH_DELTA_TIME)
-		for id in StaticLoad.online_peer_ids:
-			if id == peer_id or id == 1:
+		for peer_id in StaticLoad.online_peer_ids:
+			if peer_id == client_peer_id or peer_id == 1:
 				continue
-			rpc_id(id, "reply_for_set_self_player_position", pos)
+			rpc_id(peer_id, "reply_for_set_self_player_position", pos)
+	else:
+		rpc_id(client_peer_id, "reply_for_set_self_player_position", position)
 
 @rpc("authority", "call_remote", "reliable", 1)
 func reply_for_set_self_player_position(pos):
 	var tween = get_tree().create_tween()
 	tween.tween_property(self, "position", pos, StaticLoad.REFRESH_DELTA_TIME)
 
+@rpc("any_peer", "call_remote", "reliable", 1)
+func request_for_respawn_player(is_animation):
+	position = Vector2(0, -1)
+	rpc("reply_for_respawn_player", is_animation)
+
+@rpc("authority", "call_local", "reliable", 1)
+func reply_for_respawn_player(is_animation):
+	respawn_player(is_animation)
+	if StaticLoad.multiplayer.get_unique_id() == player_peer_id:
+		if StaticLoad.is_on_mobile_platform:
+			Input.emulate_mouse_from_touch = false
+		StaticLoad.game.death_ui.visible = false
+		StaticLoad.game.is_input_frozen = false
+
+@rpc("any_peer", "call_remote", "reliable", 1)
+func request_for_update_player_velocity(velo):
+	if velocity.distance_to(velo) < StaticLoad.VELOCITY_MAX_DIFFERENCE:
+		velocity = velo
+		for peer_id in StaticLoad.online_peer_ids:
+			if peer_id == 1 or peer_id == player_peer_id:
+				continue
+			rpc_id(peer_id, "reply_for_update_player_velocity", velo)
+
+@rpc("authority", "call_local", "reliable", 1)
+func reply_for_update_player_velocity(velo):
+	current_velocity = velo
+	
+@rpc("authority", "call_remote", "reliable", 1)
+func remote_damage_player(damage):
+	get_damage(damage)
+
 @rpc("authority", "call_remote", "unreliable", 1)
 func remote_check_player_position(pos):
 	if position.distance_to(pos) >= StaticLoad.POSITION_MAX_DIFFERENCE:
-		#var player_pos = StaticLoad.game.tile_map_layer.local_to_map(position)
-		#if StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.tile_map_layer.get_cell_atlas_coords(player_pos)) == 0:
+		#if abs(velocity.x) > 1000 or abs(velocity.y) > 1000:
 			#return
-		#if StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.tile_map_layer.get_cell_atlas_coords(player_pos - Vector2i(0, 1))) == 0:
-			#return
-		if abs(velocity.x) > 1000 or abs(velocity.y) > 1000:
-			return
 		var tween = get_tree().create_tween()
 		tween.tween_property(self, "position", pos, StaticLoad.REFRESH_DELTA_TIME_LONG)
-	else:
-		rpc_id(1, "request_for_set_self_player_position", StaticLoad.multiplayer.get_unique_id() ,position)
 
 @rpc("any_peer", "call_remote", "reliable", 1)
 func remote_freeze_player():
 	self.freeze_player()
-	if StaticLoad.multiplayer.get_unique_id() == 1:
-		rpc_id(player_peer_id, "remote_check_player_position", position)
+	#if StaticLoad.multiplayer.get_unique_id() == 1:
+		#rpc_id(player_peer_id, "remote_check_player_position", position)
 
 @rpc("any_peer", "call_remote", "reliable", 1)
 func remote_unfreeze_player():
 	self.unfreeze_player()
-	if StaticLoad.multiplayer.get_unique_id() == 1:
-		rpc_id(player_peer_id, "remote_check_player_position", position)
+	#if StaticLoad.multiplayer.get_unique_id() == 1:
+		#rpc_id(player_peer_id, "remote_check_player_position", position)
 
 @rpc("any_peer", "call_remote", "reliable", 1)
 func remote_stop_player_move():
@@ -410,10 +587,19 @@ func remote_update_player_state(player_state):
 	self.is_jump_pressed = player_state["is_jump_pressed"]
 	self.is_down_pressed = player_state["is_down_pressed"]
 	self.is_flying = player_state["is_flying"]
-	self.render_chunk = player_state["render_chunk"]
-	if StaticLoad.multiplayer.get_unique_id() == 1:
-		rpc_id(player_peer_id, "remote_check_player_position", position)
-	#self.refresh_timer = StaticLoad.REFRESH_TIME
+	var render_chunk_tmp = player_state["render_chunk"]
+	if render_chunk_tmp > StaticLoad.RENDER_CHUNK_MAX:
+		render_chunk_tmp = StaticLoad.RENDER_CHUNK_MAX
+	if render_chunk_tmp < StaticLoad.RENDER_CHUNK_MIN:
+		render_chunk_tmp = StaticLoad.RENDER_CHUNK_MIN
+	self.render_chunk = render_chunk_tmp
+	#if StaticLoad.multiplayer.get_unique_id() == 1:
+		#rpc_id(player_peer_id, "remote_check_player_position", position)
+
+@rpc("any_peer", "call_remote", "reliable", 1)
+func remote_change_gamemode(new_gamemode):
+	gamemode = new_gamemode
+	change_gamemode()
 
 @rpc("any_peer", "call_remote", "reliable", 1)
 func remote_update_message(peer_id, message):

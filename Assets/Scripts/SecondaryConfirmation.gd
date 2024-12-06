@@ -5,13 +5,6 @@ extends CanvasLayer
 @onready var rich_text_label = $TextureRect/ScrollContainer/VBoxContainer/RichTextLabel
 @onready var title_label = $TextureRect/Container/Title
 
-func _ready() -> void:
-	destroy_count_down()
-
-func destroy_count_down():
-	await get_tree().create_timer(10.0).timeout
-	queue_free()
-
 func _on_secondary_confirmation_button_1_button_pressed(function: Callable):
 	StaticLoad.click_audio_player.play()
 	function.call()
@@ -25,6 +18,7 @@ func connect_secondary_confirmation_button_1(function: Callable):
 
 func close():
 	StaticLoad.click_audio_player.play()
+	StaticLoad.is_secondary_confirmation_poped = false
 	queue_free()
 
 func set_title(title):

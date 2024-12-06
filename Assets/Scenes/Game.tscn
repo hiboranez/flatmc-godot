@@ -1,4 +1,4 @@
-[gd_scene load_steps=60 format=3 uid="uid://2hv5eany3vpf"]
+[gd_scene load_steps=64 format=3 uid="uid://2hv5eany3vpf"]
 
 [ext_resource type="Script" path="res://Assets/Scripts/Game.gd" id="1_ctu8j"]
 [ext_resource type="Script" path="res://Assets/Scripts/BgmAudioPlayer.gd" id="2_gyse0"]
@@ -24,12 +24,16 @@
 [ext_resource type="Texture2D" uid="uid://p66pcctndsk1" path="res://Assets/Textures/GUI/close_button.png" id="15_tbxis"]
 [ext_resource type="Script" path="res://Assets/Scripts/TouchButton.gd" id="16_3a6pi"]
 [ext_resource type="Texture2D" uid="uid://caueuwmlcmeot" path="res://Assets/Textures/GUI/button_disabled.png" id="16_pttjf"]
+[ext_resource type="Script" path="res://Assets/Scripts/HealthBar.gd" id="17_aqx3v"]
+[ext_resource type="Texture2D" uid="uid://5bfw6khqwyta" path="res://Assets/Textures/GUI/empty_heart.png" id="17_b2rft"]
 [ext_resource type="Texture2D" uid="uid://bl0xpo1luvy7i" path="res://Assets/Textures/GUI/white_background.png" id="17_ud88f"]
 [ext_resource type="Texture2D" uid="uid://bn78hs0omgltt" path="res://Assets/Textures/GUI/slider_box_default.png" id="17_wst6d"]
 [ext_resource type="Texture2D" uid="uid://cknufva8e2vcv" path="res://Assets/Textures/GUI/panel.png" id="18_1usby"]
 [ext_resource type="Texture2D" uid="uid://dpshcvcyt856e" path="res://Assets/Textures/GUI/slider_box_hover.png" id="18_pg3nf"]
+[ext_resource type="Texture2D" uid="uid://d0y2isr3jncsw" path="res://Assets/Textures/GUI/full_heart.png" id="18_sscm7"]
 [ext_resource type="Texture2D" uid="uid://cb3c6rd57rnuu" path="res://Assets/Textures/GUI/transparent_background.png" id="18_sydpy"]
 [ext_resource type="PackedScene" uid="uid://dgk4c6ipagqa4" path="res://Assets/Scenes/Language.tscn" id="19_6nn42"]
+[ext_resource type="Texture2D" uid="uid://22byb2ldosct" path="res://Assets/Textures/GUI/half_heart.png" id="19_olvt3"]
 [ext_resource type="Texture2D" uid="uid://18usdnqj200e" path="res://Assets/Textures/GUI/more_ui.png" id="21_gulf0"]
 [ext_resource type="Theme" uid="uid://do1xfdxltcv20" path="res://Assets/Themes/gui_theme.tres" id="31_nincb"]
 
@@ -163,15 +167,28 @@ content_margin_left = 30.0
 script = ExtResource("1_ctu8j")
 metadata/_edit_horizontal_guides_ = [-10.0]
 
+[node name="Lights" type="Node2D" parent="."]
+
+[node name="DarkLight" type="PointLight2D" parent="Lights"]
+scale = Vector2(20000, 20000)
+color = Color(0, 0, 0, 1)
+blend_mode = 2
+texture = ExtResource("17_ud88f")
+
 [node name="SoundAudioManager" type="Node2D" parent="."]
 script = ExtResource("2_vxlg4")
 
 [node name="World" type="Node2D" parent="."]
 
+[node name="BackTileMapLayer" type="TileMapLayer" parent="World"]
+modulate = Color(0.7, 0.7, 0.7, 1)
+tile_set = ExtResource("3_fa3r6")
+
 [node name="TileMapLayer" type="TileMapLayer" parent="World"]
 tile_set = ExtResource("3_fa3r6")
 
 [node name="BlockSelectionUI" type="Sprite2D" parent="World/TileMapLayer"]
+light_mask = 2
 z_index = 1
 texture = ExtResource("6_k82cs")
 
@@ -900,15 +917,389 @@ grow_vertical = 0
 size_flags_vertical = 4
 mouse_filter = 2
 
+[node name="HealthBar" type="GridContainer" parent="GameUI/ItemBarPanel"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -25.0
+offset_top = 8.0
+offset_right = 25.0
+offset_bottom = 58.0
+grow_horizontal = 2
+columns = 10
+script = ExtResource("17_aqx3v")
+
+[node name="EmptyHeart1" type="TextureRect" parent="GameUI/ItemBarPanel/HealthBar"]
+layout_mode = 2
+texture = ExtResource("17_b2rft")
+
+[node name="FullHeart" type="TextureRect" parent="GameUI/ItemBarPanel/HealthBar/EmptyHeart1"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -19.0
+offset_top = -19.0
+offset_right = 20.0
+offset_bottom = 19.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("18_sscm7")
+expand_mode = 1
+
+[node name="HalfHeart" type="TextureRect" parent="GameUI/ItemBarPanel/HealthBar/EmptyHeart1"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -19.0
+offset_top = -19.0
+offset_right = 3.0
+offset_bottom = 19.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("19_olvt3")
+expand_mode = 1
+
+[node name="EmptyHeart2" type="TextureRect" parent="GameUI/ItemBarPanel/HealthBar"]
+layout_mode = 2
+texture = ExtResource("17_b2rft")
+
+[node name="FullHeart" type="TextureRect" parent="GameUI/ItemBarPanel/HealthBar/EmptyHeart2"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -19.0
+offset_top = -19.0
+offset_right = 20.0
+offset_bottom = 19.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("18_sscm7")
+expand_mode = 1
+
+[node name="HalfHeart" type="TextureRect" parent="GameUI/ItemBarPanel/HealthBar/EmptyHeart2"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -19.0
+offset_top = -19.0
+offset_right = 3.0
+offset_bottom = 19.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("19_olvt3")
+expand_mode = 1
+
+[node name="EmptyHeart3" type="TextureRect" parent="GameUI/ItemBarPanel/HealthBar"]
+layout_mode = 2
+texture = ExtResource("17_b2rft")
+
+[node name="FullHeart" type="TextureRect" parent="GameUI/ItemBarPanel/HealthBar/EmptyHeart3"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -19.0
+offset_top = -19.0
+offset_right = 20.0
+offset_bottom = 19.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("18_sscm7")
+expand_mode = 1
+
+[node name="HalfHeart" type="TextureRect" parent="GameUI/ItemBarPanel/HealthBar/EmptyHeart3"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -19.0
+offset_top = -19.0
+offset_right = 3.0
+offset_bottom = 19.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("19_olvt3")
+expand_mode = 1
+
+[node name="EmptyHeart4" type="TextureRect" parent="GameUI/ItemBarPanel/HealthBar"]
+layout_mode = 2
+texture = ExtResource("17_b2rft")
+
+[node name="FullHeart" type="TextureRect" parent="GameUI/ItemBarPanel/HealthBar/EmptyHeart4"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -19.0
+offset_top = -19.0
+offset_right = 20.0
+offset_bottom = 19.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("18_sscm7")
+expand_mode = 1
+
+[node name="HalfHeart" type="TextureRect" parent="GameUI/ItemBarPanel/HealthBar/EmptyHeart4"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -19.0
+offset_top = -19.0
+offset_right = 3.0
+offset_bottom = 19.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("19_olvt3")
+expand_mode = 1
+
+[node name="EmptyHeart5" type="TextureRect" parent="GameUI/ItemBarPanel/HealthBar"]
+layout_mode = 2
+texture = ExtResource("17_b2rft")
+
+[node name="FullHeart" type="TextureRect" parent="GameUI/ItemBarPanel/HealthBar/EmptyHeart5"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -19.0
+offset_top = -19.0
+offset_right = 20.0
+offset_bottom = 19.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("18_sscm7")
+expand_mode = 1
+
+[node name="HalfHeart" type="TextureRect" parent="GameUI/ItemBarPanel/HealthBar/EmptyHeart5"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -19.0
+offset_top = -19.0
+offset_right = 3.0
+offset_bottom = 19.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("19_olvt3")
+expand_mode = 1
+
+[node name="EmptyHeart6" type="TextureRect" parent="GameUI/ItemBarPanel/HealthBar"]
+layout_mode = 2
+texture = ExtResource("17_b2rft")
+
+[node name="FullHeart" type="TextureRect" parent="GameUI/ItemBarPanel/HealthBar/EmptyHeart6"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -19.0
+offset_top = -19.0
+offset_right = 20.0
+offset_bottom = 19.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("18_sscm7")
+expand_mode = 1
+
+[node name="HalfHeart" type="TextureRect" parent="GameUI/ItemBarPanel/HealthBar/EmptyHeart6"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -19.0
+offset_top = -19.0
+offset_right = 3.0
+offset_bottom = 19.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("19_olvt3")
+expand_mode = 1
+
+[node name="EmptyHeart7" type="TextureRect" parent="GameUI/ItemBarPanel/HealthBar"]
+layout_mode = 2
+texture = ExtResource("17_b2rft")
+
+[node name="FullHeart" type="TextureRect" parent="GameUI/ItemBarPanel/HealthBar/EmptyHeart7"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -19.0
+offset_top = -19.0
+offset_right = 20.0
+offset_bottom = 19.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("18_sscm7")
+expand_mode = 1
+
+[node name="HalfHeart" type="TextureRect" parent="GameUI/ItemBarPanel/HealthBar/EmptyHeart7"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -19.0
+offset_top = -19.0
+offset_right = 3.0
+offset_bottom = 19.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("19_olvt3")
+expand_mode = 1
+
+[node name="EmptyHeart8" type="TextureRect" parent="GameUI/ItemBarPanel/HealthBar"]
+layout_mode = 2
+texture = ExtResource("17_b2rft")
+
+[node name="FullHeart" type="TextureRect" parent="GameUI/ItemBarPanel/HealthBar/EmptyHeart8"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -19.0
+offset_top = -19.0
+offset_right = 20.0
+offset_bottom = 19.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("18_sscm7")
+expand_mode = 1
+
+[node name="HalfHeart" type="TextureRect" parent="GameUI/ItemBarPanel/HealthBar/EmptyHeart8"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -19.0
+offset_top = -19.0
+offset_right = 3.0
+offset_bottom = 19.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("19_olvt3")
+expand_mode = 1
+
+[node name="EmptyHeart9" type="TextureRect" parent="GameUI/ItemBarPanel/HealthBar"]
+layout_mode = 2
+texture = ExtResource("17_b2rft")
+
+[node name="FullHeart" type="TextureRect" parent="GameUI/ItemBarPanel/HealthBar/EmptyHeart9"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -19.0
+offset_top = -19.0
+offset_right = 20.0
+offset_bottom = 19.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("18_sscm7")
+expand_mode = 1
+
+[node name="HalfHeart" type="TextureRect" parent="GameUI/ItemBarPanel/HealthBar/EmptyHeart9"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -19.0
+offset_top = -19.0
+offset_right = 3.0
+offset_bottom = 19.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("19_olvt3")
+expand_mode = 1
+
+[node name="EmptyHeart10" type="TextureRect" parent="GameUI/ItemBarPanel/HealthBar"]
+layout_mode = 2
+texture = ExtResource("17_b2rft")
+
+[node name="FullHeart" type="TextureRect" parent="GameUI/ItemBarPanel/HealthBar/EmptyHeart10"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -19.0
+offset_top = -19.0
+offset_right = 20.0
+offset_bottom = 19.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("18_sscm7")
+expand_mode = 1
+
+[node name="HalfHeart" type="TextureRect" parent="GameUI/ItemBarPanel/HealthBar/EmptyHeart10"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -19.0
+offset_top = -19.0
+offset_right = 3.0
+offset_bottom = 19.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("19_olvt3")
+expand_mode = 1
+
 [node name="ItemNameLabel" type="Label" parent="GameUI/ItemBarPanel"]
 self_modulate = Color(1, 1, 1, 0)
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -20.0
-offset_right = 20.0
-offset_bottom = 23.0
+offset_left = -62.5
+offset_top = -66.0
+offset_right = 62.5
+offset_bottom = -15.0
 grow_horizontal = 2
 theme_override_fonts/font = ExtResource("4_nsj5b")
 theme_override_font_sizes/font_size = 50
@@ -1397,6 +1788,7 @@ passby_press = true
 visibility_mode = 1
 
 [node name="MiniMap" type="Control" parent="GameUI"]
+z_index = 1
 layout_mode = 3
 anchors_preset = 1
 anchor_left = 1.0
@@ -1640,6 +2032,107 @@ grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("5_0o0wo")
 
+[node name="DeathUI" type="CanvasLayer" parent="."]
+visible = false
+
+[node name="ColorRect" type="ColorRect" parent="DeathUI"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.705882)
+
+[node name="FlowContainer" type="FlowContainer" parent="DeathUI"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -500.0
+offset_top = -166.0
+offset_right = 500.0
+offset_bottom = 166.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_vertical = 4
+
+[node name="Button1" type="Button" parent="DeathUI/FlowContainer"]
+z_index = 1
+custom_minimum_size = Vector2(1000, 108)
+layout_mode = 2
+size_flags_horizontal = 6
+focus_mode = 0
+theme_override_colors/icon_disabled_color = Color(0.784314, 0.784314, 0.784314, 1)
+theme_override_fonts/font = ExtResource("4_nsj5b")
+theme_override_font_sizes/font_size = 40
+text = "RESPAWN"
+flat = true
+icon_alignment = 1
+expand_icon = true
+script = ExtResource("6_u15tu")
+
+[node name="Icon" type="TextureRect" parent="DeathUI/FlowContainer/Button1"]
+z_index = -1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("5_0o0wo")
+
+[node name="Button2" type="Button" parent="DeathUI/FlowContainer"]
+z_index = 1
+custom_minimum_size = Vector2(1000, 108)
+layout_mode = 2
+size_flags_horizontal = 6
+focus_mode = 0
+theme_override_colors/icon_disabled_color = Color(0.784314, 0.784314, 0.784314, 1)
+theme_override_fonts/font = ExtResource("4_nsj5b")
+theme_override_font_sizes/font_size = 40
+text = "SAVE_AND_QUIT"
+flat = true
+icon_alignment = 1
+expand_icon = true
+script = ExtResource("6_u15tu")
+
+[node name="Icon" type="TextureRect" parent="DeathUI/FlowContainer/Button2"]
+z_index = -1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("5_0o0wo")
+
+[node name="Button3" type="Button" parent="DeathUI/FlowContainer"]
+visible = false
+z_index = 1
+custom_minimum_size = Vector2(1000, 108)
+layout_mode = 2
+size_flags_horizontal = 6
+focus_mode = 0
+theme_override_colors/icon_disabled_color = Color(0.784314, 0.784314, 0.784314, 1)
+theme_override_fonts/font = ExtResource("4_nsj5b")
+theme_override_font_sizes/font_size = 40
+text = "DISCONNECT"
+flat = true
+icon_alignment = 1
+expand_icon = true
+script = ExtResource("6_u15tu")
+
+[node name="Icon" type="TextureRect" parent="DeathUI/FlowContainer/Button3"]
+z_index = -1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("5_0o0wo")
+
 [node name="Options" type="CanvasLayer" parent="."]
 visible = false
 script = ExtResource("14_ic0qm")
@@ -1723,7 +2216,7 @@ theme_override_styles/grabber = SubResource("StyleBoxTexture_uu8er")
 theme_override_styles/grabber_highlight = SubResource("StyleBoxTexture_jidev")
 theme_override_styles/grabber_pressed = SubResource("StyleBoxTexture_vad76")
 min_value = 1.0
-max_value = 3.0
+max_value = 4.0
 value = 1.0
 rounded = true
 
@@ -2101,6 +2594,9 @@ visible = false
 [connection signal="pressed" from="PauseUI/FlowContainer/Button4" to="." method="_on_pause_button_4_pressed"]
 [connection signal="pressed" from="PauseUI/FlowContainer/Button5" to="." method="_on_pause_button_5_pressed"]
 [connection signal="pressed" from="PauseUI/FlowContainer/Button6" to="." method="_on_pause_button_6_pressed"]
+[connection signal="pressed" from="DeathUI/FlowContainer/Button1" to="." method="_on_death_button_1_pressed"]
+[connection signal="pressed" from="DeathUI/FlowContainer/Button2" to="." method="_on_death_button_2_pressed"]
+[connection signal="pressed" from="DeathUI/FlowContainer/Button3" to="." method="_on_death_button_3_pressed"]
 [connection signal="gui_input" from="Options/ColorRect/ScrollContainer" to="Options/ColorRect/ScrollContainer" method="_on_scrollcontainer_gui_input"]
 [connection signal="scrolling" from="Options/ColorRect/ScrollContainer/VBoxContainer/RenderChunk/HScrollBar" to="Options" method="_on_options_render_chunk_scroll_bar_scrolling"]
 [connection signal="scrolling" from="Options/ColorRect/ScrollContainer/VBoxContainer/FovZoom/HScrollBar" to="Options" method="_on_options_fov_zoom_scroll_bar_scrolling"]

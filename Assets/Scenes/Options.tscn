@@ -128,7 +128,7 @@ theme_override_styles/grabber = SubResource("StyleBoxTexture_uu8er")
 theme_override_styles/grabber_highlight = SubResource("StyleBoxTexture_jidev")
 theme_override_styles/grabber_pressed = SubResource("StyleBoxTexture_vad76")
 min_value = 1.0
-max_value = 3.0
+max_value = 4.0
 value = 1.0
 rounded = true
 

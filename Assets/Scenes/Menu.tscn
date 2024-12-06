@@ -3,15 +3,12 @@
 [ext_resource type="Texture2D" uid="uid://b14xkgu1d1omr" path="res://Assets/Textures/Backgrounds/stone_wall.png" id="1_6v62p"]
 [ext_resource type="Script" path="res://Assets/Scripts/Menu.gd" id="1_xubs1"]
 [ext_resource type="FontFile" uid="uid://csywm01568tlp" path="res://Assets/Fonts/MinecraftAE.ttf" id="2_vj7ds"]
+[ext_resource type="Texture2D" uid="uid://dsltuih8w0cot" path="res://Assets/Textures/GUI/title.png" id="3_6hc7y"]
 [ext_resource type="Script" path="res://Assets/Scripts/Slogan.gd" id="3_ccbde"]
 [ext_resource type="Texture2D" uid="uid://b6wbqichdrhpr" path="res://Assets/Textures/GUI/button_normal.png" id="4_bxyd5"]
 [ext_resource type="Script" path="res://Assets/Scripts/GameButton.gd" id="5_5w6xl"]
 [ext_resource type="Texture2D" uid="uid://13erbwvp880l" path="res://Assets/Textures/GUI/small_button.png" id="7_sun72"]
 [ext_resource type="Script" path="res://Assets/Scripts/SmallButton.gd" id="7_vhhc8"]
-
-[sub_resource type="LabelSettings" id="LabelSettings_i878r"]
-font = ExtResource("2_vj7ds")
-font_size = 126
 
 [sub_resource type="LabelSettings" id="LabelSettings_ud7jf"]
 font_size = 40
@@ -44,33 +41,29 @@ grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("1_6v62p")
 
-[node name="Title" type="Label" parent="."]
+[node name="Title" type="TextureRect" parent="."]
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -215.0
-offset_top = 100.0
-offset_right = 226.0
-offset_bottom = 227.0
+offset_left = -421.5
+offset_top = 80.0
+offset_right = 421.5
+offset_bottom = 304.0
 grow_horizontal = 2
-theme_override_fonts/font = ExtResource("2_vj7ds")
-theme_override_font_sizes/font_size = 20
-text = "TITLE"
-label_settings = SubResource("LabelSettings_i878r")
-horizontal_alignment = 1
-vertical_alignment = 1
+texture = ExtResource("3_6hc7y")
+expand_mode = 1
 
 [node name="Slogan" type="Label" parent="Title"]
 layout_mode = 1
-anchors_preset = 3
-anchor_left = 1.0
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -554.0
-offset_top = 63.0
-offset_right = 590.0
-offset_bottom = 149.0
+anchors_preset = -1
+anchor_left = 1.016
+anchor_top = 1.022
+anchor_right = 1.016
+anchor_bottom = 1.022
+offset_left = -570.988
+offset_top = 57.072
+offset_right = 573.012
+offset_bottom = 143.072
 grow_horizontal = 0
 grow_vertical = 0
 rotation = -0.174533
@@ -92,7 +85,7 @@ offset_right = 1920.0
 grow_vertical = 0
 theme_override_fonts/font = ExtResource("2_vj7ds")
 theme_override_font_sizes/font_size = 20
-text = "Alpha v0.1.2.0
+text = "Alpha v0.2.0
 @"
 label_settings = SubResource("LabelSettings_ig0yt")
 vertical_alignment = 1
@@ -116,7 +109,7 @@ vertical_alignment = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = 350.0
+offset_top = 381.0
 grow_horizontal = 2
 grow_vertical = 2
 

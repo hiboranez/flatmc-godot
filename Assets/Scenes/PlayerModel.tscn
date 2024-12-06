@@ -721,6 +721,7 @@ _data = {
 }
 
 [node name="PlayerModel" type="Node3D"]
+transform = Transform3D(0.707107, 0, 0.707107, -0.5, 0.707107, 0.5, -0.5, -0.707107, 0.5, 0, 0, 0)
 
 [node name="Root" type="Node3D" parent="."]
 transform = Transform3D(0.95181, 0, 0, 0, 0.95181, 0, 0, 0, 0.95181, 0, -2.84963, 0)
@@ -736,7 +737,7 @@ bones/0/parent = -1
 bones/0/rest = Transform3D(1, 2.92898e-16, 3.42285e-08, -8.78695e-16, 1, 1.71143e-08, -3.42285e-08, -1.71143e-08, 1, 0, -2.38419e-07, 0)
 bones/0/enabled = true
 bones/0/position = Vector3(0, 0, 0)
-bones/0/rotation = Quaternion(-8.56251e-09, -0.0352405, -2.77373e-16, 0.999379)
+bones/0/rotation = Quaternion(-8.55714e-09, 1.71143e-08, -2.92898e-16, 1)
 bones/0/scale = Vector3(1, 1, 1)
 bones/1/name = "Principal_21"
 bones/1/parent = 0
@@ -757,35 +758,35 @@ bones/3/parent = 2
 bones/3/rest = Transform3D(1, 1.00304e-14, 1.50996e-07, -1.00304e-14, -1, 1.32856e-07, 1.50996e-07, -1.32856e-07, -1, 1.4941, 2.81634, 2.00877e-07)
 bones/3/enabled = true
 bones/3/position = Vector3(1.4941, 2.81634, 2.00877e-07)
-bones/3/rotation = Quaternion(0.984549, 7.23424e-09, 7.28771e-08, 0.175112)
+bones/3/rotation = Quaternion(1, 6.64401e-22, 7.54979e-08, -6.64282e-08)
 bones/3/scale = Vector3(1, 1, 1)
 bones/4/name = "Cabeca_6"
 bones/4/parent = 2
 bones/4/rest = Transform3D(1, -2.27374e-15, 5.07522e-08, 5.64511e-15, 1, -6.64281e-08, -5.07522e-08, 6.64281e-08, 1, -5.22757e-15, 2.86134, 1.52726e-07)
 bones/4/enabled = true
 bones/4/position = Vector3(-5.22757e-15, 2.86134, 1.52726e-07)
-bones/4/rotation = Quaternion(-0.0146428, -0.0157137, -0.00606527, 0.999751)
+bones/4/rotation = Quaternion(3.32141e-08, 2.53761e-08, 1.97971e-15, 1)
 bones/4/scale = Vector3(1, 1, 1)
 bones/5/name = "Perna.L_7"
 bones/5/parent = 2
 bones/5/rest = Transform3D(1, -1.00304e-14, -1.50996e-07, 1.00304e-14, -1, 1.32856e-07, -1.50996e-07, -1.32856e-07, -1, 0.506695, -0.243653, -3.61901e-08)
 bones/5/enabled = true
 bones/5/position = Vector3(0.506695, -0.243653, -3.61901e-08)
-bones/5/rotation = Quaternion(0.984743, 8.09386e-09, -5.63571e-08, -0.174018)
+bones/5/rotation = Quaternion(1, -8.95478e-09, -5.55609e-08, -6.64282e-08)
 bones/5/scale = Vector3(1, 1, 1)
 bones/6/name = "Braco.R_8"
 bones/6/parent = 2
 bones/6/rest = Transform3D(1, 1.00304e-14, 1.50996e-07, -1.00304e-14, -1, 1.32856e-07, 1.50996e-07, -1.32856e-07, -1, -1.4941, 2.81634, 9.85954e-08)
 bones/6/enabled = true
 bones/6/position = Vector3(-1.4941, 2.81634, 9.85954e-08)
-bones/6/rotation = Quaternion(0.984743, -7.25984e-09, 7.22277e-08, -0.174018)
+bones/6/rotation = Quaternion(1, 6.64401e-22, 7.54979e-08, -6.64282e-08)
 bones/6/scale = Vector3(1, 1, 1)
 bones/7/name = "Perna.R_9"
 bones/7/parent = 2
 bones/7/rest = Transform3D(1, -1.00304e-14, -1.50996e-07, 1.00304e-14, -1, 1.32856e-07, -1.50996e-07, -1.32856e-07, -1, -0.506695, -0.243653, -7.0877e-08)
 bones/7/enabled = true
 bones/7/position = Vector3(-0.506695, -0.243653, -7.0877e-08)
-bones/7/rotation = Quaternion(0.984549, -1.99197e-08, -7.22758e-08, 0.175112)
+bones/7/rotation = Quaternion(1, 6.06149e-22, -7.54979e-08, -6.64282e-08)
 bones/7/scale = Vector3(1, 1, 1)
 bones/8/name = "ControladorPerna.L_11"
 bones/8/parent = 1

@@ -23,7 +23,7 @@ func _ready() -> void:
 			if not DirAccess.dir_exists_absolute(server_path):
 				DirAccess.make_dir_recursive_absolute(server_path)
 			var server = ConfigFile.new()
-			server.set_value("server", "ip", "2dmc.hiboranez.work")
+			server.set_value("server", "ip", "flatmc.hiboranez.work")
 			server.set_value("server", "port", "12419")
 			server.set_value("server", "icon", StaticLoad.game_icon_image.save_png_to_buffer())
 			server.save_encrypted_pass(server_path+"FlatMC.srv", StaticLoad.CONFIG_PASSWORD)
