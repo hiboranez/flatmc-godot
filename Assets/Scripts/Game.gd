@@ -58,15 +58,18 @@ extends Node2D
 @onready var mini_map_camera = $GameUI/MiniMap/SubViewportContainer/SubViewport/Camera2D
 @onready var mini_map_tile_map_layer = $GameUI/MiniMap/SubViewportContainer/SubViewport/TileMapLayer
 @onready var mini_map_players = $GameUI/MiniMap/SubViewportContainer/SubViewport/Players
+@onready var mini_map_lights = $GameUI/MiniMap/SubViewportContainer/SubViewport/Lights
 @onready var mini_map = $GameUI/MiniMap
 @onready var item_bar_panel = $GameUI/ItemBarPanel
 @onready var lights = $Lights
+
 
 var light_thread = Thread.new()
 var player_icons = {}
 var mouse_item_name_label
 var touch_list = []
 signal chunk_light_updated_signal
+var mini_map_chunk_lights = {}
 var chunk_lights = {}
 var chunk_light_datas = {}
 var chunk_light_to_process = {}
@@ -85,6 +88,7 @@ var is_chat: bool = false
 var is_player_info_updated: bool = false
 var is_chunk_modifing: bool = false
 var player_last_chunk: Vector2i
+var loaded_chunk_packed_byte_arrays: Dictionary
 var loaded_chunks: Dictionary #true代表已修改，需要最后保存
 var loaded_chunks_timer: Dictionary
 var database_chunks = []
@@ -180,7 +184,7 @@ func _process(delta: float) -> void:
 
 func process_light():
 	while(true):
-		await get_tree().create_timer(0.01).timeout
+		await get_tree().create_timer(0.001).timeout
 		var chunk_light_to_process_tmp = chunk_light_to_process.duplicate()
 		if chunk_light_to_process_tmp.is_empty():
 			if not chunk_light_to_process_double.is_empty():
@@ -202,7 +206,7 @@ func process_light():
 					var splits = chunk_light_name.split(".")
 					chunk_lights[chunk_light_name].update_chunk_light(Vector2i(int(splits[0]), int(splits[1])), chunk_light_to_process_tmp[chunk_light_name])
 					await chunk_light_updated_signal
-				await get_tree().create_timer(0.2).timeout
+				await get_tree().create_timer(0.001).timeout
 				chunk_light_to_process.erase(chunk_light_name)
 				break
 
@@ -535,6 +539,9 @@ func _unhandled_input(event: InputEvent) -> void:
 			place_block(mouse_to_block_pos)
 
 func init_light():
+	for chunk_light_name in chunk_lights:
+		chunk_lights[chunk_light_name].queue_free()
+	chunk_lights.clear()
 	for chunk_light_name in loaded_chunks:
 		var chunk_light = chunk_light_scene.instantiate()
 		lights.add_child(chunk_light)
@@ -542,6 +549,18 @@ func init_light():
 		var splits = chunk_light_name.split(".")
 		chunk_light.chunk_pos = Vector2i(int(splits[0]), int(splits[1]))
 		chunk_light.init("null")
+
+func update_mini_map_chunk_light(chunk_pos, image):
+	var chunk_light_name = str(chunk_pos[0])+"."+str(chunk_pos[1])
+	if mini_map_chunk_lights.has(chunk_light_name):
+		mini_map_chunk_lights[chunk_light_name].queue_free()
+		mini_map_chunk_lights.erase(chunk_light_name)
+	var chunk_light = chunk_light_scene.instantiate()
+	mini_map_lights.add_child(chunk_light)
+	chunk_light.name = chunk_light_name.replace(".", "_")
+	chunk_light.chunk_pos = chunk_pos
+	chunk_light.update_texture_from_image(image)
+	mini_map_chunk_lights[chunk_light_name] = chunk_light
 
 func grab_item(block_pos):
 	var block_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(block_pos))
@@ -773,7 +792,7 @@ func init_game_as_client():
 	total_chunk_num = loading_chunk_total_sum
 	for x in range(x_player_chunk-player.render_chunk, x_player_chunk+player.render_chunk+1):
 		for y in range(y_player_chunk-player.render_chunk, y_player_chunk+player.render_chunk+1):
-			StaticLoad.rpc_id(1, "request_for_update_chunk", StaticLoad.multiplayer.get_unique_id(), x, y)
+			StaticLoad.rpc_id(1, "request_for_update_chunk", StaticLoad.multiplayer.get_unique_id(), true, x, y)
 	update_block_selection_ui(get_local_mouse_position())
 
 func create_player(peer_id = 1):
@@ -997,10 +1016,15 @@ func show_item_name(delta: float):
 		item_name_label.self_modulate = Color(1,1,1,0)
 
 func get_chunk_position(block_pos: Vector2i):
+	var block_pos_tmp = Vector2i(block_pos)
+	if block_pos[0] < 0:
+		block_pos_tmp[0] += 1
+	if block_pos[1] < 0:
+		block_pos_tmp[1] += 1
 	@warning_ignore("integer_division")
-	var x_chunk = block_pos[0]/16
+	var x_chunk = block_pos_tmp[0]/16
 	@warning_ignore("integer_division")
-	var y_chunk = block_pos[1]/16
+	var y_chunk = block_pos_tmp[1]/16
 	if block_pos[0] < 0:
 		x_chunk -= 1
 	if block_pos[1] < 0:
@@ -1017,7 +1041,7 @@ func update_new_chunk(is_pre_load: bool):
 			for y in range(y_player_chunk-player.render_chunk, y_player_chunk+player.render_chunk+1):
 				if not loaded_chunks.has(str(x)+"."+str(y)):
 					if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() != 1:
-						StaticLoad.rpc_id(1, "request_for_update_chunk", StaticLoad.multiplayer.get_unique_id(), x, y)
+						StaticLoad.rpc_id(1, "request_for_update_chunk", StaticLoad.multiplayer.get_unique_id(), false, x, y)
 						loaded_chunks[str(x)+"."+str(y)] = false #防止重复向服务器发送申请
 						loaded_chunks_timer[str(x)+"."+str(y)] = StaticLoad.CHUNK_FREE_TIME
 					else:
@@ -1057,8 +1081,17 @@ func free_chunk(pos: Vector2i) -> void:
 	var chunk_name = str(pos[0])+"."+str(pos[1])
 	if chunk_lights.has(chunk_name):
 		chunk_lights[chunk_name].destroy()
+	if loaded_chunk_packed_byte_arrays.has(str(pos[0])+"."+str(pos[1])):
+		var byte_array_tmp = loaded_chunk_packed_byte_arrays[str(pos[0])+"."+str(pos[1])]
+		loaded_chunk_packed_byte_arrays.erase(str(pos[0])+"."+str(pos[1]))
+		byte_array_tmp.clear()
 
 func set_chunk(pos: Vector2i, blocks) -> void:
+	if not loaded_chunk_packed_byte_arrays.has(str(pos[0])+"."+str(pos[1])):
+		var chunk_packed_byte_array: PackedByteArray
+		chunk_packed_byte_array.resize(256)
+		chunk_packed_byte_array.fill(0)
+		loaded_chunk_packed_byte_arrays[str(pos[0])+"."+str(pos[1])] = chunk_packed_byte_array
 	for x in range(0, 16):
 		for y in range(0, 16):
 			set_block(Vector2i(pos[0] * 16 + x, pos[1] * 16 + y), blocks[y][x], true)
@@ -1074,6 +1107,14 @@ func set_block(block_pos: Vector2i, block_id: int, is_pre_load = false):
 		tile_map_layer.set_cell(block_pos)
 		if not StaticLoad.is_dedicated_server:
 			mini_map_tile_map_layer.set_cell(block_pos)
+			var chunk_pos = get_chunk_position(block_pos)
+			var relative_block_pos = block_pos-chunk_pos*16
+			if relative_block_pos[0] > 15:
+				relative_block_pos[0] = 15
+			if relative_block_pos[1] > 15:
+				relative_block_pos[1] = 15
+			if loaded_chunk_packed_byte_arrays.has(str(chunk_pos[0])+"."+str(chunk_pos[1])):
+				loaded_chunk_packed_byte_arrays[str(chunk_pos[0])+"."+str(chunk_pos[1])][relative_block_pos[1]*16+relative_block_pos[0]] = 0
 		return true
 	if tile_map_layer.get_cell_source_id(block_pos) != -1:
 		return false
@@ -1089,6 +1130,14 @@ func set_block(block_pos: Vector2i, block_id: int, is_pre_load = false):
 	tile_map_layer.set_cell(block_pos, 9999, atlas_coords)
 	if not StaticLoad.is_dedicated_server:
 		mini_map_tile_map_layer.set_cell(block_pos, 9999, atlas_coords)
+		var chunk_pos = get_chunk_position(block_pos)
+		var relative_block_pos = block_pos-chunk_pos*16
+		if relative_block_pos[0] > 15:
+			relative_block_pos[0] = 15
+		if relative_block_pos[1] > 15:
+			relative_block_pos[1] = 15
+		if loaded_chunk_packed_byte_arrays.has(str(chunk_pos[0])+"."+str(chunk_pos[1])):
+			loaded_chunk_packed_byte_arrays[str(chunk_pos[0])+"."+str(chunk_pos[1])][relative_block_pos[1]*16+relative_block_pos[0]] = block_id
 	if not is_pre_load:
 		sound_audio_manager.play_random_audio_at_position("dig", StaticLoad.get_block_type_by_id(block_id), tile_map_layer.map_to_local(block_pos))
 	return true

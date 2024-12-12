@@ -15,15 +15,19 @@ var light_data: PackedByteArray
 func init(update_neighbour_state):
 	position = Vector2i(chunk_pos[0]*800, chunk_pos[1]*800)
 	update_light_data()
-	await get_tree().create_timer(0.02).timeout
+	await get_tree().create_timer(0.001).timeout
 	update_texture(update_neighbour_state)
 	StaticLoad.game.chunk_lights[str(chunk_pos[0])+"."+str(chunk_pos[1])] = self
 	if old_chunk_light != null:
 		old_chunk_light.enabled = false
 		old_chunk_light.queue_free()
-	await get_tree().create_timer(0.02).timeout
 	StaticLoad.game.chunk_light_updated_signal.emit()
-	
+
+func update_texture_from_image(light_image):
+	position = Vector2i(chunk_pos[0]*800, chunk_pos[1]*800)
+	texture = ImageTexture.create_from_image(light_image)
+	enabled = true
+
 func destroy():
 	var chunk_name = str(chunk_pos[0])+"."+str(chunk_pos[1])
 	if StaticLoad.game.chunk_lights.has(chunk_name):
@@ -55,10 +59,97 @@ func update_game_chunk_light_data_without_influence():
 				#block_g_data.set(y*16+x, color_info[1].g8)
 				#block_b_data.set(y*16+x, color_info[1].b8)
 				block_a_data_tmp.set(y*16+x, 255)
-	spread_vertical_light(block_a_data_tmp)
-	spread_horizontal_light(block_a_data_tmp)
-	spread_vertical_light(block_a_data_tmp)
-	spread_horizontal_light(block_a_data_tmp)
+	#if without_whom is Vector2i:
+		## 更新上部临近区块
+		#if not str(chunk_pos[0])+"."+str(chunk_pos[1]-1) == str(without_whom[0])+"."+str(without_whom[1]):
+			#if StaticLoad.game.chunk_lights.has(str(chunk_pos[0])+"."+str(chunk_pos[1]-1)):
+				#var neighbour_light_data: PackedByteArray
+				#var neighbour_chunk_light = StaticLoad.game.chunk_light_datas[str(chunk_pos[0])+"."+str(chunk_pos[1]-1)]
+				#for i in range(16):
+					#neighbour_light_data.append(neighbour_chunk_light[240+i])
+				#for i in range(16):
+					#if neighbour_light_data[i] > 0:
+						#var block_id = StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.tile_map_layer.get_cell_atlas_coords(Vector2i(chunk_pos[0]*16+i, chunk_pos[1]*16)))
+						#if block_id != 0:
+							#var new_light = neighbour_light_data[i]-48
+							#if new_light < 0:
+								#new_light = 0
+							#if block_a_data_tmp[i] < new_light:
+								#block_a_data_tmp.set(i, new_light)
+						#else:
+							#var new_light = neighbour_light_data[i]-16
+							#if new_light < 0:
+								#new_light = 0
+							#if block_a_data_tmp[i] < new_light:
+								#block_a_data_tmp.set(i, new_light)
+		## 更新下部临近区块
+		#if not str(chunk_pos[0])+"."+str(chunk_pos[1]+1) == str(without_whom[0])+"."+str(without_whom[1]):
+			#if StaticLoad.game.chunk_lights.has(str(chunk_pos[0])+"."+str(chunk_pos[1]+1)):
+				#var neighbour_light_data: PackedByteArray
+				#var neighbour_chunk_light = StaticLoad.game.chunk_light_datas[str(chunk_pos[0])+"."+str(chunk_pos[1]+1)]
+				#for i in range(16):
+					#neighbour_light_data.append(neighbour_chunk_light[i])
+				#for i in range(16):
+					#if neighbour_light_data[i] > 0:
+						#var block_id = StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.tile_map_layer.get_cell_atlas_coords(Vector2i(chunk_pos[0]*16+i, chunk_pos[1]*16+15)))
+						#if block_id != 0:
+							#var new_light = neighbour_light_data[i]-48
+							#if new_light < 0:
+								#new_light = 0
+							#if block_a_data_tmp[240+i] < new_light:
+								#block_a_data_tmp.set(240+i, new_light)
+						#else:
+							#var new_light = neighbour_light_data[i]-16
+							#if new_light < 0:
+								#new_light = 0
+							#if block_a_data_tmp[240+i] < new_light:
+								#block_a_data_tmp.set(240+i, new_light)
+		## 更新左部临近区块
+		#if not str(chunk_pos[0]-1)+"."+str(chunk_pos[1]) == str(without_whom[0])+"."+str(without_whom[1]):
+			#if StaticLoad.game.chunk_lights.has(str(chunk_pos[0]-1)+"."+str(chunk_pos[1])):
+				#var neighbour_light_data: PackedByteArray
+				#var neighbour_chunk_light = StaticLoad.game.chunk_light_datas[str(chunk_pos[0]-1)+"."+str(chunk_pos[1])]
+				#for i in range(16):
+					#neighbour_light_data.append(neighbour_chunk_light[i*16+15])
+				#for i in range(16):
+					#if neighbour_light_data[i] > 0:
+						#var block_id = StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.tile_map_layer.get_cell_atlas_coords(Vector2i(chunk_pos[0]*16, chunk_pos[1]*16+i)))
+						#if block_id != 0:
+							#var new_light = neighbour_light_data[i]-48
+							#if new_light < 0:
+								#new_light = 0
+							#if block_a_data_tmp[i*16] < new_light:
+								#block_a_data_tmp.set(i*16, new_light)
+						#else:
+							#var new_light = neighbour_light_data[i]-16
+							#if new_light < 0:
+								#new_light = 0
+							#if block_a_data_tmp[i*16] < new_light:
+								#block_a_data_tmp.set(i*16, new_light)
+		## 更新右部临近区块
+		#if not str(chunk_pos[0]+1)+"."+str(chunk_pos[1]) == str(without_whom[0])+"."+str(without_whom[1]):
+			#if StaticLoad.game.chunk_lights.has(str(chunk_pos[0]+1)+"."+str(chunk_pos[1])):
+				#var neighbour_light_data: PackedByteArray
+				#var neighbour_chunk_light = StaticLoad.game.chunk_light_datas[str(chunk_pos[0]+1)+"."+str(chunk_pos[1])]
+				#for i in range(16):
+					#neighbour_light_data.append(neighbour_chunk_light[i*16])
+				#for i in range(16):
+					#if neighbour_light_data[i] > 0:
+						#var block_id = StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.tile_map_layer.get_cell_atlas_coords(Vector2i(chunk_pos[0]*16+15, chunk_pos[1]*16+i)))
+						#if block_id != 0:
+							#var new_light = neighbour_light_data[i]-48
+							#if new_light < 0:
+								#new_light = 0
+							#if block_a_data_tmp[i*16+15] < new_light:
+								#block_a_data_tmp.set(i*16+15, new_light)
+						#else:
+							#var new_light = neighbour_light_data[i]-16
+							#if new_light < 0:
+								#new_light = 0
+							#if block_a_data_tmp[i*16+15] < new_light:
+								#block_a_data_tmp.set(i*16+15, new_light)
+	block_a_data_tmp = LightCalculator.spread_light(block_a_data_tmp, StaticLoad.game.loaded_chunk_packed_byte_arrays[str(chunk_pos[0])+"."+str(chunk_pos[1])])
+	block_a_data_tmp = LightCalculator.spread_light(block_a_data_tmp, StaticLoad.game.loaded_chunk_packed_byte_arrays[str(chunk_pos[0])+"."+str(chunk_pos[1])])
 	StaticLoad.game.chunk_light_datas[str(chunk_pos[0])+"."+str(chunk_pos[1])] = block_a_data_tmp
 
 func update_chunk_light(chunk_pos_tmp, update_neighbour_state):
@@ -67,7 +158,7 @@ func update_chunk_light(chunk_pos_tmp, update_neighbour_state):
 		return
 	if update_neighbour_state.contains("update"):
 		StaticLoad.game.chunk_lights[chunk_light_name].refresh()
-	await get_tree().create_timer(0.01).timeout
+	await get_tree().create_timer(0.005).timeout
 	var chunk_light = StaticLoad.game.chunk_light_scene.instantiate()
 	if StaticLoad.game.chunk_lights.has(chunk_light_name):
 		chunk_light.old_chunk_light = StaticLoad.game.chunk_lights[chunk_light_name]
@@ -178,14 +269,9 @@ func update_light_data():
 						new_light = 0
 					if block_a_data[i*16+15] < new_light:
 						block_a_data.set(i*16+15, new_light)
-	
-	spread_vertical_light(block_a_data)
-	await get_tree().create_timer(0.02).timeout
-	spread_horizontal_light(block_a_data)
-	await get_tree().create_timer(0.02).timeout
-	spread_vertical_light(block_a_data)
-	await get_tree().create_timer(0.02).timeout
-	spread_horizontal_light(block_a_data)
+	block_a_data = LightCalculator.spread_light(block_a_data, StaticLoad.game.loaded_chunk_packed_byte_arrays[str(chunk_pos[0])+"."+str(chunk_pos[1])])
+	await get_tree().create_timer(0.001).timeout
+	block_a_data = LightCalculator.spread_light(block_a_data, StaticLoad.game.loaded_chunk_packed_byte_arrays[str(chunk_pos[0])+"."+str(chunk_pos[1])])
 	#print(chunk_pos)
 	#for y in range(16):
 		#print(block_a_data.slice(y*16, y*16+16))
@@ -217,6 +303,7 @@ func update_texture(update_neighbour_state):
 	var light_image = Image.create_from_data(16, 16, false, Image.FORMAT_L8, light_data)
 	texture = ImageTexture.create_from_image(light_image)
 	enabled = true
+	StaticLoad.game.update_mini_map_chunk_light(chunk_pos, light_image)
 	
 	if update_neighbour_state.contains("update"):
 		if StaticLoad.game.chunk_lights.has(str(chunk_pos[0])+"."+str(chunk_pos[1]-1)):
@@ -227,7 +314,9 @@ func update_texture(update_neighbour_state):
 			update_chunk_light(Vector2i(chunk_pos[0]-1, chunk_pos[1]), "null")
 		if StaticLoad.game.chunk_lights.has(str(chunk_pos[0]+1)+"."+str(chunk_pos[1])):
 			update_chunk_light(Vector2i(chunk_pos[0]+1, chunk_pos[1]), "null")
-	
+		var wait_timer = 0
+		while wait_timer < 0.01:
+			wait_timer += get_process_delta_time()
 		if StaticLoad.game.chunk_lights.has(str(chunk_pos[0]+1)+"."+str(chunk_pos[1]+1)):
 			update_chunk_light(Vector2i(chunk_pos[0]+1, chunk_pos[1]+1), "null")
 		if StaticLoad.game.chunk_lights.has(str(chunk_pos[0]+1)+"."+str(chunk_pos[1]-1)):

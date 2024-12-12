@@ -1015,7 +1015,7 @@ func reply_for_update_player_info(player_position, face_state, is_flying):
 	connect_signal.emit("player_info_updated")
 	
 @rpc("any_peer", "call_remote", "reliable", 1)
-func request_for_update_chunk(client_peer_id, x_chunk, y_chunk):
+func request_for_update_chunk(client_peer_id, is_init, x_chunk, y_chunk):
 	var blocks = []
 	var trees = []
 	if game.loaded_chunks.has(str(x_chunk)+"."+str(y_chunk)):
@@ -1049,14 +1049,16 @@ func request_for_update_chunk(client_peer_id, x_chunk, y_chunk):
 		game.loaded_chunks_timer[str(x_chunk)+"."+str(y_chunk)] = StaticLoad.CHUNK_FREE_TIME
 		game.database_chunks.push_back(str(x_chunk)+"."+str(y_chunk))
 		game.set_chunk(Vector2i(x_chunk, y_chunk), blocks)
-	rpc_id(client_peer_id, "reply_for_update_chunk",x_chunk, y_chunk, blocks)
+	rpc_id(client_peer_id, "reply_for_update_chunk", is_init, x_chunk, y_chunk, blocks)
 		
 @rpc("authority", "call_remote", "reliable", 1)
-func reply_for_update_chunk(x_chunk, y_chunk, blocks):
+func reply_for_update_chunk(is_init, x_chunk, y_chunk, blocks):
 	game.set_chunk(Vector2i(x_chunk, y_chunk), blocks)
 	game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)] = false
 	game.loaded_chunks_timer[str(x_chunk)+"."+str(y_chunk)] = StaticLoad.CHUNK_FREE_TIME
 	game.loaded_chunk_num += 1
+	if is_init:
+		return
 	if game.chunk_lights.has(str(x_chunk)+"."+str(y_chunk)):
 		game.chunk_light_to_process[str(x_chunk)+"."+str(y_chunk)] = "null"
 	else:

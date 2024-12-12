@@ -1837,7 +1837,7 @@ stretch = true
 transparent_bg = true
 handle_input_locally = false
 snap_2d_transforms_to_pixel = true
-canvas_item_default_texture_filter = 2
+canvas_item_default_texture_filter = 0
 size = Vector2i(240, 240)
 render_target_update_mode = 4
 
@@ -1848,6 +1848,14 @@ tile_set = ExtResource("3_fa3r6")
 
 [node name="Camera2D" type="Camera2D" parent="GameUI/MiniMap/SubViewportContainer/SubViewport"]
 zoom = Vector2(0.1, 0.1)
+
+[node name="Lights" type="Node2D" parent="GameUI/MiniMap/SubViewportContainer/SubViewport"]
+
+[node name="DarkLight" type="PointLight2D" parent="GameUI/MiniMap/SubViewportContainer/SubViewport/Lights"]
+scale = Vector2(20000, 20000)
+color = Color(0, 0, 0, 1)
+blend_mode = 2
+texture = ExtResource("17_ud88f")
 
 [node name="TouchButton" type="TouchScreenButton" parent="GameUI/MiniMap"]
 z_index = 1
