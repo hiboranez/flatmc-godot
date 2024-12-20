@@ -53,7 +53,6 @@ extends Node2D
 @onready var move_up_left_button = $MobileUI/MoveButtonsLeft/UpLeftButton
 @onready var move_up_right_button = $MobileUI/MoveButtonsLeft/UpRightButton
 @onready var move_jump_button_icon = $MobileUI/MoveButtonsRight/JumpButton/JumpButton
-@onready var inventory_container = $GameUI/InventoryUI/Panel/InventoryContainer
 @onready var inventory_ui = $GameUI/InventoryUI
 @onready var mini_map_camera = $GameUI/MiniMap/SubViewportContainer/SubViewport/Camera2D
 @onready var mini_map_tile_map_layer = $GameUI/MiniMap/SubViewportContainer/SubViewport/TileMapLayer
@@ -62,7 +61,11 @@ extends Node2D
 @onready var mini_map = $GameUI/MiniMap
 @onready var item_bar_panel = $GameUI/ItemBarPanel
 @onready var lights = $Lights
+@onready var inventory_back_grids = $GameUI/InventoryUI/Panel/Inventory/InventoryBackContainer
+@onready var inventory_show_grids = $GameUI/InventoryUI/Panel/Inventory/InventoryShowContainer
 
+var mouse_item_name = "AIR"
+var mouse_item_amount = 0
 var light_thread = Thread.new()
 var player_icons = {}
 var mouse_item_name_label
@@ -442,7 +445,7 @@ func process_touch_input():
 	for touch in touch_list:
 		if touch.double_tap:
 			var block_pos = tile_map_layer.local_to_map(camera_screen_pos_to_local_pos(player.camera, touch.position))
-			if check_place_block_state(block_pos, StaticLoad.get_block_id_by_name(player.item_bar_names[player.selected_item_grid])):
+			if check_place_block_state(block_pos, StaticLoad.get_block_id_by_name(player.item_bar_names[27+player.selected_item_grid])):
 				place_block(block_pos)
 			grab_item(block_pos)
 		else:
@@ -455,6 +458,9 @@ func check_place_block_state(block_pos, block_id):
 		return true
 	for id in StaticLoad.online_peer_ids:
 		var player_tmp = StaticLoad.online_peer_ids[id]
+		if player_tmp == null:
+			StaticLoad.online_peer_ids.erase(id)
+			continue
 		var player_pos = tile_map_layer.local_to_map(player_tmp.position)
 		if player_pos == block_pos:
 			return false
@@ -516,7 +522,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			var pressed_time = touch_time_counters.get_node(str(event.index)).timer
 			if pressed_time < StaticLoad.LONG_TOUCH_TIME:
 				var block_pos = tile_map_layer.local_to_map(camera_screen_pos_to_local_pos(player.camera, event.position))
-				if check_place_block_state(block_pos, StaticLoad.get_block_id_by_name(player.item_bar_names[player.selected_item_grid])):
+				if check_place_block_state(block_pos, StaticLoad.get_block_id_by_name(player.item_bar_names[27+player.selected_item_grid])):
 					place_block(block_pos)
 			var touch_to_remove_index
 			for i in range(touch_list.size()):
@@ -542,7 +548,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			destroy_block(mouse_to_block_pos)
 	
 	if mouse_in_world_pos != last_mouse_in_world_pos and Input.is_action_pressed("mouse_right") and not Input.is_action_pressed("mouse_left"):
-		if not player.is_dead and check_place_block_state(mouse_to_block_pos, StaticLoad.get_block_id_by_name(player.item_bar_names[player.selected_item_grid])):
+		if not player.is_dead and check_place_block_state(mouse_to_block_pos, StaticLoad.get_block_id_by_name(player.item_bar_names[27+player.selected_item_grid])):
 			place_block(mouse_to_block_pos)
 
 func init_light():
@@ -574,11 +580,11 @@ func grab_item(block_pos):
 	var player_select_sort = player.selected_item_grid
 	if block_id == 0:
 		return
-	if block_id == StaticLoad.get_block_id_by_name(player.item_bar_names[player.selected_item_grid]):
+	if block_id == StaticLoad.get_block_id_by_name(player.item_bar_names[27+player.selected_item_grid]):
 		return
 	var existed_item_grid_sort = -1
 	for i in range(9):
-		if StaticLoad.get_block_id_by_name(player.item_bar_names[i]) == block_id:
+		if StaticLoad.get_block_id_by_name(player.item_bar_names[27+i]) == block_id:
 			existed_item_grid_sort = i
 			break
 	if player_select_sort == existed_item_grid_sort:
@@ -586,10 +592,13 @@ func grab_item(block_pos):
 	if existed_item_grid_sort != -1:
 		select_item_grid(existed_item_grid_sort+1)
 	else:
-		player.item_bar_names[player_select_sort] = StaticLoad.get_block_name_by_id(block_id)
+		player.item_bar_names[27+player_select_sort] = StaticLoad.get_block_name_by_id(block_id)
+		player.item_bar_amounts[27+player_select_sort] = 1
 		refresh_item_grid(player_select_sort)
+		var inventory_grid = inventory_show_grids.get_node("InventoryGrid"+str(27+player_select_sort+1))
+		inventory_grid.init_inventory_grid(player.item_bar_names[27+player_select_sort], player.item_bar_amounts[27+player_select_sort])
 		sound_audio_manager.play_audio_static("player", "pop")
-		item_name_label.text = player.item_bar_names[player_select_sort]
+		item_name_label.text = player.item_bar_names[27+player_select_sort]
 		item_name_timer = StaticLoad.ITEM_NAME_SHOW_TIME
 	
 func destroy_block(block_pos: Vector2i):
@@ -624,7 +633,7 @@ func place_block(block_pos):
 	var chunk_pos = get_chunk_position(block_pos)
 	if not loaded_chunks.has(str(chunk_pos[0])+"."+str(chunk_pos[1])):
 		return
-	var block_id = StaticLoad.get_block_id_by_name(player.item_bar_names[player.selected_item_grid])
+	var block_id = StaticLoad.get_block_id_by_name(player.item_bar_names[27+player.selected_item_grid])
 	if tile_map_layer.get_cell_source_id(block_pos) == -1:
 		if set_block(block_pos, block_id):
 			update_block_selection_ui(tile_map_layer.map_to_local(block_pos), true)
@@ -839,7 +848,19 @@ func create_player(peer_id = 1):
 	players.move_child(player,-1)
 
 func refresh_item_grid(sort):
-	item_grids[sort].get_node("Icon").texture = load("res://Assets//Textures//Items//"+player.item_bar_names[player.selected_item_grid].to_lower()+".png") as Texture2D
+	var item_name = player.item_bar_names[27+sort]
+	var item_amount = player.item_bar_amounts[27+sort]
+	if item_name == "AIR":
+		item_grids[sort].get_node("Icon").visible = false
+		item_grids[sort].get_node("Amount").text = ""
+	else:
+		item_grids[sort].get_node("Icon").texture = load("res://Assets//Textures//Items//"+player.item_bar_names[27+sort].to_lower()+".png") as Texture2D
+		item_grids[sort].get_node("Icon").visible = true
+		if item_amount <= 1:
+			item_grids[sort].get_node("Amount").text = ""
+		else:
+			item_grids[sort].get_node("Amount").text = str(item_amount)
+	
 
 func check_emulate_mouse_from_touch():
 	if is_input_frozen:
@@ -1246,19 +1267,24 @@ func select_item_grid(grid_name) -> void:
 	var sort = int(str(grid_name))-1
 	player.selected_item_grid = sort
 	item_grids[sort].get_node("SelectBar").visible = true
-	item_name_label.text = player.item_bar_names[sort]
+	if player.item_bar_names[27+sort] == "AIR":
+		return
+	item_name_label.text = player.item_bar_names[27+sort]
 	item_name_timer = StaticLoad.ITEM_NAME_SHOW_TIME
 
 func init_inventory():
-	var count: int = 0
-	for key in StaticLoad.block_ids:
-		if key == "AIR":
-			continue
-		var inventory_grid_instance = inventory_grid.instantiate()
-		inventory_grid_instance.init_inventory_grid(key)
-		inventory_grid_instance.name = str(count)
-		inventory_container.add_child(inventory_grid_instance)
-		count += 1
+	for i in range(27):
+		var item_name = player.item_bar_names[i]
+		var item_amount = player.item_bar_amounts[i]
+		var inventory_grid = inventory_back_grids.get_node("InventoryGrid"+str(i+1))
+		inventory_grid.init_inventory_grid(item_name, item_amount)
+	for i in range(27, 36):
+		var item_name = player.item_bar_names[i]
+		var item_amount = player.item_bar_amounts[i]
+		var inventory_grid = inventory_show_grids.get_node("InventoryGrid"+str(i+1))
+		inventory_grid.init_inventory_grid(item_name, item_amount)
+	for i in range(9):
+		refresh_item_grid(i)
 
 func touch_button(button_name):
 	StaticLoad.click_audio_player.play()

@@ -24,6 +24,7 @@ var move_state: String = "idle"
 var face_state: int = -1
 var selected_item_grid: int = 0
 var item_bar_names = []
+var item_bar_amounts = []
 var current_velocity = Vector2(0, 0)
 var last_velocity = Vector2(0, 0)
 var step_sound_timer = 0.0
@@ -48,15 +49,9 @@ var player_state = {
 func _ready():
 	freeze_player()
 	velocity_before_pause = velocity
-	var count:int = 0
-	for key in StaticLoad.block_ids:
-		if count < 13:
-			count += 1
-			continue
-		item_bar_names.push_back(key)
-		count += 1
-		if count >= 22:
-			break
+	for i in range(36):
+		item_bar_names.append("AIR")
+		item_bar_amounts.append(0)
 
 func _process(delta: float) -> void:
 	move_and_slide()
@@ -113,8 +108,14 @@ func init(peer_id):
 	unfreeze_player()
 	StaticLoad.game.update_details(true)
 	
-	for i in range(9):
+	for i in range(27,36):
+		if item_bar_names[i] == "AIR":
+			continue
 		StaticLoad.game.item_grids[i].get_node("Icon").texture = load("res://Assets//Textures//Items//"+item_bar_names[i].to_lower()+".png") as Texture2D
+		if item_bar_amounts[i] <= 1:
+			StaticLoad.game.item_grids[i].get_node("Amount").text = ""
+		else:
+			StaticLoad.game.item_grids[i].get_node("Amount").text = str(item_bar_amounts[i])
 
 	StaticLoad.game.init_inventory()
 	
@@ -368,6 +369,8 @@ func send_command(command: String):
 			if abs(x) >= 200000 or abs(y) >= 200000:
 				StaticLoad.game.broadcast_to_person(player_name, tr("RANGE_LIMIT"), "pink")
 			else:
+				if StaticLoad.is_dedicated_server or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == 1):
+					position = Vector2i(x*50+25, -y*50+50)
 				var tween1 = get_tree().create_tween()
 				tween1.tween_method(set_shader_blink_intensity, 0.0, -1.0, StaticLoad.TELEPORT_TIME/2.0)
 				var tween2 = get_tree().create_tween()
