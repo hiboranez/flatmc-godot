@@ -35,7 +35,8 @@ var player_state = {
 	"is_jump_pressed": false,
 	"is_down_pressed": false,
 	"is_flying": false,
-	"render_chunk": 1
+	"render_chunk": 1,
+	"gamemode": "survival"
 	}
 
 @onready var player_animation = $SubViewportContainer/SubViewport/AnimationPlayer
@@ -91,6 +92,11 @@ func init(peer_id):
 				face_state = player_config.get_value("player", "face_state", StaticLoad.DEFAULT_PLAYER_FACE_STATE)
 				turn_state = face_state
 				is_flying = player_config.get_value("player", "is_flying", StaticLoad.DEFAULT_PLAYER_IS_FLYING)
+				gamemode = player_config.get_value("player", "gamemode", StaticLoad.DEFAULT_PLAYER_GAMEMODE)
+				if gamemode != "creative":
+					is_flying = false
+				if self.gamemode == "creative":
+					StaticLoad.game.health_bar.visible = false
 		update_player_face_rotation()
 		StaticLoad.game.update_new_chunk(true)
 	
@@ -135,6 +141,7 @@ func update_player_state():
 	player_state["is_down_pressed"] = is_down_pressed
 	player_state["is_flying"] = is_flying
 	player_state["render_chunk"] = render_chunk
+	player_state["gamemode"] = gamemode
 
 func broadcast_player_state_to_all():
 	if not StaticLoad.online_peer_ids.has(1):
@@ -174,8 +181,13 @@ func player_die():
 	stop_player_move()
 	if is_other:
 		return
-	
+	if StaticLoad.game.is_pause:
+		StaticLoad.game.pause_ui.visible = false
+		is_pause = false
 	StaticLoad.game.death_ui.visible = true
+	StaticLoad.game.is_input_frozen = true
+	if StaticLoad.is_on_mobile_platform:
+		Input.emulate_mouse_from_touch = false
 	StaticLoad.game.move_input_list.clear()
 	if StaticLoad.is_muti_mode:
 		rpc("remote_stop_player_move")
@@ -222,12 +234,13 @@ func update_player_speed_related(delta):
 		var block_pos = StaticLoad.game.tile_map_layer.local_to_map(position+Vector2(0, 5))
 		var block_id = StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.tile_map_layer.get_cell_atlas_coords(block_pos))
 		if step_sound_timer <= 0 and block_id != 0:
-			if move_state == "walk":
-				step_sound_timer = WALK_PERIOD
-				StaticLoad.game.sound_audio_manager.play_random_audio_at_position("step", StaticLoad.block_types[block_id], position)
-			elif move_state == "run":
-				step_sound_timer = RUN_PERIOD
-				StaticLoad.game.sound_audio_manager.play_random_audio_at_position("step", StaticLoad.block_types[block_id], position)
+			if not StaticLoad.get_is_untouchable_by_id(block_id):
+				if move_state == "walk":
+					step_sound_timer = WALK_PERIOD
+					StaticLoad.game.sound_audio_manager.play_random_audio_at_position("step", StaticLoad.block_types[block_id], position)
+				elif move_state == "run":
+					step_sound_timer = RUN_PERIOD
+					StaticLoad.game.sound_audio_manager.play_random_audio_at_position("step", StaticLoad.block_types[block_id], position)
 	elif step_sound_timer > 0:
 		step_sound_timer = 0
 	if step_sound_timer > 0:
@@ -379,26 +392,30 @@ func send_command(command: String):
 				StaticLoad.game.broadcast_to_person(player_name, tr("TELEPORT_INFO_1")+player_name+tr("TELEPORT_INFO_2")+"x="+str(x)+", y="+str(y), "chartreuse")
 				await get_tree().create_timer(0.01).timeout
 		else:
-			StaticLoad.game.broadcast_to_person(player_name, tr("USAGE")+" : "+StaticLoad.commands["/tp"], "gold")
+			StaticLoad.game.broadcast_to_person(player_name, tr("USAGE")+" : "+tr(StaticLoad.commands["/tp"]), "gold")
 	elif splits[0] == "/gamemode":
 		StaticLoad.game.close_chat_ui()
 		if splits.size() == 2 and splits[1] != "":
 			if splits[1].is_valid_int():
-				gamemode = StaticLoad.get_gamemode_from_sort(int(splits[1]))
-				StaticLoad.game.broadcast_to_person(player_name, player_name+tr("GAMEMODE_SET_TO")+gamemode, "chartreuse")
+				var gamemode_tmp = StaticLoad.get_gamemode_from_sort(int(splits[1]))
+				if gamemode_tmp == "null":
+					StaticLoad.game.broadcast_to_person(player_name, splits[1]+tr("NOT_VALID_MODE_OR_NUM"), "pink")
+					return
+				gamemode = gamemode_tmp
+				StaticLoad.game.broadcast_to_person(player_name, player_name+tr("GAMEMODE_SET_TO")+tr(gamemode.to_upper()+"_MODE"), "chartreuse")
 				change_gamemode()
 				if StaticLoad.is_muti_mode:
 					rpc("remote_change_gamemode", gamemode)
 			elif StaticLoad.get_is_valid_gamemode(splits[1]):
 				gamemode = splits[1]
-				StaticLoad.game.broadcast_to_person(player_name, player_name+tr("GAMEMODE_SET_TO")+gamemode, "chartreuse")
+				StaticLoad.game.broadcast_to_person(player_name, player_name+tr("GAMEMODE_SET_TO")+tr(gamemode.to_upper()+"_MODE"), "chartreuse")
 				change_gamemode()
 				if StaticLoad.is_muti_mode:
 					rpc("remote_change_gamemode", gamemode)
 			else:
 				StaticLoad.game.broadcast_to_person(player_name, splits[1]+tr("NOT_VALID_MODE_OR_NUM"), "pink")
 		else:
-			StaticLoad.game.broadcast_to_person(player_name, tr("USAGE")+" : "+StaticLoad.commands["/gamemode"], "gold")
+			StaticLoad.game.broadcast_to_person(player_name, tr("USAGE")+" : "+tr(StaticLoad.commands["/gamemode"]), "gold")
 	else:
 		StaticLoad.game.broadcast_to_person(player_name, tr("UNKNOWN_COMMAND"), "pink")
 
@@ -460,15 +477,21 @@ func broadcast_join_game(player_name):
 
 @rpc("any_peer", "call_local", "reliable", 1)
 @warning_ignore("shadowed_variable")
-func init_player(peer_id, player_name, pos, face_state, is_flying):
+func init_player(peer_id, player_name, pos, face_state, is_flying, gamemode):
 	self.player_peer_id = peer_id
 	self.player_name = player_name
 	self.name_label.text = player_name
 	self.position = pos
 	self.face_state = face_state
 	self.is_flying = is_flying
+	self.gamemode = gamemode
+	if self.gamemode != "creative":
+		self.is_flying = false
 	update_player_face_rotation()
 	
+	if peer_id == StaticLoad.multiplayer.get_unique_id():
+		if self.gamemode == "creative":
+			StaticLoad.game.health_bar.visible = false
 	StaticLoad.online_peer_ids[peer_id] = StaticLoad.game.players.get_node(str(peer_id))
 	StaticLoad.game.update_new_chunk(true)
 	StaticLoad.game.update_details()
@@ -535,6 +558,10 @@ func reply_for_respawn_player(is_animation):
 			Input.emulate_mouse_from_touch = false
 		StaticLoad.game.death_ui.visible = false
 		StaticLoad.game.is_input_frozen = false
+		StaticLoad.game.move_input_list.clear()
+		stop_player_move()
+		if StaticLoad.is_muti_mode:
+			rpc("remote_stop_player_move")
 
 @rpc("any_peer", "call_remote", "reliable", 1)
 func request_for_update_player_velocity(velo):
@@ -593,6 +620,7 @@ func remote_update_player_state(player_state):
 	if render_chunk_tmp < StaticLoad.RENDER_CHUNK_MIN:
 		render_chunk_tmp = StaticLoad.RENDER_CHUNK_MIN
 	self.render_chunk = render_chunk_tmp
+	self.gamemode = player_state["gamemode"]
 	#if StaticLoad.multiplayer.get_unique_id() == 1:
 		#rpc_id(player_peer_id, "remote_check_player_position", position)
 
@@ -603,9 +631,11 @@ func remote_change_gamemode(new_gamemode):
 
 @rpc("any_peer", "call_remote", "reliable", 1)
 func remote_update_message(peer_id, message):
-	StaticLoad.online_peer_ids[peer_id].send_message(message)
+	if StaticLoad.online_peer_ids.has(peer_id):
+		StaticLoad.online_peer_ids[peer_id].send_message(message)
 
 @rpc("any_peer", "call_remote", "reliable", 1)
 func remote_update_command(peer_id, command):
-	StaticLoad.online_peer_ids[peer_id].send_command(command)
+	if StaticLoad.online_peer_ids.has(peer_id):
+		StaticLoad.online_peer_ids[peer_id].send_command(command)
 	

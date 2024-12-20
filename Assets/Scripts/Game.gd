@@ -63,7 +63,6 @@ extends Node2D
 @onready var item_bar_panel = $GameUI/ItemBarPanel
 @onready var lights = $Lights
 
-
 var light_thread = Thread.new()
 var player_icons = {}
 var mouse_item_name_label
@@ -72,6 +71,7 @@ signal chunk_light_updated_signal
 var mini_map_chunk_lights = {}
 var chunk_lights = {}
 var chunk_light_datas = {}
+var chunk_sky_light_datas = {}
 var chunk_light_to_process = {}
 var chunk_light_to_process_double = {}
 var block_selection_timer: float = 0
@@ -107,7 +107,8 @@ var last_player_state = {
 	"is_jump_pressed": false,
 	"is_down_pressed": false,
 	"is_flying": false,
-	"render_chunk": 0
+	"render_chunk": 0,
+	"gamemode": "survival"
 }
 
 func _notification(what):
@@ -193,8 +194,15 @@ func process_light():
 			continue
 		else:
 			for chunk_light_name in chunk_light_to_process_tmp:
+				if not chunk_sky_light_datas.has(chunk_light_name):
+					continue
+				var splits = chunk_light_name.split(".")
+				if not chunk_sky_light_datas.has(splits[0]+"."+str(int(splits[1])-1)):
+					var sky_light: PackedByteArray
+					sky_light.resize(16)
+					sky_light.fill(255)
+					chunk_sky_light_datas[chunk_light_name] = sky_light
 				if chunk_light_to_process_tmp[chunk_light_name] == "create":
-					var splits = chunk_light_name.split(".")
 					var chunk_light = chunk_light_scene.instantiate()
 					lights.add_child(chunk_light)
 					chunk_light.name = chunk_light_name.replace(".", "_")
@@ -203,7 +211,6 @@ func process_light():
 				else:
 					if not chunk_lights.has(chunk_light_name):
 						continue
-					var splits = chunk_light_name.split(".")
 					chunk_lights[chunk_light_name].update_chunk_light(Vector2i(int(splits[0]), int(splits[1])), chunk_light_to_process_tmp[chunk_light_name])
 					await chunk_light_updated_signal
 				await get_tree().create_timer(0.001).timeout
@@ -731,24 +738,38 @@ func init_game_as_single():
 		var player_result = player_config.load_encrypted_pass(StaticLoad.player_path+"/"+player_name_tmp.to_lower()+".dat", StaticLoad.CONFIG_PASSWORD)
 		if player_result == OK:
 			player_position_tmp = player_config.get_value("player", "position", StaticLoad.DEFAULT_PLAYER_SPAWN_POS)
-	var chunk_pos = get_chunk_position(player_position_tmp)
+	var chunk_pos = get_chunk_position(tile_map_layer.local_to_map(player_position_tmp))
 	var x_player_chunk = chunk_pos[0]
 	var y_player_chunk = chunk_pos[1]
 	var count = 0
 	count += range(x_player_chunk-render_chunk_tmp, x_player_chunk+render_chunk_tmp+1).size()
 	count += range(y_player_chunk-render_chunk_tmp, y_player_chunk+render_chunk_tmp+1).size()
 	total_chunk_num = count
+	var loaded_success_chunk_list = []
 	for x in range(x_player_chunk-render_chunk_tmp, x_player_chunk+render_chunk_tmp+1):
 		for y in range(y_player_chunk-render_chunk_tmp, y_player_chunk+render_chunk_tmp+1):
 			var chunk_config = ConfigFile.new()
 			var chunk_result = chunk_config.load_encrypted_pass(StaticLoad.region_path+"/r."+str(x)+"."+str(y)+".mca", StaticLoad.CONFIG_PASSWORD)
 			if chunk_result != OK:
-				return
+				continue
+			loaded_success_chunk_list.append(str(x)+"."+str(y))
 			var blocks = chunk_config.get_value("chunk", "blocks")
 			set_chunk(Vector2i(x, y), blocks)
 			loaded_chunks[str(x)+"."+str(y)] = false
 			loaded_chunks_timer[str(x)+"."+str(y)] = StaticLoad.CHUNK_FREE_TIME
 			loaded_chunk_num += 1
+	for x in range(x_player_chunk-render_chunk_tmp, x_player_chunk+render_chunk_tmp+1):
+		var min_y: int = 2000000
+		for chunk_name in loaded_success_chunk_list:
+			var splits = chunk_name.split(".")
+			if int(splits[0]) != x:
+				continue
+			if int(splits[1]) < min_y:
+				min_y = int(splits[1])
+		var sky_light: PackedByteArray
+		sky_light.resize(16)
+		sky_light.fill(255)
+		chunk_sky_light_datas[str(x)+"."+str(min_y)] = sky_light
 	update_block_selection_ui(get_local_mouse_position())
 	init_light()
 
@@ -1066,6 +1087,11 @@ func update_new_chunk(is_pre_load: bool):
 							loaded_chunks_timer[str(x)+"."+str(y)] = StaticLoad.CHUNK_FREE_TIME
 							database_chunks.push_back(str(x)+"."+str(y))
 						if not StaticLoad.is_dedicated_server:
+							if not chunk_sky_light_datas.has(str(x)+"."+str(y-1)):
+								var sky_light: PackedByteArray
+								sky_light.resize(16)
+								sky_light.fill(255)
+								chunk_sky_light_datas[str(x)+"."+str(y)] = sky_light
 							if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == 1):
 								if chunk_lights.has(str(x)+"."+str(y)):
 									chunk_light_to_process[str(x)+"."+str(y)] = "null"
@@ -1163,16 +1189,22 @@ func save_player(peer_id = 0):
 			if player_tmp.is_dead:
 				player_tmp.respawn_player(false)
 			var player_config = ConfigFile.new()
+			if player_tmp.gamemode != "creative":
+				player_tmp.is_flying = false
 			player_config.set_value("player", "position", player_tmp.position)
 			player_config.set_value("player", "face_state", player_tmp.face_state)
 			player_config.set_value("player", "is_flying", player_tmp.is_flying)
+			player_config.set_value("player", "gamemode", player_tmp.gamemode)
 			player_config.save_encrypted_pass(StaticLoad.player_path+"/"+player_tmp.player_name.to_lower()+".dat", StaticLoad.CONFIG_PASSWORD)
 	else:
 		var player_tmp = StaticLoad.online_peer_ids[peer_id]
 		var player_config = ConfigFile.new()
+		if player_tmp.gamemode != "creative":
+			player_tmp.is_flying = false
 		player_config.set_value("player", "position", player_tmp.position)
 		player_config.set_value("player", "face_state", player_tmp.face_state)
 		player_config.set_value("player", "is_flying", player_tmp.is_flying)
+		player_config.set_value("player", "gamemode", player_tmp.gamemode)
 		player_config.save_encrypted_pass(StaticLoad.player_path+"/"+player_tmp.player_name.to_lower()+".dat", StaticLoad.CONFIG_PASSWORD)
 
 func save_chunk(chunk_pos: Vector2i):
@@ -1328,12 +1360,20 @@ func _on_death_button_1_pressed() -> void:
 		if StaticLoad.is_on_mobile_platform:
 			Input.emulate_mouse_from_touch = false
 		death_ui.visible = false
+		move_input_list.clear()
+		player.stop_player_move()
+		if StaticLoad.is_muti_mode:
+			rpc("remote_stop_player_move")
 		is_input_frozen = false
 		player.respawn_player(true)
 	elif StaticLoad.multiplayer.get_unique_id() == 1:
 		if StaticLoad.is_on_mobile_platform:
 			Input.emulate_mouse_from_touch = false
 		death_ui.visible = false
+		move_input_list.clear()
+		player.stop_player_move()
+		if StaticLoad.is_muti_mode:
+			rpc("remote_stop_player_move")
 		is_input_frozen = false
 		player.respawn_player(true)
 		player.rpc("reply_for_respawn_player", true)

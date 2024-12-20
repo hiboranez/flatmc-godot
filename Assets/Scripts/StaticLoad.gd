@@ -26,6 +26,7 @@ const CONFIG_PASSWORD: String = "QQ1241999312"
 const DEFAULT_PLAYER_SPAWN_POS = Vector2(0, -1)
 const DEFAULT_PLAYER_FACE_STATE = 1
 const DEFAULT_PLAYER_IS_FLYING = false
+const DEFAULT_PLAYER_GAMEMODE = "survival"
 const MESSAGE_TIME = 10
 const MESSAGE_DISAPPEAR_TIME: float = 0.2
 const BLOCK_SELECTION_TIME = 3
@@ -137,7 +138,7 @@ var block_ids_0_1 = {
 		"WOOL_WHITE": 31,
 		"WOOL_YELLOW": 32,
 	}
-var block_ids_0_2 = {
+var block_ids_0_1_3 = {
 		"AIR": 0,
 		"BEDROCK": 1,
 		"COAL_ORE": 2,
@@ -189,7 +190,7 @@ func _ready() -> void:
 	default_icon_gray_image = load("res://Assets/Textures/GUI/default_icon_gray.png").get_image()
 	game_icon_image = load("res://Assets/Textures/GUI/icon.png").get_image()
 	options = {
-		"version": "0.2.0",
+		"version": "0.1.3",
 		"updated": "false",
 		"player_name": "Steve",
 		"language": "zh",
@@ -278,9 +279,9 @@ func _ready() -> void:
 		33: "wood"
 	}
 	commands = {
-		"/help": tr("/HELP"),
-		"/tp": tr("/TP"),
-		"/gamemode": tr("/GAMEMODE")
+		"/help": "/HELP",
+		"/tp": "/TP",
+		"/gamemode": "/GAMEMODE"
 	}
 	colors = {
 		"red": Color.RED,
@@ -332,7 +333,7 @@ func convert_world(world_name, old_version):
 		if old_version_splits[1] == "1":
 			block_ids_old = block_ids_0_1
 		if old_version_splits[1] == "2":
-			block_ids_old = block_ids_0_2
+			block_ids_old = block_ids_0_1_3
 	var region_path_tmp = "user://worlds/"+world_name+"/regions"
 	var regions = DirAccess.get_files_at(ProjectSettings.globalize_path(region_path_tmp))
 	if regions.is_empty():
@@ -460,6 +461,7 @@ func save_options(change_value: Dictionary):
 		config.set_value("options", key, change_value[key])
 	config.save("user://configs.cfg")
 
+@warning_ignore("shadowed_global_identifier")
 func generate_chunk(pos: Vector2i, seed):
 	var noise = FastNoiseLite.new()
 	noise.noise_type = FastNoiseLite.TYPE_PERLIN
@@ -842,7 +844,7 @@ func new_peer_broadcast(client_peer_id):
 	await get_tree().create_timer(0.5).timeout
 	for old_peer_id in online_peer_ids:
 		var player_tmp = online_peer_ids[old_peer_id]
-		player_tmp.rpc_id(client_peer_id, "init_player", old_peer_id, player_tmp.player_name, player_tmp.position, player_tmp.face_state, player_tmp.is_flying)
+		player_tmp.rpc_id(client_peer_id, "init_player", old_peer_id, player_tmp.player_name, player_tmp.position, player_tmp.face_state, player_tmp.is_flying, player_tmp.gamemode)
 	
 @rpc("authority", "call_local", "reliable", 1)
 func peer_disconnect_broadcast(client_peer_id):
@@ -994,22 +996,28 @@ func request_for_player_info(client_peer_id, player_name):
 		var player_position = player_config.get_value("player", "position", DEFAULT_PLAYER_SPAWN_POS)
 		var face_state = player_config.get_value("player", "face_state", DEFAULT_PLAYER_FACE_STATE)
 		var is_flying = player_config.get_value("player", "is_flying", DEFAULT_PLAYER_IS_FLYING)
+		var gamemode = player_config.get_value("player", "gamemode", DEFAULT_PLAYER_GAMEMODE)
+		if gamemode != "creative":
+			is_flying = false
 		new_player.position = player_position
 		new_player.face_state = face_state
 		new_player.is_flying = is_flying
-		rpc_id(client_peer_id, "reply_for_update_player_info", player_position, face_state, is_flying)
-		new_player.rpc("init_player", client_peer_id, player_name, player_position, face_state, is_flying)
+		rpc_id(client_peer_id, "reply_for_update_player_info", player_position, face_state, is_flying, gamemode)
+		new_player.rpc("init_player", client_peer_id, player_name, player_position, face_state, is_flying, gamemode)
 	else:
-		rpc_id(client_peer_id, "reply_for_update_player_info", DEFAULT_PLAYER_SPAWN_POS, DEFAULT_PLAYER_FACE_STATE, DEFAULT_PLAYER_IS_FLYING)
-		new_player.rpc("init_player", client_peer_id, player_name, DEFAULT_PLAYER_SPAWN_POS, DEFAULT_PLAYER_FACE_STATE, DEFAULT_PLAYER_IS_FLYING)
+		rpc_id(client_peer_id, "reply_for_update_player_info", DEFAULT_PLAYER_SPAWN_POS, DEFAULT_PLAYER_FACE_STATE, DEFAULT_PLAYER_IS_FLYING, DEFAULT_PLAYER_GAMEMODE)
+		new_player.rpc("init_player", client_peer_id, player_name, DEFAULT_PLAYER_SPAWN_POS, DEFAULT_PLAYER_FACE_STATE, DEFAULT_PLAYER_IS_FLYING, DEFAULT_PLAYER_GAMEMODE)
 	new_player.rpc("broadcast_join_game", player_name)
 
 @rpc("authority", "call_remote", "reliable", 1)
-func reply_for_update_player_info(player_position, face_state, is_flying):
+func reply_for_update_player_info(player_position, face_state, is_flying, gamemode):
 	game.player.position = player_position
 	game.player.face_state = face_state
 	game.player.is_flying = is_flying
-	if is_flying:
+	game.player.gamemode = gamemode
+	if game.player.gamemode != "creative":
+		game.player.is_flying = false
+	if game.player.is_flying:
 		game.update_jump_button()
 		game.player.velocity.y = 0
 	connect_signal.emit("player_info_updated")
@@ -1017,6 +1025,7 @@ func reply_for_update_player_info(player_position, face_state, is_flying):
 @rpc("any_peer", "call_remote", "reliable", 1)
 func request_for_update_chunk(client_peer_id, is_init, x_chunk, y_chunk):
 	var blocks = []
+	@warning_ignore("unused_variable")
 	var trees = []
 	if game.loaded_chunks.has(str(x_chunk)+"."+str(y_chunk)):
 		for y in range(16):
@@ -1049,6 +1058,16 @@ func request_for_update_chunk(client_peer_id, is_init, x_chunk, y_chunk):
 		game.loaded_chunks_timer[str(x_chunk)+"."+str(y_chunk)] = StaticLoad.CHUNK_FREE_TIME
 		game.database_chunks.push_back(str(x_chunk)+"."+str(y_chunk))
 		game.set_chunk(Vector2i(x_chunk, y_chunk), blocks)
+	if not is_dedicated_server:
+		if not game.chunk_sky_light_datas.has(str(x_chunk)+"."+str(y_chunk-1)):
+			var sky_light: PackedByteArray
+			sky_light.resize(16)
+			sky_light.fill(255)
+			game.chunk_sky_light_datas[str(x_chunk)+"."+str(y_chunk-1)] = sky_light
+			if game.chunk_lights.has(str(x_chunk)+"."+str(y_chunk)):
+				game.chunk_light_to_process[str(x_chunk)+"."+str(y_chunk)] = "null"
+			else:
+				game.chunk_light_to_process[str(x_chunk)+"."+str(y_chunk)] = "create"
 	rpc_id(client_peer_id, "reply_for_update_chunk", is_init, x_chunk, y_chunk, blocks)
 		
 @rpc("authority", "call_remote", "reliable", 1)
@@ -1059,6 +1078,11 @@ func reply_for_update_chunk(is_init, x_chunk, y_chunk, blocks):
 	game.loaded_chunk_num += 1
 	if is_init:
 		return
+	if not game.chunk_sky_light_datas.has(str(x_chunk)+"."+str(y_chunk-1)):
+		var sky_light: PackedByteArray
+		sky_light.resize(16)
+		sky_light.fill(255)
+		game.chunk_sky_light_datas[str(x_chunk)+"."+str(y_chunk-1)] = sky_light
 	if game.chunk_lights.has(str(x_chunk)+"."+str(y_chunk)):
 		game.chunk_light_to_process[str(x_chunk)+"."+str(y_chunk)] = "null"
 	else:

@@ -1029,7 +1029,7 @@ shape = SubResource("RectangleShape2D_rj0cj")
 [node name="Camera2D" type="Camera2D" parent="."]
 position = Vector2(0, -19.876)
 zoom = Vector2(1.815, 1.815)
-position_smoothing_speed = 2.0
+position_smoothing_speed = 3.0
 
 [node name="AudioListener2D" type="AudioListener2D" parent="."]
 position = Vector2(0, -83)
