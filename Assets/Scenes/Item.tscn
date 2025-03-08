@@ -1,0 +1,151 @@
+[gd_scene load_steps=11 format=3 uid="uid://ncmg4bvlkdt"]
+
+[ext_resource type="Script" path="res://Assets/Scripts/Item.gd" id="1_5iudn"]
+[ext_resource type="ArrayMesh" uid="uid://farwlml4b14v" path="res://Assets/Meshs/BlockMesh.tres" id="2_m8d6t"]
+[ext_resource type="ArrayMesh" uid="uid://hncgg8lyf8ke" path="res://Assets/Meshs/ItemMesh.tres" id="3_mwg3o"]
+
+[sub_resource type="ViewportTexture" id="ViewportTexture_g6qy8"]
+viewport_path = NodePath("SubViewportContainer/SubViewport")
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_j2ain"]
+size = Vector2(22.0866, 36)
+
+[sub_resource type="Animation" id="Animation_kypua"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Icon:offset")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(0, -50.245)]
+}
+
+[sub_resource type="Animation" id="Animation_a8mlk"]
+resource_name = "float"
+length = 3.0
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Icon:offset")
+tracks/0/interp = 2
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1.46667, 3),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(0, -70), Vector2(0, -40), Vector2(0, -70)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_6s5vw"]
+_data = {
+"RESET": SubResource("Animation_kypua"),
+"float": SubResource("Animation_a8mlk")
+}
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_dgnjb"]
+size = Vector2(120, 20)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_xtytr"]
+
+[node name="Item" type="CharacterBody2D"]
+collision_layer = 2
+script = ExtResource("1_5iudn")
+
+[node name="SubViewportContainer" type="SubViewportContainer" parent="."]
+modulate = Color(1, 1, 1, 0)
+light_mask = 2
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -100.0
+offset_top = -100.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="SubViewport" type="SubViewport" parent="SubViewportContainer"]
+own_world_3d = true
+transparent_bg = true
+handle_input_locally = false
+msaa_3d = 1
+size = Vector2i(100, 100)
+render_target_update_mode = 4
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="SubViewportContainer/SubViewport"]
+transform = Transform3D(0.906308, -0.346189, 0.242404, 0, 0.573576, 0.819152, -0.422618, -0.742404, 0.519837, 0, 0, 0)
+
+[node name="Camera3D" type="Camera3D" parent="SubViewportContainer/SubViewport"]
+transform = Transform3D(0.707107, -0.353553, 0.612372, 0, 0.866025, 0.5, -0.707107, -0.353553, 0.612372, 4.915, 4.06, 4.94)
+projection = 1
+current = true
+size = 5.0
+
+[node name="Block" type="Node3D" parent="SubViewportContainer/SubViewport"]
+visible = false
+
+[node name="Mesh" type="MeshInstance3D" parent="SubViewportContainer/SubViewport/Block"]
+mesh = ExtResource("2_m8d6t")
+skeleton = NodePath("")
+
+[node name="Mesh2" type="MeshInstance3D" parent="SubViewportContainer/SubViewport/Block"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.06, -0.456, -1.024)
+visible = false
+mesh = ExtResource("2_m8d6t")
+skeleton = NodePath("")
+
+[node name="Item" type="Node3D" parent="SubViewportContainer/SubViewport"]
+transform = Transform3D(-0.830113, -1.15551, -0.475092, -0.525091, -0.194901, 1.39151, -1.13366, 0.936383, -0.296638, 0, 0, 0)
+visible = false
+
+[node name="Mesh" type="MeshInstance3D" parent="SubViewportContainer/SubViewport/Item"]
+transform = Transform3D(0.0291128, -0.98983, -0.139243, -0.997213, -0.038336, 0.0640208, -0.068708, 0.136991, -0.988188, 0.075, 0.0388639, -0.01)
+mesh = ExtResource("3_mwg3o")
+skeleton = NodePath("")
+
+[node name="Mesh2" type="MeshInstance3D" parent="SubViewportContainer/SubViewport/Item"]
+transform = Transform3D(0.0291128, -0.98983, -0.139243, -0.997213, -0.038336, 0.0640208, -0.068708, 0.136991, -0.988188, 2.075, 0.039, -0.61)
+visible = false
+mesh = ExtResource("3_mwg3o")
+skeleton = NodePath("")
+
+[node name="Icon" type="Sprite2D" parent="."]
+light_mask = 2
+scale = Vector2(0.35, 0.35)
+texture = SubResource("ViewportTexture_g6qy8")
+offset = Vector2(0, -50.245)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -18)
+scale = Vector2(0.99608, 1)
+shape = SubResource("RectangleShape2D_j2ain")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+"": SubResource("AnimationLibrary_6s5vw")
+}
+autoplay = "float"
+
+[node name="AttractArea" type="Area2D" parent="."]
+visible = false
+collision_mask = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AttractArea"]
+position = Vector2(0, -10)
+shape = SubResource("RectangleShape2D_dgnjb")
+
+[node name="CollideArea" type="Area2D" parent="."]
+visible = false
+collision_mask = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CollideArea"]
+position = Vector2(0, -11)
+shape = SubResource("RectangleShape2D_xtytr")
+
+[connection signal="body_entered" from="AttractArea" to="." method="on_body_attract_entered"]
+[connection signal="body_exited" from="AttractArea" to="." method="on_body_attract_exited"]
+[connection signal="body_entered" from="CollideArea" to="." method="on_body_collide_entered"]

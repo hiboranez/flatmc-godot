@@ -147,8 +147,8 @@ func update_game_chunk_light_data_without_influence():
 								#new_light = 0
 							#if block_a_data_tmp[i*16+15] < new_light:
 								#block_a_data_tmp.set(i*16+15, new_light)
-	block_a_data_tmp = LightCalculator.spread_normal_light(block_a_data_tmp, StaticLoad.game.loaded_chunk_packed_byte_arrays[str(chunk_pos[0])+"."+str(chunk_pos[1])])
-	block_a_data_tmp = LightCalculator.spread_normal_light(block_a_data_tmp, StaticLoad.game.loaded_chunk_packed_byte_arrays[str(chunk_pos[0])+"."+str(chunk_pos[1])])
+	block_a_data_tmp = GameCalculator.spread_normal_light(block_a_data_tmp, StaticLoad.game.loaded_chunk_packed_byte_arrays[str(chunk_pos[0])+"."+str(chunk_pos[1])], StaticLoad.tranparent_block_ids)
+	block_a_data_tmp = GameCalculator.spread_normal_light(block_a_data_tmp, StaticLoad.game.loaded_chunk_packed_byte_arrays[str(chunk_pos[0])+"."+str(chunk_pos[1])], StaticLoad.tranparent_block_ids)
 	StaticLoad.game.chunk_light_datas[str(chunk_pos[0])+"."+str(chunk_pos[1])] = block_a_data_tmp
 
 func update_chunk_light(chunk_pos_tmp, update_neighbour_state):
@@ -176,8 +176,8 @@ func update_light_data():
 	block_a_data.resize(16*16)
 	block_a_data.fill(0)
 	var chunk_light_name = str(chunk_pos[0])+"."+str(chunk_pos[1])
-	if StaticLoad.game.chunk_sky_light_datas.has(chunk_light_name):
-		block_a_data = LightCalculator.spread_sky_light(block_a_data, StaticLoad.game.loaded_chunk_packed_byte_arrays[chunk_light_name], StaticLoad.game.chunk_sky_light_datas[chunk_light_name])
+	if StaticLoad.game.loaded_chunk_packed_byte_arrays.has(chunk_light_name) and StaticLoad.game.chunk_sky_light_datas.has(chunk_light_name):
+		block_a_data = GameCalculator.spread_sky_light(block_a_data, StaticLoad.game.loaded_chunk_packed_byte_arrays[chunk_light_name], StaticLoad.game.chunk_sky_light_datas[chunk_light_name], StaticLoad.tranparent_block_ids)
 	for y in range(16):
 		for x in range(16):
 			var block_id = StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.tile_map_layer.get_cell_atlas_coords(Vector2i(chunk_pos[0]*16+x, chunk_pos[1]*16+y)))
@@ -271,8 +271,9 @@ func update_light_data():
 						new_light = 0
 					if block_a_data[i*16+15] < new_light:
 						block_a_data.set(i*16+15, new_light)
-	block_a_data = LightCalculator.spread_normal_light(block_a_data, StaticLoad.game.loaded_chunk_packed_byte_arrays[chunk_light_name])
-	block_a_data = LightCalculator.spread_normal_light(block_a_data, StaticLoad.game.loaded_chunk_packed_byte_arrays[chunk_light_name])
+	if StaticLoad.game.loaded_chunk_packed_byte_arrays.has(chunk_light_name):
+		block_a_data = GameCalculator.spread_normal_light(block_a_data, StaticLoad.game.loaded_chunk_packed_byte_arrays[chunk_light_name], StaticLoad.tranparent_block_ids)
+		block_a_data = GameCalculator.spread_normal_light(block_a_data, StaticLoad.game.loaded_chunk_packed_byte_arrays[chunk_light_name], StaticLoad.tranparent_block_ids)
 	#print(chunk_pos)
 	#for y in range(16):
 		#print(block_a_data.slice(y*16, y*16+16))
@@ -306,17 +307,18 @@ func update_texture(update_neighbour_state):
 	enabled = true
 	StaticLoad.game.update_mini_map_chunk_light(chunk_pos, light_image)
 	var chunk_light_name = str(chunk_pos[0])+"."+str(chunk_pos[1])
-	var next_chunk_sky_light_datas = LightCalculator.get_final_sky_light_data(StaticLoad.game.loaded_chunk_packed_byte_arrays[chunk_light_name], StaticLoad.game.chunk_sky_light_datas[chunk_light_name])
-	var is_should_update_next_chunk_light = false
-	if StaticLoad.game.chunk_sky_light_datas.has(str(chunk_pos[0])+"."+str(chunk_pos[1]+1)):
-		var old_next_chunk_sky_light_data = StaticLoad.game.chunk_sky_light_datas[str(chunk_pos[0])+"."+str(chunk_pos[1]+1)]
-		for i in range(16):
-			if old_next_chunk_sky_light_data[i] != next_chunk_sky_light_datas[i]:
-				is_should_update_next_chunk_light = true
-				break
-	StaticLoad.game.chunk_sky_light_datas[str(chunk_pos[0])+"."+str(chunk_pos[1]+1)] = next_chunk_sky_light_datas
-	if is_should_update_next_chunk_light:
-		update_chunk_light(Vector2i(chunk_pos[0], chunk_pos[1]+1), "null")
+	if StaticLoad.game.loaded_chunk_packed_byte_arrays.has(chunk_light_name):
+		var next_chunk_sky_light_datas = GameCalculator.get_final_sky_light_data(StaticLoad.game.loaded_chunk_packed_byte_arrays[chunk_light_name], StaticLoad.game.chunk_sky_light_datas[chunk_light_name], StaticLoad.tranparent_block_ids)
+		var is_should_update_next_chunk_light = false
+		if StaticLoad.game.chunk_sky_light_datas.has(str(chunk_pos[0])+"."+str(chunk_pos[1]+1)):
+			var old_next_chunk_sky_light_data = StaticLoad.game.chunk_sky_light_datas[str(chunk_pos[0])+"."+str(chunk_pos[1]+1)]
+			for i in range(16):
+				if old_next_chunk_sky_light_data[i] != next_chunk_sky_light_datas[i]:
+					is_should_update_next_chunk_light = true
+					break
+		StaticLoad.game.chunk_sky_light_datas[str(chunk_pos[0])+"."+str(chunk_pos[1]+1)] = next_chunk_sky_light_datas
+		if is_should_update_next_chunk_light:
+			update_chunk_light(Vector2i(chunk_pos[0], chunk_pos[1]+1), "null")
 	
 	if update_neighbour_state.contains("update"):
 		if StaticLoad.game.chunk_lights.has(str(chunk_pos[0])+"."+str(chunk_pos[1]-1)):

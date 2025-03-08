@@ -7,6 +7,9 @@ extends Node
 @onready var notice_scene = load("res://Assets/Scenes/Notice.tscn") as PackedScene
 @onready var selection_scene = load("res://Assets/Scenes/Selection.tscn") as PackedScene
 @onready var world_list_vboxcontainer = $ColorRect/ScrollContainer/VBoxContainer
+@onready var create_world_seed_line_edit = $CreateWorldUI/ColorRect2/ScrollContainer/VBoxContainer/Seed/LineEdit
+@onready var create_world_world_type_option_button = $CreateWorldUI/ColorRect2/ScrollContainer/VBoxContainer/WorldType/OptionButton
+@onready var create_world_gamemode_option_button = $CreateWorldUI/ColorRect2/ScrollContainer/VBoxContainer/Gamemode/OptionButton
 
 func _ready() -> void:
 	create_world_name_line_edit.text = tr("DEFAULT_WORLD_NAME")
@@ -56,21 +59,36 @@ func create_world(world_name: String):
 	var world_path = "user://worlds/"+world_name
 	var region_path = "user://worlds/"+world_name+"/regions"
 	var player_path = "user://worlds/"+world_name+"/players"
+	var entity_path = "user://worlds/"+world_name+"/entities"
 	DirAccess.make_dir_recursive_absolute(region_path)
 	DirAccess.make_dir_recursive_absolute(player_path)
-	for x in range(-1,1):
-		for y in range(-1,1):
-			var mca = ConfigFile.new()
-			var blocks = StaticLoad.generate_chunk(Vector2i(x, y), 1241999312)
-			mca.set_value("chunk", "blocks", blocks)
-			mca.save_encrypted_pass(region_path+"/r."+str(x)+"."+str(y)+".mca", StaticLoad.CONFIG_PASSWORD)
+	DirAccess.make_dir_recursive_absolute(entity_path)
 	var image = load("res://Assets/Textures/GUI/default_icon.png").get_image()
 	image.save_png(world_path+"/icon.png")
 	var level = ConfigFile.new()
 	var current_time = Time.get_datetime_string_from_system(false, true).replace(" ", "  ").replace("-", "/")
 	level.set_value("world", "last_modified", current_time)
 	level.set_value("world", "version", StaticLoad.options["version"])
+	var world_seed = create_world_seed_line_edit.text
+	if world_seed == "":
+		var rng = RandomNumberGenerator.new()	
+		world_seed = str(rng.randi())
+	elif not world_seed.is_valid_int():
+		var rng = RandomNumberGenerator.new()	
+		world_seed = str(rng.randi())
+	var world_type = StaticLoad.world_type_dictionary[create_world_world_type_option_button.selected]
+	level.set_value("world", "seed", world_seed)
+	level.set_value("world", "world_type", world_type)
+	level.set_value("world", "gamemode", StaticLoad.gamemode_dictionary[create_world_gamemode_option_button.selected])
 	level.save_encrypted_pass(world_path+"/level.dat", StaticLoad.CONFIG_PASSWORD)
+	for x in range(-1,1):
+		for y in range(-1,1):
+			var mca = ConfigFile.new()
+			var chunk = StaticLoad.generate_chunk(Vector2i(x, y), world_seed, world_type)
+			mca.set_value("chunk", "blocks", chunk[0])
+			mca.set_value("chunk", "no_reach_blocks", chunk[1])
+			mca.set_value("chunk", "back_blocks", chunk[2])
+			mca.save_encrypted_pass(region_path+"/r."+str(x)+"."+str(y)+".mca", StaticLoad.CONFIG_PASSWORD)
 	StaticLoad.select_world = null
 
 func convert_world(old_version):

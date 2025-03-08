@@ -1,0 +1,43 @@
+[gd_resource type="ArrayMesh" load_steps=4 format=4 uid="uid://farwlml4b14v"]
+
+[ext_resource type="Texture2D" uid="uid://3ihwcstrfr3r" path="res://Assets/Textures/ModelBlocks/missing_texture.png" id="1_1rmv2"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1a3o5"]
+resource_local_to_scene = true
+resource_name = "BlockModel"
+transparency = 1
+albedo_texture = ExtResource("1_1rmv2")
+texture_filter = 2
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_d0paj"]
+_surfaces = [{
+"aabb": AABB(-1, -1, -1, 2, 2, 2),
+"format": 34896613377,
+"index_count": 36,
+"index_data": PackedByteArray("AAADAAEAAAACAAMAAgAHAAMAAgAGAAcABgAFAAcABgAEAAUABAABAAUABAAAAAEAAgAEAAYAAgAAAAQABwABAAMABwAFAAEA"),
+"name": "BlockModel",
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 8,
+"vertex_data": PackedByteArray("AAAAAP//AAAAAP////8AAAAAAAAAAAAAAAD//wAAAAD//wAA//8AAP///////wAA//8AAAAAAAD/////AAAAAA==")
+}]
+blend_shape_mode = 0
+
+[resource]
+resource_local_to_scene = true
+resource_name = "BlockModel"
+_surfaces = [{
+"aabb": AABB(-1, -1, -1, 2, 2, 2),
+"attribute_data": PackedByteArray("rKr7v1XV/3+rqvf/rKr+f+h/+7+rqvu/VNX//1XV+78AgPf/VNUBwOh//38AgPu/VtX7v////39T1ff/VtX+f5Gq+79T1fq/qqr+////+7/9//f/qqoBwJGq/3/9//q/"),
+"format": 34896613399,
+"index_count": 36,
+"index_data": PackedByteArray("AgALAAUAAgAIAAsABgAVAAkABgASABUAFAARABcAFAAOABEADAADAA8ADAAAAAMABwANABMABwABAA0AFgAEAAoAFgAQAAQA"),
+"material": SubResource("StandardMaterial3D_1a3o5"),
+"name": "BlockModel",
+"primitive": 3,
+"uv_scale": Vector4(2, 2.00051, 0, 0),
+"vertex_count": 24,
+"vertex_data": PackedByteArray("AAAAAP//AIAAAAAA////vwAAAAD///+/AAD/////AIAAAP//////vwAA//////+/AAAAAAAA//8AAAAAAAD/vwAAAAAAAP+/AAD//wAA//8AAP//AAD/vwAA//8AAP+///8AAP//AID//wAA////v///AAD///+/////////AID/////////v/////////+///8AAAAA/////wAAAAD/v///AAAAAP+//////wAA////////AAD/v/////8AAP+//3///wAA/3//f////3///////3//f////3/+/wAA/3//f/7//3///////3//f////3///wAA/3//fwAA/3///////3//fwAA/3/+/wAA/3//fwAA/3/+/////3//fwAA")
+}]
+blend_shape_mode = 0
+shadow_mesh = SubResource("ArrayMesh_d0paj")

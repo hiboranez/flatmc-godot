@@ -1,13 +1,15 @@
 extends Node2D
 
-@onready var back_tile_map_layer = $World/BackTileMapLayer
 @onready var tile_map_layer = $World/TileMapLayer
+@onready var no_reach_tile_map_layer = $World/NoReachTileMapLayer
+@onready var back_tile_map_layer = $World/BackTileMapLayer
 @onready var death_ui = $DeathUI
 @onready var pause_ui = $PauseUI
 @onready var game_ui = $GameUI
 @onready var options_ui = $Options
 @onready var online_ui = $OnlineUI
 @onready var online_ui_vbox_container = $OnlineUI/OnlineList/ScrollContainer/VBoxContainer
+@onready var item_scene = load("res://Assets/Scenes/Item.tscn") as PackedScene
 @onready var chunk_light_scene = load("res://Assets/Scenes/ChunkLight.tscn") as PackedScene
 @onready var message_scene = load("res://Assets/Scenes/Message.tscn") as PackedScene
 @onready var player_scene = load("res://Assets/Scenes/Player.tscn") as PackedScene
@@ -15,7 +17,10 @@ extends Node2D
 @onready var loading_server_ui_scene = load("res://Assets/Scenes/LoadingServerUI.tscn") as PackedScene
 @onready var online_info_scene = load("res://Assets/Scenes/OnlineInfo.tscn") as PackedScene
 @onready var time_counter = load("res://Assets/Scenes/TimeCounter.tscn") as PackedScene
-@onready var inventory_grid = load("res://Assets/Scenes/InventoryGrid.tscn") as PackedScene
+@onready var inventory_grid_scene = load("res://Assets/Scenes/InventoryGrid.tscn") as PackedScene
+@onready var destory_light_scene = load("res://Assets/Scenes/DestroyLight.tscn") as PackedScene
+@onready var item_icon_scene = load("res://Assets/Scenes/ItemIcon.tscn") as PackedScene
+@onready var tab_panel_scene = load("res://Assets/Scenes/TabPanel.tscn") as PackedScene
 @onready var move_center_button_normal = load("res://Assets/Textures/GUI/move_center_button_normal.tres") as AtlasTexture
 @onready var jump_button_normal = load("res://Assets/Textures/GUI/jump_button_normal.tres") as AtlasTexture
 @onready var move_center_button_fly = load("res://Assets/Textures/GUI/move_center_button_fly.tres") as AtlasTexture
@@ -56,25 +61,45 @@ extends Node2D
 @onready var inventory_ui = $GameUI/InventoryUI
 @onready var mini_map_camera = $GameUI/MiniMap/SubViewportContainer/SubViewport/Camera2D
 @onready var mini_map_tile_map_layer = $GameUI/MiniMap/SubViewportContainer/SubViewport/TileMapLayer
+@onready var mini_map_no_reach_tile_map_layer = $GameUI/MiniMap/SubViewportContainer/SubViewport/NoReachTileMapLayer
+@onready var mini_map_back_tile_map_layer = $GameUI/MiniMap/SubViewportContainer/SubViewport/BackTileMapLayer
 @onready var mini_map_players = $GameUI/MiniMap/SubViewportContainer/SubViewport/Players
 @onready var mini_map_lights = $GameUI/MiniMap/SubViewportContainer/SubViewport/Lights
 @onready var mini_map = $GameUI/MiniMap
 @onready var item_bar_panel = $GameUI/ItemBarPanel
 @onready var lights = $Lights
-@onready var inventory_back_grids = $GameUI/InventoryUI/Panel/Inventory/InventoryBackContainer
-@onready var inventory_show_grids = $GameUI/InventoryUI/Panel/Inventory/InventoryShowContainer
+@onready var inventory_back_grids = $GameUI/InventoryUI/Panel/InventoryPanel/Inventory/InventoryBackContainer
+@onready var inventory_show_grids = $GameUI/InventoryUI/Panel/InventoryShowContainer
+@onready var inventory_player_model = $GameUI/InventoryUI/Panel/InventoryPanel/Player/SubViewportContainer/SubViewport/PlayerModel
+@onready var inventory_player_model_mesh = $GameUI/InventoryUI/Panel/InventoryPanel/Player/SubViewportContainer/SubViewport/PlayerModel/Root/Skeleton3D/Mesh
+@onready var inventory_player_model_item_in_hand = $GameUI/InventoryUI/Panel/InventoryPanel/Player/SubViewportContainer/SubViewport/PlayerModel/Root/Skeleton3D/Hand/Item
+@onready var items = $Items
+@onready var inventory_tabs = $GameUI/InventoryUI/Panel/Tabs
+@onready var blocks_infinite_container = $GameUI/InventoryUI/Panel/BlocksPanel/InfiniteScrollContainer/InfiniteContainer
+@onready var items_infinite_container = $GameUI/InventoryUI/Panel/ItemsPanel/InfiniteScrollContainer/InfiniteContainer
+@onready var delete_tab_panel = $GameUI/InventoryUI/Panel/DeleteTabPanel
 
+var is_mouse_motion_updated = false
+var is_mouse_left_pressed = false
+var is_mouse_right_pressed = false
+var destroy_light_names = {}
 var mouse_item_name = "AIR"
 var mouse_item_amount = 0
 var light_thread = Thread.new()
+var item_thread = Thread.new()
+var refresh_thread = Thread.new()
 var player_icons = {}
 var mouse_item_name_label
 var touch_list = []
 signal chunk_light_updated_signal
+var world_info_dictionary = {}
+var entities = {}
 var mini_map_chunk_lights = {}
 var chunk_lights = {}
 var chunk_light_datas = {}
 var chunk_sky_light_datas = {}
+var item_to_combine = {}
+var refresh_to_process = []
 var chunk_light_to_process = {}
 var chunk_light_to_process_double = {}
 var block_selection_timer: float = 0
@@ -104,6 +129,7 @@ var move_input_list = []
 var last_left_time = 0.0
 var last_right_time = 0.0
 var last_jump_time = 0.0
+var drop_timer = 0.0
 var last_player_state = {
 	"face_state": StaticLoad.DEFAULT_PLAYER_FACE_STATE,
 	"move_state": "idle",
@@ -111,11 +137,17 @@ var last_player_state = {
 	"is_down_pressed": false,
 	"is_flying": false,
 	"render_chunk": 0,
-	"gamemode": "survival"
+	"gamemode": "survival",
+	"selected_block_pos": Vector2i(0, 0),
+	"destroy_timer": 0,
+	"selected_item_grid": 0
 }
+var resource_pack = StaticLoad.DEFAULT_RESOURCE_PACK
 
 func _notification(what):
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
+		if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() != 1:
+			return
 		save_world()
 		save_player()
 		var change_value = {
@@ -174,7 +206,8 @@ func _process(delta: float) -> void:
 	
 	if StaticLoad.is_dedicated_server:
 		return
-	
+		
+	update_inventroy_player_model()
 	check_emulate_mouse_from_touch()
 	update_details(false)
 	update_player_state()
@@ -183,8 +216,27 @@ func _process(delta: float) -> void:
 	update_block_selection_timer(delta)
 	if not StaticLoad.is_on_mobile_platform:
 		update_block_selection_ui(get_local_mouse_position())
+	update_mouse_action(delta)
+	update_destroy_ui()
 	update_last_mouse_in_world_pos()
 	process_touch_input()
+	update_drop_timer(delta)
+
+func update_drop_timer(delta):
+	var selected_item_grid_tmp = player.selected_item_grid
+	if player.item_bar_names[selected_item_grid_tmp] == "AIR":
+		return
+	if Input.is_action_pressed("drop_item"):
+		drop_timer += delta
+	if drop_timer > StaticLoad.DROP_ALL_TIME:
+		player.drop_item(player.item_bar_names[selected_item_grid_tmp], player.item_bar_amounts[selected_item_grid_tmp])
+		player.item_bar_amounts[selected_item_grid_tmp] = 0
+		player.item_bar_names[selected_item_grid_tmp] = "AIR"
+		player.switch_item_in_hand()
+		StaticLoad.game.refresh_item_grid(selected_item_grid_tmp)
+		inventory_show_grids.get_node("InventoryGrid"+str(selected_item_grid_tmp)).init_inventory_grid(player.item_bar_names[selected_item_grid_tmp], player.item_bar_amounts[selected_item_grid_tmp])
+		sound_audio_manager.play_audio_static("player", "pop")
+		drop_timer = 0
 
 func process_light():
 	while(true):
@@ -219,6 +271,36 @@ func process_light():
 				await get_tree().create_timer(0.001).timeout
 				chunk_light_to_process.erase(chunk_light_name)
 				break
+
+func process_refresh():
+	while(true):
+		await get_tree().create_timer(0.01).timeout
+		if refresh_to_process.is_empty():
+			continue
+		if refresh_to_process[0] == "refresh_item_grid":
+			for i in range(9):
+				StaticLoad.game.refresh_item_grid(i)
+			refresh_to_process.pop_front()
+		elif refresh_to_process[0] == "refresh_item_name_label":
+			item_name_label.text = player.item_bar_names[player.selected_item_grid]
+			item_name_timer = StaticLoad.ITEM_NAME_SHOW_TIME
+			refresh_to_process.pop_front()
+func process_item():
+	while(true):
+		await get_tree().create_timer(0.001).timeout
+		var item_to_combine_tmp = item_to_combine.duplicate()
+		if item_to_combine_tmp.is_empty():
+			continue
+		for item1_uuid in item_to_combine_tmp:
+			var item1 = items.get_node(str(item1_uuid))
+			if item1 == null:
+				item_to_combine.erase(item1_uuid)
+				continue
+			var item2_uuid = item_to_combine[item1_uuid]
+			item1.combine_item(item2_uuid)
+			item_to_combine.erase(item1_uuid)
+			if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == 1:
+				item1.rpc("remote_combine_item", item2_uuid)
 
 func force_update_all_player_pos():
 	for peer_id in StaticLoad.online_peer_ids:
@@ -395,9 +477,10 @@ func _input(event: InputEvent) -> void:
 		chat_line_edit.text = ""
 	
 	if Input.is_action_just_pressed("grab_item"):
-		var mouse_in_world_pos = tile_map_layer.get_local_mouse_position()
-		var mouse_to_block_pos = tile_map_layer.local_to_map(mouse_in_world_pos)
-		grab_item(mouse_to_block_pos)
+		if player.gamemode == "creative":
+			var mouse_in_world_pos = tile_map_layer.get_local_mouse_position()
+			var mouse_to_block_pos = tile_map_layer.local_to_map(mouse_in_world_pos)
+			grab_item(mouse_to_block_pos)
 	
 	if Input.is_action_just_pressed("chat_slash"):
 		move_input_list.clear()
@@ -437,6 +520,29 @@ func _input(event: InputEvent) -> void:
 		select_item_grid(8)
 	if Input.is_action_just_pressed("select_item_grid_9"):
 		select_item_grid(9)
+	
+	if Input.is_action_just_released("drop_item"):
+		var selected_item_grid_tmp = player.selected_item_grid
+		var item_to_drop = player.item_bar_names[selected_item_grid_tmp]
+		if drop_timer < StaticLoad.DROP_ALL_TIME and item_to_drop != "AIR":
+			sound_audio_manager.play_audio_static("player", "pop")
+			player.drop_item(item_to_drop, 1)
+			player.item_bar_amounts[selected_item_grid_tmp] -= 1
+			if player.item_bar_amounts[selected_item_grid_tmp] <= 0:
+				player.item_bar_names[selected_item_grid_tmp] = "AIR"
+				player.item_bar_amounts[selected_item_grid_tmp] = 0
+				player.switch_item_in_hand()
+			StaticLoad.game.refresh_item_grid(selected_item_grid_tmp)
+			inventory_show_grids.get_node("InventoryGrid"+str(selected_item_grid_tmp)).init_inventory_grid(player.item_bar_names[selected_item_grid_tmp], player.item_bar_amounts[selected_item_grid_tmp])
+		
+func update_inventroy_player_model():
+	if not is_inventory:
+		return
+	var mouse_pos = get_viewport().get_mouse_position()
+	var viewport_size = get_viewport_rect().size
+	var viewport_half_size = viewport_size/2.0
+	var target_pos = mouse_pos-viewport_half_size+Vector2(viewport_size[0]*0.112,viewport_size[1]*0.25)
+	inventory_player_model.look_at(Vector3(target_pos[0], -target_pos[1], 3250), Vector3.UP, true)
 
 func process_touch_input():
 	if is_input_frozen:
@@ -445,7 +551,7 @@ func process_touch_input():
 	for touch in touch_list:
 		if touch.double_tap:
 			var block_pos = tile_map_layer.local_to_map(camera_screen_pos_to_local_pos(player.camera, touch.position))
-			if check_place_block_state(block_pos, StaticLoad.get_block_id_by_name(player.item_bar_names[27+player.selected_item_grid])):
+			if check_place_block_state(block_pos, StaticLoad.get_block_id_by_name(player.item_bar_names[player.selected_item_grid])):
 				place_block(block_pos)
 			grab_item(block_pos)
 		else:
@@ -461,7 +567,7 @@ func check_place_block_state(block_pos, block_id):
 		if player_tmp == null:
 			StaticLoad.online_peer_ids.erase(id)
 			continue
-		var player_pos = tile_map_layer.local_to_map(player_tmp.position)
+		var player_pos = tile_map_layer.local_to_map(player_tmp.position - Vector2(0, 0.1))
 		if player_pos == block_pos:
 			return false
 		if player_pos - Vector2i(0, 1) == block_pos:
@@ -522,7 +628,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			var pressed_time = touch_time_counters.get_node(str(event.index)).timer
 			if pressed_time < StaticLoad.LONG_TOUCH_TIME:
 				var block_pos = tile_map_layer.local_to_map(camera_screen_pos_to_local_pos(player.camera, event.position))
-				if check_place_block_state(block_pos, StaticLoad.get_block_id_by_name(player.item_bar_names[27+player.selected_item_grid])):
+				if check_place_block_state(block_pos, StaticLoad.get_block_id_by_name(player.item_bar_names[player.selected_item_grid])):
 					place_block(block_pos)
 			var touch_to_remove_index
 			for i in range(touch_list.size()):
@@ -541,15 +647,168 @@ func _unhandled_input(event: InputEvent) -> void:
 				touch.position = event.position
 				break
 			
+	if event is InputEventMouseButton:
+		if event.button_index == 1:
+			is_mouse_left_pressed = event.pressed
+		elif event.button_index == 2:
+			is_mouse_right_pressed = event.pressed
+	if event is InputEventMouseMotion:
+		is_mouse_motion_updated = true
+	
+	#var mouse_in_world_pos = tile_map_layer.get_local_mouse_position()
+	#var mouse_to_block_pos = tile_map_layer.local_to_map(mouse_in_world_pos)
+	#if mouse_in_world_pos != last_mouse_in_world_pos and Input.is_action_pressed("mouse_left") and not Input.is_action_pressed("mouse_right"):
+		#if not player.is_dead:
+			#destroy_block(mouse_to_block_pos)
+	#
+	#if mouse_in_world_pos != last_mouse_in_world_pos and Input.is_action_pressed("mouse_right") and not Input.is_action_pressed("mouse_left"):
+		#if not player.is_dead and check_place_block_state(mouse_to_block_pos, StaticLoad.get_block_id_by_name(player.item_bar_names[player.selected_item_grid])):
+			#place_block(mouse_to_block_pos)
+
+func update_mouse_action(delta):
+	if player.is_dead:
+		return
 	var mouse_in_world_pos = tile_map_layer.get_local_mouse_position()
 	var mouse_to_block_pos = tile_map_layer.local_to_map(mouse_in_world_pos)
-	if mouse_in_world_pos != last_mouse_in_world_pos and Input.is_action_pressed("mouse_left") and not Input.is_action_pressed("mouse_right"):
-		if not player.is_dead:
-			destroy_block(mouse_to_block_pos)
+	if is_mouse_left_pressed and not is_mouse_right_pressed:
+		if player.gamemode == "creative":
+			if destroy_block(mouse_to_block_pos):
+				player.punch()
+		else:
+			player.destroy_timer += delta
+	elif is_mouse_right_pressed and not is_mouse_left_pressed:
+		if place_block(mouse_to_block_pos):
+			player.punch()
+			if player.gamemode != "creative":
+				if player.item_bar_amounts[player.selected_item_grid] >= 1:
+					player.item_bar_amounts[player.selected_item_grid] -= 1
+				if player.item_bar_amounts[player.selected_item_grid] <= 0:
+					player.item_bar_names[player.selected_item_grid] = "AIR"
+					player.item_bar_amounts[player.selected_item_grid] = 0
+					item_name_timer = 0
+				player.switch_item_in_hand()
+				refresh_item_grid(player.selected_item_grid)
+				inventory_show_grids.get_node("InventoryGrid"+str(player.selected_item_grid)).init_inventory_grid(player.item_bar_names[player.selected_item_grid], player.item_bar_amounts[player.selected_item_grid])
 	
-	if mouse_in_world_pos != last_mouse_in_world_pos and Input.is_action_pressed("mouse_right") and not Input.is_action_pressed("mouse_left"):
-		if not player.is_dead and check_place_block_state(mouse_to_block_pos, StaticLoad.get_block_id_by_name(player.item_bar_names[27+player.selected_item_grid])):
-			place_block(mouse_to_block_pos)
+	if not is_mouse_left_pressed:
+		player.destroy_timer = 0
+		if destroy_light_names.has(player.player_peer_id):
+			var old_destroy_light = destroy_light_names[player.player_peer_id]
+			destroy_light_names.erase(player.player_peer_id)
+			old_destroy_light.queue_free()
+	
+	if is_mouse_motion_updated:
+		if mouse_to_block_pos != tile_map_layer.local_to_map(last_mouse_in_world_pos):
+			player.destroy_timer = 0
+			if destroy_light_names.has(player.player_peer_id):
+				var old_destroy_light = destroy_light_names[player.player_peer_id]
+				destroy_light_names.erase(player.player_peer_id)
+				old_destroy_light.queue_free()
+
+func refresh_resource_pack():
+	tile_map_layer.tile_set = load("res://Assets/TileSets/"+str(resource_pack)+".tres") as TileSet
+	back_tile_map_layer.tile_set = load("res://Assets/TileSets/"+str(resource_pack)+".tres") as TileSet
+	no_reach_tile_map_layer.tile_set = load("res://Assets/TileSets/"+str(resource_pack)+".tres") as TileSet
+	mini_map_tile_map_layer.tile_set = load("res://Assets/TileSets/"+str(resource_pack)+".tres") as TileSet
+	mini_map_back_tile_map_layer.tile_set = load("res://Assets/TileSets/"+str(resource_pack)+".tres") as TileSet
+	mini_map_no_reach_tile_map_layer.tile_set = load("res://Assets/TileSets/"+str(resource_pack)+".tres") as TileSet
+
+func init_inventory_tabs():
+	for tab_name in StaticLoad.tab_panels:
+		var tab_panel = tab_panel_scene.instantiate()
+		inventory_tabs.add_child(tab_panel)
+		tab_panel.name = tab_name+"Tab"
+		tab_panel.init_tab_panel(StaticLoad.tab_panels[tab_name], tab_name)
+		if tab_name == "Inventory":
+			tab_panel.z_index = 1
+			tab_panel.dark_mask.visible = false
+
+func update_destroy_ui():
+	for peer_id in StaticLoad.online_peer_ids:
+		if StaticLoad.online_peer_ids[peer_id] == null:
+			StaticLoad.online_peer_ids.erase(peer_id)
+			continue
+		var player_tmp = StaticLoad.online_peer_ids[peer_id]
+		var player_selected_block_pos = player_tmp.selected_block_pos
+		var atlas_coords = tile_map_layer.get_cell_atlas_coords(player_selected_block_pos)
+		var block_id = StaticLoad.get_block_id_by_atlas_coords(atlas_coords)
+		if block_id == 0:
+			atlas_coords = no_reach_tile_map_layer.get_cell_atlas_coords(player_selected_block_pos)
+			block_id = StaticLoad.get_block_id_by_atlas_coords(atlas_coords)
+			if block_id == 0:
+				continue
+		var destroy_timer_tmp = StaticLoad.online_peer_ids[peer_id].destroy_timer
+		if destroy_timer_tmp <= 0:
+			if destroy_light_names.has(peer_id):
+				var old_destroy_light = destroy_light_names[peer_id]
+				destroy_light_names.erase(peer_id)
+				old_destroy_light.queue_free()
+			continue
+		var tool = player.item_bar_names[player.selected_item_grid]
+		var destroy_total_time = StaticLoad.get_destroy_total_time(block_id, tool)
+		var block_name = StaticLoad.get_block_name_by_id(block_id)
+		if StaticLoad.special_block_destroy_time.has(block_name):
+			destroy_total_time = StaticLoad.special_block_destroy_time[block_name]
+		if destroy_total_time < 0:
+			continue
+		var destroy_sort = int((destroy_timer_tmp/destroy_total_time)*8)+1
+		if player_tmp.destroy_timer != destroy_timer_tmp:
+			if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == player_tmp.player_peer_id:
+				player_tmp.rpc("remote_update_player_state", player_tmp.player_state)
+		if int((destroy_timer_tmp-0.08)*100) % int(StaticLoad.DIG_SOUND_DELTA*100) == 0:
+			sound_audio_manager.play_random_audio_at_position("dig", StaticLoad.get_block_type_by_id(block_id), tile_map_layer.map_to_local(player_selected_block_pos), 0.7)
+		if destroy_sort > 0 and destroy_sort < 9:
+			player_tmp.punch()
+		if destroy_sort >= 9:
+			var block_to_destroy_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(player_selected_block_pos))
+			if block_to_destroy_id == 0:
+				block_to_destroy_id = StaticLoad.get_block_id_by_atlas_coords(no_reach_tile_map_layer.get_cell_atlas_coords(player_selected_block_pos))
+			if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == player_tmp.player_peer_id:
+				player_tmp.player_state["destroy_timer"] = 0
+			var droppped_item_name = StaticLoad.get_dropped_item_by_name(StaticLoad.get_block_name_by_id(block_to_destroy_id))
+			if droppped_item_name != "AIR":
+				var item_pos = tile_map_layer.map_to_local(player_selected_block_pos)+Vector2(0, 25)
+				if StaticLoad.is_muti_mode:
+					if StaticLoad.multiplayer.get_unique_id() == 1:
+						var item = item_scene.instantiate()
+						items.add_child(item)
+						item.init(droppped_item_name, item_pos, 1, 0)
+						entities[item.get_uuid()] = item
+						StaticLoad.rpc("reply_for_summon_item", item.uuid, droppped_item_name, item_pos, 1, 0)
+					else:
+						StaticLoad.rpc_id(1, "request_for_summon_item", droppped_item_name, item_pos, 1, 0, 0)
+				else:
+					var item = item_scene.instantiate()
+					items.add_child(item)
+					item.init(droppped_item_name, item_pos, 1, 0)
+					entities[item.get_uuid()] = item
+					
+			destroy_block(player_selected_block_pos)
+			StaticLoad.online_peer_ids[peer_id].destroy_timer = 0
+			if destroy_light_names.has(peer_id):
+				var old_destroy_light = destroy_light_names[peer_id]
+				destroy_light_names.erase(peer_id)
+				old_destroy_light.queue_free()
+			continue
+		elif not destroy_light_names.has(peer_id) or destroy_sort != destroy_light_names[peer_id].sort:
+			if destroy_light_names.has(peer_id):
+				if destroy_light_names[peer_id].sort != destroy_sort:
+					var old_destroy_light = destroy_light_names[peer_id]
+					destroy_light_names.erase(peer_id)
+					old_destroy_light.queue_free()
+					var destroy_light = destory_light_scene.instantiate()
+					destroy_light_names[peer_id] = destroy_light
+					lights.add_child(destroy_light)
+					destroy_light.init_light(str(peer_id), player_selected_block_pos, destroy_sort)
+			else:
+				if destroy_light_names.has(peer_id):
+					var old_destroy_light = destroy_light_names[peer_id]
+					destroy_light_names.erase(peer_id)
+					old_destroy_light.queue_free()
+				var destroy_light = destory_light_scene.instantiate()
+				destroy_light_names[peer_id] = destroy_light
+				lights.add_child(destroy_light)
+				destroy_light.init_light(str(peer_id), player_selected_block_pos, destroy_sort)
 
 func init_light():
 	for chunk_light_name in chunk_lights:
@@ -577,14 +836,16 @@ func update_mini_map_chunk_light(chunk_pos, image):
 
 func grab_item(block_pos):
 	var block_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(block_pos))
+	if block_id == 0:
+		block_id = StaticLoad.get_block_id_by_atlas_coords(no_reach_tile_map_layer.get_cell_atlas_coords(block_pos))
 	var player_select_sort = player.selected_item_grid
 	if block_id == 0:
 		return
-	if block_id == StaticLoad.get_block_id_by_name(player.item_bar_names[27+player.selected_item_grid]):
+	if block_id == StaticLoad.get_block_id_by_name(player.item_bar_names[player.selected_item_grid]):
 		return
 	var existed_item_grid_sort = -1
 	for i in range(9):
-		if StaticLoad.get_block_id_by_name(player.item_bar_names[27+i]) == block_id:
+		if StaticLoad.get_block_id_by_name(player.item_bar_names[i]) == block_id:
 			existed_item_grid_sort = i
 			break
 	if player_select_sort == existed_item_grid_sort:
@@ -592,22 +853,30 @@ func grab_item(block_pos):
 	if existed_item_grid_sort != -1:
 		select_item_grid(existed_item_grid_sort+1)
 	else:
-		player.item_bar_names[27+player_select_sort] = StaticLoad.get_block_name_by_id(block_id)
-		player.item_bar_amounts[27+player_select_sort] = 1
+		player.item_bar_names[player_select_sort] = StaticLoad.get_block_name_by_id(block_id)
+		player.item_bar_amounts[player_select_sort] = 1
+		player.switch_item_in_hand()
 		refresh_item_grid(player_select_sort)
-		var inventory_grid = inventory_show_grids.get_node("InventoryGrid"+str(27+player_select_sort+1))
-		inventory_grid.init_inventory_grid(player.item_bar_names[27+player_select_sort], player.item_bar_amounts[27+player_select_sort])
+		@warning_ignore("shadowed_variable")
+		var inventory_grid = inventory_show_grids.get_node("InventoryGrid"+str(player_select_sort))
+		inventory_grid.init_inventory_grid(player.item_bar_names[player_select_sort], player.item_bar_amounts[player_select_sort])
 		sound_audio_manager.play_audio_static("player", "pop")
-		item_name_label.text = player.item_bar_names[27+player_select_sort]
+		item_name_label.text = player.item_bar_names[player_select_sort]
 		item_name_timer = StaticLoad.ITEM_NAME_SHOW_TIME
 	
 func destroy_block(block_pos: Vector2i):
+	var destroy_layer = "solid"
+	var tile_map_layer_tmp = tile_map_layer
 	var chunk_pos = get_chunk_position(block_pos)
 	if not loaded_chunks.has(str(chunk_pos[0])+"."+str(chunk_pos[1])):
-		return
+		return false
 	var block_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(block_pos))
-	if tile_map_layer.get_cell_source_id(block_pos) != -1 and block_id != 0:
-		if set_block(block_pos, 0):
+	if block_id == 0:
+		destroy_layer = "no_reach"
+		tile_map_layer_tmp = no_reach_tile_map_layer
+		block_id = StaticLoad.get_block_id_by_atlas_coords(no_reach_tile_map_layer.get_cell_atlas_coords(block_pos))
+	if tile_map_layer_tmp.get_cell_source_id(block_pos) != -1 and block_id != 0:
+		if set_block(block_pos, 0, destroy_layer):
 			update_block_selection_ui(tile_map_layer.map_to_local(block_pos), true)
 			if chunk_lights.has(str(chunk_pos[0])+"."+str(chunk_pos[1])):
 				if not chunk_light_to_process.has(str(chunk_pos[0])+"."+str(chunk_pos[1])):
@@ -620,22 +889,28 @@ func destroy_block(block_pos: Vector2i):
 				#Input.vibrate_handheld(100, 0.5)
 			if StaticLoad.is_muti_mode:
 				if StaticLoad.multiplayer.get_unique_id() == 1:
-					StaticLoad.rpc("reply_for_set_block", block_pos, 0)
+					StaticLoad.rpc("reply_for_set_block", block_pos, 0, destroy_layer)
 				else:
-					StaticLoad.rpc_id(1, "request_for_set_block", StaticLoad.multiplayer.get_unique_id(), block_pos, 0)
+					StaticLoad.rpc_id(1, "request_for_set_block", StaticLoad.multiplayer.get_unique_id(), block_pos, 0, destroy_layer)
 		if loaded_chunks.has(str(chunk_pos[0])+"."+str(chunk_pos[1])):
 			loaded_chunks[str(chunk_pos[0])+"."+str(chunk_pos[1])] = true
 			loaded_chunks_timer[str(chunk_pos[0])+"."+str(chunk_pos[1])] = StaticLoad.CHUNK_FREE_TIME
 		if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() != 1:
 			StaticLoad.rpc_id(1, "request_for_mark_revised_chunk", chunk_pos)
+		return true
 
 func place_block(block_pos):
 	var chunk_pos = get_chunk_position(block_pos)
 	if not loaded_chunks.has(str(chunk_pos[0])+"."+str(chunk_pos[1])):
-		return
-	var block_id = StaticLoad.get_block_id_by_name(player.item_bar_names[27+player.selected_item_grid])
-	if tile_map_layer.get_cell_source_id(block_pos) == -1:
-		if set_block(block_pos, block_id):
+		return false
+	var selected_item_bar_name = player.item_bar_names[player.selected_item_grid]
+	if selected_item_bar_name == "AIR":
+		return false
+	var block_id = StaticLoad.get_block_id_by_name(selected_item_bar_name)
+	if not check_place_block_state(block_pos, block_id):
+		return false
+	if tile_map_layer.get_cell_source_id(block_pos) == -1 and no_reach_tile_map_layer.get_cell_source_id(block_pos) == -1 and StaticLoad.block_ids.has(selected_item_bar_name):
+		if set_block(block_pos, block_id, "solid"):
 			update_block_selection_ui(tile_map_layer.map_to_local(block_pos), true)
 			if chunk_lights.has(str(chunk_pos[0])+"."+str(chunk_pos[1])):
 				if not chunk_light_to_process.has(str(chunk_pos[0])+"."+str(chunk_pos[1])):
@@ -648,18 +923,20 @@ func place_block(block_pos):
 				#Input.vibrate_handheld(100, 0.5)
 			if StaticLoad.is_muti_mode:
 				if StaticLoad.multiplayer.get_unique_id() == 1:
-					StaticLoad.rpc("reply_for_set_block", block_pos, block_id)
+					StaticLoad.rpc("reply_for_set_block", block_pos, block_id, "solid")
 				else:
-					StaticLoad.rpc_id(1, "request_for_set_block", StaticLoad.multiplayer.get_unique_id() ,block_pos, block_id)
+					StaticLoad.rpc_id(1, "request_for_set_block", StaticLoad.multiplayer.get_unique_id() ,block_pos, block_id, "solid")
 		if loaded_chunks.has(str(chunk_pos[0])+"."+str(chunk_pos[1])):
 			loaded_chunks[str(chunk_pos[0])+"."+str(chunk_pos[1])] = true
 			loaded_chunks_timer[str(chunk_pos[0])+"."+str(chunk_pos[1])] = StaticLoad.CHUNK_FREE_TIME
 		if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() != 1:
 			StaticLoad.rpc_id(1, "request_for_mark_revised_chunk", chunk_pos)
+		return true
 
 func update_loaded_chunks_timer(delta):
 	is_chunk_modifing = true
 	if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() != 1:
+		return
 		var player_block_pos = tile_map_layer.local_to_map(player.position-Vector2(0,24))
 		var chunk_pos_tmp = get_chunk_position(player_block_pos)
 		var x_player_chunk = chunk_pos_tmp[0]
@@ -699,6 +976,15 @@ func camera_screen_pos_to_local_pos(camera, pos):
 	return actual_screen_center_pos
 
 func init_game_as_dedicated_server():
+	var worlds_path = "user://worlds"
+	var world_config = ConfigFile.new()
+	var world_info = world_config.load_encrypted_pass(worlds_path+"/"+StaticLoad.select_world+"/level.dat", StaticLoad.CONFIG_PASSWORD)
+	if world_info != OK:
+		return
+	world_info_dictionary["version"] = world_config.get_value("world", "version", StaticLoad.options["version"])
+	world_info_dictionary["seed"] = world_config.get_value("world", "seed", "1241999312")
+	world_info_dictionary["world_type"] = world_config.get_value("world", "world_type", "default")
+	world_info_dictionary["gamemode"] = world_config.get_value("world", "gamemode", "survival")
 	var regions = DirAccess.get_files_at(ProjectSettings.globalize_path(StaticLoad.region_path))
 	if regions.is_empty():
 		return
@@ -707,6 +993,8 @@ func init_game_as_dedicated_server():
 		database_chunks.push_back(splits[1]+"."+splits[2])
 	total_chunk_num = 1
 	loaded_chunk_num = 1
+	item_thread.start(process_item)
+	refresh_thread.start(process_refresh)
 
 func init_game_as_single():
 	var config = ConfigFile.new()
@@ -721,6 +1009,7 @@ func init_game_as_single():
 		mini_map_zoom = float(config.get_value("options", "mini_map_zoom", StaticLoad.options["mini_map_zoom"]))
 		bgm_audio_player.volume_db = linear_to_db(int(config.get_value("options", "bgm_volume", StaticLoad.options["bgm_volume"]))/50.0)
 		sound_audio_manager.volume_db = linear_to_db(int(config.get_value("options", "sound_volume", StaticLoad.options["sound_volume"]))/50.0)
+		resource_pack = config.get_value("options", "resource_pack")
 		var mini_map_zoom_tmp = mini_map_zoom/100
 		mini_map_camera.zoom = Vector2(mini_map_zoom_tmp, mini_map_zoom_tmp)
 		var icon_scale = StaticLoad.MINI_MAP_SCALE_FACTOR/mini_map_camera.zoom[0]
@@ -735,6 +1024,15 @@ func init_game_as_single():
 		#var fov_zoom = 1+1.6*(int(config.get_value("options", "fov_zoom", StaticLoad.options["fov_zoom"]))/100.0)
 		#player.camera.zoom = Vector2(fov_zoom, fov_zoom)
 		#update_details(true)
+	var worlds_path = "user://worlds"
+	var world_config = ConfigFile.new()
+	var world_info = world_config.load_encrypted_pass(worlds_path+"/"+StaticLoad.select_world+"/level.dat", StaticLoad.CONFIG_PASSWORD)
+	if world_info != OK:
+		return
+	world_info_dictionary["version"] = world_config.get_value("world", "version", StaticLoad.options["version"])
+	world_info_dictionary["seed"] = world_config.get_value("world", "seed", "1241999312")
+	world_info_dictionary["world_type"] = world_config.get_value("world", "world_type", "default")
+	world_info_dictionary["gamemode"] = world_config.get_value("world", "gamemode", "survival")
 	var regions = DirAccess.get_files_at(ProjectSettings.globalize_path(StaticLoad.region_path))
 	if regions.is_empty():
 		return
@@ -763,7 +1061,9 @@ func init_game_as_single():
 				continue
 			loaded_success_chunk_list.append(str(x)+"."+str(y))
 			var blocks = chunk_config.get_value("chunk", "blocks")
-			set_chunk(Vector2i(x, y), blocks)
+			var no_reach_blocks = chunk_config.get_value("chunk", "no_reach_blocks")
+			var back_blocks = chunk_config.get_value("chunk", "back_blocks")
+			set_chunk(Vector2i(x, y), [blocks, no_reach_blocks, back_blocks])
 			loaded_chunks[str(x)+"."+str(y)] = false
 			loaded_chunks_timer[str(x)+"."+str(y)] = StaticLoad.CHUNK_FREE_TIME
 			loaded_chunk_num += 1
@@ -780,12 +1080,19 @@ func init_game_as_single():
 		sky_light.fill(255)
 		chunk_sky_light_datas[str(x)+"."+str(min_y)] = sky_light
 	update_block_selection_ui(get_local_mouse_position())
+	refresh_resource_pack()
+	init_inventory_tabs()
+	init_infinite_container()
 	init_light()
+	item_thread.start(process_item)
+	refresh_thread.start(process_refresh)
 
 func init_game_as_client():
 	StaticLoad.select_world = "new world"
 	StaticLoad.update_path()
 	StaticLoad.rpc_id(1, "request_for_player_info", StaticLoad.multiplayer.get_unique_id(), player.player_name)
+	StaticLoad.rpc_id(1, "request_for_update_player_inventory", StaticLoad.multiplayer.get_unique_id(), player.player_name)
+	player.rpc_id(1, "request_for_change_skin", player.skin_texture_buffer)
 	while not is_player_info_updated:
 		await get_tree().create_timer(1).timeout
 	var config = ConfigFile.new()
@@ -797,6 +1104,7 @@ func init_game_as_client():
 		player.render_chunk = StaticLoad.RENDER_CHUNK_MAX
 	if player.render_chunk < StaticLoad.RENDER_CHUNK_MIN:
 		player.render_chunk = StaticLoad.RENDER_CHUNK_MIN
+	resource_pack = config.get_value("options", "resource_pack")
 	block_selection_box = config.get_value("options", "block_selection_box", StaticLoad.options["block_selection_box"])
 	mini_map_on = config.get_value("options", "mini_map", StaticLoad.options["mini_map"])
 	mini_map_zoom = float(config.get_value("options", "mini_map_zoom", StaticLoad.options["mini_map_zoom"]))
@@ -824,6 +1132,9 @@ func init_game_as_client():
 		for y in range(y_player_chunk-player.render_chunk, y_player_chunk+player.render_chunk+1):
 			StaticLoad.rpc_id(1, "request_for_update_chunk", StaticLoad.multiplayer.get_unique_id(), true, x, y)
 	update_block_selection_ui(get_local_mouse_position())
+	refresh_resource_pack()
+	init_inventory_tabs()
+	init_infinite_container()
 
 func create_player(peer_id = 1):
 	var player_instance = player_scene.instantiate()
@@ -848,19 +1159,18 @@ func create_player(peer_id = 1):
 	players.move_child(player,-1)
 
 func refresh_item_grid(sort):
-	var item_name = player.item_bar_names[27+sort]
-	var item_amount = player.item_bar_amounts[27+sort]
+	var item_name = player.item_bar_names[sort]
+	var item_amount = player.item_bar_amounts[sort]
 	if item_name == "AIR":
-		item_grids[sort].get_node("Icon").visible = false
+		item_grids[sort].get_node("ItemIcon").visible = false
 		item_grids[sort].get_node("Amount").text = ""
 	else:
-		item_grids[sort].get_node("Icon").texture = load("res://Assets//Textures//Items//"+player.item_bar_names[27+sort].to_lower()+".png") as Texture2D
-		item_grids[sort].get_node("Icon").visible = true
+		item_grids[sort].get_node("ItemIcon").init_icon(player.item_bar_names[sort].to_lower())
+		item_grids[sort].get_node("ItemIcon").visible = true
 		if item_amount <= 1:
 			item_grids[sort].get_node("Amount").text = ""
 		else:
 			item_grids[sort].get_node("Amount").text = str(item_amount)
-	
 
 func check_emulate_mouse_from_touch():
 	if is_input_frozen:
@@ -981,6 +1291,32 @@ func update_player_state():
 		if player.velocity.length() > StaticLoad.FLOAT_DELTA:
 			player.rpc_id(1, "request_for_set_self_player_position", StaticLoad.multiplayer.get_unique_id() , player.position)
 
+func init_infinite_container():
+	var count = 0
+	for block in StaticLoad.block_ids:
+		if block == "AIR":
+			continue
+		if block == "MISSING_TEXTURE":
+			continue
+		var inventory_grid = inventory_grid_scene.instantiate()
+		inventory_grid.name = "InfiniteGrid"+str(count)
+		blocks_infinite_container.add_child(inventory_grid)
+		inventory_grid.init_inventory_grid(block, 1)
+		count += 1
+	count = 0
+	for item in StaticLoad.item_model_types:
+		if item == "AIR":
+			continue
+		if item == "MISSING_TEXTURE":
+			continue
+		if StaticLoad.block_ids.has(item):
+			continue
+		var inventory_grid = inventory_grid_scene.instantiate()
+		inventory_grid.name = "InfiniteGrid"+str(count)
+		items_infinite_container.add_child(inventory_grid)
+		inventory_grid.init_inventory_grid(item, 1)
+		count += 1
+
 func close_chat_ui():
 	is_chat = false
 	is_input_frozen = false
@@ -1031,9 +1367,20 @@ func update_block_selection_ui(pos, is_timer_refresh = false):
 		x_offset = -25
 	if pos.y > 0:
 		y_offset = 25
+	var block_x_offset = -1
+	var block_y_offset = -1
+	if pos.x > 0:
+		block_x_offset = 0
+	if pos.y > 0:
+		block_y_offset = 0
 	@warning_ignore("integer_division")
-	var block_pos = Vector2((int(pos.x)/50)*50+x_offset, (int(pos.y)/50)*50+y_offset)
-	block_selection_ui.position = block_pos
+	var block_pos = Vector2i(int(pos.x)/50+block_x_offset, int(pos.y)/50+block_y_offset)
+	@warning_ignore("integer_division")
+	block_selection_ui.position = Vector2((int(pos.x)/50)*50+x_offset, (int(pos.y)/50)*50+y_offset)
+	if player != null and player.selected_block_pos != block_pos:
+		player.selected_block_pos = block_pos
+		if StaticLoad.is_muti_mode:
+			player.rpc("remote_update_player_state", player.player_state)
 	if is_timer_refresh:
 		block_selection_timer = StaticLoad.BLOCK_SELECTION_TIME
 
@@ -1093,16 +1440,20 @@ func update_new_chunk(is_pre_load: bool):
 							if chunk_result != OK:
 								return
 							var blocks = chunk_config.get_value("chunk", "blocks")
-							set_chunk(Vector2i(x, y), blocks)
+							var no_reach_blocks = chunk_config.get_value("chunk", "no_reach_blocks")
+							var back_blocks = chunk_config.get_value("chunk", "back_blocks")
+							set_chunk(Vector2i(x, y), [blocks, no_reach_blocks, back_blocks])
 							loaded_chunk_num += 1
 							loaded_chunks[str(x)+"."+str(y)] = false
 							loaded_chunks_timer[str(x)+"."+str(y)] = StaticLoad.CHUNK_FREE_TIME
 						else:
 							var mca = ConfigFile.new()
-							var blocks = StaticLoad.generate_chunk(Vector2i(x, y), 1241999312)
-							set_chunk(Vector2i(x, y), blocks)
+							var chunk = StaticLoad.generate_chunk(Vector2i(x, y), world_info_dictionary["seed"], world_info_dictionary["world_type"])
+							set_chunk(Vector2i(x, y), chunk)
 							loaded_chunk_num += 1
-							mca.set_value("chunk", "blocks", blocks)
+							mca.set_value("chunk", "blocks", chunk[0])
+							mca.set_value("chunk", "no_reach_blocks", chunk[1])
+							mca.set_value("chunk", "back_blocks", chunk[2])
 							mca.save_encrypted_pass(StaticLoad.region_path+"/r."+str(x)+"."+str(y)+".mca", StaticLoad.CONFIG_PASSWORD)
 							loaded_chunks[str(x)+"."+str(y)] = false
 							loaded_chunks_timer[str(x)+"."+str(y)] = StaticLoad.CHUNK_FREE_TIME
@@ -1123,7 +1474,9 @@ func update_new_chunk(is_pre_load: bool):
 func free_chunk(pos: Vector2i) -> void:
 	for x in range(0, 16):
 		for y in range(0, 16):
-			set_block(Vector2i(pos[0] * 16 + x, pos[1] * 16 + y), 0, true)
+			set_block(Vector2i(pos[0] * 16 + x, pos[1] * 16 + y), 0, "solid", true)
+			set_block(Vector2i(pos[0] * 16 + x, pos[1] * 16 + y), 0, "no_reach", true)
+			set_block(Vector2i(pos[0] * 16 + x, pos[1] * 16 + y), 0, "back", true)
 	loaded_chunk_num -= 1
 	var chunk_name = str(pos[0])+"."+str(pos[1])
 	if chunk_lights.has(chunk_name):
@@ -1133,7 +1486,7 @@ func free_chunk(pos: Vector2i) -> void:
 		loaded_chunk_packed_byte_arrays.erase(str(pos[0])+"."+str(pos[1]))
 		byte_array_tmp.clear()
 
-func set_chunk(pos: Vector2i, blocks) -> void:
+func set_chunk(pos: Vector2i, blocks_list) -> void:
 	if not loaded_chunk_packed_byte_arrays.has(str(pos[0])+"."+str(pos[1])):
 		var chunk_packed_byte_array: PackedByteArray
 		chunk_packed_byte_array.resize(256)
@@ -1141,52 +1494,66 @@ func set_chunk(pos: Vector2i, blocks) -> void:
 		loaded_chunk_packed_byte_arrays[str(pos[0])+"."+str(pos[1])] = chunk_packed_byte_array
 	for x in range(0, 16):
 		for y in range(0, 16):
-			set_block(Vector2i(pos[0] * 16 + x, pos[1] * 16 + y), blocks[y][x], true)
+			set_block(Vector2i(pos[0] * 16 + x, pos[1] * 16 + y), blocks_list[0][y][x], "solid", true)
+			set_block(Vector2i(pos[0] * 16 + x, pos[1] * 16 + y), blocks_list[1][y][x], "no_reach", true)
+			set_block(Vector2i(pos[0] * 16 + x, pos[1] * 16 + y), blocks_list[2][y][x], "back", true)
+	if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == 1):
+		load_entities(pos)
 
-func set_block(block_pos: Vector2i, block_id: int, is_pre_load = false):
+func set_block(block_pos: Vector2i, block_id: int, tile_map_type, is_pre_load = false):
+	var tile_map_layer_tmp = tile_map_layer
+	var mini_map_tile_map_layer_tmp = mini_map_tile_map_layer
+	if tile_map_type == "back":
+		tile_map_layer_tmp = back_tile_map_layer
+		mini_map_tile_map_layer_tmp = mini_map_back_tile_map_layer
+	elif tile_map_type == "no_reach":
+		tile_map_layer_tmp = no_reach_tile_map_layer
+		mini_map_tile_map_layer_tmp = mini_map_no_reach_tile_map_layer
 	if block_id == 0:
-		if tile_map_layer.get_cell_source_id(block_pos) == -1:
+		if tile_map_layer_tmp.get_cell_source_id(block_pos) == -1:
 			return false
 		if not is_pre_load:
 			@warning_ignore("confusable_local_declaration")
-			var atlas_coords = tile_map_layer.get_cell_atlas_coords(block_pos)
-			sound_audio_manager.play_random_audio_at_position("dig", StaticLoad.get_block_type_by_id(StaticLoad.get_block_id_by_atlas_coords(atlas_coords)), tile_map_layer.map_to_local(block_pos))
-		tile_map_layer.set_cell(block_pos)
+			var atlas_coords = tile_map_layer_tmp.get_cell_atlas_coords(block_pos)
+			sound_audio_manager.play_random_audio_at_position("dig", StaticLoad.get_block_type_by_id(StaticLoad.get_block_id_by_atlas_coords(atlas_coords)), tile_map_layer_tmp.map_to_local(block_pos), 1)
+		tile_map_layer_tmp.set_cell(block_pos)
 		if not StaticLoad.is_dedicated_server:
-			mini_map_tile_map_layer.set_cell(block_pos)
+			mini_map_tile_map_layer_tmp.set_cell(block_pos)
 			var chunk_pos = get_chunk_position(block_pos)
 			var relative_block_pos = block_pos-chunk_pos*16
 			if relative_block_pos[0] > 15:
 				relative_block_pos[0] = 15
 			if relative_block_pos[1] > 15:
 				relative_block_pos[1] = 15
-			if loaded_chunk_packed_byte_arrays.has(str(chunk_pos[0])+"."+str(chunk_pos[1])):
-				loaded_chunk_packed_byte_arrays[str(chunk_pos[0])+"."+str(chunk_pos[1])][relative_block_pos[1]*16+relative_block_pos[0]] = 0
+			if tile_map_type != "back":
+				if loaded_chunk_packed_byte_arrays.has(str(chunk_pos[0])+"."+str(chunk_pos[1])):
+					loaded_chunk_packed_byte_arrays[str(chunk_pos[0])+"."+str(chunk_pos[1])][relative_block_pos[1]*16+relative_block_pos[0]] = 0
 		return true
-	if tile_map_layer.get_cell_source_id(block_pos) != -1:
+	if tile_map_layer_tmp.get_cell_source_id(block_pos) != -1:
 		return false
 	#if not is_pre_load:
 		#for id in StaticLoad.online_peer_ids:
 			#var player_tmp = StaticLoad.online_peer_ids[id]
-			#var player_pos = tile_map_layer.local_to_map(player_tmp.position)
+			#var player_pos = tile_map_layer_tmp.local_to_map(player_tmp.position)
 			#if player_pos == block_pos:
 				#return false
 			#if player_pos - Vector2i(0, 1) == block_pos:
 				#return false
 	var atlas_coords = StaticLoad.get_atlas_coords_by_block_id(block_id)
-	tile_map_layer.set_cell(block_pos, 9999, atlas_coords)
+	tile_map_layer_tmp.set_cell(block_pos, 9999, atlas_coords)
 	if not StaticLoad.is_dedicated_server:
-		mini_map_tile_map_layer.set_cell(block_pos, 9999, atlas_coords)
+		mini_map_tile_map_layer_tmp.set_cell(block_pos, 9999, atlas_coords)
 		var chunk_pos = get_chunk_position(block_pos)
 		var relative_block_pos = block_pos-chunk_pos*16
 		if relative_block_pos[0] > 15:
 			relative_block_pos[0] = 15
 		if relative_block_pos[1] > 15:
 			relative_block_pos[1] = 15
-		if loaded_chunk_packed_byte_arrays.has(str(chunk_pos[0])+"."+str(chunk_pos[1])):
-			loaded_chunk_packed_byte_arrays[str(chunk_pos[0])+"."+str(chunk_pos[1])][relative_block_pos[1]*16+relative_block_pos[0]] = block_id
+		if tile_map_type != "back":
+			if loaded_chunk_packed_byte_arrays.has(str(chunk_pos[0])+"."+str(chunk_pos[1])):
+				loaded_chunk_packed_byte_arrays[str(chunk_pos[0])+"."+str(chunk_pos[1])][relative_block_pos[1]*16+relative_block_pos[0]] = block_id
 	if not is_pre_load:
-		sound_audio_manager.play_random_audio_at_position("dig", StaticLoad.get_block_type_by_id(block_id), tile_map_layer.map_to_local(block_pos))
+		sound_audio_manager.play_random_audio_at_position("dig", StaticLoad.get_dig_type_by_block_type(StaticLoad.get_block_type_by_id(block_id)), tile_map_layer_tmp.map_to_local(block_pos), 1)
 	return true
 
 func save_world():
@@ -1200,8 +1567,12 @@ func save_world():
 	var level = ConfigFile.new()
 	var current_time = Time.get_datetime_string_from_system(false, true).replace(" ", "  ").replace("-", "/")
 	level.set_value("world", "last_modified", current_time)
-	level.set_value("world", "version", StaticLoad.options["version"])
+	level.set_value("world", "version", world_info_dictionary["version"])
+	level.set_value("world", "seed", world_info_dictionary["seed"])
+	level.set_value("world", "world_type", world_info_dictionary["world_type"])
+	level.set_value("world", "gamemode", world_info_dictionary["gamemode"])
 	level.save_encrypted_pass(StaticLoad.world_path+"/level.dat", StaticLoad.CONFIG_PASSWORD)
+	#save_entities()
 
 func save_player(peer_id = 0):
 	if peer_id == 0:
@@ -1216,6 +1587,9 @@ func save_player(peer_id = 0):
 			player_config.set_value("player", "face_state", player_tmp.face_state)
 			player_config.set_value("player", "is_flying", player_tmp.is_flying)
 			player_config.set_value("player", "gamemode", player_tmp.gamemode)
+			player_config.set_value("player", "health", player_tmp.health)
+			player_config.set_value("player", "item_bar_names", player_tmp.item_bar_names)
+			player_config.set_value("player", "item_bar_amounts", player_tmp.item_bar_amounts)
 			player_config.save_encrypted_pass(StaticLoad.player_path+"/"+player_tmp.player_name.to_lower()+".dat", StaticLoad.CONFIG_PASSWORD)
 	else:
 		var player_tmp = StaticLoad.online_peer_ids[peer_id]
@@ -1226,15 +1600,22 @@ func save_player(peer_id = 0):
 		player_config.set_value("player", "face_state", player_tmp.face_state)
 		player_config.set_value("player", "is_flying", player_tmp.is_flying)
 		player_config.set_value("player", "gamemode", player_tmp.gamemode)
+		player_config.set_value("player", "health", player_tmp.health)
+		player_config.set_value("player", "item_bar_names", player_tmp.item_bar_names)
+		player_config.set_value("player", "item_bar_amounts", player_tmp.item_bar_amounts)
 		player_config.save_encrypted_pass(StaticLoad.player_path+"/"+player_tmp.player_name.to_lower()+".dat", StaticLoad.CONFIG_PASSWORD)
 
 func save_chunk(chunk_pos: Vector2i):
 	var mca = ConfigFile.new()
 	var blocks = []
+	var no_reach_blocks = []
+	var back_blocks = []
 	var x_chunk = chunk_pos[0]
 	var y_chunk = chunk_pos[1]
 	for y in range(16):
 		var row = []
+		var no_reach_row = []
+		var back_row = []
 		for x in range(16):
 			var block_pos = Vector2i(x_chunk*16+x, y_chunk*16+y)
 			var id = 0
@@ -1242,13 +1623,80 @@ func save_chunk(chunk_pos: Vector2i):
 				var atlas_coords = tile_map_layer.get_cell_atlas_coords(block_pos)
 				id = StaticLoad.get_block_id_by_atlas_coords(atlas_coords)
 			row.append(id)
+			var no_reach_id = 0
+			if no_reach_tile_map_layer.get_cell_source_id(block_pos) != -1:
+				var atlas_coords = no_reach_tile_map_layer.get_cell_atlas_coords(block_pos)
+				no_reach_id = StaticLoad.get_block_id_by_atlas_coords(atlas_coords)
+			no_reach_row.append(no_reach_id)
+			var back_id = 0
+			if back_tile_map_layer.get_cell_source_id(block_pos) != -1:
+				var atlas_coords = back_tile_map_layer.get_cell_atlas_coords(block_pos)
+				back_id = StaticLoad.get_block_id_by_atlas_coords(atlas_coords)
+			back_row.append(back_id)
 		blocks.append(row)
+		no_reach_blocks.append(no_reach_row)
+		back_blocks.append(back_row)
 	mca.set_value("chunk", "blocks", blocks)
+	mca.set_value("chunk", "no_reach_blocks", no_reach_blocks)
+	mca.set_value("chunk", "back_blocks", back_blocks)
 	mca.save_encrypted_pass(StaticLoad.region_path+"/r."+str(x_chunk)+"."+str(y_chunk)+".mca", StaticLoad.CONFIG_PASSWORD)
 	var level = ConfigFile.new()
 	var current_time = Time.get_datetime_string_from_system(false, true).replace(" ", "  ").replace("-", "/")
 	level.set_value("world", "last_modified", current_time)
+	level.set_value("world", "version", world_info_dictionary["version"])
+	level.set_value("world", "seed", world_info_dictionary["seed"])
+	level.set_value("world", "world_type", world_info_dictionary["world_type"])
+	level.set_value("world", "gamemode", world_info_dictionary["gamemode"])
 	level.save_encrypted_pass(StaticLoad.world_path+"/level.dat", StaticLoad.CONFIG_PASSWORD)
+	
+	#var is_item_save_required = false
+	#var entity_mca = ConfigFile.new()
+	#for item in items.get_children():
+		#if item.position.x >= x_chunk*16 and item.position.x < x_chunk*16+16:
+			#if item.position.y >= y_chunk*16 and item.position.y < y_chunk*16+16:
+				#is_item_save_required = true
+				#entity_mca.set_value(str(item.get_uuid()), "type", "item")
+				#entity_mca.set_value(str(item.get_uuid()), "item_name", item.item_name)
+				#entity_mca.set_value(str(item.get_uuid()), "item_amount", item.item_name)
+				#entity_mca.set_value(str(item.get_uuid()), "position", item.position)
+	#if is_item_save_required:
+		#entity_mca.save_encrypted_pass(StaticLoad.entity_path+"/r."+str(x_chunk)+"."+str(y_chunk)+".mca", StaticLoad.CONFIG_PASSWORD)
+
+func save_entities():
+	var entity_mca = ConfigFile.new()
+	for item in items.get_children():
+		var item_pos = tile_map_layer.local_to_map(item.position)
+		var chunk_pos = get_chunk_position(item_pos)
+		if FileAccess.file_exists(StaticLoad.entity_path+"/"+str(chunk_pos[0])+"."+str(chunk_pos[1])+".mca"):
+			var entity_config = ConfigFile.new()
+			if entity_config.load_encrypted_pass(StaticLoad.entity_path+"/r."+str(chunk_pos[0])+"."+str(chunk_pos[1])+".mca", StaticLoad.CONFIG_PASSWORD) != OK:
+				return
+			for uuid in entity_config.get_sections():
+				if entity_config.get_value(uuid, "item", "entity") == "item":
+					entity_mca.set_value(uuid, "type", "item")
+					entity_mca.set_value(uuid, "item_name", entity_config.get_value(uuid, "item_name"))
+					entity_mca.set_value(uuid, "item_amount", entity_config.get_value(uuid, "item_amount"))
+					entity_mca.set_value(uuid, "position", entity_config.get_value(uuid, "position"))
+		entity_mca.set_value(str(item.get_uuid()), "type", "item")
+		entity_mca.set_value(str(item.get_uuid()), "item_name", item.item_name)
+		entity_mca.set_value(str(item.get_uuid()), "item_amount", item.item_amount)
+		entity_mca.set_value(str(item.get_uuid()), "position", item.position)
+		entity_mca.save_encrypted_pass(StaticLoad.entity_path+"/r."+str(chunk_pos[0])+"."+str(chunk_pos[1])+".mca", StaticLoad.CONFIG_PASSWORD)
+
+func load_entities(chunk_pos):
+	if FileAccess.file_exists(StaticLoad.entity_path+"/r."+str(chunk_pos[0])+"."+str(chunk_pos[1])+".mca"):
+		var entity_config = ConfigFile.new()
+		if entity_config.load_encrypted_pass(StaticLoad.entity_path+"/r."+str(chunk_pos[0])+"."+str(chunk_pos[1])+".mca", StaticLoad.CONFIG_PASSWORD) != OK:
+			return
+		for uuid in entity_config.get_sections():
+			if entity_config.get_value(uuid, "type", "entity") == "item":
+				var item_name = entity_config.get_value(uuid, "item_name")
+				var item_pos = entity_config.get_value(uuid, "position")
+				var item_amount = int(entity_config.get_value(uuid, "item_amount"))
+				var item = item_scene.instantiate()
+				items.add_child(item)
+				item.init(item_name, item_pos, item_amount, 1)
+				entities[item.get_uuid()] = item
 
 func select_item_grid(grid_name) -> void:
 	if str(grid_name) == "More":
@@ -1267,23 +1715,31 @@ func select_item_grid(grid_name) -> void:
 	var sort = int(str(grid_name))-1
 	player.selected_item_grid = sort
 	item_grids[sort].get_node("SelectBar").visible = true
-	if player.item_bar_names[27+sort] == "AIR":
+	player.switch_item_in_hand()
+	if player.item_bar_names[sort] == "AIR":
 		return
-	item_name_label.text = player.item_bar_names[27+sort]
+	item_name_label.text = player.item_bar_names[sort]
 	item_name_timer = StaticLoad.ITEM_NAME_SHOW_TIME
 
+func refresh_inventory():
+	for i in range(0, 9):
+		var item_name = player.item_bar_names[i]
+		var item_amount = player.item_bar_amounts[i]
+		@warning_ignore("shadowed_variable")
+		var inventory_grid = inventory_show_grids.get_node("InventoryGrid"+str(i))
+		inventory_grid.init_inventory_grid(item_name, item_amount)
+	for i in range(9, 36):
+		var item_name = player.item_bar_names[i]
+		var item_amount = player.item_bar_amounts[i]
+		@warning_ignore("shadowed_variable")
+		var inventory_grid = inventory_back_grids.get_node("InventoryGrid"+str(i))
+		inventory_grid.init_inventory_grid(item_name, item_amount)
+
 func init_inventory():
-	for i in range(27):
-		var item_name = player.item_bar_names[i]
-		var item_amount = player.item_bar_amounts[i]
-		var inventory_grid = inventory_back_grids.get_node("InventoryGrid"+str(i+1))
-		inventory_grid.init_inventory_grid(item_name, item_amount)
-	for i in range(27, 36):
-		var item_name = player.item_bar_names[i]
-		var item_amount = player.item_bar_amounts[i]
-		var inventory_grid = inventory_show_grids.get_node("InventoryGrid"+str(i+1))
-		inventory_grid.init_inventory_grid(item_name, item_amount)
+	refresh_inventory()
 	for i in range(9):
+		var item_icon = item_icon_scene.instantiate()
+		item_grids[i].add_child(item_icon)
 		refresh_item_grid(i)
 
 func touch_button(button_name):
@@ -1631,3 +2087,45 @@ func _on_mobile_move_button_jump_pressed():
 		
 func _on_mobile_move_button_jump_released():
 	Input.action_release("jump")
+
+func _on_inventory_ui_dark_mask_gui_input(event: InputEvent) -> void:
+	if not event is InputEventMouseButton:
+		return
+	if event.button_index == 1:
+		if mouse_item_amount > 0:
+			sound_audio_manager.play_audio_static("player", "pop")
+			player.drop_item(mouse_item_name, mouse_item_amount)
+			mouse_item_name = "AIR"
+			mouse_item_amount = 0
+
+func _on_inventory_ui_hidden() -> void:
+	if mouse_item_amount > 0:
+		sound_audio_manager.play_audio_static("player", "pop")
+		player.drop_item(mouse_item_name, mouse_item_amount)
+		mouse_item_name = "AIR"
+		mouse_item_amount = 0
+
+func _on_inventory_ui_visibility_changed() -> void:
+	if player.gamemode != "creative":
+		if inventory_tabs.visible:
+			inventory_tabs.visible = false
+		if delete_tab_panel.visible:
+			delete_tab_panel.visible = false
+		var inventory_panel = inventory_ui.get_node("Panel").get_node("InventoryPanel")
+		if not inventory_panel.visible:
+			inventory_panel.visible = true
+			inventory_ui.get_node("Panel").get_node("BlocksPanel").visible = false
+			inventory_ui.get_node("Panel").get_node("ItemsPanel").visible = false
+	else:
+		if not inventory_tabs.visible:
+			inventory_tabs.visible = true
+			for tab in StaticLoad.game.inventory_tabs.get_children():
+				tab.dark_mask.visible = true
+				tab.panel.visible = false
+				tab.z_index = 0
+			var inventory_tab = inventory_tabs.get_node("InventoryTab")
+			inventory_tab.dark_mask.visible = false
+			inventory_tab.panel.visible = true
+			inventory_tab.z_index = 1
+		if not delete_tab_panel.visible:
+			delete_tab_panel.visible = true

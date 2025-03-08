@@ -44,7 +44,7 @@ func _on_options_button_1_pressed() -> void:
 		"fov_zoom": str(fov_zoom_scroll_bar.value),
 		"bgm_volume": str(bgm_volume_scroll_bar.value),
 		"sound_volume": str(sound_volume_scroll_bar.value),
-		"block_selection_box": StaticLoad.get_block_selection_box_by_selected(block_selection_box_option_bar.selected),
+		"block_selection_box": StaticLoad.block_selection_box_dictionary[block_selection_box_option_bar.selected],
 		"mini_map": StaticLoad.get_on_or_off_by_selection(mini_map_option_bar.selected, "on"),
 		"mini_map_zoom": str(mini_map_zoom_scroll_bar.value)
 	}
@@ -57,7 +57,7 @@ func _on_options_button_1_pressed() -> void:
 		game.player.camera.zoom = Vector2(fov_zoom, fov_zoom)
 		game.bgm_audio_player.volume_db = linear_to_db(int(change_value["bgm_volume"])/50.0)
 		game.sound_audio_manager.volume_db = linear_to_db(int(change_value["sound_volume"])/50.0)
-		game.block_selection_box = StaticLoad.get_block_selection_box_by_selected(block_selection_box_option_bar.selected)
+		game.block_selection_box = StaticLoad.block_selection_box_dictionary[block_selection_box_option_bar.selected]
 		game.mini_map_on = StaticLoad.get_on_or_off_by_selection(mini_map_option_bar.selected, "on")
 		game.mini_map_zoom = str(mini_map_zoom_scroll_bar.value)
 		var mini_map_zoom_tmp = game.mini_map_zoom/100
@@ -112,7 +112,7 @@ func load_options():
 		bgm_volume_scroll_bar.value = int(config.get_value("options", "bgm_volume"))
 		sound_volume_label.text = config.get_value("options", "sound_volume")+"%"
 		sound_volume_scroll_bar.value = int(config.get_value("options", "sound_volume"))
-		block_selection_box_option_bar.selected = StaticLoad.get_selected_by_block_selection_box(config.get_value("options", "block_selection_box"))
+		block_selection_box_option_bar.selected = StaticLoad.block_selection_box_dictionary.find_key(config.get_value("options", "block_selection_box"))
 		mini_map_option_bar.selected = StaticLoad.get_selection_by_on_or_off(config.get_value("options", "mini_map"), "on")
 		mini_map_zoom_label.text = config.get_value("options", "mini_map_zoom")+"%"
 		mini_map_zoom_scroll_bar.value = int(config.get_value("options", "mini_map_zoom"))

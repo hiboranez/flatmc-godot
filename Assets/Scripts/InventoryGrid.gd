@@ -1,17 +1,38 @@
 extends TextureRect
 
+@export var slot_function: String
+
 var item_name
 var item_amount
 var mouse_stay_timer = StaticLoad.INVENTORY_NAME_SHOW_STAY_TIME
 
 func _ready() -> void:
 	set_process(false)
+	if slot_function == "armor_helmet":
+		$BackIcon.texture = load("res://Assets/Textures/GUI/empty_slot_helmet.png")
+		$BackIcon.visible = true
+		$ItemIcon.visible = false
+	elif slot_function == "armor_chestplate":
+		$BackIcon.texture = load("res://Assets/Textures/GUI/empty_slot_chestplate.png")
+		$BackIcon.visible = true
+		$ItemIcon.visible = false
+	elif slot_function == "armor_leggings":
+		$BackIcon.texture = load("res://Assets/Textures/GUI/empty_slot_leggings.png")
+		$BackIcon.visible = true
+		$ItemIcon.visible = false
+	elif slot_function == "armor_boots":
+		$BackIcon.texture = load("res://Assets/Textures/GUI/empty_slot_boots.png")
+		$BackIcon.visible = true
+		$ItemIcon.visible = false
+	elif slot_function == "delete":
+		texture = load("res://Assets/Textures/GUI/delete_slot.png")
+		$ItemIcon.visible = false
 
 func _process(delta: float) -> void:
 	if mouse_stay_timer > 0:
 		mouse_stay_timer -= delta
 	else:
-		if item_name != "AIR":
+		if StaticLoad.game.mouse_item_name_label == null and item_name != null and item_name != "AIR":
 			StaticLoad.game.mouse_item_name_label = StaticLoad.mouse_item_name_label_scene.instantiate()
 			StaticLoad.game.game_ui.add_child(StaticLoad.game.mouse_item_name_label)
 			StaticLoad.game.mouse_item_name_label.text = tr(item_name)
@@ -22,11 +43,11 @@ func init_inventory_grid(init_item_name, init_item_amount):
 	item_name = init_item_name
 	item_amount = init_item_amount
 	if init_item_name == "AIR":
-		$Icon.visible = false
+		$ItemIcon.visible = false
 		$Amount.text = ""
 	else:
-		$Icon.texture = load("res://Assets//Textures//Items//"+init_item_name.to_lower()+".png") as Texture2D
-		$Icon.visible = true
+		$ItemIcon.init_icon(init_item_name.to_lower())
+		$ItemIcon.visible = true
 		if item_amount <= 1:
 			$Amount.text = ""
 		else:
@@ -45,33 +66,144 @@ func _on_mouse_exited() -> void:
 		return
 	StaticLoad.game.mouse_item_name_label.stop_following()
 	StaticLoad.game.mouse_item_name_label.queue_free()
+	
 
 func _on_gui_input(event: InputEvent) -> void:
+	if slot_function.contains("armor") or slot_function.contains("craft"):
+		return
 	if not (event is InputEventMouseButton or event is InputEventScreenTouch):
 		return
 	if event is InputEventMouseButton:
-		if event.button_index != 1 or not event.pressed:
+		if not event.pressed:
 			return
 	var player = StaticLoad.game.player
 	var mouse_item_name_tmp = StaticLoad.game.mouse_item_name
 	var mouse_item_amount_tmp = StaticLoad.game.mouse_item_amount
-	StaticLoad.game.mouse_item_name = item_name
-	StaticLoad.game.mouse_item_amount = item_amount
-	init_inventory_grid(mouse_item_name_tmp, mouse_item_amount_tmp)
 	if name.contains("InventoryGrid"):
-		var sort = int(name.replace("InventoryGrid", ""))-1
-		player.item_bar_names[sort] = item_name
-		player.item_bar_amounts[sort] = item_amount
-		if StaticLoad.game.mouse_item_name_label != null:
-			StaticLoad.game.mouse_item_name_label.stop_following()
-			StaticLoad.game.mouse_item_name_label.queue_free()
-			if item_name != "AIR":
-				StaticLoad.game.mouse_item_name_label = StaticLoad.mouse_item_name_label_scene.instantiate()
-				StaticLoad.game.game_ui.add_child(StaticLoad.game.mouse_item_name_label)
-				StaticLoad.game.mouse_item_name_label.text = tr(item_name)
-				StaticLoad.game.mouse_item_name_label.start_following()
-		if sort >= 27:
-			StaticLoad.game.refresh_item_grid(sort-27)
+		if event.button_index == 1:
+			if Input.is_action_pressed("shift"):
+				var sort = int(name.replace("InventoryGrid", ""))
+				if StaticLoad.game.inventory_back_grids.is_visible_in_tree():
+					if sort < 9:
+						item_amount = player.get_item(item_name, item_amount, 9, 36, false)
+						if item_amount == 0:
+							item_name = "AIR"
+						player.item_bar_names[sort] = item_name
+						player.item_bar_amounts[sort] = item_amount
+						StaticLoad.game.refresh_item_grid(sort)
+						StaticLoad.game.refresh_inventory()
+						player.switch_item_in_hand()
+					elif sort >= 9 and sort < 36:
+						item_amount = player.get_item(item_name, item_amount, 0, 9, false)
+						if item_amount == 0:
+							item_name = "AIR"
+						player.item_bar_names[sort] = item_name
+						player.item_bar_amounts[sort] = item_amount
+						StaticLoad.game.refresh_inventory()
+						for i in range(9):
+							StaticLoad.game.refresh_item_grid(i)
+						player.switch_item_in_hand()
+				elif player.gamemode == "creative":
+					player.item_bar_names[sort] = "AIR"
+					player.item_bar_amounts[sort] = 0
+					init_inventory_grid("AIR", 0)
+					StaticLoad.game.refresh_item_grid(sort)
+					player.switch_item_in_hand()
+			else:
+				if mouse_item_name_tmp != item_name:
+					StaticLoad.game.mouse_item_name = item_name
+					StaticLoad.game.mouse_item_amount = item_amount
+					init_inventory_grid(mouse_item_name_tmp, mouse_item_amount_tmp)
+					var sort = int(name.replace("InventoryGrid", ""))
+					player.item_bar_names[sort] = item_name
+					player.item_bar_amounts[sort] = item_amount
+					if StaticLoad.game.mouse_item_name_label != null:
+						StaticLoad.game.mouse_item_name_label.stop_following()
+						StaticLoad.game.mouse_item_name_label.queue_free()
+						if item_name != "AIR":
+							StaticLoad.game.mouse_item_name_label = StaticLoad.mouse_item_name_label_scene.instantiate()
+							StaticLoad.game.game_ui.add_child(StaticLoad.game.mouse_item_name_label)
+							StaticLoad.game.mouse_item_name_label.text = tr(item_name)
+							StaticLoad.game.mouse_item_name_label.start_following()
+					if sort < 9:
+						StaticLoad.game.refresh_item_grid(sort)
+					player.switch_item_in_hand()
+				else:
+					if item_amount + mouse_item_amount_tmp <= StaticLoad.get_max_amount_by_name(item_name):
+						item_amount += mouse_item_amount_tmp
+						StaticLoad.game.mouse_item_name = "AIR"
+						StaticLoad.game.mouse_item_amount = 0
+					else:
+						StaticLoad.game.mouse_item_amount = mouse_item_amount_tmp+item_amount-StaticLoad.get_max_amount_by_name(item_name)
+						item_amount = StaticLoad.get_max_amount_by_name(item_name)
+					var sort = int(name.replace("InventoryGrid", ""))
+					player.item_bar_amounts[sort] = item_amount
+					init_inventory_grid(item_name, item_amount)
+					if sort < 9:
+						StaticLoad.game.refresh_item_grid(sort)
+					player.switch_item_in_hand()
+		elif event.button_index == 2:
+			if mouse_item_amount_tmp == 0 and item_amount >= 2:
+				StaticLoad.game.mouse_item_name = item_name
+				StaticLoad.game.mouse_item_amount = item_amount/2
+				item_amount -= StaticLoad.game.mouse_item_amount
+				var sort = int(name.replace("InventoryGrid", ""))
+				player.item_bar_amounts[sort] = item_amount
+				init_inventory_grid(item_name, item_amount)
+				if sort < 9:
+					StaticLoad.game.refresh_item_grid(sort)
+			elif mouse_item_name_tmp == item_name:
+				if item_amount < StaticLoad.get_max_amount_by_name(item_name):
+					StaticLoad.game.mouse_item_amount -= 1
+					item_amount += 1
+					if StaticLoad.game.mouse_item_amount == 0:
+						StaticLoad.game.mouse_item_name = "AIR"
+					init_inventory_grid(item_name, item_amount)
+					var sort = int(name.replace("InventoryGrid", ""))
+					player.item_bar_amounts[sort] = item_amount
+					if sort < 9:
+						StaticLoad.game.refresh_item_grid(sort)
+					player.switch_item_in_hand()
+			elif item_name == "AIR":
+				item_name = StaticLoad.game.mouse_item_name
+				StaticLoad.game.mouse_item_amount -= 1
+				item_amount += 1
+				if StaticLoad.game.mouse_item_amount == 0:
+					StaticLoad.game.mouse_item_name = "AIR"
+				init_inventory_grid(item_name, item_amount)
+				var sort = int(name.replace("InventoryGrid", ""))
+				player.item_bar_names[sort] = item_name
+				player.item_bar_amounts[sort] = item_amount
+				if sort < 9:
+					StaticLoad.game.refresh_item_grid(sort)
+				player.switch_item_in_hand()
+		elif event.button_index == 3 and player.gamemode == "creative":
+			if mouse_item_amount_tmp == 0 and item_name != "AIR":
+				StaticLoad.game.mouse_item_name = item_name
+				StaticLoad.game.mouse_item_amount = StaticLoad.get_max_amount_by_name(item_name)
+	elif name.contains("InfiniteGrid") and player.gamemode == "creative":
+		if event.button_index == 1:
+			if mouse_item_amount_tmp == 0:
+				StaticLoad.game.mouse_item_name = item_name
+				StaticLoad.game.mouse_item_amount = 1
+			elif mouse_item_name_tmp == item_name:
+				if StaticLoad.game.mouse_item_amount < StaticLoad.get_max_amount_by_name(item_name):
+					StaticLoad.game.mouse_item_amount += 1
+			elif mouse_item_name_tmp != item_name:
+				StaticLoad.game.mouse_item_name = "AIR"
+				StaticLoad.game.mouse_item_amount = 0
+		if event.button_index == 2:
+			if mouse_item_amount_tmp != 0:
+				StaticLoad.game.mouse_item_amount -= 1
+				if StaticLoad.game.mouse_item_amount <= 0:
+					StaticLoad.game.mouse_item_name = "AIR"
+		elif event.button_index == 3:
+			if mouse_item_amount_tmp == 0 and item_name != "AIR":
+				StaticLoad.game.mouse_item_name = item_name
+				StaticLoad.game.mouse_item_amount = StaticLoad.get_max_amount_by_name(item_name)
+	elif slot_function == "delete":
+		StaticLoad.game.mouse_item_name = "AIR"
+		StaticLoad.game.mouse_item_amount = 0
 	#var sort = player.selected_item_grid
 	#player.item_bar_names[sort] = item_name
 	#StaticLoad.game.refresh_item_grid(sort)

@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://c07n0w0ra2yms"]
+[gd_scene load_steps=16 format=3 uid="uid://c07n0w0ra2yms"]
 
 [ext_resource type="Texture2D" uid="uid://b14xkgu1d1omr" path="res://Assets/Textures/Backgrounds/stone_wall.png" id="1_onk51"]
 [ext_resource type="Script" path="res://Assets/Scripts/SingleMenu.gd" id="1_raaec"]
@@ -7,6 +7,7 @@
 [ext_resource type="Texture2D" uid="uid://b6wbqichdrhpr" path="res://Assets/Textures/GUI/button_normal.png" id="4_j3gn5"]
 [ext_resource type="Script" path="res://Assets/Scripts/GameButton.gd" id="5_7gcfm"]
 [ext_resource type="Texture2D" uid="uid://caueuwmlcmeot" path="res://Assets/Textures/GUI/button_disabled.png" id="6_0c7fu"]
+[ext_resource type="Theme" uid="uid://do1xfdxltcv20" path="res://Assets/Themes/gui_theme.tres" id="8_xmd12"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_67wvm"]
 content_margin_left = 30.0
@@ -23,6 +24,18 @@ content_margin_bottom = 30.0
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_t8c5e"]
 content_margin_left = 25.0
 texture = ExtResource("6_0c7fu")
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_rqwwl"]
+content_margin_left = 30.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_yxggf"]
+content_margin_left = 30.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_f80m2"]
+content_margin_left = 30.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_jhep8"]
+content_margin_left = 30.0
 
 [node name="SingleMenu" type="CanvasLayer"]
 script = ExtResource("1_raaec")
@@ -278,6 +291,7 @@ custom_minimum_size = Vector2(0, 10)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 2
+theme_override_constants/separation = 30
 
 [node name="WorldName" type="HSplitContainer" parent="CreateWorldUI/ColorRect2/ScrollContainer/VBoxContainer"]
 layout_mode = 2
@@ -300,6 +314,115 @@ theme_override_font_sizes/font_size = 40
 theme_override_styles/normal = SubResource("StyleBoxTexture_t8c5e")
 text = "DEFAULT_WORLD_NAME"
 caret_blink = true
+
+[node name="Seed" type="HSplitContainer" parent="CreateWorldUI/ColorRect2/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="CreateWorldUI/ColorRect2/ScrollContainer/VBoxContainer/Seed"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_fonts/font = ExtResource("2_5dafd")
+theme_override_font_sizes/font_size = 40
+text = "SEED_TEXT"
+
+[node name="LineEdit" type="LineEdit" parent="CreateWorldUI/ColorRect2/ScrollContainer/VBoxContainer/Seed"]
+custom_minimum_size = Vector2(0, 70)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_constants/caret_width = 5
+theme_override_constants/minimum_character_width = 0
+theme_override_fonts/font = ExtResource("2_5dafd")
+theme_override_font_sizes/font_size = 40
+theme_override_styles/normal = SubResource("StyleBoxTexture_t8c5e")
+caret_blink = true
+
+[node name="WorldType" type="HSplitContainer" parent="CreateWorldUI/ColorRect2/ScrollContainer/VBoxContainer"]
+z_index = 1
+layout_mode = 2
+collapsed = true
+
+[node name="Title" type="Label" parent="CreateWorldUI/ColorRect2/ScrollContainer/VBoxContainer/WorldType"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_fonts/font = ExtResource("2_5dafd")
+theme_override_font_sizes/font_size = 40
+text = "WORLD_TYPE"
+
+[node name="OptionButton" type="OptionButton" parent="CreateWorldUI/ColorRect2/ScrollContainer/VBoxContainer/WorldType"]
+custom_minimum_size = Vector2(0, 70)
+layout_mode = 2
+size_flags_horizontal = 3
+theme = ExtResource("8_xmd12")
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_constants/h_separation = 10
+theme_override_fonts/font = ExtResource("2_5dafd")
+theme_override_font_sizes/font_size = 40
+theme_override_styles/focus = SubResource("StyleBoxEmpty_rqwwl")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_yxggf")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_f80m2")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_jhep8")
+theme_override_constants/arrow_margin = 30
+flat = true
+selected = 0
+item_count = 2
+popup/item_0/text = "DEFAULT"
+popup/item_1/text = "FLAT"
+popup/item_1/id = 1
+
+[node name="TextureRect" type="TextureRect" parent="CreateWorldUI/ColorRect2/ScrollContainer/VBoxContainer/WorldType/OptionButton"]
+z_index = -1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("8_xmd12")
+texture = ExtResource("6_0c7fu")
+
+[node name="Gamemode" type="HSplitContainer" parent="CreateWorldUI/ColorRect2/ScrollContainer/VBoxContainer"]
+z_index = 1
+layout_mode = 2
+collapsed = true
+
+[node name="Title" type="Label" parent="CreateWorldUI/ColorRect2/ScrollContainer/VBoxContainer/Gamemode"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_fonts/font = ExtResource("2_5dafd")
+theme_override_font_sizes/font_size = 40
+text = "GAMEMODE"
+
+[node name="OptionButton" type="OptionButton" parent="CreateWorldUI/ColorRect2/ScrollContainer/VBoxContainer/Gamemode"]
+custom_minimum_size = Vector2(0, 70)
+layout_mode = 2
+size_flags_horizontal = 3
+theme = ExtResource("8_xmd12")
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_constants/h_separation = 10
+theme_override_fonts/font = ExtResource("2_5dafd")
+theme_override_font_sizes/font_size = 40
+theme_override_styles/focus = SubResource("StyleBoxEmpty_rqwwl")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_yxggf")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_f80m2")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_jhep8")
+theme_override_constants/arrow_margin = 30
+flat = true
+selected = 0
+item_count = 2
+popup/item_0/text = "SURVIVAL"
+popup/item_1/text = "CREATIVE"
+popup/item_1/id = 1
+
+[node name="TextureRect" type="TextureRect" parent="CreateWorldUI/ColorRect2/ScrollContainer/VBoxContainer/Gamemode/OptionButton"]
+z_index = -1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("8_xmd12")
+texture = ExtResource("6_0c7fu")
 
 [node name="GridContainer" type="GridContainer" parent="CreateWorldUI/ColorRect2"]
 layout_mode = 1

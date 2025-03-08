@@ -1,5 +1,11 @@
 extends CanvasLayer
 
+@onready var player_model = $Player/SubViewportContainer/SubViewport/PlayerModel
+@onready var player_model_mesh = $Player/SubViewportContainer/SubViewport/PlayerModel/Root/Skeleton3D/Mesh
+@onready var change_skin_file_dialog = $ChangeSkinFileDialog
+
+func _process(delta: float) -> void:
+	update_player_model()
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
@@ -17,6 +23,8 @@ func _ready() -> void:
 		TranslationServer.set_locale(StaticLoad.language)
 		var updated = config.get_value("options", "updated", "false")
 		var version = config.get_value("options", "version", "null")
+		var sound_volume = config.get_value("options", "sound_volume", 100)
+		StaticLoad.click_audio_player.volume_db = linear_to_db(int(sound_volume)/50.0)
 		if updated == "false" or version == "null" or version != StaticLoad.options["version"]:
 			StaticLoad.pop_big_notification(self, tr("RELEASE_NOTE"), tr("RELEASE_NOTE_TEXT"), tr("DO_NOT_SHOW_AGAIN"))
 			var server_path = "user://servers/"
@@ -38,6 +46,30 @@ func _ready() -> void:
 		DirAccess.make_dir_recursive_absolute(StaticLoad.server_path)
 	if not DirAccess.dir_exists_absolute(StaticLoad.server_log_path):
 		DirAccess.make_dir_recursive_absolute(StaticLoad.server_log_path)
+	StaticLoad.refresh_default_skin_path()
+	await get_tree().create_timer(0.01).timeout
+	refresh_player_model_skin()
+
+func update_player_model():
+	var mouse_pos = get_viewport().get_mouse_position()
+	var viewport_size = $Background.get_viewport_rect().size
+	var viewport_half_size = viewport_size/2.0
+	var target_pos = mouse_pos-viewport_half_size+Vector2(viewport_size[0]*0.375, 0)
+	player_model.look_at(Vector3(target_pos[0], -target_pos[1], 3250), Vector3.UP, true)
+
+func refresh_player_model_skin():
+	var player_texture = load(StaticLoad.default_skin_path) as Texture2D
+	var player_material = load("res://Assets/Materials/PlayerSkin.tres").duplicate(true)
+	var config = ConfigFile.new()
+	var result = config.load("user://configs.cfg")
+	if result == OK:
+		var skin_path = config.get_value("options", "skin_path")
+		if skin_path != "null":	
+			var player_texture_tmp = ImageTexture.create_from_image(Image.load_from_file(skin_path))
+			if player_texture_tmp != null:
+				player_texture = player_texture_tmp
+	player_material.albedo_texture = player_texture
+	player_model_mesh.mesh.surface_set_material(0, player_material)
 
 func _notification(what):
 	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
@@ -63,10 +95,29 @@ func _on_menu_button_4_pressed() -> void:
 	StaticLoad.change_scene("res://Assets/Scenes/Language.tscn")
 
 func _on_menu_button_5_pressed() -> void:
+	StaticLoad.click_audio_player.play()
+	StaticLoad.change_scene("res://Assets/Scenes/ResourcePack.tscn")
+
+func _on_menu_button_6_pressed() -> void:
 	var audio_stream_player = StaticLoad.click_audio_player
 	audio_stream_player.play()
 	await audio_stream_player.finished
 	get_tree().quit()
+
+func _on_menu_change_skin_button_pressed() -> void:
+	StaticLoad.click_audio_player.play()
+	change_skin_file_dialog.visible = true
+
+func _on_menu_clear_skin_button_pressed() -> void:
+	StaticLoad.click_audio_player.play()
+	var change_value = {
+		"skin_path": "null"
+	}
+	StaticLoad.save_options(change_value)
+	await get_tree().create_timer(0.01).timeout
+	StaticLoad.refresh_default_skin_path()
+	await get_tree().create_timer(0.01).timeout
+	refresh_player_model_skin()
 
 func _on_menu_help_button_pressed() -> void:
 	StaticLoad.click_audio_player.play()
@@ -75,3 +126,11 @@ func _on_menu_help_button_pressed() -> void:
 func _on_menu_info_button_pressed() -> void:
 	StaticLoad.click_audio_player.play()
 	StaticLoad.pop_big_notification(self, tr("RELEASE_NOTE"), tr("RELEASE_NOTE_TEXT"), tr("CLOSE"))
+
+func _on_change_skin_file_dialog_file_selected(path: String) -> void:
+	var change_value = {
+		"skin_path": path
+	}
+	StaticLoad.save_options(change_value)
+	await get_tree().create_timer(0.01).timeout
+	refresh_player_model_skin()

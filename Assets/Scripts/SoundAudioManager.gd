@@ -33,6 +33,9 @@ extends Node2D
 @onready var dig_wood1 = load("res://Assets//Sounds//Dig//wood1.mp3") as AudioStream
 @onready var dig_wood2 = load("res://Assets//Sounds//Dig//wood2.mp3") as AudioStream
 @onready var dig_wood3 = load("res://Assets//Sounds//Dig//wood3.mp3") as AudioStream
+@onready var dig_glass1 = load("res://Assets//Sounds//Random//glass1.mp3") as AudioStream
+@onready var dig_glass2 = load("res://Assets//Sounds//Random//glass2.mp3") as AudioStream
+@onready var dig_glass3 = load("res://Assets//Sounds//Random//glass3.mp3") as AudioStream
 @onready var dig_wood4 = load("res://Assets//Sounds//Dig//wood4.mp3") as AudioStream
 @onready var step_cloth1 = load("res://Assets//Sounds//Step//cloth1.mp3") as AudioStream
 @onready var step_cloth2 = load("res://Assets//Sounds//Step//cloth2.mp3") as AudioStream
@@ -85,6 +88,7 @@ var dig_sand_sound_list = []
 var dig_snow_sound_list = []
 var dig_stone_sound_list = []
 var dig_wood_sound_list = []
+var dig_glass_sound_list = []
 var step_cloth_sound_list = []
 var step_grass_sound_list = []
 var step_gravel_sound_list = []
@@ -106,6 +110,7 @@ func _ready() -> void:
 	dig_snow_sound_list = [dig_snow1, dig_snow2, dig_snow3, dig_snow4]
 	dig_stone_sound_list = [dig_stone1, dig_stone2, dig_stone3, dig_stone4]
 	dig_wood_sound_list = [dig_wood1, dig_wood2, dig_wood3, dig_wood4]
+	dig_glass_sound_list = [dig_glass1, dig_glass2, dig_glass3]
 		
 	step_cloth_sound_list = [step_cloth1, step_cloth2, step_cloth3, step_cloth4]
 	step_grass_sound_list = [step_grass1, step_grass2, step_grass3, step_grass4, step_grass5, step_grass6]
@@ -122,6 +127,7 @@ func _ready() -> void:
 
 func play_audio_static(type, sub_type):
 	var audio_player = AudioStreamPlayer.new()
+	audio_player.volume_db = volume_db
 	if type == "gui":
 		if sub_type == "select":
 			audio_player.stream = select
@@ -132,7 +138,7 @@ func play_audio_static(type, sub_type):
 	add_child(audio_player)
 	audio_player.play()
 
-func play_random_audio_at_position(type, sub_type, sound_position: Vector2) -> void:
+func play_random_audio_at_position(type, sub_type, sound_position: Vector2, pitch_scale: float) -> void:
 	var sound_list = []
 	if type == "dig":
 		if sub_type == "cloth":
@@ -149,6 +155,8 @@ func play_random_audio_at_position(type, sub_type, sound_position: Vector2) -> v
 			sound_list = dig_stone_sound_list
 		elif sub_type == "wood":
 			sound_list = dig_wood_sound_list
+		elif sub_type == "glass":
+			sound_list = dig_glass_sound_list
 	elif type == "damage":
 		if sub_type == "fallsmall":
 			sound_list = damage_fallsmall_sound_list
@@ -176,13 +184,16 @@ func play_random_audio_at_position(type, sub_type, sound_position: Vector2) -> v
 			sound_list = step_stone_sound_list
 		elif sub_type == "wood":
 			sound_list = step_wood_sound_list
+		elif sub_type == "glass":
+			sound_list = step_stone_sound_list
 	if sound_list.is_empty():
 		return
 	var sound = sound_list[randi() % sound_list.size()]
-	play_audio_at_position(sound, sound_position)
+	play_audio_at_position(sound, sound_position, pitch_scale)
 	
-func play_audio_at_position(audio:AudioStream ,sound_position: Vector2) -> void:
+func play_audio_at_position(audio:AudioStream ,sound_position: Vector2, pitch_scale: float) -> void:
 	var audio_player = AudioStreamPlayer2D.new()
+	audio_player.pitch_scale = pitch_scale
 	audio_player.stream = audio
 	audio_player.position = sound_position
 	audio_player.panning_strength = 3

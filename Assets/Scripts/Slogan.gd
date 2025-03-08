@@ -1,6 +1,6 @@
 extends Label
 
-const slogan_num:int = 3
+const slogan_num:int = 4
 
 func _ready():
 	text = "SLOGAN_" + str(randi_range(1,slogan_num))
