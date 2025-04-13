@@ -46,9 +46,9 @@ func _ready() -> void:
 		DirAccess.make_dir_recursive_absolute(StaticLoad.server_path)
 	if not DirAccess.dir_exists_absolute(StaticLoad.server_log_path):
 		DirAccess.make_dir_recursive_absolute(StaticLoad.server_log_path)
-	StaticLoad.refresh_default_skin_path()
+	StaticLoad.update_default_skin_path()
 	await get_tree().create_timer(0.01).timeout
-	refresh_player_model_skin()
+	update_player_model_skin()
 
 func update_player_model():
 	var mouse_pos = get_viewport().get_mouse_position()
@@ -57,7 +57,7 @@ func update_player_model():
 	var target_pos = mouse_pos-viewport_half_size+Vector2(viewport_size[0]*0.375, 0)
 	player_model.look_at(Vector3(target_pos[0], -target_pos[1], 3250), Vector3.UP, true)
 
-func refresh_player_model_skin():
+func update_player_model_skin():
 	var player_texture = load(StaticLoad.default_skin_path) as Texture2D
 	var player_material = load("res://Assets/Materials/PlayerSkin.tres").duplicate(true)
 	var config = ConfigFile.new()
@@ -115,9 +115,9 @@ func _on_menu_clear_skin_button_pressed() -> void:
 	}
 	StaticLoad.save_options(change_value)
 	await get_tree().create_timer(0.01).timeout
-	StaticLoad.refresh_default_skin_path()
+	StaticLoad.update_default_skin_path()
 	await get_tree().create_timer(0.01).timeout
-	refresh_player_model_skin()
+	update_player_model_skin()
 
 func _on_menu_help_button_pressed() -> void:
 	StaticLoad.click_audio_player.play()
@@ -133,4 +133,4 @@ func _on_change_skin_file_dialog_file_selected(path: String) -> void:
 	}
 	StaticLoad.save_options(change_value)
 	await get_tree().create_timer(0.01).timeout
-	refresh_player_model_skin()
+	update_player_model_skin()

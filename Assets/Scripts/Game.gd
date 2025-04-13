@@ -80,14 +80,17 @@ extends Node2D
 @onready var delete_tab_panel = $GameUI/InventoryUI/Panel/DeleteTabPanel
 
 var is_mouse_motion_updated = false
-var is_mouse_left_pressed = false
-var is_mouse_right_pressed = false
 var destroy_light_names = {}
 var mouse_item_name = "AIR"
 var mouse_item_amount = 0
 var light_thread = Thread.new()
 var item_thread = Thread.new()
 var refresh_thread = Thread.new()
+var tick_cycle_thread = Thread.new()
+var dispatch_thread = Thread.new()
+var set_block_thread = Thread.new()
+var success_set_block_dict = {}
+var fail_set_block_list = []
 var player_icons = {}
 var mouse_item_name_label
 var touch_list = []
@@ -130,19 +133,9 @@ var last_left_time = 0.0
 var last_right_time = 0.0
 var last_jump_time = 0.0
 var drop_timer = 0.0
-var last_player_state = {
-	"face_state": StaticLoad.DEFAULT_PLAYER_FACE_STATE,
-	"move_state": "idle",
-	"is_jump_pressed": false,
-	"is_down_pressed": false,
-	"is_flying": false,
-	"render_chunk": 0,
-	"gamemode": "survival",
-	"selected_block_pos": Vector2i(0, 0),
-	"destroy_timer": 0,
-	"selected_item_grid": 0
-}
-var resource_pack = StaticLoad.DEFAULT_RESOURCE_PACK
+var resource_pack = StaticLoad.default_resource_pack
+var tick_timer: float = 0
+var set_block_list = []
 
 func _notification(what):
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
@@ -167,19 +160,20 @@ func _notification(what):
 			if pause_ui.visible:
 				is_input_frozen = true
 				move_input_list.clear()
-				player.stop_player_move()
-				if StaticLoad.is_muti_mode:
-					player.rpc("remote_stop_player_move")
+				player.stop_move()
 			Input.emulate_mouse_from_touch = true
 
 func _exit_tree():
 	light_thread.wait_to_finish()
+	item_thread.wait_to_finish()
+	refresh_thread.wait_to_finish()
+	tick_cycle_thread.wait_to_finish()
+	dispatch_thread.wait_to_finish()
+	set_block_thread.wait_to_finish()
 
 func _ready() -> void:
-	StaticLoad.update_game()
-	StaticLoad.update_path()
-	if not StaticLoad.is_dedicated_server:
-		light_thread.start(process_light)
+	StaticLoad.update_game_node()
+	StaticLoad.update_select_world_path()
 	if StaticLoad.is_on_mobile_platform:
 		mobile_ui.visible = true
 		Input.emulate_mouse_from_touch = false
@@ -201,46 +195,188 @@ func _ready() -> void:
 			create_player()
 
 func _process(delta: float) -> void:
-	refresh_game(delta)
-	update_loaded_chunks_timer(delta)
+	# 服务器和本地均更新
+	update_local_player_nearby_chunk()
+	remove_outdated_chunks()
 	
 	if StaticLoad.is_dedicated_server:
 		return
-		
+	
+	# 本地更新
 	update_inventroy_player_model()
-	check_emulate_mouse_from_touch()
-	update_details(false)
-	update_player_state()
+	update_game_details()
+	update_local_player_data()
 	update_mini_map()
-	show_item_name(delta)
-	update_block_selection_timer(delta)
-	if not StaticLoad.is_on_mobile_platform:
-		update_block_selection_ui(get_local_mouse_position())
-	update_mouse_action(delta)
+	update_item_bar_text()
+	update_block_selection()
 	update_destroy_ui()
-	update_last_mouse_in_world_pos()
+	process_mouse_action()
 	process_touch_input()
-	update_drop_timer(delta)
+	process_drop_action()
+	rectify_emulate_mouse_from_touch()
 
-func update_drop_timer(delta):
+func process_tick_cycle():
+	while(true):
+		await get_tree().create_timer(StaticLoad.spt).timeout
+		pass
+
+func process_dispatch():
+	while(true):
+		await get_tree().create_timer(0.01).timeout
+		dispatch_all_entity_state_dict()
+		dispatch_set_block_state_dict()	
+
+func process_set_block():
+	while(true):
+		await get_tree().create_timer(0.001).timeout
+		if set_block_list.is_empty():
+			continue
+		var success_set_block_dict_tmp = {}
+		var fail_set_block_list_tmp = []
+		for set_block_info in set_block_list.duplicate():
+			var set_time = set_block_info[0]
+			var uuid = set_block_info[1]
+			var set_block_id = set_block_info[2]
+			var set_block_pos = set_block_info[3]
+			var set_block_layer = set_block_info[4]
+			var is_to_sync = set_block_info[5]
+			var pos_string = str(set_block_pos[0])+"_"+str(set_block_pos[1])
+			if success_set_block_dict_tmp.has(pos_string):
+				if set_block_layer == success_set_block_dict_tmp[pos_string][4]:
+					if set_time < success_set_block_dict_tmp[pos_string][0]:
+						success_set_block_dict_tmp[pos_string][2] = set_block_id
+						success_set_block_dict_tmp[pos_string][3] = set_block_pos
+						success_set_block_dict_tmp[pos_string][4] = set_block_layer
+						fail_set_block_list_tmp.append(success_set_block_dict_tmp[pos_string])
+						success_set_block_dict_tmp[pos_string] = set_block_info
+					else:
+						set_block_info[2] = success_set_block_dict_tmp[pos_string][2]
+						set_block_info[3] = success_set_block_dict_tmp[pos_string][3]
+						set_block_info[4] = success_set_block_dict_tmp[pos_string][4]
+						fail_set_block_list_tmp.append(set_block_info)
+			else:
+				success_set_block_dict_tmp[pos_string] = set_block_info
+			set_block_list.erase(set_block_info)
+		success_set_block_dict.merge(success_set_block_dict_tmp, true)
+		fail_set_block_list.append_array(fail_set_block_list_tmp)
+		for pos_string in success_set_block_dict_tmp:
+			var set_time = success_set_block_dict_tmp[pos_string][0]
+			var uuid = success_set_block_dict_tmp[pos_string][1]
+			var set_block_id = success_set_block_dict_tmp[pos_string][2]
+			var set_block_pos = success_set_block_dict_tmp[pos_string][3]
+			var set_block_layer = success_set_block_dict_tmp[pos_string][4]
+			var is_to_sync = success_set_block_dict_tmp[pos_string][5]
+			var chunk_pos = get_chunk_position(set_block_pos)
+			var block_to_destroy_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(set_block_pos))
+			if block_to_destroy_id == 0:
+				block_to_destroy_id = StaticLoad.get_block_id_by_atlas_coords(no_reach_tile_map_layer.get_cell_atlas_coords(set_block_pos))
+			var droppped_item_name = StaticLoad.get_dropped_item_by_name(StaticLoad.get_block_name_by_id(block_to_destroy_id))
+			if set_block(set_block_pos, set_block_id, set_block_layer):
+				if not player.is_frozen:
+					if chunk_lights.has(str(chunk_pos[0])+"."+str(chunk_pos[1])):
+						if not chunk_light_to_process.has(str(chunk_pos[0])+"."+str(chunk_pos[1])):
+							chunk_light_to_process[str(chunk_pos[0])+"."+str(chunk_pos[1])] = "update"
+						else:
+							chunk_light_to_process_double[str(chunk_pos[0])+"."+str(chunk_pos[1])] = "update"
+					else:
+						chunk_light_to_process[str(chunk_pos[0])+"."+str(chunk_pos[1])] = "create"
+				#if StaticLoad.is_on_mobile_platform:
+					#Input.vibrate_handheld(100, 0.5)
+				if loaded_chunks.has(str(chunk_pos[0])+"."+str(chunk_pos[1])):
+					loaded_chunks[str(chunk_pos[0])+"."+str(chunk_pos[1])] = true
+					loaded_chunks_timer[str(chunk_pos[0])+"."+str(chunk_pos[1])] = StaticLoad.CHUNK_FREE_TIME
+				var entity = entities[uuid]
+				if entity.get_entity_type() == "player":
+					if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == entity.player_peer_id):
+						set_block_selection_pos(tile_map_layer.map_to_local(set_block_pos), true)
+					if set_block_id == 0 and entity.gamemode != "creative":
+						if droppped_item_name != "AIR":
+							var item_pos = tile_map_layer.map_to_local(set_block_pos)+Vector2(0, 25)
+							var summon_item_args = [droppped_item_name, item_pos, 1, 0, 0, UUID.v4()]
+							if StaticLoad.is_muti_mode:
+								if StaticLoad.multiplayer.get_unique_id() == 1:
+									entity.summon_item(summon_item_args)
+									StaticLoad.rpc_entity_func_by_uuid(entity.get_uuid(), "summon_item", summon_item_args, "others", true)
+							else:
+								entity.summon_item(summon_item_args)
+						entity.destroy_timer = 0
+						if destroy_light_names.has(entity.player_peer_id):
+							var old_destroy_light = destroy_light_names[entity.player_peer_id]
+							destroy_light_names.erase(entity.player_peer_id)
+							old_destroy_light.queue_free()
+					elif set_block_id != 0:
+						if entity.gamemode != "creative":
+							if entity.item_bar_amounts[entity.selected_item_grid] >= 1:
+								entity.item_bar_amounts[entity.selected_item_grid] -= 1
+							if entity.item_bar_amounts[entity.selected_item_grid] <= 0:
+								entity.item_bar_names[entity.selected_item_grid] = "AIR"
+								entity.item_bar_amounts[entity.selected_item_grid] = 0
+								item_name_timer = 0
+							refresh_item_grid(entity.selected_item_grid)
+							inventory_show_grids.get_node("InventoryGrid"+str(entity.selected_item_grid)).init_inventory_grid(entity.item_bar_names[entity.selected_item_grid], entity.item_bar_amounts[entity.selected_item_grid])
+					if is_to_sync and StaticLoad.multiplayer.get_unique_id() != 1:
+						if StaticLoad.multiplayer.get_unique_id() == entity.player_peer_id:
+							var player_set_block_info = [set_block_id, set_block_pos, set_block_layer]
+							entity.success_set_block_list.append(player_set_block_info)
+
+func dispatch_set_block_state_dict():
+	if not StaticLoad.is_muti_mode:
+		return
+	if not StaticLoad.multiplayer.get_unique_id() == 1:
+		return
+	for pos_string in success_set_block_dict:
+		var set_time = success_set_block_dict[pos_string][0]
+		var uuid = success_set_block_dict[pos_string][1]
+		var set_block_id = success_set_block_dict[pos_string][2]
+		var set_block_pos = success_set_block_dict[pos_string][3]
+		var set_block_layer = success_set_block_dict[pos_string][4]
+		var is_to_sync = success_set_block_dict[pos_string][5]
+		var except_player_id_list = []
+		if entities[uuid].get_entity_type() == "player":
+			except_player_id_list.append(entities[uuid].player_peer_id)
+		StaticLoad.rpc_entity_func_by_uuid(uuid, "set_block", [set_block_id, set_block_pos, set_block_layer], except_player_id_list, false)
+		success_set_block_dict.erase(pos_string)
+	
+	for fail_info in fail_set_block_list:
+		var set_time = fail_info[0]
+		var uuid = fail_info[1]
+		var set_block_id = fail_info[2]
+		var set_block_pos = fail_info[3]
+		var set_block_layer = fail_info[4]
+		var is_to_sync = fail_info[5]
+		if entities[uuid].get_entity_type() == "player":
+			var player_tmp = entities[uuid]
+			var item_bar_names = player_tmp.item_bar_names
+			var item_bar_amounts = player_tmp.item_bar_amounts
+			StaticLoad.rpc_entity_func_by_uuid(uuid, "fail_set_block", [set_block_id, set_block_pos, set_block_layer, item_bar_names, item_bar_amounts], [player_tmp.player_peer_id], true)
+		fail_set_block_list.erase(fail_info)
+
+func process_drop_action():
 	var selected_item_grid_tmp = player.selected_item_grid
 	if player.item_bar_names[selected_item_grid_tmp] == "AIR":
 		return
 	if Input.is_action_pressed("drop_item"):
-		drop_timer += delta
+		drop_timer += get_process_delta_time()
 	if drop_timer > StaticLoad.DROP_ALL_TIME:
 		player.drop_item(player.item_bar_names[selected_item_grid_tmp], player.item_bar_amounts[selected_item_grid_tmp])
 		player.item_bar_amounts[selected_item_grid_tmp] = 0
 		player.item_bar_names[selected_item_grid_tmp] = "AIR"
-		player.switch_item_in_hand()
 		StaticLoad.game.refresh_item_grid(selected_item_grid_tmp)
 		inventory_show_grids.get_node("InventoryGrid"+str(selected_item_grid_tmp)).init_inventory_grid(player.item_bar_names[selected_item_grid_tmp], player.item_bar_amounts[selected_item_grid_tmp])
 		sound_audio_manager.play_audio_static("player", "pop")
 		drop_timer = 0
 
+func update_health_bar():
+	if player.gamemode == "creative":
+		health_bar.visible = false
+	elif player.gamemode == "survival":
+		health_bar.visible = true
+	if player.is_flying:
+		player.is_flying = false
+	
 func process_light():
 	while(true):
-		await get_tree().create_timer(0.001).timeout
+		await get_tree().create_timer(0.01).timeout
 		var chunk_light_to_process_tmp = chunk_light_to_process.duplicate()
 		if chunk_light_to_process_tmp.is_empty():
 			if not chunk_light_to_process_double.is_empty():
@@ -274,17 +410,21 @@ func process_light():
 
 func process_refresh():
 	while(true):
-		await get_tree().create_timer(0.01).timeout
+		await get_tree().create_timer(0.05).timeout
 		if refresh_to_process.is_empty():
 			continue
 		if refresh_to_process[0] == "refresh_item_grid":
 			for i in range(9):
-				StaticLoad.game.refresh_item_grid(i)
+				refresh_item_grid(i)
+			refresh_to_process.pop_front()
+		elif refresh_to_process[0] == "refresh_inventory":
+			refresh_inventory()
 			refresh_to_process.pop_front()
 		elif refresh_to_process[0] == "refresh_item_name_label":
 			item_name_label.text = player.item_bar_names[player.selected_item_grid]
 			item_name_timer = StaticLoad.ITEM_NAME_SHOW_TIME
 			refresh_to_process.pop_front()
+
 func process_item():
 	while(true):
 		await get_tree().create_timer(0.001).timeout
@@ -300,19 +440,37 @@ func process_item():
 			item1.combine_item(item2_uuid)
 			item_to_combine.erase(item1_uuid)
 			if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == 1:
-				item1.rpc("remote_combine_item", item2_uuid)
+				StaticLoad.rpc_entity_func_by_uuid(item1.get_uuid(), "combine_item", item2_uuid, "others", true)
 
-func force_update_all_player_pos():
-	for peer_id in StaticLoad.online_peer_ids:
-		var player_tmp = StaticLoad.online_peer_ids[peer_id]
+func dispatch_all_entity_state_dict():
+	if not StaticLoad.is_muti_mode:
+		return
+	if not StaticLoad.multiplayer.get_unique_id() == 1:
+		return
+	for peer_id in StaticLoad.player_peer_dict:
+		var player_tmp = StaticLoad.player_peer_dict[peer_id]
 		if player_tmp.is_frozen:
 			continue
-		if player_tmp.velocity.length() > StaticLoad.FLOAT_DELTA:
-			for peer_id_tmp in StaticLoad.online_peer_ids:
-				if peer_id_tmp == 1 or peer_id_tmp == player_tmp.player_peer_id:
-					continue
-				player_tmp.rpc_id(peer_id_tmp, "reply_for_set_self_player_position", player_tmp.position)
-				player_tmp.rpc_id(peer_id_tmp, "reply_for_update_player_velocity", player_tmp.velocity)
+		if not player_tmp.changed_state_dict.is_empty():
+			player_tmp.rectify_changed_state_dict()
+			if not player_tmp.player_peer_id == 1:
+				player_tmp.apply_changed_state_dict(player_tmp.changed_state_dict)
+			StaticLoad.rpc_entity_func_by_uuid(player_tmp.get_uuid(), "apply_changed_state_dict", player_tmp.changed_state_dict, [player_tmp.player_peer_id], false)
+			player_tmp.changed_state_dict.clear()
+		if not player_tmp.only_server_change_state_dict.is_empty():
+			StaticLoad.rpc_entity_func_by_uuid(player_tmp.get_uuid(), "apply_changed_state_dict", player_tmp.only_server_change_state_dict, "others", true)
+			player_tmp.only_server_change_state_dict.clear()
+	for key in entities:
+		var entity = entities[key]
+		if entity == null:
+			entities.erase(key)
+			continue
+		if entity.get_entity_type() == "player":
+			continue
+		if not entity.changed_state_dict.is_empty():
+			entity.rectify_changed_state_dict()
+			StaticLoad.rpc_entity_func_by_uuid(entity.get_uuid(), "apply_changed_state_dict", entity.changed_state_dict, "others", true)
+			entity.changed_state_dict.clear()
 
 func update_mini_map():
 	mini_map_camera.position = player.camera.get_screen_center_position()
@@ -325,16 +483,16 @@ func update_mini_map():
 func open_online_info_ui():
 	is_online_info = true
 	online_ui.visible = true
-	for peer_id in StaticLoad.online_peer_ids:
+	for peer_id in StaticLoad.player_peer_dict:
 		if online_ui_vbox_container.has_node(str(peer_id)):
 			if peer_id == 1 and StaticLoad.multiplayer.get_unique_id() == 1:
 				continue
 			elif StaticLoad.multiplayer.get_unique_id() == 1:
-				StaticLoad.online_peer_pings[peer_id].start_ping()
+				StaticLoad.ping_peer_dict[peer_id].start_ping()
 				continue
 			StaticLoad.rpc_id(1, "request_for_ping", StaticLoad.multiplayer.get_unique_id(), peer_id)
 			continue
-		var player_tmp = StaticLoad.online_peer_ids[peer_id]
+		var player_tmp = StaticLoad.player_peer_dict[peer_id]
 		var online_info_instance = online_info_scene.instantiate()
 		online_ui_vbox_container.add_child(online_info_instance)
 		online_info_instance.name = str(peer_id)
@@ -343,7 +501,7 @@ func open_online_info_ui():
 			online_info_instance.animation.animation = "signal"
 			online_info_instance.animation.frame = StaticLoad.get_level_by_ping(0)
 		elif StaticLoad.multiplayer.get_unique_id() == 1:
-			StaticLoad.online_peer_pings[peer_id].start_ping()
+			StaticLoad.ping_peer_dict[peer_id].start_ping()
 		else:
 			StaticLoad.rpc_id(1, "request_for_ping", StaticLoad.multiplayer.get_unique_id(), peer_id)
 
@@ -355,12 +513,11 @@ func screenshot():
 	image.save_png(save_path)
 	broadcast_to_person(player.player_name, tr("SCREENSHOT_SAVED")+screenshot_name+".png")
 	
-
 @warning_ignore("unused_parameter")
 func _input(event: InputEvent) -> void:
 	
 	if event is InputEventMouseMotion and not is_input_frozen and not player.is_dead:
-		update_block_selection_ui(get_local_mouse_position(), true)
+		set_block_selection_pos(get_local_mouse_position(), true)
 	
 	if Input.is_action_just_pressed("esc"):
 		if is_chat:
@@ -373,23 +530,21 @@ func _input(event: InputEvent) -> void:
 				mobile_ui.visible = true
 			item_bar_panel.visible = true
 			move_input_list.clear()
-			player.stop_player_move()
+			player.stop_move()
 			is_map = false
 			is_input_frozen = false
 		elif is_inventory:
 			inventory_ui.visible = false
 			is_input_frozen = false
 			is_inventory = false
-			player.stop_player_move()
+			player.stop_move()
 		else:
 			pause_ui.visible = !pause_ui.visible
 			is_pause = pause_ui.visible
 			is_input_frozen = is_pause
 			if pause_ui.visible:
 				move_input_list.clear()
-				player.stop_player_move()
-				if StaticLoad.is_muti_mode:
-					player.rpc("remote_stop_player_move")
+				player.stop_move()
 	
 	if Input.is_action_just_pressed("inventory"):
 		if is_pause:
@@ -402,7 +557,7 @@ func _input(event: InputEvent) -> void:
 				mobile_ui.visible = true
 			item_bar_panel.visible = true
 			move_input_list.clear()
-			player.stop_player_move()
+			player.stop_move()
 			is_map = false
 			is_input_frozen = false
 		elif is_inventory:
@@ -410,13 +565,14 @@ func _input(event: InputEvent) -> void:
 			is_input_frozen = false
 			is_inventory = false
 			move_input_list.clear()
-			player.stop_player_move()
+			player.stop_move()
 		elif not is_chat:
 			is_input_frozen = true
 			inventory_ui.visible = true
 			is_inventory = true
+			refresh_inventory()
 			move_input_list.clear()
-			player.stop_player_move()
+			player.stop_move()
 	
 	if Input.is_action_just_pressed("open_map"):
 		if is_pause or is_chat or is_inventory:
@@ -429,9 +585,7 @@ func _input(event: InputEvent) -> void:
 				mobile_ui.visible = true
 			item_bar_panel.visible = true
 			move_input_list.clear()
-			player.stop_player_move()
-			if StaticLoad.is_muti_mode:
-				player.rpc("remote_stop_player_move")
+			player.stop_move()
 			is_map = false
 			is_input_frozen = false
 		else:
@@ -442,9 +596,7 @@ func _input(event: InputEvent) -> void:
 				mobile_ui.visible = false
 			item_bar_panel.visible = false
 			move_input_list.clear()
-			player.stop_player_move()
-			if StaticLoad.is_muti_mode:
-				player.rpc("remote_stop_player_move")
+			player.stop_move()
 			is_map = true
 			is_input_frozen = true
 	
@@ -464,9 +616,7 @@ func _input(event: InputEvent) -> void:
 			
 	if Input.is_action_just_pressed("chat"):
 		move_input_list.clear()
-		player.stop_player_move()
-		if StaticLoad.is_muti_mode:
-			player.rpc("remote_stop_player_move")
+		player.stop_move()
 		is_input_frozen = true
 		is_chat = true
 		chat_message_out.visible = false
@@ -484,9 +634,7 @@ func _input(event: InputEvent) -> void:
 	
 	if Input.is_action_just_pressed("chat_slash"):
 		move_input_list.clear()
-		player.stop_player_move()
-		if StaticLoad.is_muti_mode:
-			player.rpc("remote_stop_player_move")
+		player.stop_move()
 		is_input_frozen = true
 		is_chat = true
 		chat_message_out.visible = false
@@ -531,7 +679,6 @@ func _input(event: InputEvent) -> void:
 			if player.item_bar_amounts[selected_item_grid_tmp] <= 0:
 				player.item_bar_names[selected_item_grid_tmp] = "AIR"
 				player.item_bar_amounts[selected_item_grid_tmp] = 0
-				player.switch_item_in_hand()
 			StaticLoad.game.refresh_item_grid(selected_item_grid_tmp)
 			inventory_show_grids.get_node("InventoryGrid"+str(selected_item_grid_tmp)).init_inventory_grid(player.item_bar_names[selected_item_grid_tmp], player.item_bar_amounts[selected_item_grid_tmp])
 		
@@ -552,20 +699,20 @@ func process_touch_input():
 		if touch.double_tap:
 			var block_pos = tile_map_layer.local_to_map(camera_screen_pos_to_local_pos(player.camera, touch.position))
 			if check_place_block_state(block_pos, StaticLoad.get_block_id_by_name(player.item_bar_names[player.selected_item_grid])):
-				place_block(block_pos)
+				player.place_block(block_pos)
 			grab_item(block_pos)
 		else:
 			var pressed_time = touch_time_counters.get_node(str(touch.index)).timer
 			if pressed_time >= StaticLoad.LONG_TOUCH_TIME:
-				destroy_block(tile_map_layer.local_to_map(camera_screen_pos_to_local_pos(player.camera, touch.position)))
+				player.destroy_block(tile_map_layer.local_to_map(camera_screen_pos_to_local_pos(player.camera, touch.position)))
 
 func check_place_block_state(block_pos, block_id):
 	if StaticLoad.get_is_untouchable_by_id(block_id):
 		return true
-	for id in StaticLoad.online_peer_ids:
-		var player_tmp = StaticLoad.online_peer_ids[id]
+	for id in StaticLoad.player_peer_dict:
+		var player_tmp = StaticLoad.player_peer_dict[id]
 		if player_tmp == null:
-			StaticLoad.online_peer_ids.erase(id)
+			StaticLoad.player_peer_dict.erase(id)
 			continue
 		var player_pos = tile_map_layer.local_to_map(player_tmp.position - Vector2(0, 0.1))
 		if player_pos == block_pos:
@@ -629,7 +776,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			if pressed_time < StaticLoad.LONG_TOUCH_TIME:
 				var block_pos = tile_map_layer.local_to_map(camera_screen_pos_to_local_pos(player.camera, event.position))
 				if check_place_block_state(block_pos, StaticLoad.get_block_id_by_name(player.item_bar_names[player.selected_item_grid])):
-					place_block(block_pos)
+					player.place_block(block_pos)
 			var touch_to_remove_index
 			for i in range(touch_list.size()):
 				if touch_list[i].index == event.index:
@@ -646,51 +793,25 @@ func _unhandled_input(event: InputEvent) -> void:
 			if touch.index == event.index:
 				touch.position = event.position
 				break
-			
-	if event is InputEventMouseButton:
-		if event.button_index == 1:
-			is_mouse_left_pressed = event.pressed
-		elif event.button_index == 2:
-			is_mouse_right_pressed = event.pressed
+
 	if event is InputEventMouseMotion:
 		is_mouse_motion_updated = true
-	
-	#var mouse_in_world_pos = tile_map_layer.get_local_mouse_position()
-	#var mouse_to_block_pos = tile_map_layer.local_to_map(mouse_in_world_pos)
-	#if mouse_in_world_pos != last_mouse_in_world_pos and Input.is_action_pressed("mouse_left") and not Input.is_action_pressed("mouse_right"):
-		#if not player.is_dead:
-			#destroy_block(mouse_to_block_pos)
-	#
-	#if mouse_in_world_pos != last_mouse_in_world_pos and Input.is_action_pressed("mouse_right") and not Input.is_action_pressed("mouse_left"):
-		#if not player.is_dead and check_place_block_state(mouse_to_block_pos, StaticLoad.get_block_id_by_name(player.item_bar_names[player.selected_item_grid])):
-			#place_block(mouse_to_block_pos)
 
-func update_mouse_action(delta):
+func process_mouse_action():
 	if player.is_dead:
 		return
 	var mouse_in_world_pos = tile_map_layer.get_local_mouse_position()
 	var mouse_to_block_pos = tile_map_layer.local_to_map(mouse_in_world_pos)
-	if is_mouse_left_pressed and not is_mouse_right_pressed:
-		if player.gamemode == "creative":
-			if destroy_block(mouse_to_block_pos):
-				player.punch()
-		else:
-			player.destroy_timer += delta
-	elif is_mouse_right_pressed and not is_mouse_left_pressed:
-		if place_block(mouse_to_block_pos):
-			player.punch()
-			if player.gamemode != "creative":
-				if player.item_bar_amounts[player.selected_item_grid] >= 1:
-					player.item_bar_amounts[player.selected_item_grid] -= 1
-				if player.item_bar_amounts[player.selected_item_grid] <= 0:
-					player.item_bar_names[player.selected_item_grid] = "AIR"
-					player.item_bar_amounts[player.selected_item_grid] = 0
-					item_name_timer = 0
-				player.switch_item_in_hand()
-				refresh_item_grid(player.selected_item_grid)
-				inventory_show_grids.get_node("InventoryGrid"+str(player.selected_item_grid)).init_inventory_grid(player.item_bar_names[player.selected_item_grid], player.item_bar_amounts[player.selected_item_grid])
+	if not is_pause and not is_chat and not is_inventory:
+		if Input.is_mouse_button_pressed(1) and not Input.is_mouse_button_pressed(2):
+			if player.gamemode == "creative":
+				player.destroy_block(mouse_to_block_pos)
+			else:
+				player.destroy_timer += get_process_delta_time()
+		elif Input.is_mouse_button_pressed(2) and not Input.is_mouse_button_pressed(1):
+			player.place_block(mouse_to_block_pos)
 	
-	if not is_mouse_left_pressed:
+	if not StaticLoad.is_on_mobile_platform and not Input.is_mouse_button_pressed(1):
 		player.destroy_timer = 0
 		if destroy_light_names.has(player.player_peer_id):
 			var old_destroy_light = destroy_light_names[player.player_peer_id]
@@ -704,8 +825,10 @@ func update_mouse_action(delta):
 				var old_destroy_light = destroy_light_names[player.player_peer_id]
 				destroy_light_names.erase(player.player_peer_id)
 				old_destroy_light.queue_free()
+		is_mouse_motion_updated = false
+	last_mouse_in_world_pos = mouse_in_world_pos
 
-func refresh_resource_pack():
+func update_resource_pack():
 	tile_map_layer.tile_set = load("res://Assets/TileSets/"+str(resource_pack)+".tres") as TileSet
 	back_tile_map_layer.tile_set = load("res://Assets/TileSets/"+str(resource_pack)+".tres") as TileSet
 	no_reach_tile_map_layer.tile_set = load("res://Assets/TileSets/"+str(resource_pack)+".tres") as TileSet
@@ -724,11 +847,11 @@ func init_inventory_tabs():
 			tab_panel.dark_mask.visible = false
 
 func update_destroy_ui():
-	for peer_id in StaticLoad.online_peer_ids:
-		if StaticLoad.online_peer_ids[peer_id] == null:
-			StaticLoad.online_peer_ids.erase(peer_id)
+	for peer_id in StaticLoad.player_peer_dict:
+		if StaticLoad.player_peer_dict[peer_id] == null:
+			StaticLoad.player_peer_dict.erase(peer_id)
 			continue
-		var player_tmp = StaticLoad.online_peer_ids[peer_id]
+		var player_tmp = StaticLoad.player_peer_dict[peer_id]
 		var player_selected_block_pos = player_tmp.selected_block_pos
 		var atlas_coords = tile_map_layer.get_cell_atlas_coords(player_selected_block_pos)
 		var block_id = StaticLoad.get_block_id_by_atlas_coords(atlas_coords)
@@ -737,7 +860,7 @@ func update_destroy_ui():
 			block_id = StaticLoad.get_block_id_by_atlas_coords(atlas_coords)
 			if block_id == 0:
 				continue
-		var destroy_timer_tmp = StaticLoad.online_peer_ids[peer_id].destroy_timer
+		var destroy_timer_tmp = StaticLoad.player_peer_dict[peer_id].destroy_timer
 		if destroy_timer_tmp <= 0:
 			if destroy_light_names.has(peer_id):
 				var old_destroy_light = destroy_light_names[peer_id]
@@ -752,43 +875,21 @@ func update_destroy_ui():
 		if destroy_total_time < 0:
 			continue
 		var destroy_sort = int((destroy_timer_tmp/destroy_total_time)*8)+1
-		if player_tmp.destroy_timer != destroy_timer_tmp:
-			if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == player_tmp.player_peer_id:
-				player_tmp.rpc("remote_update_player_state", player_tmp.player_state)
+		#if player_tmp.destroy_timer != destroy_timer_tmp:
+			#if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == player_tmp.player_peer_id:
+				#var state_tmp = {"destroy_timer" : player_tmp.state_dict["destroy_timer"]}
+				#if player_tmp.player_peer_id == 1:
+					#StaticLoad.rpc_entity_func_by_uuid(player_tmp.get_uuid(), "apply_changed_state_dict", state_tmp, "others", true)
+				#else:
+					#StaticLoad.rpc_entity_func_by_uuid(player_tmp.get_uuid(), "set_changed_state_dict", state_tmp, [], true)
 		if int((destroy_timer_tmp-0.08)*100) % int(StaticLoad.DIG_SOUND_DELTA*100) == 0:
 			sound_audio_manager.play_random_audio_at_position("dig", StaticLoad.get_block_type_by_id(block_id), tile_map_layer.map_to_local(player_selected_block_pos), 0.7)
 		if destroy_sort > 0 and destroy_sort < 9:
-			player_tmp.punch()
+			player_tmp.is_punching = true
 		if destroy_sort >= 9:
-			var block_to_destroy_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(player_selected_block_pos))
-			if block_to_destroy_id == 0:
-				block_to_destroy_id = StaticLoad.get_block_id_by_atlas_coords(no_reach_tile_map_layer.get_cell_atlas_coords(player_selected_block_pos))
+			player_tmp.destroy_block(player_selected_block_pos)
 			if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == player_tmp.player_peer_id:
-				player_tmp.player_state["destroy_timer"] = 0
-			var droppped_item_name = StaticLoad.get_dropped_item_by_name(StaticLoad.get_block_name_by_id(block_to_destroy_id))
-			if droppped_item_name != "AIR":
-				var item_pos = tile_map_layer.map_to_local(player_selected_block_pos)+Vector2(0, 25)
-				if StaticLoad.is_muti_mode:
-					if StaticLoad.multiplayer.get_unique_id() == 1:
-						var item = item_scene.instantiate()
-						items.add_child(item)
-						item.init(droppped_item_name, item_pos, 1, 0)
-						entities[item.get_uuid()] = item
-						StaticLoad.rpc("reply_for_summon_item", item.uuid, droppped_item_name, item_pos, 1, 0)
-					else:
-						StaticLoad.rpc_id(1, "request_for_summon_item", droppped_item_name, item_pos, 1, 0, 0)
-				else:
-					var item = item_scene.instantiate()
-					items.add_child(item)
-					item.init(droppped_item_name, item_pos, 1, 0)
-					entities[item.get_uuid()] = item
-					
-			destroy_block(player_selected_block_pos)
-			StaticLoad.online_peer_ids[peer_id].destroy_timer = 0
-			if destroy_light_names.has(peer_id):
-				var old_destroy_light = destroy_light_names[peer_id]
-				destroy_light_names.erase(peer_id)
-				old_destroy_light.queue_free()
+				player_tmp.state_dict["destroy_timer"] = 0
 			continue
 		elif not destroy_light_names.has(peer_id) or destroy_sort != destroy_light_names[peer_id].sort:
 			if destroy_light_names.has(peer_id):
@@ -855,7 +956,6 @@ func grab_item(block_pos):
 	else:
 		player.item_bar_names[player_select_sort] = StaticLoad.get_block_name_by_id(block_id)
 		player.item_bar_amounts[player_select_sort] = 1
-		player.switch_item_in_hand()
 		refresh_item_grid(player_select_sort)
 		@warning_ignore("shadowed_variable")
 		var inventory_grid = inventory_show_grids.get_node("InventoryGrid"+str(player_select_sort))
@@ -864,79 +964,9 @@ func grab_item(block_pos):
 		item_name_label.text = player.item_bar_names[player_select_sort]
 		item_name_timer = StaticLoad.ITEM_NAME_SHOW_TIME
 	
-func destroy_block(block_pos: Vector2i):
-	var destroy_layer = "solid"
-	var tile_map_layer_tmp = tile_map_layer
-	var chunk_pos = get_chunk_position(block_pos)
-	if not loaded_chunks.has(str(chunk_pos[0])+"."+str(chunk_pos[1])):
-		return false
-	var block_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(block_pos))
-	if block_id == 0:
-		destroy_layer = "no_reach"
-		tile_map_layer_tmp = no_reach_tile_map_layer
-		block_id = StaticLoad.get_block_id_by_atlas_coords(no_reach_tile_map_layer.get_cell_atlas_coords(block_pos))
-	if tile_map_layer_tmp.get_cell_source_id(block_pos) != -1 and block_id != 0:
-		if set_block(block_pos, 0, destroy_layer):
-			update_block_selection_ui(tile_map_layer.map_to_local(block_pos), true)
-			if chunk_lights.has(str(chunk_pos[0])+"."+str(chunk_pos[1])):
-				if not chunk_light_to_process.has(str(chunk_pos[0])+"."+str(chunk_pos[1])):
-					chunk_light_to_process[str(chunk_pos[0])+"."+str(chunk_pos[1])] = "update"
-				else:
-					chunk_light_to_process_double[str(chunk_pos[0])+"."+str(chunk_pos[1])] = "update"
-			else:
-				chunk_light_to_process[str(chunk_pos[0])+"."+str(chunk_pos[1])] = "create"
-			#if StaticLoad.is_on_mobile_platform:
-				#Input.vibrate_handheld(100, 0.5)
-			if StaticLoad.is_muti_mode:
-				if StaticLoad.multiplayer.get_unique_id() == 1:
-					StaticLoad.rpc("reply_for_set_block", block_pos, 0, destroy_layer)
-				else:
-					StaticLoad.rpc_id(1, "request_for_set_block", StaticLoad.multiplayer.get_unique_id(), block_pos, 0, destroy_layer)
-		if loaded_chunks.has(str(chunk_pos[0])+"."+str(chunk_pos[1])):
-			loaded_chunks[str(chunk_pos[0])+"."+str(chunk_pos[1])] = true
-			loaded_chunks_timer[str(chunk_pos[0])+"."+str(chunk_pos[1])] = StaticLoad.CHUNK_FREE_TIME
-		if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() != 1:
-			StaticLoad.rpc_id(1, "request_for_mark_revised_chunk", chunk_pos)
-		return true
-
-func place_block(block_pos):
-	var chunk_pos = get_chunk_position(block_pos)
-	if not loaded_chunks.has(str(chunk_pos[0])+"."+str(chunk_pos[1])):
-		return false
-	var selected_item_bar_name = player.item_bar_names[player.selected_item_grid]
-	if selected_item_bar_name == "AIR":
-		return false
-	var block_id = StaticLoad.get_block_id_by_name(selected_item_bar_name)
-	if not check_place_block_state(block_pos, block_id):
-		return false
-	if tile_map_layer.get_cell_source_id(block_pos) == -1 and no_reach_tile_map_layer.get_cell_source_id(block_pos) == -1 and StaticLoad.block_ids.has(selected_item_bar_name):
-		if set_block(block_pos, block_id, "solid"):
-			update_block_selection_ui(tile_map_layer.map_to_local(block_pos), true)
-			if chunk_lights.has(str(chunk_pos[0])+"."+str(chunk_pos[1])):
-				if not chunk_light_to_process.has(str(chunk_pos[0])+"."+str(chunk_pos[1])):
-					chunk_light_to_process[str(chunk_pos[0])+"."+str(chunk_pos[1])] = "update"
-				else:
-					chunk_light_to_process_double[str(chunk_pos[0])+"."+str(chunk_pos[1])] = "update"
-			else:
-				chunk_light_to_process[str(chunk_pos[0])+"."+str(chunk_pos[1])] = "create"
-			#if StaticLoad.is_on_mobile_platform:
-				#Input.vibrate_handheld(100, 0.5)
-			if StaticLoad.is_muti_mode:
-				if StaticLoad.multiplayer.get_unique_id() == 1:
-					StaticLoad.rpc("reply_for_set_block", block_pos, block_id, "solid")
-				else:
-					StaticLoad.rpc_id(1, "request_for_set_block", StaticLoad.multiplayer.get_unique_id() ,block_pos, block_id, "solid")
-		if loaded_chunks.has(str(chunk_pos[0])+"."+str(chunk_pos[1])):
-			loaded_chunks[str(chunk_pos[0])+"."+str(chunk_pos[1])] = true
-			loaded_chunks_timer[str(chunk_pos[0])+"."+str(chunk_pos[1])] = StaticLoad.CHUNK_FREE_TIME
-		if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() != 1:
-			StaticLoad.rpc_id(1, "request_for_mark_revised_chunk", chunk_pos)
-		return true
-
-func update_loaded_chunks_timer(delta):
+func remove_outdated_chunks():
 	is_chunk_modifing = true
 	if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() != 1:
-		return
 		var player_block_pos = tile_map_layer.local_to_map(player.position-Vector2(0,24))
 		var chunk_pos_tmp = get_chunk_position(player_block_pos)
 		var x_player_chunk = chunk_pos_tmp[0]
@@ -957,13 +987,14 @@ func update_loaded_chunks_timer(delta):
 						loaded_chunks_timer[str(x)+"."+str(y)] = StaticLoad.CHUNK_FREE_TIME
 	var to_removed_timers = []
 	for key in loaded_chunks_timer.keys():
-		loaded_chunks_timer[key] -= delta
+		loaded_chunks_timer[key] -= get_process_delta_time()
 		if loaded_chunks_timer[key] <= 0:
 			to_removed_timers.push_back(key)
 	for timer in to_removed_timers:
 		var splits = timer.split(".")
 		var chunk_pos = Vector2i(int(splits[0]), int(splits[1]))
-		save_chunk(chunk_pos)
+		if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == 1):
+			save_chunk(chunk_pos)
 		loaded_chunks.erase(timer)
 		loaded_chunks_timer.erase(timer)
 		free_chunk(chunk_pos)
@@ -994,7 +1025,9 @@ func init_game_as_dedicated_server():
 	total_chunk_num = 1
 	loaded_chunk_num = 1
 	item_thread.start(process_item)
-	refresh_thread.start(process_refresh)
+	tick_cycle_thread.start(process_tick_cycle)
+	dispatch_thread.start(process_dispatch)
+	set_block_thread.start(process_set_block)
 
 func init_game_as_single():
 	var config = ConfigFile.new()
@@ -1023,7 +1056,7 @@ func init_game_as_single():
 		#player.name_label.text = player.player_name
 		#var fov_zoom = 1+1.6*(int(config.get_value("options", "fov_zoom", StaticLoad.options["fov_zoom"]))/100.0)
 		#player.camera.zoom = Vector2(fov_zoom, fov_zoom)
-		#update_details(true)
+		#update_game_details(true)
 	var worlds_path = "user://worlds"
 	var world_config = ConfigFile.new()
 	var world_info = world_config.load_encrypted_pass(worlds_path+"/"+StaticLoad.select_world+"/level.dat", StaticLoad.CONFIG_PASSWORD)
@@ -1079,20 +1112,23 @@ func init_game_as_single():
 		sky_light.resize(16)
 		sky_light.fill(255)
 		chunk_sky_light_datas[str(x)+"."+str(min_y)] = sky_light
-	update_block_selection_ui(get_local_mouse_position())
-	refresh_resource_pack()
+	set_block_selection_pos(get_local_mouse_position())
+	update_resource_pack()
 	init_inventory_tabs()
 	init_infinite_container()
 	init_light()
 	item_thread.start(process_item)
+	tick_cycle_thread.start(process_tick_cycle)
+	dispatch_thread.start(process_dispatch)
+	set_block_thread.start(process_set_block)
+	light_thread.start(process_light)
 	refresh_thread.start(process_refresh)
 
 func init_game_as_client():
 	StaticLoad.select_world = "new world"
-	StaticLoad.update_path()
+	StaticLoad.update_select_world_path()
 	StaticLoad.rpc_id(1, "request_for_player_info", StaticLoad.multiplayer.get_unique_id(), player.player_name)
 	StaticLoad.rpc_id(1, "request_for_update_player_inventory", StaticLoad.multiplayer.get_unique_id(), player.player_name)
-	player.rpc_id(1, "request_for_change_skin", player.skin_texture_buffer)
 	while not is_player_info_updated:
 		await get_tree().create_timer(1).timeout
 	var config = ConfigFile.new()
@@ -1131,10 +1167,15 @@ func init_game_as_client():
 	for x in range(x_player_chunk-player.render_chunk, x_player_chunk+player.render_chunk+1):
 		for y in range(y_player_chunk-player.render_chunk, y_player_chunk+player.render_chunk+1):
 			StaticLoad.rpc_id(1, "request_for_update_chunk", StaticLoad.multiplayer.get_unique_id(), true, x, y)
-	update_block_selection_ui(get_local_mouse_position())
-	refresh_resource_pack()
+	set_block_selection_pos(get_local_mouse_position())
+	update_resource_pack()
 	init_inventory_tabs()
 	init_infinite_container()
+	set_block_thread.start(process_set_block)
+	light_thread.start(process_light)
+	tick_cycle_thread.start(process_tick_cycle)
+	dispatch_thread.start(process_dispatch)
+	refresh_thread.start(process_refresh)
 
 func create_player(peer_id = 1):
 	var player_instance = player_scene.instantiate()
@@ -1142,10 +1183,10 @@ func create_player(peer_id = 1):
 	players.add_child(player_instance)
 	if not StaticLoad.is_muti_mode:
 		player = player_instance
-		player.init(peer_id)
+		player.init_local(peer_id)
 	elif peer_id == StaticLoad.multiplayer.get_unique_id():
 		player = player_instance
-		player.init(peer_id)
+		player.init_local(peer_id)
 	else:
 		player_instance.is_other = true
 		var tween1 = get_tree().create_tween()
@@ -1155,8 +1196,9 @@ func create_player(peer_id = 1):
 		var tween3 = get_tree().create_tween()
 		tween3.tween_method(player_instance.set_shader_blink_intensity, -1.0, 0.0, StaticLoad.TELEPORT_TIME/2.0)
 	if StaticLoad.is_dedicated_server:
-		player_instance.unfreeze_player()
+		player_instance.unfreeze()
 	players.move_child(player,-1)
+	entities[player_instance.get_uuid()] = player_instance
 
 func refresh_item_grid(sort):
 	var item_name = player.item_bar_names[sort]
@@ -1172,7 +1214,7 @@ func refresh_item_grid(sort):
 		else:
 			item_grids[sort].get_node("Amount").text = str(item_amount)
 
-func check_emulate_mouse_from_touch():
+func rectify_emulate_mouse_from_touch():
 	if is_input_frozen:
 		if not Input.emulate_mouse_from_touch:
 			Input.emulate_mouse_from_touch = true
@@ -1191,24 +1233,12 @@ func unfreeze_game():
 	bgm_audio_player.stream_paused = false
 	player.camera.position_smoothing_enabled = true
 
-func refresh_game(delta):
+func update_local_player_nearby_chunk():
 	if update_chunk_timer > 0:
-		update_chunk_timer -= delta
+		update_chunk_timer -= get_process_delta_time()
 	else:
 		update_chunk_timer = StaticLoad.UPDATE_CHUNK_TIME
 		update_new_chunk(false)
-	if not StaticLoad.is_muti_mode:
-		return
-	if StaticLoad.multiplayer.get_unique_id() != 1:
-		return
-	force_update_all_player_pos()
-
-#func refresh_player():
-	#for peer_id in StaticLoad.online_peer_ids:
-		#var player_tmp = StaticLoad.online_peer_ids[peer_id]
-		#if peer_id != 1 and not player_tmp.is_frozen:
-			#if not StaticLoad.is_dedicated_server:
-				#player.rpc_id(peer_id, "refresh_player", player.position, player.velocity, player.face_state, player.move_state, player.is_flying)
 
 func update_jump_button():
 	if player.is_flying:
@@ -1216,7 +1246,7 @@ func update_jump_button():
 	else:
 		move_jump_button_icon.texture = jump_button_normal
 
-func update_player_state():
+func update_local_player_data():
 	if player.is_dead or player.is_frozen or is_input_frozen:
 		return
 	#if StaticLoad.is_muti_mode and not player.is_multiplayer_authority():
@@ -1237,8 +1267,12 @@ func update_player_state():
 		if current_time - last_jump_time < StaticLoad.DOUBLE_CLICK_THRESHOLD:
 			player.is_flying = not player.is_flying
 			update_jump_button()
-			if StaticLoad.is_muti_mode:
-				player.rpc("remote_update_player_state", player.player_state)
+			#if StaticLoad.is_muti_mode:
+				#var state_tmp = {"is_flying" : player.state_dict["is_flying"]}
+				#if StaticLoad.multiplayer.get_unique_id() == 1:
+					#StaticLoad.rpc_entity_func_by_uuid(player.get_uuid(), "apply_changed_state_dict", state_tmp, "others", true)
+				#else:
+					#StaticLoad.rpc_entity_func_by_uuid(player.get_uuid(), "apply_changed_state_dict", state_tmp, [player.player_peer_id], false)
 		last_jump_time = current_time
 	
 	if Input.is_action_just_pressed("move_left"):
@@ -1275,21 +1309,6 @@ func update_player_state():
 			player.face_state = -1
 		elif move_input_list.back() == "right":
 			player.face_state = 1
-	
-	if not StaticLoad.is_muti_mode:
-		return
-	
-	player.update_player_state()
-	var is_update_required = false
-	for key in last_player_state:
-		if last_player_state[key] != player.player_state[key]:
-			is_update_required = true
-		last_player_state[key] = player.player_state[key]
-	if is_update_required:
-		player.broadcast_player_state_to_all()
-	if StaticLoad.multiplayer.get_unique_id() != 1:
-		if player.velocity.length() > StaticLoad.FLOAT_DELTA:
-			player.rpc_id(1, "request_for_set_self_player_position", StaticLoad.multiplayer.get_unique_id() , player.position)
 
 func init_infinite_container():
 	var count = 0
@@ -1327,7 +1346,7 @@ func close_chat_ui():
 	chat_history_out.scroll_vertical = 1e9
 	chat_line_edit.text = ""
 
-func update_details(is_pre_load: bool = false):
+func update_game_details(is_pre_load: bool = false):
 	if is_pre_load:
 		details_player_name.text = tr("PLAYER_NAME")+" : "+player.player_name
 	var pos = tile_map_layer.local_to_map(player.position-Vector2(0,24))
@@ -1339,10 +1358,7 @@ func update_details(is_pre_load: bool = false):
 	var fps = Engine.get_frames_per_second()
 	details_fps.text = tr("FPS")+" : "+str(fps)
 
-func update_last_mouse_in_world_pos():
-	last_mouse_in_world_pos = tile_map_layer.get_local_mouse_position()
-
-func update_block_selection_timer(delta):
+func update_block_selection():
 	if block_selection_box == "show_when_changing":
 		if is_input_frozen:
 			block_selection_timer = 0
@@ -1354,13 +1370,16 @@ func update_block_selection_timer(delta):
 		else:
 			block_selection_ui.self_modulate = Color(1,1,1,0)
 		if block_selection_timer > 0:
-			block_selection_timer -= delta
+			block_selection_timer -= get_process_delta_time()
 	elif block_selection_box == "always_show":
 		block_selection_ui.self_modulate = Color(1,1,1,1)
 	elif block_selection_box == "never_show":
 		block_selection_ui.self_modulate = Color(1,1,1,0)
 	
-func update_block_selection_ui(pos, is_timer_refresh = false):
+	if not StaticLoad.is_on_mobile_platform:
+		set_block_selection_pos(get_local_mouse_position())
+	
+func set_block_selection_pos(pos, is_timer_refresh = false):
 	var x_offset = 25
 	var y_offset = -25
 	if pos.x < 0:
@@ -1379,8 +1398,12 @@ func update_block_selection_ui(pos, is_timer_refresh = false):
 	block_selection_ui.position = Vector2((int(pos.x)/50)*50+x_offset, (int(pos.y)/50)*50+y_offset)
 	if player != null and player.selected_block_pos != block_pos:
 		player.selected_block_pos = block_pos
-		if StaticLoad.is_muti_mode:
-			player.rpc("remote_update_player_state", player.player_state)
+		#if StaticLoad.is_muti_mode:
+			#var state_tmp = {"selected_block_pos" : player.state_dict["selected_block_pos"]}
+			#if StaticLoad.multiplayer.get_unique_id() == 1:
+				#StaticLoad.rpc_entity_func_by_uuid(player.get_uuid(), "apply_changed_state_dict", state_tmp, "others", true)
+			#else:
+				#StaticLoad.rpc_entity_func_by_uuid(player.get_uuid(), "apply_changed_state_dict", state_tmp, [player.player_peer_id], false)
 	if is_timer_refresh:
 		block_selection_timer = StaticLoad.BLOCK_SELECTION_TIME
 
@@ -1390,17 +1413,17 @@ func switch_details_visibility():
 func switch_ui_visibility():
 	game_ui.visible = not game_ui.visible
 	block_selection_ui.visible = game_ui.visible
-	for peer_id in StaticLoad.online_peer_ids:
-		StaticLoad.online_peer_ids[peer_id].name_label.visible = game_ui.visible
+	for peer_id in StaticLoad.player_peer_dict:
+		StaticLoad.player_peer_dict[peer_id].name_label.visible = game_ui.visible
 
-func show_item_name(delta: float):
+func update_item_bar_text():
 	if item_name_timer < 0:
 		return
 	var alpha: float = 1
 	if item_name_timer <= StaticLoad.ITEM_NAME_DISAPPEAR_TIME:
 		alpha = item_name_timer/StaticLoad.ITEM_NAME_DISAPPEAR_TIME
 	item_name_label.self_modulate = Color(1,1,1,alpha)
-	item_name_timer -= delta
+	item_name_timer -= get_process_delta_time()
 	if item_name_timer < 0:
 		item_name_label.self_modulate = Color(1,1,1,0)
 
@@ -1532,8 +1555,8 @@ func set_block(block_pos: Vector2i, block_id: int, tile_map_type, is_pre_load = 
 	if tile_map_layer_tmp.get_cell_source_id(block_pos) != -1:
 		return false
 	#if not is_pre_load:
-		#for id in StaticLoad.online_peer_ids:
-			#var player_tmp = StaticLoad.online_peer_ids[id]
+		#for id in StaticLoad.player_peer_dict:
+			#var player_tmp = StaticLoad.player_peer_dict[id]
 			#var player_pos = tile_map_layer_tmp.local_to_map(player_tmp.position)
 			#if player_pos == block_pos:
 				#return false
@@ -1576,8 +1599,8 @@ func save_world():
 
 func save_player(peer_id = 0):
 	if peer_id == 0:
-		for id in StaticLoad.online_peer_ids:
-			var player_tmp = StaticLoad.online_peer_ids[id]
+		for id in StaticLoad.player_peer_dict:
+			var player_tmp = StaticLoad.player_peer_dict[id]
 			if player_tmp.is_dead:
 				player_tmp.respawn_player(false)
 			var player_config = ConfigFile.new()
@@ -1592,7 +1615,7 @@ func save_player(peer_id = 0):
 			player_config.set_value("player", "item_bar_amounts", player_tmp.item_bar_amounts)
 			player_config.save_encrypted_pass(StaticLoad.player_path+"/"+player_tmp.player_name.to_lower()+".dat", StaticLoad.CONFIG_PASSWORD)
 	else:
-		var player_tmp = StaticLoad.online_peer_ids[peer_id]
+		var player_tmp = StaticLoad.player_peer_dict[peer_id]
 		var player_config = ConfigFile.new()
 		if player_tmp.gamemode != "creative":
 			player_tmp.is_flying = false
@@ -1707,7 +1730,7 @@ func select_item_grid(grid_name) -> void:
 		is_inventory = true
 		is_input_frozen = true
 		move_input_list.clear()
-		player.stop_player_move()
+		player.stop_move()
 		return
 	for i in range(9):
 		@warning_ignore("confusable_local_declaration")
@@ -1715,7 +1738,6 @@ func select_item_grid(grid_name) -> void:
 	var sort = int(str(grid_name))-1
 	player.selected_item_grid = sort
 	item_grids[sort].get_node("SelectBar").visible = true
-	player.switch_item_in_hand()
 	if player.item_bar_names[sort] == "AIR":
 		return
 	item_name_label.text = player.item_bar_names[sort]
@@ -1750,7 +1772,7 @@ func touch_button(button_name):
 		is_inventory = false
 		is_input_frozen = false
 		move_input_list.clear()
-		player.stop_player_move()
+		player.stop_move()
 
 func broadcast_to_person(player_name: String, text:String, color="white"):
 	if player_name != player.player_name:
@@ -1838,29 +1860,12 @@ func _on_pause_button_6_pressed() -> void:
 
 func _on_death_button_1_pressed() -> void:
 	StaticLoad.click_audio_player.play()
-	if not StaticLoad.is_muti_mode:
-		if StaticLoad.is_on_mobile_platform:
-			Input.emulate_mouse_from_touch = false
-		death_ui.visible = false
-		move_input_list.clear()
-		player.stop_player_move()
-		if StaticLoad.is_muti_mode:
-			rpc("remote_stop_player_move")
-		is_input_frozen = false
-		player.respawn_player(true)
-	elif StaticLoad.multiplayer.get_unique_id() == 1:
-		if StaticLoad.is_on_mobile_platform:
-			Input.emulate_mouse_from_touch = false
-		death_ui.visible = false
-		move_input_list.clear()
-		player.stop_player_move()
-		if StaticLoad.is_muti_mode:
-			rpc("remote_stop_player_move")
-		is_input_frozen = false
-		player.respawn_player(true)
-		player.rpc("reply_for_respawn_player", true)
-	else:
-		player.rpc_id(1, "request_for_respawn_player", true)
+	player.respawn(true)
+	if StaticLoad.is_muti_mode:
+		if StaticLoad.multiplayer.get_unique_id() == 1:
+			StaticLoad.rpc_entity_func_by_uuid(player.get_uuid(), "respawn", true, "others", true)
+		else:
+			StaticLoad.rpc_entity_func_by_uuid(player.get_uuid(), "respawn", true, [player.player_peer_id], false)
 
 func _on_death_button_2_pressed() -> void:
 	StaticLoad.click_audio_player.play()
@@ -1894,10 +1899,16 @@ func _on_chat_line_edit_text_submitted(new_text: String) -> void:
 	if StaticLoad.is_muti_mode:
 		if text[0] != "/":
 			player.send_message(text)
-			player.rpc("remote_update_message", StaticLoad.multiplayer.get_unique_id(), text)
+			if StaticLoad.multiplayer.get_unique_id() == 1:
+				StaticLoad.rpc_entity_func_by_uuid(player.get_uuid(), "send_message", text, "others", true)
+			else:
+				StaticLoad.rpc_entity_func_by_uuid(player.get_uuid(), "send_message", text, [player.player_peer_id], false)
 		else:
 			player.send_command(text)
-			player.rpc("remote_update_command", StaticLoad.multiplayer.get_unique_id(), text)
+			if StaticLoad.multiplayer.get_unique_id() == 1:
+				StaticLoad.rpc_entity_func_by_uuid(player.get_uuid(), "send_command", text, "others", true)
+			else:
+				StaticLoad.rpc_entity_func_by_uuid(player.get_uuid(), "send_command", text, [player.player_peer_id], false)
 	else:
 		if text[0] != "/":
 			player.send_message(text)
@@ -1941,9 +1952,7 @@ func _on_mobile_chat_button_pressed():
 	StaticLoad.click_audio_player.play()
 	if not is_chat:
 		move_input_list.clear()
-		player.stop_player_move()
-		if StaticLoad.is_muti_mode:
-			player.rpc("remote_stop_player_move")
+		player.stop_move()
 		is_input_frozen = true
 		is_chat = true
 		chat_message_out.visible = false
@@ -1968,9 +1977,7 @@ func _on_mobile_pause_button_pressed():
 		if pause_ui.visible:
 			is_input_frozen = true
 			move_input_list.clear()
-			player.stop_player_move()
-			if StaticLoad.is_muti_mode:
-				player.rpc("remote_stop_player_move")
+			player.stop_move()
 		Input.emulate_mouse_from_touch = true
 
 func _on_mobile_map_button_pressed():
@@ -1981,9 +1988,7 @@ func _on_mobile_map_button_pressed():
 	mobile_ui.visible = false
 	item_bar_panel.visible = false
 	move_input_list.clear()
-	player.stop_player_move()
-	if StaticLoad.is_muti_mode:
-		player.rpc("remote_stop_player_move")
+	player.stop_move()
 	is_input_frozen = true
 	is_map = true
 
@@ -1994,9 +1999,7 @@ func _on_mobile_map_button_released():
 	mobile_ui.visible = true
 	item_bar_panel.visible = true
 	move_input_list.clear()
-	player.stop_player_move()
-	if StaticLoad.is_muti_mode:
-		player.rpc("remote_stop_player_move")
+	player.stop_move()
 	is_input_frozen = false
 	is_map = false
 

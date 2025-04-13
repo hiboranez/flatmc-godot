@@ -1,0 +1,17 @@
+{
+	"options" : {
+		"version": "0.2.0",
+		"updated": "false",
+		"player_name": "Steve",
+		"language": "zh",
+		"render_chunk": 1,
+		"fov_zoom" : 50,
+		"bgm_volume": 50,
+		"sound_volume": 50,
+		"block_selection_box": "show_when_changing",
+		"mini_map": "on",
+		"mini_map_zoom": 50,
+		"skin_path": "res://Assets/ResourcePacks/official_old/Skins/Steve.png",
+		"resource_pack": "official_old"
+	}
+}

@@ -82,33 +82,30 @@ func _on_gui_input(event: InputEvent) -> void:
 	if name.contains("InventoryGrid"):
 		if event.button_index == 1:
 			if Input.is_action_pressed("shift"):
-				var sort = int(name.replace("InventoryGrid", ""))
-				if StaticLoad.game.inventory_back_grids.is_visible_in_tree():
-					if sort < 9:
-						item_amount = player.get_item(item_name, item_amount, 9, 36, false)
-						if item_amount == 0:
-							item_name = "AIR"
-						player.item_bar_names[sort] = item_name
-						player.item_bar_amounts[sort] = item_amount
+				if item_name != "AIR":
+					var sort = int(name.replace("InventoryGrid", ""))
+					if StaticLoad.game.inventory_back_grids.is_visible_in_tree():
+						if sort < 9:
+							item_amount = player.get_item([item_name, item_amount, 9, 36, false])
+							if item_amount == 0:
+								item_name = "AIR"
+							player.item_bar_names[sort] = item_name
+							player.item_bar_amounts[sort] = item_amount
+							StaticLoad.game.refresh_item_grid(sort)
+							StaticLoad.game.refresh_to_process.append("refresh_inventory")
+						elif sort >= 9 and sort < 36:
+							item_amount = player.get_item([item_name, item_amount, 0, 9, false])
+							if item_amount == 0:
+								item_name = "AIR"
+							player.item_bar_names[sort] = item_name
+							player.item_bar_amounts[sort] = item_amount
+							StaticLoad.game.refresh_to_process.append("refresh_inventory")
+							StaticLoad.game.refresh_to_process.append("refresh_item_grid")
+					elif player.gamemode == "creative":
+						player.item_bar_names[sort] = "AIR"
+						player.item_bar_amounts[sort] = 0
+						init_inventory_grid("AIR", 0)
 						StaticLoad.game.refresh_item_grid(sort)
-						StaticLoad.game.refresh_inventory()
-						player.switch_item_in_hand()
-					elif sort >= 9 and sort < 36:
-						item_amount = player.get_item(item_name, item_amount, 0, 9, false)
-						if item_amount == 0:
-							item_name = "AIR"
-						player.item_bar_names[sort] = item_name
-						player.item_bar_amounts[sort] = item_amount
-						StaticLoad.game.refresh_inventory()
-						for i in range(9):
-							StaticLoad.game.refresh_item_grid(i)
-						player.switch_item_in_hand()
-				elif player.gamemode == "creative":
-					player.item_bar_names[sort] = "AIR"
-					player.item_bar_amounts[sort] = 0
-					init_inventory_grid("AIR", 0)
-					StaticLoad.game.refresh_item_grid(sort)
-					player.switch_item_in_hand()
 			else:
 				if mouse_item_name_tmp != item_name:
 					StaticLoad.game.mouse_item_name = item_name
@@ -127,7 +124,6 @@ func _on_gui_input(event: InputEvent) -> void:
 							StaticLoad.game.mouse_item_name_label.start_following()
 					if sort < 9:
 						StaticLoad.game.refresh_item_grid(sort)
-					player.switch_item_in_hand()
 				else:
 					if item_amount + mouse_item_amount_tmp <= StaticLoad.get_max_amount_by_name(item_name):
 						item_amount += mouse_item_amount_tmp
@@ -141,7 +137,6 @@ func _on_gui_input(event: InputEvent) -> void:
 					init_inventory_grid(item_name, item_amount)
 					if sort < 9:
 						StaticLoad.game.refresh_item_grid(sort)
-					player.switch_item_in_hand()
 		elif event.button_index == 2:
 			if mouse_item_amount_tmp == 0 and item_amount >= 2:
 				StaticLoad.game.mouse_item_name = item_name
@@ -163,7 +158,6 @@ func _on_gui_input(event: InputEvent) -> void:
 					player.item_bar_amounts[sort] = item_amount
 					if sort < 9:
 						StaticLoad.game.refresh_item_grid(sort)
-					player.switch_item_in_hand()
 			elif item_name == "AIR":
 				item_name = StaticLoad.game.mouse_item_name
 				StaticLoad.game.mouse_item_amount -= 1
@@ -176,7 +170,6 @@ func _on_gui_input(event: InputEvent) -> void:
 				player.item_bar_amounts[sort] = item_amount
 				if sort < 9:
 					StaticLoad.game.refresh_item_grid(sort)
-				player.switch_item_in_hand()
 		elif event.button_index == 3 and player.gamemode == "creative":
 			if mouse_item_amount_tmp == 0 and item_name != "AIR":
 				StaticLoad.game.mouse_item_name = item_name

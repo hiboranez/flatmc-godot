@@ -20,10 +20,10 @@ func _on_options_button_1_pressed() -> void:
 	}
 	StaticLoad.save_options(change_value)
 	await get_tree().create_timer(0.01).timeout
-	StaticLoad.refresh_default_skin_path()
+	StaticLoad.update_default_skin_path()
 	await get_tree().create_timer(0.01).timeout
 	if StaticLoad.is_in_game:
-		StaticLoad.game.refresh_resource_pack()
+		StaticLoad.game.update_resource_pack()
 	else:
 		StaticLoad.change_scene("res://Assets/Scenes/Menu.tscn")
 

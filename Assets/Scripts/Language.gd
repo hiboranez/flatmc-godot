@@ -21,7 +21,7 @@ func _on_language_button_1_pressed() -> void:
 	StaticLoad.language = select_language
 	if StaticLoad.is_in_game:
 		self.visible = false
-		$"..".update_details(true)
+		$"..".update_game_details(true)
 	else:
 		StaticLoad.change_scene("res://Assets/Scenes/Menu.tscn")
 

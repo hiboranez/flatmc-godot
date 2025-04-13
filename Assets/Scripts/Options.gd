@@ -70,9 +70,7 @@ func _on_options_button_1_pressed() -> void:
 		elif game.mini_map_on == "on":
 			game.mini_map.visible = true
 		self.visible = false
-		game.player.update_player_state()
-		if StaticLoad.is_muti_mode:
-			game.player.broadcast_player_state_to_all()
+		game.player.update_state_dict()
 		game.update_new_chunk(true)
 	else:
 		StaticLoad.change_scene("res://Assets/Scenes/Menu.tscn")

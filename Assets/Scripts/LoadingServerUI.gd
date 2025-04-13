@@ -37,11 +37,13 @@ func _process(delta: float) -> void:
 		load_terrain()
 		if not is_loaded_terrain:
 			return
-		if StaticLoad.game.player == null or StaticLoad.game.player.is_frozen:
+		var player_tmp = StaticLoad.game.player
+		if player_tmp == null or StaticLoad.game.player.is_frozen:
 			return
 		title.text = tr("COMPLETED")
+		StaticLoad.game.player.velocity = Vector2(0, 0)
+		StaticLoad.game.player.unfreeze()
 		await get_tree().create_timer(1).timeout
-		StaticLoad.game.player.rpc("remote_unfreeze_player")
 		load_finished()
 
 func start_connecting_timer():
@@ -102,7 +104,7 @@ func connect_server():
 	button1.visible = false
 	StaticLoad.is_muti_mode = true
 	ResourceLoader.load_threaded_request(game_path)
-	StaticLoad.update_path()
+	StaticLoad.update_select_world_path()
 	set_process(true)
 
 func load_scene():

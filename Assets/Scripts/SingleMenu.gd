@@ -91,13 +91,13 @@ func create_world(world_name: String):
 			mca.save_encrypted_pass(region_path+"/r."+str(x)+"."+str(y)+".mca", StaticLoad.CONFIG_PASSWORD)
 	StaticLoad.select_world = null
 
-func convert_world(old_version):
+func convert_world_version(old_version):
 	var final_old_version
 	if old_version == "unknown":
 		final_old_version = "0.1.0.0"
 	else:
 		final_old_version = old_version
-	StaticLoad.convert_world(StaticLoad.select_world, final_old_version)
+	StaticLoad.convert_world_version(StaticLoad.select_world, final_old_version)
 	StaticLoad.select_world = null
 	update_world_list()
 	if StaticLoad.is_secondary_confirmation_poped:
@@ -116,7 +116,7 @@ func _on_single_menu_button_1_pressed() -> void:
 	var compare = StaticLoad.compare_version(StaticLoad.options["version"], version_tmp)
 	if compare == "higher":
 		if not StaticLoad.is_secondary_confirmation_poped:
-			StaticLoad.pop_secondary_confirmation(self, tr("SECONDARY_CONFIRMATION_2"), Callable(self, "convert_world").bind(version_tmp))
+			StaticLoad.pop_secondary_confirmation(self, tr("SECONDARY_CONFIRMATION_2"), Callable(self, "convert_world_version").bind(version_tmp))
 			StaticLoad.is_secondary_confirmation_poped = true
 	elif compare == "lower":
 		StaticLoad.pop_notification(self, tr("WARNING"), tr("WARNING_8"))

@@ -12,7 +12,7 @@ func _ready() -> void:
 	progress_bar.max_value = 100
 	if not StaticLoad.is_in_game:
 		ResourceLoader.load_threaded_request(game_path)
-		StaticLoad.update_path()
+		StaticLoad.update_select_world_path()
 		var world_icon_image = Image.load_from_file(StaticLoad.world_path+"/icon.png")
 		world_icon_image.resize(256, 256)
 		StaticLoad.world_icon_buffer = world_icon_image.save_png_to_buffer()
