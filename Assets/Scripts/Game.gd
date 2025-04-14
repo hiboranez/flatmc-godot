@@ -195,6 +195,9 @@ func _ready() -> void:
 			create_player()
 
 func _process(delta: float) -> void:
+	# 仅在务器更新
+	process_entity_save()
+	
 	# 服务器和本地均更新
 	update_local_player_nearby_chunk()
 	remove_outdated_chunks()
@@ -283,10 +286,14 @@ func process_set_block():
 				#if StaticLoad.is_on_mobile_platform:
 					#Input.vibrate_handheld(100, 0.5)
 				if loaded_chunks.has(str(chunk_pos[0])+"."+str(chunk_pos[1])):
-					loaded_chunks[str(chunk_pos[0])+"."+str(chunk_pos[1])] = true
+					loaded_chunks[str(chunk_pos[0])+"."+str(chunk_pos[1])].is_to_save = true
 					loaded_chunks_timer[str(chunk_pos[0])+"."+str(chunk_pos[1])] = StaticLoad.CHUNK_FREE_TIME
 				var entity = entities[uuid]
 				if entity.get_entity_type() == "player":
+					if entity.face_state < 0 and tile_map_layer.local_to_map(entity.position).x < set_block_pos.x:
+						entity.face_state = 1
+					elif entity.face_state > 0 and tile_map_layer.local_to_map(entity.position).x > set_block_pos.x:
+						entity.face_state = -1
 					if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == entity.player_peer_id):
 						set_block_selection_pos(tile_map_layer.map_to_local(set_block_pos), true)
 					if set_block_id == 0 and entity.gamemode != "creative":
@@ -318,6 +325,26 @@ func process_set_block():
 						if StaticLoad.multiplayer.get_unique_id() == entity.player_peer_id:
 							var player_set_block_info = [set_block_id, set_block_pos, set_block_layer]
 							entity.success_set_block_list.append(player_set_block_info)
+
+func process_entity_save():
+	if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() != 1:
+		return
+	for uuid in entities:
+		var entity = entities[uuid]
+		if entity == null:
+			continue
+		if entity.get_entity_type() == "player":
+			continue
+		var current_chunk_pos = get_chunk_position(tile_map_layer.local_to_map(entity.position))
+		var last_chunk_pos = entity.get_chunk_pos()
+		if current_chunk_pos != last_chunk_pos:
+			if loaded_chunks.has(str(last_chunk_pos[0])+"."+str(last_chunk_pos[1])):
+				loaded_chunks[str(last_chunk_pos[0])+"."+str(last_chunk_pos[1])].entity_list.erase(entity.get_uuid())
+				loaded_chunks[str(last_chunk_pos[0])+"."+str(last_chunk_pos[1])].is_to_save = true
+			if loaded_chunks.has(str(current_chunk_pos[0])+"."+str(current_chunk_pos[1])):
+				loaded_chunks[str(current_chunk_pos[0])+"."+str(current_chunk_pos[1])].entity_list.append(entity.get_uuid())
+				loaded_chunks[str(current_chunk_pos[0])+"."+str(current_chunk_pos[1])].is_to_save = true
+			entity.chunk_pos = current_chunk_pos
 
 func dispatch_set_block_state_dict():
 	if not StaticLoad.is_muti_mode:
@@ -416,6 +443,7 @@ func process_refresh():
 		if refresh_to_process[0] == "refresh_item_grid":
 			for i in range(9):
 				refresh_item_grid(i)
+				await get_tree().process_frame	
 			refresh_to_process.pop_front()
 		elif refresh_to_process[0] == "refresh_inventory":
 			refresh_inventory()
@@ -809,7 +837,10 @@ func process_mouse_action():
 			else:
 				player.destroy_timer += get_process_delta_time()
 		elif Input.is_mouse_button_pressed(2) and not Input.is_mouse_button_pressed(1):
-			player.place_block(mouse_to_block_pos)
+			if player.gamemode == "creative":
+				player.place_block(mouse_to_block_pos)
+			else:
+				player.place_block(tile_map_layer.local_to_map(get_restricted_block_selection_pos()))
 	
 	if not StaticLoad.is_on_mobile_platform and not Input.is_mouse_button_pressed(1):
 		player.destroy_timer = 0
@@ -860,19 +891,32 @@ func update_destroy_ui():
 			block_id = StaticLoad.get_block_id_by_atlas_coords(atlas_coords)
 			if block_id == 0:
 				continue
-		var destroy_timer_tmp = StaticLoad.player_peer_dict[peer_id].destroy_timer
+		var destroy_timer_tmp = player_tmp.destroy_timer
 		if destroy_timer_tmp <= 0:
 			if destroy_light_names.has(peer_id):
 				var old_destroy_light = destroy_light_names[peer_id]
 				destroy_light_names.erase(peer_id)
 				old_destroy_light.queue_free()
 			continue
+		if destroy_timer_tmp <= 0.01:
+			if player_tmp.face_state < 0 and tile_map_layer.local_to_map(player_tmp.position).x < player_selected_block_pos.x:
+				player_tmp.face_state = 1
+			elif player_tmp.face_state > 0 and tile_map_layer.local_to_map(player_tmp.position).x > player_selected_block_pos.x:
+				player_tmp.face_state = -1
 		var tool = player.item_bar_names[player.selected_item_grid]
 		var destroy_total_time = StaticLoad.get_destroy_total_time(block_id, tool)
 		var block_name = StaticLoad.get_block_name_by_id(block_id)
 		if StaticLoad.special_block_destroy_time.has(block_name):
 			destroy_total_time = StaticLoad.special_block_destroy_time[block_name]
 		if destroy_total_time < 0:
+			continue
+		if player_selected_block_pos != player_tmp.destroying_block_pos:
+			player_tmp.destroying_block_pos = player_selected_block_pos
+			player_tmp.destroy_timer = 0
+			if destroy_light_names.has(peer_id):
+				var old_destroy_light = destroy_light_names[peer_id]
+				destroy_light_names.erase(peer_id)
+				old_destroy_light.queue_free()
 			continue
 		var destroy_sort = int((destroy_timer_tmp/destroy_total_time)*8)+1
 		#if player_tmp.destroy_timer != destroy_timer_tmp:
@@ -1096,9 +1140,16 @@ func init_game_as_single():
 			var blocks = chunk_config.get_value("chunk", "blocks")
 			var no_reach_blocks = chunk_config.get_value("chunk", "no_reach_blocks")
 			var back_blocks = chunk_config.get_value("chunk", "back_blocks")
+			var chunk_entity_list = chunk_config.get_value("chunk", "entity_list")
 			set_chunk(Vector2i(x, y), [blocks, no_reach_blocks, back_blocks])
-			loaded_chunks[str(x)+"."+str(y)] = false
+			loaded_chunks[str(x)+"."+str(y)] = StaticLoad.Chunk.new()
+			loaded_chunks[str(x)+"."+str(y)].is_to_save = false
 			loaded_chunks_timer[str(x)+"."+str(y)] = StaticLoad.CHUNK_FREE_TIME
+			if chunk_entity_list != null:
+				for uuid in chunk_entity_list:
+					var entity_info = chunk_config.get_value("entity", uuid)
+					if entity_info[0] == "item":
+						StaticLoad.create_entity(["item", entity_info[1], entity_info[3], entity_info[2], 0, 2, uuid])
 			loaded_chunk_num += 1
 	for x in range(x_player_chunk-render_chunk_tmp, x_player_chunk+render_chunk_tmp+1):
 		var min_y: int = 2000000
@@ -1377,8 +1428,34 @@ func update_block_selection():
 		block_selection_ui.self_modulate = Color(1,1,1,0)
 	
 	if not StaticLoad.is_on_mobile_platform:
-		set_block_selection_pos(get_local_mouse_position())
-	
+		if player.gamemode == "creative":
+			set_block_selection_pos(get_local_mouse_position())
+		else:
+			set_block_selection_pos(get_restricted_block_selection_pos())
+
+func get_restricted_block_selection_pos():
+	var mouse_in_world_pos = get_local_mouse_position()
+	var player_head_pos = player.position - Vector2(0, 83)
+	var player_center_pos = player.position - Vector2(0, 48)
+	var relative_to_player_pos = mouse_in_world_pos - player_head_pos
+	#player.sight_line.set_point_position(1, relative_to_player_pos)
+	var stride = 5
+	var length = relative_to_player_pos.length()
+	var freq = stride / length
+	var cycle_num = int(1 / freq)
+	var orthogonal_relative_to_player_pos = relative_to_player_pos.orthogonal().normalized()*5
+	for i in range(cycle_num):
+		var pos_tmp1 = player_head_pos.lerp(mouse_in_world_pos, i*freq)
+		var pos_tmp2 = pos_tmp1+orthogonal_relative_to_player_pos
+		var pos_tmp3 = pos_tmp1-orthogonal_relative_to_player_pos
+		for pos_tmp in [pos_tmp1, pos_tmp2, pos_tmp3]:
+			var block_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(tile_map_layer.local_to_map(pos_tmp)))
+			if block_id != 0 and not StaticLoad.get_is_untouchable_by_id(block_id):
+				return pos_tmp
+			if player_center_pos.distance_to(pos_tmp) > 250:
+				return pos_tmp
+	return mouse_in_world_pos
+
 func set_block_selection_pos(pos, is_timer_refresh = false):
 	var x_offset = 25
 	var y_offset = -25
@@ -1454,7 +1531,8 @@ func update_new_chunk(is_pre_load: bool):
 				if not loaded_chunks.has(str(x)+"."+str(y)):
 					if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() != 1:
 						StaticLoad.rpc_id(1, "request_for_update_chunk", StaticLoad.multiplayer.get_unique_id(), false, x, y)
-						loaded_chunks[str(x)+"."+str(y)] = false #防止重复向服务器发送申请
+						loaded_chunks[str(x)+"."+str(y)] = StaticLoad.Chunk.new()
+						loaded_chunks[str(x)+"."+str(y)].is_to_save = false #防止重复向服务器发送申请
 						loaded_chunks_timer[str(x)+"."+str(y)] = StaticLoad.CHUNK_FREE_TIME
 					else:
 						if database_chunks.has(str(x)+"."+str(y)):
@@ -1465,10 +1543,19 @@ func update_new_chunk(is_pre_load: bool):
 							var blocks = chunk_config.get_value("chunk", "blocks")
 							var no_reach_blocks = chunk_config.get_value("chunk", "no_reach_blocks")
 							var back_blocks = chunk_config.get_value("chunk", "back_blocks")
+							var chunk_entity_list = chunk_config.get_value("chunk", "entity_list")
 							set_chunk(Vector2i(x, y), [blocks, no_reach_blocks, back_blocks])
 							loaded_chunk_num += 1
-							loaded_chunks[str(x)+"."+str(y)] = false
+							loaded_chunks[str(x)+"."+str(y)] = StaticLoad.Chunk.new()
+							loaded_chunks[str(x)+"."+str(y)].is_to_save = false
 							loaded_chunks_timer[str(x)+"."+str(y)] = StaticLoad.CHUNK_FREE_TIME
+							if chunk_entity_list != null:
+								for uuid in chunk_entity_list:
+									var entity_info = chunk_config.get_value("entity", uuid)
+									if entity_info[0] == "item":
+										var item_info = ["item", entity_info[1], entity_info[3], entity_info[2], 0, 2, uuid]
+										StaticLoad.create_entity(item_info)
+										StaticLoad.rpc("create_entity", item_info)
 						else:
 							var mca = ConfigFile.new()
 							var chunk = StaticLoad.generate_chunk(Vector2i(x, y), world_info_dictionary["seed"], world_info_dictionary["world_type"])
@@ -1477,8 +1564,10 @@ func update_new_chunk(is_pre_load: bool):
 							mca.set_value("chunk", "blocks", chunk[0])
 							mca.set_value("chunk", "no_reach_blocks", chunk[1])
 							mca.set_value("chunk", "back_blocks", chunk[2])
+							mca.set_value("chunk", "entity_list", [])
 							mca.save_encrypted_pass(StaticLoad.region_path+"/r."+str(x)+"."+str(y)+".mca", StaticLoad.CONFIG_PASSWORD)
-							loaded_chunks[str(x)+"."+str(y)] = false
+							loaded_chunks[str(x)+"."+str(y)] = StaticLoad.Chunk.new()
+							loaded_chunks[str(x)+"."+str(y)].is_to_save = false
 							loaded_chunks_timer[str(x)+"."+str(y)] = StaticLoad.CHUNK_FREE_TIME
 							database_chunks.push_back(str(x)+"."+str(y))
 						if not StaticLoad.is_dedicated_server:
@@ -1492,6 +1581,8 @@ func update_new_chunk(is_pre_load: bool):
 									chunk_light_to_process[str(x)+"."+str(y)] = "null"
 								else:
 									chunk_light_to_process[str(x)+"."+str(y)] = "create"
+					for i in range(30):
+						await get_tree().process_frame
 		player_last_chunk = Vector2i(x_player_chunk, y_player_chunk)
 
 func free_chunk(pos: Vector2i) -> void:
@@ -1520,8 +1611,6 @@ func set_chunk(pos: Vector2i, blocks_list) -> void:
 			set_block(Vector2i(pos[0] * 16 + x, pos[1] * 16 + y), blocks_list[0][y][x], "solid", true)
 			set_block(Vector2i(pos[0] * 16 + x, pos[1] * 16 + y), blocks_list[1][y][x], "no_reach", true)
 			set_block(Vector2i(pos[0] * 16 + x, pos[1] * 16 + y), blocks_list[2][y][x], "back", true)
-	if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == 1):
-		load_entities(pos)
 
 func set_block(block_pos: Vector2i, block_id: int, tile_map_type, is_pre_load = false):
 	var tile_map_layer_tmp = tile_map_layer
@@ -1581,8 +1670,8 @@ func set_block(block_pos: Vector2i, block_id: int, tile_map_type, is_pre_load = 
 
 func save_world():
 	for region in loaded_chunks:
-		if loaded_chunks[region]:
-			loaded_chunks[region] = false
+		if loaded_chunks[region].is_to_save:
+			loaded_chunks[region].is_to_save = false
 			var splits = region.split(".")
 			var x_chunk = int(splits[0])
 			var y_chunk = int(splits[1])
@@ -1595,7 +1684,6 @@ func save_world():
 	level.set_value("world", "world_type", world_info_dictionary["world_type"])
 	level.set_value("world", "gamemode", world_info_dictionary["gamemode"])
 	level.save_encrypted_pass(StaticLoad.world_path+"/level.dat", StaticLoad.CONFIG_PASSWORD)
-	#save_entities()
 
 func save_player(peer_id = 0):
 	if peer_id == 0:
@@ -1662,7 +1750,16 @@ func save_chunk(chunk_pos: Vector2i):
 	mca.set_value("chunk", "blocks", blocks)
 	mca.set_value("chunk", "no_reach_blocks", no_reach_blocks)
 	mca.set_value("chunk", "back_blocks", back_blocks)
+	var chunk_entity_list = loaded_chunks[str(x_chunk)+"."+str(y_chunk)].entity_list
+	mca.set_value("chunk", "entity_list", chunk_entity_list)
+	
+	for uuid in chunk_entity_list:
+		var entity = entities[uuid]
+		if entity.get_entity_type() == "item":
+			var entity_info = ["item", entity.item_name, entity.item_amount, entity.position]
+			mca.set_value("entity", uuid, entity_info)
 	mca.save_encrypted_pass(StaticLoad.region_path+"/r."+str(x_chunk)+"."+str(y_chunk)+".mca", StaticLoad.CONFIG_PASSWORD)
+	
 	var level = ConfigFile.new()
 	var current_time = Time.get_datetime_string_from_system(false, true).replace(" ", "  ").replace("-", "/")
 	level.set_value("world", "last_modified", current_time)
@@ -1671,55 +1768,6 @@ func save_chunk(chunk_pos: Vector2i):
 	level.set_value("world", "world_type", world_info_dictionary["world_type"])
 	level.set_value("world", "gamemode", world_info_dictionary["gamemode"])
 	level.save_encrypted_pass(StaticLoad.world_path+"/level.dat", StaticLoad.CONFIG_PASSWORD)
-	
-	#var is_item_save_required = false
-	#var entity_mca = ConfigFile.new()
-	#for item in items.get_children():
-		#if item.position.x >= x_chunk*16 and item.position.x < x_chunk*16+16:
-			#if item.position.y >= y_chunk*16 and item.position.y < y_chunk*16+16:
-				#is_item_save_required = true
-				#entity_mca.set_value(str(item.get_uuid()), "type", "item")
-				#entity_mca.set_value(str(item.get_uuid()), "item_name", item.item_name)
-				#entity_mca.set_value(str(item.get_uuid()), "item_amount", item.item_name)
-				#entity_mca.set_value(str(item.get_uuid()), "position", item.position)
-	#if is_item_save_required:
-		#entity_mca.save_encrypted_pass(StaticLoad.entity_path+"/r."+str(x_chunk)+"."+str(y_chunk)+".mca", StaticLoad.CONFIG_PASSWORD)
-
-func save_entities():
-	var entity_mca = ConfigFile.new()
-	for item in items.get_children():
-		var item_pos = tile_map_layer.local_to_map(item.position)
-		var chunk_pos = get_chunk_position(item_pos)
-		if FileAccess.file_exists(StaticLoad.entity_path+"/"+str(chunk_pos[0])+"."+str(chunk_pos[1])+".mca"):
-			var entity_config = ConfigFile.new()
-			if entity_config.load_encrypted_pass(StaticLoad.entity_path+"/r."+str(chunk_pos[0])+"."+str(chunk_pos[1])+".mca", StaticLoad.CONFIG_PASSWORD) != OK:
-				return
-			for uuid in entity_config.get_sections():
-				if entity_config.get_value(uuid, "item", "entity") == "item":
-					entity_mca.set_value(uuid, "type", "item")
-					entity_mca.set_value(uuid, "item_name", entity_config.get_value(uuid, "item_name"))
-					entity_mca.set_value(uuid, "item_amount", entity_config.get_value(uuid, "item_amount"))
-					entity_mca.set_value(uuid, "position", entity_config.get_value(uuid, "position"))
-		entity_mca.set_value(str(item.get_uuid()), "type", "item")
-		entity_mca.set_value(str(item.get_uuid()), "item_name", item.item_name)
-		entity_mca.set_value(str(item.get_uuid()), "item_amount", item.item_amount)
-		entity_mca.set_value(str(item.get_uuid()), "position", item.position)
-		entity_mca.save_encrypted_pass(StaticLoad.entity_path+"/r."+str(chunk_pos[0])+"."+str(chunk_pos[1])+".mca", StaticLoad.CONFIG_PASSWORD)
-
-func load_entities(chunk_pos):
-	if FileAccess.file_exists(StaticLoad.entity_path+"/r."+str(chunk_pos[0])+"."+str(chunk_pos[1])+".mca"):
-		var entity_config = ConfigFile.new()
-		if entity_config.load_encrypted_pass(StaticLoad.entity_path+"/r."+str(chunk_pos[0])+"."+str(chunk_pos[1])+".mca", StaticLoad.CONFIG_PASSWORD) != OK:
-			return
-		for uuid in entity_config.get_sections():
-			if entity_config.get_value(uuid, "type", "entity") == "item":
-				var item_name = entity_config.get_value(uuid, "item_name")
-				var item_pos = entity_config.get_value(uuid, "position")
-				var item_amount = int(entity_config.get_value(uuid, "item_amount"))
-				var item = item_scene.instantiate()
-				items.add_child(item)
-				item.init(item_name, item_pos, item_amount, 1)
-				entities[item.get_uuid()] = item
 
 func select_item_grid(grid_name) -> void:
 	if str(grid_name) == "More":

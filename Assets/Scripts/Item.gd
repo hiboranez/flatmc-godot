@@ -10,6 +10,7 @@ extends CharacterBody2D
 var uuid = UUID.v4()
 var entity_type = "item"
 var item_name = "AIR"
+var chunk_pos = Vector2i(0, 0)
 
 # 子类变量
 var item_model_type = "block"
@@ -126,6 +127,12 @@ func init(args):
 	no_collect_timer = args[4]
 	velocity.x = args[5]
 	name = str(uuid)
+	chunk_pos = StaticLoad.game.get_chunk_position(StaticLoad.game.tile_map_layer.local_to_map(position))
+	if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == 1):
+		StaticLoad.game.loaded_chunks[str(chunk_pos[0])+"."+str(chunk_pos[1])].entity_list.append(uuid)
+		StaticLoad.game.loaded_chunks[str(chunk_pos[0])+"."+str(chunk_pos[1])].is_to_save = true
+	else:
+		StaticLoad.rpc_id(1, "request_for_mark_revised_chunk", chunk_pos)
 	refresh_model()
 	if no_collect_timer == 0:
 		for peer_id in StaticLoad.player_peer_dict:
@@ -143,6 +150,9 @@ func get_uuid():
 
 func get_entity_type():
 	return entity_type
+
+func get_chunk_pos():
+	return chunk_pos
 
 func get_entity_name():
 	return item_name
@@ -227,7 +237,7 @@ func on_body_collide_entered(body: Node) -> void:
 				else:
 					if StaticLoad.game.entities.find_key(self):
 						StaticLoad.game.entities.erase(self)
-					queue_free()
+					destroy_item([])
 					if StaticLoad.is_muti_mode:
 						StaticLoad.rpc_entity_func_by_uuid(get_uuid(), "destroy_item", [], "others", true)
 
@@ -243,7 +253,7 @@ func combine_item(target_item_uuid):
 			elif item_model_type == "item":
 				item_model.get_node("Mesh2").visible = true
 		velocity.x = (item_amount*velocity.x+target_item.item_amount*target_item.velocity.x)/(item_amount+target_item.item_amount)
-		target_item.queue_free()
+		target_item.destroy_item([])
 		if StaticLoad.game.entities.find_key(target_item) != null:
 			StaticLoad.game.entities.erase(target_item)
 	else:
@@ -265,4 +275,6 @@ func combine_item(target_item_uuid):
 				item_model.get_node("Mesh2").visible = false
 
 func destroy_item(args):
+	if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == 1):
+		StaticLoad.game.loaded_chunks[str(chunk_pos[0])+"."+str(chunk_pos[1])].entity_list.erase(uuid)
 	queue_free()

@@ -16,6 +16,10 @@ extends Node2D
 @onready var animation:AnimationPlayer = $AnimationPlayer
 @onready var click_audio_player = $ClickAudioPlayer
 
+class Chunk:
+	var entity_list: Array = []
+	var is_to_save: bool = false
+
 # 常数据
 const AIR_RESISTANCE = 5000
 const DROPPED_ITEM_SPEED = 1000
@@ -157,7 +161,6 @@ var lan_server_ip
 var lan_server_port
 var world_path
 var region_path
-var entity_path
 var player_path
 var language
 var game
@@ -251,7 +254,6 @@ func update_select_world_path():
 		world_path = "user://worlds/"+select_world
 		region_path = world_path+"/regions"
 		player_path = world_path+"/players"
-		entity_path = world_path+"/entities"
 
 func change_scene(path):
 	#self.show()
@@ -444,7 +446,7 @@ func process_stored_rpc():
 		if current_time - stored_rpc[0] > 10000:
 			stored_entity_rpc_list.erase(stored_rpc)
 			continue
-		if not game.entities.has(stored_rpc[2]):
+		if game != null and not game.entities.has(stored_rpc[2]):
 			continue
 		if stored_rpc[1] == "request":
 			process_request_for_entity_func_by_uuid(stored_rpc[2], stored_rpc[3], stored_rpc[4], stored_rpc[5])
@@ -799,10 +801,8 @@ func dedicated_server_create_world():
 	world_path = "user://worlds/"+world_name
 	region_path = "user://worlds/"+world_name+"/regions"
 	player_path = "user://worlds/"+world_name+"/players"
-	entity_path = "user://worlds/"+world_name+"/entities"
 	DirAccess.make_dir_recursive_absolute(region_path)
 	DirAccess.make_dir_recursive_absolute(player_path)
-	DirAccess.make_dir_recursive_absolute(entity_path)
 	for x in range(-1,1):
 		for y in range(-1,1):
 			var mca = ConfigFile.new()
@@ -817,6 +817,7 @@ func dedicated_server_create_world():
 			mca.set_value("chunk", "blocks", chunk[0])
 			mca.set_value("chunk", "no_reach_blocks", chunk[1])
 			mca.set_value("chunk", "back_blocks", chunk[2])
+			mca.set_value("chunk", "entity_list", [])
 			mca.save_encrypted_pass(region_path+"/r."+str(x)+"."+str(y)+".mca", StaticLoad.CONFIG_PASSWORD)
 	var image = load("res://Assets/Textures/GUI/default_icon.png").get_image()
 	image.save_png(world_path+"/icon.png")
@@ -1009,7 +1010,7 @@ func request_for_mark_revised_chunk(chunk_pos):
 		return
 	if not game.loaded_chunks.has(str(chunk_pos[0])+"."+str(chunk_pos[1])):
 		return
-	game.loaded_chunks[str(chunk_pos[0])+"."+str(chunk_pos[1])] = true
+	game.loaded_chunks[str(chunk_pos[0])+"."+str(chunk_pos[1])].is_to_save = true
 
 @rpc("any_peer", "call_remote", "reliable", 1)
 func request_for_update_chunk(client_peer_id, is_init, x_chunk, y_chunk):
@@ -1051,10 +1052,19 @@ func request_for_update_chunk(client_peer_id, is_init, x_chunk, y_chunk):
 		blocks = chunk_config.get_value("chunk", "blocks")
 		no_reach_blocks = chunk_config.get_value("chunk", "no_reach_blocks")
 		back_blocks = chunk_config.get_value("chunk", "back_blocks")
+		var chunk_entity_list = chunk_config.get_value("chunk", "entity_list")
 		game.loaded_chunk_num += 1
-		game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)] = false
+		game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)] = Chunk.new()
+		game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)].is_to_save = false
 		game.loaded_chunks_timer[str(x_chunk)+"."+str(y_chunk)] = StaticLoad.CHUNK_FREE_TIME
 		game.set_chunk(Vector2i(x_chunk, y_chunk), [blocks, no_reach_blocks, back_blocks])
+		if chunk_entity_list != null:
+			for uuid in chunk_entity_list:
+				var entity_info = chunk_config.get_value("entity", uuid)
+				if entity_info[0] == "item":
+					var item_info = ["item", entity_info[1], entity_info[3], entity_info[2], 0, 2, uuid]
+					create_entity(item_info)
+					rpc("create_entity", item_info)
 	else:
 		var mca = ConfigFile.new()
 		var worlds_path = "user://worlds"
@@ -1072,8 +1082,10 @@ func request_for_update_chunk(client_peer_id, is_init, x_chunk, y_chunk):
 		mca.set_value("chunk", "blocks", blocks)
 		mca.set_value("chunk", "no_reach_blocks", no_reach_blocks)
 		mca.set_value("chunk", "back_blocks", back_blocks)
+		mca.set_value("chunk", "entity_list", [])
 		mca.save_encrypted_pass(region_path+"/r."+str(x_chunk)+"."+str(y_chunk)+".mca", CONFIG_PASSWORD)
-		game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)] = false
+		game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)] = Chunk.new()
+		game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)].is_to_save = false
 		game.loaded_chunks_timer[str(x_chunk)+"."+str(y_chunk)] = StaticLoad.CHUNK_FREE_TIME
 		game.database_chunks.push_back(str(x_chunk)+"."+str(y_chunk))
 		game.set_chunk(Vector2i(x_chunk, y_chunk), [blocks, no_reach_blocks, back_blocks])
@@ -1109,7 +1121,8 @@ func request_for_update_chunk(client_peer_id, is_init, x_chunk, y_chunk):
 @rpc("authority", "call_remote", "reliable", 1)
 func reply_for_update_chunk(is_init, x_chunk, y_chunk, blocks_list, entities_to_transfer):
 	game.set_chunk(Vector2i(x_chunk, y_chunk), blocks_list)
-	game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)] = false
+	game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)] = Chunk.new()
+	game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)].is_to_save = false
 	game.loaded_chunks_timer[str(x_chunk)+"."+str(y_chunk)] = StaticLoad.CHUNK_FREE_TIME
 	game.loaded_chunk_num += 1
 	for entity in entities_to_transfer:
@@ -1133,6 +1146,22 @@ func reply_for_update_chunk(is_init, x_chunk, y_chunk, blocks_list, entities_to_
 		game.chunk_light_to_process[str(x_chunk)+"."+str(y_chunk)] = "null"
 	else:
 		game.chunk_light_to_process[str(x_chunk)+"."+str(y_chunk)] = "create"
+
+@rpc("authority", "call_remote", "reliable", 1)
+func create_entity(args):
+	if args[0] == "item":
+		var droppped_item_name = args[1]
+		var pos = args[2]
+		var amount = args[3]
+		var x_velocity = args[4]
+		if StaticLoad.is_muti_mode and not StaticLoad.multiplayer.get_unique_id() == 1:
+			x_velocity = 0
+		var no_collect_time = args[5]
+		var uuid = args[6]
+		var item = StaticLoad.game.item_scene.instantiate()
+		StaticLoad.game.items.add_child(item)
+		item.init([uuid, droppped_item_name, pos, amount, no_collect_time, x_velocity])
+		StaticLoad.game.entities[item.get_uuid()] = item
 
 # 获取服务器在线状态
 @rpc("any_peer", "call_remote", "reliable", 1)
@@ -1387,7 +1416,8 @@ func reply_for_entity_func_by_uuid(uuid, rpc_func_name, args):
 		process_reply_for_entity_func_by_uuid(uuid, rpc_func_name, args)
 
 func process_reply_for_entity_func_by_uuid(uuid, rpc_func_name, args):
-	game.entities[uuid].call(rpc_func_name, args)
+	if game != null:
+		game.entities[uuid].call(rpc_func_name, args)
 
 func call_entity_func(uuid, rpc_func_name, args):
 	if not game.entities.has(uuid):

@@ -59,10 +59,8 @@ func create_world(world_name: String):
 	var world_path = "user://worlds/"+world_name
 	var region_path = "user://worlds/"+world_name+"/regions"
 	var player_path = "user://worlds/"+world_name+"/players"
-	var entity_path = "user://worlds/"+world_name+"/entities"
 	DirAccess.make_dir_recursive_absolute(region_path)
 	DirAccess.make_dir_recursive_absolute(player_path)
-	DirAccess.make_dir_recursive_absolute(entity_path)
 	var image = load("res://Assets/Textures/GUI/default_icon.png").get_image()
 	image.save_png(world_path+"/icon.png")
 	var level = ConfigFile.new()
@@ -88,6 +86,7 @@ func create_world(world_name: String):
 			mca.set_value("chunk", "blocks", chunk[0])
 			mca.set_value("chunk", "no_reach_blocks", chunk[1])
 			mca.set_value("chunk", "back_blocks", chunk[2])
+			mca.set_value("chunk", "entity_list", [])
 			mca.save_encrypted_pass(region_path+"/r."+str(x)+"."+str(y)+".mca", StaticLoad.CONFIG_PASSWORD)
 	StaticLoad.select_world = null
 

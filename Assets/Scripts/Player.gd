@@ -8,6 +8,7 @@ extends CharacterBody2D
 @onready var camera = $Camera2D
 @onready var name_label = $Sprite2D/NameLable
 @onready var item_in_hand = $SubViewportContainer/SubViewport/PlayerModel/Root/Skeleton3D/Hand/Item
+@onready var sight_line = $SightLine2D
 
 # 实体变量
 var uuid = UUID.v4()
@@ -30,6 +31,7 @@ var velocity_before_pause = velocity
 var current_velocity = Vector2(0, 0)
 var last_velocity = Vector2(0, 0)
 var selected_block_pos = Vector2i(0, 0)
+var destroying_block_pos = Vector2i(0, 0)
 var destroy_timer: float = 0
 var selected_item_grid: int = 0
 var step_sound_timer: float = 0
@@ -593,6 +595,26 @@ func place_block(block_pos):
 	var block_id = StaticLoad.get_block_id_by_name(selected_item_bar_name)
 	if not StaticLoad.game.check_place_block_state(block_pos, block_id):
 		return false
+	if gamemode != "creative":
+		var chunk_pos_tmp
+		var block_pos_tmp
+		var is_attached_block = false
+		for i in [1, -1]:
+			block_pos_tmp = block_pos + Vector2i(i, 0)
+			chunk_pos_tmp = StaticLoad.game.get_chunk_position(block_pos_tmp)
+			if StaticLoad.game.loaded_chunks.has(str(chunk_pos_tmp[0])+"."+str(chunk_pos_tmp[1])):
+				var block_id_tmp = StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.tile_map_layer.get_cell_atlas_coords(block_pos_tmp))
+				if block_id_tmp != 0:	
+					is_attached_block = true
+		for i in [1, -1]:
+			block_pos_tmp = block_pos + Vector2i(0, i)
+			chunk_pos_tmp = StaticLoad.game.get_chunk_position(block_pos_tmp)
+			if StaticLoad.game.loaded_chunks.has(str(chunk_pos_tmp[0])+"."+str(chunk_pos_tmp[1])):
+				var block_id_tmp = StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.tile_map_layer.get_cell_atlas_coords(block_pos_tmp))
+				if block_id_tmp != 0:	
+					is_attached_block = true
+		if not is_attached_block:
+			return false
 	if StaticLoad.game.tile_map_layer.get_cell_source_id(block_pos) == -1 and StaticLoad.game.no_reach_tile_map_layer.get_cell_source_id(block_pos) == -1 and StaticLoad.block_ids.has(selected_item_bar_name):
 		set_block_list.append([block_id, block_pos, "solid"])
 		is_punching = true
@@ -651,6 +673,9 @@ func send_command(command: String):
 				await tween3.finished
 				freeze()
 				position = Vector2i(x*50+25, -y*50+50)
+				var in_chunk_pos = StaticLoad.game.get_chunk_position(StaticLoad.game.tile_map_layer.local_to_map(position))
+				while(not StaticLoad.game.loaded_chunks.has(str(in_chunk_pos[0])+"."+str(in_chunk_pos[1]))):
+					await get_tree().process_frame
 				unfreeze()
 				var tween4 = get_tree().create_tween()
 				tween4.tween_method(set_shader_transparent_intensity, 1.0, 0.0, StaticLoad.TELEPORT_TIME/2.0)
