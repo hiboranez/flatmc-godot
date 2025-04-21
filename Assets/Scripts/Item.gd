@@ -237,11 +237,13 @@ func on_body_collide_entered(body: Node) -> void:
 				else:
 					if StaticLoad.game.entities.find_key(self):
 						StaticLoad.game.entities.erase(self)
-					destroy_item([])
+					destroy_entity([])
 					if StaticLoad.is_muti_mode:
-						StaticLoad.rpc_entity_func_by_uuid(get_uuid(), "destroy_item", [], "others", true)
+						StaticLoad.rpc_entity_func_by_uuid(get_uuid(), "destroy_entity", [], "others", true)
 
 func combine_item(target_item_uuid):
+	if not StaticLoad.game.items.has_node(str(target_item_uuid)):
+		return
 	var target_item = StaticLoad.game.items.get_node(str(target_item_uuid))
 	if target_item == null:
 		return
@@ -253,7 +255,7 @@ func combine_item(target_item_uuid):
 			elif item_model_type == "item":
 				item_model.get_node("Mesh2").visible = true
 		velocity.x = (item_amount*velocity.x+target_item.item_amount*target_item.velocity.x)/(item_amount+target_item.item_amount)
-		target_item.destroy_item([])
+		target_item.destroy_entity([])
 		if StaticLoad.game.entities.find_key(target_item) != null:
 			StaticLoad.game.entities.erase(target_item)
 	else:
@@ -274,7 +276,8 @@ func combine_item(target_item_uuid):
 			elif item_model_type == "item":
 				item_model.get_node("Mesh2").visible = false
 
-func destroy_item(args):
+func destroy_entity(args):
 	if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == 1):
-		StaticLoad.game.loaded_chunks[str(chunk_pos[0])+"."+str(chunk_pos[1])].entity_list.erase(uuid)
+		if StaticLoad.game.loaded_chunks.has(str(chunk_pos[0])+"."+str(chunk_pos[1])):
+			StaticLoad.game.loaded_chunks[str(chunk_pos[0])+"."+str(chunk_pos[1])].entity_list.erase(uuid)
 	queue_free()

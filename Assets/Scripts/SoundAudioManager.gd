@@ -79,6 +79,10 @@ extends Node2D
 @onready var step_wood6 = load("res://Assets//Sounds//Step//wood6.mp3") as AudioStream
 @onready var fall_small = load("res://Assets//Sounds//Damage//fallsmall.mp3") as AudioStream
 @onready var fall_big = load("res://Assets//Sounds//Damage//fallbig.mp3") as AudioStream
+@onready var hoe_till1 = load("res://Assets/Sounds/Item/Hoe/hoe_till1.mp3") as AudioStream
+@onready var hoe_till2 = load("res://Assets/Sounds/Item/Hoe/hoe_till2.mp3") as AudioStream
+@onready var hoe_till3 = load("res://Assets/Sounds/Item/Hoe/hoe_till3.mp3") as AudioStream
+@onready var hoe_till4 = load("res://Assets/Sounds/Item/Hoe/hoe_till4.mp3") as AudioStream
 
 var volume_db = 0
 var dig_cloth_sound_list = []
@@ -101,6 +105,7 @@ var damage_fallsmall_sound_list = []
 var damage_fallbig_sound_list = []
 var hurt_sound_list = []
 var hit_sound_list = []
+var hoe_still_sound_list = []
 
 func _ready() -> void:
 	dig_cloth_sound_list = [dig_cloth1, dig_cloth2, dig_cloth3, dig_cloth4]
@@ -120,10 +125,12 @@ func _ready() -> void:
 	step_snow_sound_list = [step_snow1, step_snow2, step_snow3, step_snow4]
 	step_stone_sound_list = [step_stone1, step_stone2, step_stone3, step_stone4, step_stone5, step_stone6]
 	step_wood_sound_list = [step_wood1, step_wood2, step_wood3, step_wood4, step_wood5, step_wood6]
+	
 	damage_fallsmall_sound_list = [fall_small]
 	damage_fallbig_sound_list = [fall_big]
 	hurt_sound_list = [hurt]
 	hit_sound_list = [hit1, hit2, hit3]
+	hoe_still_sound_list = [hoe_till1, hoe_till2, hoe_till3, hoe_till4]
 
 func play_audio_static(type, sub_type):
 	var audio_player = AudioStreamPlayer.new()
@@ -167,6 +174,9 @@ func play_random_audio_at_position(type, sub_type, sound_position: Vector2, pitc
 	elif type == "player":
 		if sub_type == "hurt":
 			sound_list = hurt_sound_list
+	elif type == "item":
+		if sub_type == "hoe_still":
+			sound_list = hoe_still_sound_list
 	elif type == "step":
 		if sub_type == "cloth":
 			sound_list = step_cloth_sound_list
@@ -175,7 +185,7 @@ func play_random_audio_at_position(type, sub_type, sound_position: Vector2, pitc
 		elif sub_type == "gravel":
 			sound_list = step_gravel_sound_list
 		elif sub_type == "ladder":
-			sound_list = step_gravel_sound_list
+			sound_list = step_ladder_sound_list
 		elif sub_type == "sand":
 			sound_list = step_sand_sound_list
 		elif sub_type == "snow":

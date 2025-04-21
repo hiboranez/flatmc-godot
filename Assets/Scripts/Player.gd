@@ -9,6 +9,9 @@ extends CharacterBody2D
 @onready var name_label = $Sprite2D/NameLable
 @onready var item_in_hand = $SubViewportContainer/SubViewport/PlayerModel/Root/Skeleton3D/Hand/Item
 @onready var sight_line = $SightLine2D
+@onready var up_area_collision_shape = $UpArea/CollisionShape2D
+@onready var down_area_collision_shape = $DownArea/CollisionShape2D
+@onready var top_area_collision_shape = $TopArea/CollisionShape2D
 
 # 实体变量
 var uuid = UUID.v4()
@@ -49,6 +52,9 @@ var is_dead = false
 var is_in_water = false
 var is_flying = false
 var is_punching = false
+var is_up_area_colliding = false
+var is_down_area_colliding = false
+var is_top_area_colliding = false
 var animation_tree_parameters = {
 	"walk": 0,
 	"run": 0
@@ -68,6 +74,7 @@ var success_set_block_list = []
 var item_bar_names = StaticLoad.default_item_bar_names
 var item_bar_amounts = StaticLoad.default_item_bar_amounts
 var in_hand_item_name = "AIR"
+var current_set_layer = "solid"
 var skin_texture_buffer
 
 func _ready():
@@ -96,12 +103,17 @@ func _process(delta: float) -> void:
 	update_last_velocity()
 	
 func init_local(peer_id):
+	position = Vector2i(0, -21)
 	player_peer_id = peer_id
+	var player_icon_instance = StaticLoad.player_icon_scene.instantiate()
 	var config = ConfigFile.new()
 	var result = config.load("user://configs.cfg")
 	var skin_texture = load(StaticLoad.default_skin_path) as Texture2D
+	player_icon_instance.get_node("UpSkin").texture.atlas = skin_texture
 	if result == OK:
 		player_name = config.get_value("options", "player_name", StaticLoad.options["player_name"])
+		StaticLoad.game.player_icons[player_name] = player_icon_instance
+		StaticLoad.game.mini_map_players.add_child(player_icon_instance)
 		uuid = UUID.uuid_from_username(player_name)
 		name_label.text = player_name
 		StaticLoad.player_peer_dict[player_peer_id] = StaticLoad.game.player
@@ -149,13 +161,12 @@ func init_local(peer_id):
 		update_player_face_rotation()
 		StaticLoad.game.update_new_chunk(true)
 	
-	var player_icon_instance = StaticLoad.player_icon_scene.instantiate()
+	
 	var mini_map_camera_zoom = StaticLoad.game.mini_map_camera.zoom[0]
 	var player_icon_scale = StaticLoad.MINI_MAP_SCALE_FACTOR/mini_map_camera_zoom
 	player_icon_instance.scale = Vector2(player_icon_scale, player_icon_scale)
 	player_icon_instance.name = player_name
-	StaticLoad.game.player_icons[player_name] = player_icon_instance
-	StaticLoad.game.mini_map_players.add_child(player_icon_instance)
+	
 	
 	if is_other:
 		camera.queue_free()
@@ -181,8 +192,15 @@ func update_sound_by_data():
 			StaticLoad.game.sound_audio_manager.play_random_audio_at_position("damage", "fallbig", position, 1)
 		else:
 			StaticLoad.game.sound_audio_manager.play_random_audio_at_position("damage", "fallsmall", position, 1)
-	if move_state != "idle":
-		var block_pos = StaticLoad.game.tile_map_layer.local_to_map(position+Vector2(0, 5))
+	var foot_pos = position + Vector2(0, 25)
+	var foot_block_pos = StaticLoad.game.tile_map_layer.local_to_map(foot_pos)
+	var foot_block_id = StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.tile_map_layer.get_cell_atlas_coords(foot_block_pos))
+	if not is_flying and StaticLoad.get_block_name_by_id(foot_block_id) == "LADDER":
+		if step_sound_timer <= 0 and current_velocity.y < 0:
+			step_sound_timer = walk_period
+			StaticLoad.game.sound_audio_manager.play_random_audio_at_position("step", "ladder", position, 1)
+	elif move_state != "idle":
+		var block_pos = StaticLoad.game.tile_map_layer.local_to_map(position+Vector2(0, 30))
 		var block_id = StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.tile_map_layer.get_cell_atlas_coords(block_pos))
 		if step_sound_timer <= 0 and block_id != 0:
 			if not StaticLoad.get_is_untouchable_by_id(block_id):
@@ -215,6 +233,28 @@ func update_animation_by_data():
 		animation_tree_parameters["run"] = lerpf(animation_tree_parameters["run"], 0, StaticLoad.BLEND_SPEED*delta)
 		animation_tree_parameters["walk"] = lerpf(animation_tree_parameters["walk"], 0, StaticLoad.BLEND_SPEED*delta)
 	
+	var detect_size = 60
+	if move_state == "run":
+		detect_size = 100
+	var half_detect_size = detect_size/2
+	up_area_collision_shape.shape.size.x = detect_size
+	down_area_collision_shape.shape.size.x = detect_size
+	top_area_collision_shape.shape.size.x = detect_size
+	if turn_state > 0:
+		if up_area_collision_shape.position.x < 0:
+			up_area_collision_shape.position.x = half_detect_size
+		if down_area_collision_shape.position.x < 0:
+			down_area_collision_shape.position.x = half_detect_size
+		if top_area_collision_shape.position.x < 0:
+			top_area_collision_shape.position.x = half_detect_size
+	else:
+		if up_area_collision_shape.position.x > 0:
+			up_area_collision_shape.position.x = -half_detect_size
+		if down_area_collision_shape.position.x > 0:
+			down_area_collision_shape.position.x = -half_detect_size
+		if top_area_collision_shape.position.x > 0:
+			top_area_collision_shape.position.x = -half_detect_size
+	
 	if abs(turn_state-face_state) > 0.01:
 		update_player_face_rotation()
 		var turn_amplitude = delta/StaticLoad.TURN_TIME
@@ -237,17 +277,21 @@ func update_local_fall_damage_by_data():
 		return
 	#更新摔落
 	if gamemode == "survival":
-		if abs(current_velocity.y) < StaticLoad.FLOAT_DELTA and last_velocity.y > 1000:
-			@warning_ignore("integer_division")
-			var damage = (int(last_velocity.y)-1000)/50
-			get_damage(damage)
-			if StaticLoad.is_muti_mode:
-				StaticLoad.rpc_entity_func_by_uuid(uuid, "get_damage", damage, "others", true)
+		if last_velocity.y > 1000:
+			if abs(current_velocity.y) < StaticLoad.FLOAT_DELTA or current_velocity.y < 0:
+				@warning_ignore("integer_division")
+				var damage = (int(last_velocity.y)-1000)/50
+				get_damage(damage)
+				
+				if StaticLoad.is_muti_mode:
+					StaticLoad.rpc_entity_func_by_uuid(uuid, "get_damage", damage, "others", true)
 
 func update_local_health_recover():
 	if StaticLoad.is_muti_mode and not StaticLoad.multiplayer.get_unique_id() == 1:
 		return
 	if health >= 20:
+		return
+	if is_dead:
 		return
 	if gamemode == "creative":
 		return
@@ -305,10 +349,25 @@ func update_local_move_by_data():
 			velocity = Vector2(0, 0)
 		return
 	if is_jump_pressed:
-		if not is_flying and is_on_floor():
-			velocity.y = jump_velocity
-		elif is_flying:
-			velocity.y = jump_velocity * 0.7
+		var foot_pos = position + Vector2(0, 25)
+		var foot_block_pos = StaticLoad.game.tile_map_layer.local_to_map(foot_pos)
+		var foot_block_id = StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.tile_map_layer.get_cell_atlas_coords(foot_block_pos))
+		if not is_flying and StaticLoad.get_block_name_by_id(foot_block_id) == "LADDER":
+			velocity.y = -move_speed
+		else:
+			if not is_flying and is_on_floor():
+				last_velocity = current_velocity
+				current_velocity = velocity
+				update_local_fall_damage_by_data()
+				update_sound_by_data()
+				if not is_dead:
+					velocity.y = jump_velocity
+			elif is_flying:
+				velocity.y = jump_velocity * 0.7
+	if not is_top_area_colliding and is_down_area_colliding and not is_up_area_colliding:
+		if move_state != "idle":
+			if not is_flying and is_on_floor():
+				velocity.y = jump_velocity
 	if last_is_jump_pressed and not is_jump_pressed:
 		if is_flying:
 			velocity.y = 0
@@ -336,7 +395,7 @@ func update_local_move_by_data():
 		velocity.x = 0
 	
 	if velocity.length() > StaticLoad.FLOAT_DELTA:
-		var player_block_pos = StaticLoad.game.tile_map_layer.local_to_map(position-Vector2(0,24))
+		var player_block_pos = StaticLoad.game.tile_map_layer.local_to_map(position)
 		var block_id_down = StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.tile_map_layer.get_cell_atlas_coords(player_block_pos))
 		var block_id_up = StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.tile_map_layer.get_cell_atlas_coords(player_block_pos-Vector2i(0,1)))
 		if not StaticLoad.get_is_untouchable_by_id(block_id_down):
@@ -431,6 +490,7 @@ func update_state_dict():
 	state_dict["in_hand_item_name"] = in_hand_item_name
 	state_dict["current_velocity"] = current_velocity
 	state_dict["health"] = health
+	state_dict["current_set_layer"] = current_set_layer
 
 func update_local_state_dict():
 	if not StaticLoad.is_muti_mode:
@@ -463,14 +523,14 @@ func update_local_changed_state_dict():
 			else:
 				changed_state_dict[key] = state_dict[key]
 
-func set_changed_state_dict(new_changed_state_dict):
-	for key in new_changed_state_dict:
+func set_changed_state_dict(got_changed_state_dict):
+	for key in got_changed_state_dict:
 		if changed_state_dict.has(key) and changed_state_dict[key] is Array:
-			changed_state_dict[key].append_array(new_changed_state_dict[key])
+			changed_state_dict[key].append_array(got_changed_state_dict[key])
 		elif changed_state_dict.has(key) and changed_state_dict[key] is Dictionary:
-			changed_state_dict[key].merge(new_changed_state_dict[key], true)
+			changed_state_dict[key].merge(got_changed_state_dict[key], true)
 		else:
-			changed_state_dict[key] = new_changed_state_dict[key]
+			changed_state_dict[key] = got_changed_state_dict[key]
 
 func rectify_changed_state_dict():
 	var is_need_resend = false
@@ -491,7 +551,7 @@ func rectify_changed_state_dict():
 		StaticLoad.rpc_entity_func_by_uuid(uuid, "apply_changed_state_dict", changed_state_dict, [player_peer_id], true)
 
 func apply_changed_state_dict(got_changed_state_dict):
-	for key in got_changed_state_dict:
+	for key in got_changed_state_dict.duplicate():
 		if trigger_change_state_list.has(key):
 			if StaticLoad.multiplayer.get_unique_id() == player_peer_id:
 				continue
@@ -569,30 +629,90 @@ func fail_set_block(args):
 	StaticLoad.game.set_block_list.append([Time.get_ticks_msec(), uuid, set_block_id, set_block_pos, set_block_layer, false])
 
 func destroy_block(block_pos: Vector2i):
-	var destroy_layer = "solid"
+	var destroy_layer = current_set_layer
 	var tile_map_layer_tmp = StaticLoad.game.tile_map_layer
 	var chunk_pos = StaticLoad.game.get_chunk_position(block_pos)
 	if not StaticLoad.game.loaded_chunks.has(str(chunk_pos[0])+"."+str(chunk_pos[1])):
 		return false
-	var block_id = StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.tile_map_layer.get_cell_atlas_coords(block_pos))
-	if block_id == 0:
-		destroy_layer = "no_reach"
-		tile_map_layer_tmp = StaticLoad.game.no_reach_tile_map_layer
-		block_id = StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.no_reach_tile_map_layer.get_cell_atlas_coords(block_pos))
-	if tile_map_layer_tmp.get_cell_source_id(block_pos) != -1 and block_id != 0:
-		set_block_list.append([0, block_pos, destroy_layer])
-		is_punching = true
-	else:
-		return false
+	if destroy_layer == "back":
+		var solid_block_id = StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.tile_map_layer.get_cell_atlas_coords(block_pos))
+		if not StaticLoad.get_is_untouchable_by_id(solid_block_id):
+			return false
+		var block_id = StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.back_tile_map_layer.get_cell_atlas_coords(block_pos))
+		if block_id == 0:
+			return false
+		if StaticLoad.game.back_tile_map_layer.get_cell_source_id(block_pos) != -1 and block_id != 0:
+			set_block_list.append([0, block_pos, destroy_layer])
+			is_punching = true
+		else:
+			return false
+	elif destroy_layer == "solid":
+		var block_id = StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.tile_map_layer.get_cell_atlas_coords(block_pos))
+		if block_id == 0:
+			destroy_layer = "no_reach"
+			tile_map_layer_tmp = StaticLoad.game.no_reach_tile_map_layer
+			block_id = StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.no_reach_tile_map_layer.get_cell_atlas_coords(block_pos))
+		if tile_map_layer_tmp.get_cell_source_id(block_pos) != -1 and block_id != 0:
+			set_block_list.append([0, block_pos, destroy_layer])
+			is_punching = true
+		else:
+			return false
 
 func place_block(block_pos):
+	var place_layer = current_set_layer
 	var chunk_pos = StaticLoad.game.get_chunk_position(block_pos)
 	if not StaticLoad.game.loaded_chunks.has(str(chunk_pos[0])+"."+str(chunk_pos[1])):
 		return false
 	var selected_item_bar_name = item_bar_names[selected_item_grid]
 	if selected_item_bar_name == "AIR":
 		return false
-	var block_id = StaticLoad.get_block_id_by_name(selected_item_bar_name)
+	var tool_type = StaticLoad.get_tools_type_by_name(selected_item_bar_name)
+	if tool_type.has("hoe"):
+		if place_layer == "back":
+			return false
+		var up_block_pos = block_pos + Vector2i(0, -1)
+		var up_chunk_pos = StaticLoad.game.get_chunk_position(up_block_pos)
+		if not StaticLoad.game.loaded_chunks.has(str(up_chunk_pos[0])+"."+str(up_chunk_pos[1])):
+			return false
+		var up_block_id = StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.tile_map_layer.get_cell_atlas_coords(up_block_pos))
+		if up_block_id != 0 and not StaticLoad.get_is_transparent_by_id(up_block_id):
+			return false
+		var local_block_id = StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.tile_map_layer.get_cell_atlas_coords(block_pos))
+		if StaticLoad.get_block_name_by_id(local_block_id) == "GRASS_BLOCK":
+			var sound_pos = StaticLoad.game.tile_map_layer.map_to_local(block_pos)+Vector2(0, 25)
+			StaticLoad.game.sound_audio_manager.play_random_audio_at_position("item", "hoe_still", sound_pos, 1)
+			StaticLoad.game.set_block(block_pos, StaticLoad.get_block_id_by_name("FARM_LAND"), "solid", true)
+			if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == 1:
+				StaticLoad.rpc("set_block", [local_block_id, StaticLoad.get_block_id_by_name("FARM_LAND"), "solid"])
+			var rng = RandomNumberGenerator.new()
+			var num = rng.randf()
+			if num > 0.7:
+				var item_pos = StaticLoad.game.tile_map_layer.map_to_local(block_pos)-Vector2(0, 25)
+				var summon_item_args = ["item", "SEEDS_WHEAT", item_pos, 1, 0, 0, UUID.v4()]
+				if StaticLoad.is_muti_mode:
+					if StaticLoad.multiplayer.get_unique_id() == 1:
+						StaticLoad.create_entity(summon_item_args)
+						StaticLoad.rpc("create_entity", summon_item_args)
+				else:
+					StaticLoad.create_entity(summon_item_args)
+			is_punching = true
+			return true
+		elif StaticLoad.get_block_name_by_id(local_block_id) == "DIRT":
+			var sound_pos = StaticLoad.game.tile_map_layer.map_to_local(block_pos)+Vector2(0, 25)
+			StaticLoad.game.sound_audio_manager.play_random_audio_at_position("item", "hoe_still", sound_pos, 1)
+			StaticLoad.game.set_block(block_pos, StaticLoad.get_block_id_by_name("FARM_LAND"), "solid", true)
+			if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == 1:
+				StaticLoad.rpc("set_block", [local_block_id, StaticLoad.get_block_id_by_name("FARM_LAND"), "solid"])
+			is_punching = true
+			return true
+		else:
+			is_punching = true
+			return false
+	var final_item_name = StaticLoad.get_final_place_name_by_name(selected_item_bar_name)
+	var block_id = StaticLoad.get_block_id_by_name(final_item_name)
+	var tile_map_layer_tmp = StaticLoad.game.tile_map_layer
+	if place_layer == "back":
+		tile_map_layer_tmp = StaticLoad.game.back_tile_map_layer
 	if not StaticLoad.game.check_place_block_state(block_pos, block_id):
 		return false
 	if gamemode != "creative":
@@ -603,23 +723,31 @@ func place_block(block_pos):
 			block_pos_tmp = block_pos + Vector2i(i, 0)
 			chunk_pos_tmp = StaticLoad.game.get_chunk_position(block_pos_tmp)
 			if StaticLoad.game.loaded_chunks.has(str(chunk_pos_tmp[0])+"."+str(chunk_pos_tmp[1])):
-				var block_id_tmp = StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.tile_map_layer.get_cell_atlas_coords(block_pos_tmp))
+				var block_id_tmp = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer_tmp.get_cell_atlas_coords(block_pos_tmp))
 				if block_id_tmp != 0:	
 					is_attached_block = true
 		for i in [1, -1]:
 			block_pos_tmp = block_pos + Vector2i(0, i)
 			chunk_pos_tmp = StaticLoad.game.get_chunk_position(block_pos_tmp)
 			if StaticLoad.game.loaded_chunks.has(str(chunk_pos_tmp[0])+"."+str(chunk_pos_tmp[1])):
-				var block_id_tmp = StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.tile_map_layer.get_cell_atlas_coords(block_pos_tmp))
+				var block_id_tmp = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer_tmp.get_cell_atlas_coords(block_pos_tmp))
 				if block_id_tmp != 0:	
 					is_attached_block = true
 		if not is_attached_block:
 			return false
-	if StaticLoad.game.tile_map_layer.get_cell_source_id(block_pos) == -1 and StaticLoad.game.no_reach_tile_map_layer.get_cell_source_id(block_pos) == -1 and StaticLoad.block_ids.has(selected_item_bar_name):
-		set_block_list.append([block_id, block_pos, "solid"])
-		is_punching = true
-	else:
-		return false
+	if tile_map_layer_tmp.get_cell_source_id(block_pos) == -1 and StaticLoad.game.no_reach_tile_map_layer.get_cell_source_id(block_pos) == -1 and StaticLoad.block_ids.has(final_item_name):
+		if place_layer == "back":
+			var solid_block_id = StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.tile_map_layer.get_cell_atlas_coords(block_pos))
+			if StaticLoad.get_is_untouchable_by_id(solid_block_id):
+				set_block_list.append([block_id, block_pos, place_layer])
+				is_punching = true
+				return true
+		elif place_layer == "solid":
+			set_block_list.append([block_id, block_pos, place_layer])
+			is_punching = true
+			return true
+	return false
+
 
 func player_die():
 	is_dead = true
@@ -628,7 +756,19 @@ func player_die():
 		return
 	if StaticLoad.game.is_pause:
 		StaticLoad.game.pause_ui.visible = false
-		is_pause = false
+		StaticLoad.game.is_pause = false
+	if StaticLoad.game.is_inventory:
+		StaticLoad.game.inventory_ui.visible = false
+		StaticLoad.game.is_inventory = false
+	if StaticLoad.game.is_chat:
+		StaticLoad.game.chat_message_out.visible = true
+		StaticLoad.game.chat_panel.visible = false
+		StaticLoad.game.is_chat = false
+	if StaticLoad.game.is_map:
+		StaticLoad.game.mini_map.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+		StaticLoad.game.mini_map.size = Vector2(270, 270)
+		StaticLoad.game.mini_map.position = Vector2(get_viewport_rect().size[0]-270, 0)
+		StaticLoad.game.is_map = false
 	StaticLoad.game.death_ui.visible = true
 	StaticLoad.game.is_input_frozen = true
 	if StaticLoad.is_on_mobile_platform:
@@ -672,7 +812,7 @@ func send_command(command: String):
 				tween3.tween_method(set_name_label_modulate, Color(1,1,1,1), Color(1,1,1,0), StaticLoad.TELEPORT_TIME/2.0)
 				await tween3.finished
 				freeze()
-				position = Vector2i(x*50+25, -y*50+50)
+				position = Vector2i(x*50+25, -y*50+50-24)
 				var in_chunk_pos = StaticLoad.game.get_chunk_position(StaticLoad.game.tile_map_layer.local_to_map(position))
 				while(not StaticLoad.game.loaded_chunks.has(str(in_chunk_pos[0])+"."+str(in_chunk_pos[1]))):
 					await get_tree().process_frame
@@ -776,11 +916,11 @@ func get_item(args):
 		StaticLoad.game.sound_audio_manager.play_audio_static("player", "pop")
 	if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and player_peer_id == StaticLoad.multiplayer.get_unique_id()):
 		if StaticLoad.game.is_inventory:
-			StaticLoad.game.refresh_to_process.append("refresh_inventory")
+			StaticLoad.game.append_process_refresh("refresh_inventory")
 		if list[0] < amount and item_bar_names[selected_item_grid] != "AIR" and list[1]:
-			StaticLoad.game.refresh_to_process.append("refresh_item_name_label")
+			StaticLoad.game.append_process_refresh("refresh_item_name_label")
 		if list[0] < amount:
-			StaticLoad.game.refresh_to_process.append("refresh_item_grid")
+			StaticLoad.game.append_process_refresh("refresh_item_grid")
 	return list[0]
 
 # 玩家拾取掉落物，返回未被拾取的数量
@@ -845,14 +985,8 @@ func stop_move():
 		velocity.y = 0
 
 func respawn(is_animation = true):
-	position = Vector2(0, -1)
-	health = 20
-	is_dead = false
-	if is_animation:
-		var tween1 = get_tree().create_tween()
-		tween1.tween_method(set_name_label_modulate, Color(1,1,1,0), Color(1,1,1,1), StaticLoad.DISSOLVE_TIME)
-		var tween2 = get_tree().create_tween()
-		tween2.tween_method(set_shader_dissolve_intensity, 0.6, -0.6, StaticLoad.DISSOLVE_TIME)
+	freeze()
+	position = Vector2(0, -24)
 	if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == player_peer_id):
 		if StaticLoad.is_on_mobile_platform:
 			Input.emulate_mouse_from_touch = false
@@ -860,6 +994,19 @@ func respawn(is_animation = true):
 		StaticLoad.game.is_input_frozen = false
 		StaticLoad.game.move_input_list.clear()
 		stop_move()
+	var in_chunk_pos = StaticLoad.game.get_chunk_position(StaticLoad.game.tile_map_layer.local_to_map(position))
+	while(not StaticLoad.game.loaded_chunks.has(str(in_chunk_pos[0])+"."+str(in_chunk_pos[1]))):
+		if not is_animation:
+			break
+		await get_tree().process_frame
+	health = 20
+	is_dead = false
+	if is_animation:
+		var tween1 = get_tree().create_tween()
+		tween1.tween_method(set_name_label_modulate, Color(1,1,1,0), Color(1,1,1,1), StaticLoad.DISSOLVE_TIME)
+		var tween2 = get_tree().create_tween()
+		tween2.tween_method(set_shader_dissolve_intensity, 0.6, -0.6, StaticLoad.DISSOLVE_TIME)
+	unfreeze()
 	
 func set_name_label_modulate(color):
 	name_label.modulate = color
@@ -878,6 +1025,9 @@ func init_remote(got_data):
 	player_peer_id = got_data[0]
 	player_name = got_data[1]
 	name_label.text = player_name
+	var player_icon_instance = StaticLoad.player_icon_scene.instantiate()
+	StaticLoad.game.player_icons[player_name] = player_icon_instance
+	StaticLoad.game.mini_map_players.add_child(player_icon_instance)
 	apply_changed_state_dict(got_data[2])
 	uuid = UUID.uuid_from_username(player_name)
 	if gamemode != "creative":
@@ -895,13 +1045,11 @@ func init_remote(got_data):
 	if player_peer_id == StaticLoad.multiplayer.get_unique_id():
 		return
 	
-	var player_icon_instance = StaticLoad.player_icon_scene.instantiate()
 	var mini_map_camera_zoom = StaticLoad.game.mini_map_camera.zoom[0]
 	var player_icon_scale = StaticLoad.MINI_MAP_SCALE_FACTOR/mini_map_camera_zoom
 	player_icon_instance.scale = Vector2(player_icon_scale, player_icon_scale)
 	player_icon_instance.name = player_name
-	StaticLoad.game.player_icons[player_name] = player_icon_instance
-	StaticLoad.game.mini_map_players.add_child(player_icon_instance)
+	
 	if StaticLoad.multiplayer.get_unique_id() == 1:
 		return
 	if not StaticLoad.game.online_ui_vbox_container.has_node(str(player_peer_id)):
@@ -919,14 +1067,20 @@ func set_player_model_skin_by_texture_buffer(got_skin_texture_buffer):
 	skin_texture_image.load_png_from_buffer(got_skin_texture_buffer)
 	player_material.albedo_texture = ImageTexture.create_from_image(skin_texture_image)
 	player_model_mesh.mesh.surface_set_material(0, player_material)
-	if player_peer_id == StaticLoad.multiplayer.get_unique_id():
+	if StaticLoad.game.player_icons.has(player_name):
+		StaticLoad.game.player_icons[player_name].texture.atlas = ImageTexture.create_from_image(skin_texture_image)
+		StaticLoad.game.player_icons[player_name].get_node("UpSkin").texture.atlas = ImageTexture.create_from_image(skin_texture_image)
+	if not StaticLoad.is_muti_mode or player_peer_id == StaticLoad.multiplayer.get_unique_id():
 		StaticLoad.game.inventory_player_model_mesh.mesh.surface_set_material(0, player_material)
 
 func set_player_model_skin_by_texture(got_skin_texture):
 	var player_material = load("res://Assets/Materials/PlayerSkin.tres").duplicate(true)
 	player_material.albedo_texture = got_skin_texture
 	player_model_mesh.mesh.surface_set_material(0, player_material)
-	if player_peer_id == StaticLoad.multiplayer.get_unique_id():
+	if StaticLoad.game.player_icons.has(player_name):
+		StaticLoad.game.player_icons[player_name].texture.atlas = got_skin_texture
+		StaticLoad.game.player_icons[player_name].get_node("UpSkin").texture.atlas = got_skin_texture
+	if not StaticLoad.is_muti_mode or player_peer_id == StaticLoad.multiplayer.get_unique_id():
 		StaticLoad.game.inventory_player_model_mesh.mesh.surface_set_material(0, player_material)
 
 func change_skin(got_skin_texture_buffer):
@@ -960,3 +1114,33 @@ func get_entity_type():
 
 func get_entity_name():
 	return player_name
+
+func _on_up_area_body_entered(body: Node2D) -> void:
+	if body.name != "TileMapLayer":
+		return
+	is_up_area_colliding = true
+
+func _on_up_area_body_exited(body: Node2D) -> void:
+	if body.name != "TileMapLayer":
+		return
+	is_up_area_colliding = false
+
+func _on_down_area_body_entered(body: Node2D) -> void:
+	if body.name != "TileMapLayer":
+		return
+	is_down_area_colliding = true
+
+func _on_down_area_body_exited(body: Node2D) -> void:
+	if body.name != "TileMapLayer":
+		return
+	is_down_area_colliding = false
+
+func _on_top_area_body_entered(body: Node2D) -> void:
+	if body.name != "TileMapLayer":
+		return
+	is_top_area_colliding = true
+
+func _on_top_area_body_exited(body: Node2D) -> void:
+	if body.name != "TileMapLayer":
+		return
+	is_top_area_colliding = false

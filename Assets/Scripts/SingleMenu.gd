@@ -83,10 +83,12 @@ func create_world(world_name: String):
 		for y in range(-1,1):
 			var mca = ConfigFile.new()
 			var chunk = StaticLoad.generate_chunk(Vector2i(x, y), world_seed, world_type)
-			mca.set_value("chunk", "blocks", chunk[0])
-			mca.set_value("chunk", "no_reach_blocks", chunk[1])
-			mca.set_value("chunk", "back_blocks", chunk[2])
-			mca.set_value("chunk", "entity_list", [])
+			var value_dict = {
+				"blocks" : chunk[0],
+				"no_reach_blocks" : chunk[1],
+				"back_blocks" : chunk[2]
+			}
+			StaticLoad.set_mca_value(mca, value_dict)
 			mca.save_encrypted_pass(region_path+"/r."+str(x)+"."+str(y)+".mca", StaticLoad.CONFIG_PASSWORD)
 	StaticLoad.select_world = null
 

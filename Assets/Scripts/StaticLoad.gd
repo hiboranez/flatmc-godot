@@ -17,8 +17,20 @@ extends Node2D
 @onready var click_audio_player = $ClickAudioPlayer
 
 class Chunk:
-	var entity_list: Array = []
+	static var para_list = [
+		"entity_list", "dirt_list", "grass_block_list",
+		"seed_list", "sapling_list", "leaves_list",
+		"farm_land_list", "sugar_cane_list"
+	]
 	var is_to_save: bool = false
+	var entity_list: Array = []
+	var dirt_list: Array = []
+	var grass_block_list: Array = []
+	var seed_list: Array = []
+	var sapling_list: Array = []
+	var leaves_list: Array = []
+	var farm_land_list: Array = []
+	var sugar_cane_list: Array = []
 
 # 常数据
 const AIR_RESISTANCE = 5000
@@ -53,8 +65,8 @@ const TURN_TIME: float = 0.1
 const HURT_TIME: float = 0.4
 const DISSOLVE_TIME: float = 0.5
 const TELEPORT_TIME: float = 0.3
-const MINI_MAP_SCALE_FACTOR = 0.07
-const MINI_MAP_ICON_SIZE = 256
+const MINI_MAP_SCALE_FACTOR = 0.07*48
+const MINI_MAP_ICON_SIZE = 8
 const MAP_SCALE_FACTOR = 0.7
 const CHUNK_FREE_TIME = 5
 const UPDATE_CHUNK_TIME = 0.5
@@ -105,7 +117,7 @@ var colors = {
 	"cornflower_blue": Color.CORNFLOWER_BLUE,
 	"chartreuse": Color.CHARTREUSE
 }
-var tps: int = 64
+var tps: int = 20
 var spt: float = 1.0/tps
 var destroy_light_textures: Dictionary
 var block_ids: Dictionary
@@ -132,6 +144,8 @@ var tools_efficiency: Dictionary
 var tools_type: Dictionary
 var special_block_destroy_time: Dictionary
 var commands: Dictionary
+var clinging_block_dict: Dictionary
+var special_place_dict: Dictionary
 
 # 待更新数据
 var multiplayer_peer = ENetMultiplayerPeer.new()
@@ -200,8 +214,9 @@ func _ready() -> void:
 	tools_type = game_dict["tools_type"]
 	special_block_destroy_time = game_dict["special_block_destroy_time"]
 	commands = game_dict["commands"]
-	for transparent_block_name in transparent_block_names:
-		transparent_block_ids.append(get_block_id_by_name(transparent_block_name))
+	clinging_block_dict = game_dict["clinging_block_dict"]
+	special_place_dict = game_dict["special_place_dict"]
+	
 	for i in range(8):
 		destroy_light_textures[i+1] = load("res://Assets/Textures/GUI/destroy"+str(i+1)+".png") as Texture2D
 	button_chosen = load("res://Assets/Textures/GUI/button_chosen.png") as Texture2D
@@ -223,6 +238,8 @@ func _ready() -> void:
 	
 	# 初始化据
 	block_ids = block_ids_0_2
+	for transparent_block_name in transparent_block_names:
+		transparent_block_ids.append(get_block_id_by_name(transparent_block_name))
 	
 	# 如果是专用服务器，直接开服
 	if is_dedicated_server:
@@ -267,6 +284,50 @@ func change_scene(path):
 	#animation.play_backwards("show")
 	#await animation.animation_finished
 	#self.set_layer(-1)
+
+func set_mca_value(got_mca, got_value_dict):
+	got_mca.set_value("chunk", "blocks", [])
+	got_mca.set_value("chunk", "no_reach_blocks", [])
+	got_mca.set_value("chunk", "back_blocks", [])
+	got_mca.set_value("chunk", "entity_list", [])
+	got_mca.set_value("chunk", "dirt_list", [])
+	got_mca.set_value("chunk", "grass_block_list", [])
+	got_mca.set_value("chunk", "seed_list", [])
+	got_mca.set_value("chunk", "sapling_list", [])
+	got_mca.set_value("chunk", "leaves_list", [])
+	got_mca.set_value("chunk", "farm_land_list", [])
+	got_mca.set_value("chunk", "sugar_cane_list", [])
+	for key in got_value_dict:
+		got_mca.set_value("chunk", key, got_value_dict[key])
+
+func get_mca_value(got_chunk_pos):
+	var chunk_config = ConfigFile.new()
+	var x_chunk = got_chunk_pos[0]
+	var y_chunk = got_chunk_pos[1]
+	var chunk_result = chunk_config.load_encrypted_pass(StaticLoad.region_path+"/r."+str(x_chunk)+"."+str(y_chunk)+".mca", CONFIG_PASSWORD)
+	if chunk_result != OK:
+		return [false]
+	var blocks = chunk_config.get_value("chunk", "blocks", [])
+	var no_reach_blocks = chunk_config.get_value("chunk", "no_reach_blocks", [])
+	var back_blocks = chunk_config.get_value("chunk", "back_blocks", [])
+	var chunk_dirt_list = chunk_config.get_value("chunk", "dirt_list", [])
+	var chunk_grass_block_list = chunk_config.get_value("chunk", "grass_block_list", [])
+	var chunk_seed_list = chunk_config.get_value("chunk", "seed_list", [])
+	var chunk_sapling_list = chunk_config.get_value("chunk", "sapling_list", [])
+	var chunk_leaves_list = chunk_config.get_value("chunk", "leaves_list", [])
+	var chunk_farm_land_list = chunk_config.get_value("chunk", "farm_land_list", [])
+	var chunk_sugar_cane_list = chunk_config.get_value("chunk", "sugar_cane_list", [])
+	game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)] = Chunk.new()
+	game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)].is_to_save = false
+	game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)].dirt_list = chunk_dirt_list
+	game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)].grass_block_list = chunk_grass_block_list
+	game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)].seed_list = chunk_seed_list
+	game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)].sapling_list = chunk_sapling_list
+	game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)].leaves_list = chunk_leaves_list
+	game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)].farm_land_list = chunk_farm_land_list
+	game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)].sugar_cane_list = chunk_sugar_cane_list
+	game.loaded_chunks_timer[str(x_chunk)+"."+str(y_chunk)] = StaticLoad.CHUNK_FREE_TIME
+	return [true, chunk_config, [blocks, no_reach_blocks, back_blocks]]
 
 func compare_version(version_1: String, version_2: String):
 	var splits_1
@@ -566,7 +627,6 @@ func generate_chunk(pos: Vector2i, got_seed, world_type):
 						#blocks[cave[1]+depth][cave[0]+i-num/2] = block_ids["AIR"]
 					#else:
 						#blocks[cave[1]+depth][cave[0]-i+num/2] = block_ids["AIR"]
-					
 		for tree in trees:
 			for i in range(3):
 				no_reach_blocks[tree[1]-i][tree[0]] = block_ids["LOG_OAK"]
@@ -651,15 +711,31 @@ func get_destroy_total_time(block_id, tool):
 	var original_time = block_destroy_times[block_type]
 	if not tools_type.has(tool):
 		return original_time
-	if block_type == "stone" and tools_type[tool] == "pickaxe":
+	if block_type == "stone" and tools_type[tool].has("pickaxe"):
+		var block_name = get_block_name_by_id(block_id)
+		if dropped_items.has(block_name):
+			var tool_type_dict = get_tools_type_by_name(tool)
+			var tool_type = tool_type_dict.keys()[0]
+			var info_dict = dropped_items[block_name]
+			if info_dict.has(tool_type):
+				var item_dict = info_dict[tool_type]
+				if item_dict.has("MINE_LEVEL"):
+					var tool_level = int(tool_type_dict[tool_type])
+					if tool_level < item_dict["MINE_LEVEL"]:
+						return original_time
 		return original_time / tools_efficiency[tool]
-	elif block_type == "wood" and tools_type[tool] == "axe":
+	elif block_type == "wood" and tools_type[tool].has("axe"):
 		return original_time / tools_efficiency[tool]
-	elif block_type == "grass" and tools_type[tool] == "shovel":
+	elif block_type == "grass" and tools_type[tool].has("shovel"):
 		return original_time / tools_efficiency[tool]
-	elif block_type == "gravel" and tools_type[tool] == "shovel":
+	elif block_type == "gravel" and tools_type[tool].has("shovel"):
 		return original_time / tools_efficiency[tool]
 	return original_time
+
+func get_tools_type_by_name(tool_name):
+	if tools_type.has(tool_name):
+		return tools_type[tool_name]
+	return {"null":1}
 
 func get_step_type_by_name(block_name):
 	var value = "stone"
@@ -699,11 +775,66 @@ func get_item_model_type_by_name(item_name) -> int:
 		value = item_model_types[item_name]
 	return value
 
-func get_dropped_item_by_name(item_name) -> String:
-	var value = item_name
-	if dropped_items.has(item_name):
-		value = dropped_items[item_name]
-	return value
+func get_dropped_item_by_name(block_name, tool_name):
+	if dropped_items.has(block_name):
+		var tool_type_dict = get_tools_type_by_name(tool_name)
+		var tool_type = tool_type_dict.keys()[0]
+		var tool_level = int(tool_type_dict[tool_type])
+		var info_dict = dropped_items[block_name]
+		var item_dict = {}
+		if not info_dict.has(tool_type):
+			item_dict = info_dict["others"].duplicate()
+		else:
+			item_dict = info_dict[tool_type].duplicate()
+		if item_dict.has("MINE_LEVEL"):
+			if tool_level < item_dict["MINE_LEVEL"]:
+				item_dict = info_dict["others"].duplicate()
+			else:
+				item_dict.erase("MINE_LEVEL")
+		if item_dict.has("MUTEX"):
+			for item_prop_list in item_dict["MUTEX"]:
+				var prop_dict = {}
+				for item_prop in item_prop_list:
+					var splits = item_prop.split(":")
+					prop_dict[splits[0]] = float(splits[1])
+				var rng = RandomNumberGenerator.new()
+				var num = rng.randf()
+				var final_item = prop_dict.keys()[-1]
+				for item in prop_dict:
+					if num > prop_dict[item]:
+						if num > 1.0:
+							final_item = item
+						continue
+					else:
+						final_item = item
+						break
+				item_dict.erase("MUTEX")
+				for item in prop_dict:
+					if item == final_item:
+						continue
+					item_dict.erase(item)
+		var drop_item_dict = {}
+		for item in item_dict:
+			var item_prop_list = item_dict[item]
+			var prop_dict = {}
+			for item_prop in item_prop_list:
+				var splits = item_prop.split(":")
+				prop_dict[splits[0]] = float(splits[1])
+			var rng = RandomNumberGenerator.new()
+			var num = rng.randf()
+			var final_drop_num = int(prop_dict.keys()[-1])
+			for drop_num in prop_dict:
+				if num > prop_dict[drop_num]:
+					if num > 1.0:
+						final_drop_num = int(drop_num)
+					continue
+				else:
+					final_drop_num = int(drop_num)
+					break
+			drop_item_dict[item] = final_drop_num
+		return drop_item_dict
+	else:
+		return {block_name:1}
 
 func get_light_color_by_id(id: int):
 	var block_name = get_block_name_by_id(id)
@@ -717,6 +848,15 @@ func get_is_untouchable_by_id(id: int):
 		return true
 	return false
 
+func get_is_transparent_by_id(id):
+	return transparent_block_ids.has(id)
+
+func get_final_place_name_by_name(item_name):
+	var final_name = item_name
+	if special_place_dict.has(item_name):
+		final_name = special_place_dict[item_name]
+	return final_name
+
 func get_max_amount_by_name(item_name):
 	var value = 64
 	if item_max_amounts.has(item_name):
@@ -725,6 +865,11 @@ func get_max_amount_by_name(item_name):
 	
 func get_is_durable_by_name(item_name):
 	return false
+
+func get_is_clingling_by_name(block_name):
+	if clinging_block_dict.has(block_name):
+		return clinging_block_dict[block_name]
+	return "null"
 
 func get_is_valid_gamemode(gamemode):
 	if gamemode == "creative":
@@ -814,10 +959,12 @@ func dedicated_server_create_world():
 			var seed = world_config.get_value("world", "seed", "1241999312")
 			var world_type = world_config.get_value("world", "world_type", "default")
 			var chunk = generate_chunk(Vector2i(x, y), seed, world_type)
-			mca.set_value("chunk", "blocks", chunk[0])
-			mca.set_value("chunk", "no_reach_blocks", chunk[1])
-			mca.set_value("chunk", "back_blocks", chunk[2])
-			mca.set_value("chunk", "entity_list", [])
+			var value_dict = {
+				"blocks" : chunk[0],
+				"no_reach_blocks" : chunk[1],
+				"back_blocks" : chunk[2]
+			}
+			set_mca_value(mca, value_dict)
 			mca.save_encrypted_pass(region_path+"/r."+str(x)+"."+str(y)+".mca", StaticLoad.CONFIG_PASSWORD)
 	var image = load("res://Assets/Textures/GUI/default_icon.png").get_image()
 	image.save_png(world_path+"/icon.png")
@@ -1045,19 +1192,14 @@ func request_for_update_chunk(client_peer_id, is_init, x_chunk, y_chunk):
 			no_reach_blocks.append(no_reach_row)
 			back_blocks.append(back_row)
 	elif game.database_chunks.has(str(x_chunk)+"."+str(y_chunk)):
-		var chunk_config = ConfigFile.new()
-		var chunk_result = chunk_config.load_encrypted_pass(StaticLoad.region_path+"/r."+str(x_chunk)+"."+str(y_chunk)+".mca", CONFIG_PASSWORD)
-		if chunk_result != OK:
+		var value_list = get_mca_value(Vector2i(x_chunk, y_chunk))
+		if not value_list[0]:
 			return
-		blocks = chunk_config.get_value("chunk", "blocks")
-		no_reach_blocks = chunk_config.get_value("chunk", "no_reach_blocks")
-		back_blocks = chunk_config.get_value("chunk", "back_blocks")
-		var chunk_entity_list = chunk_config.get_value("chunk", "entity_list")
+		var chunk_config = value_list[1]
+		var block_list = value_list[2]
 		game.loaded_chunk_num += 1
-		game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)] = Chunk.new()
-		game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)].is_to_save = false
-		game.loaded_chunks_timer[str(x_chunk)+"."+str(y_chunk)] = StaticLoad.CHUNK_FREE_TIME
-		game.set_chunk(Vector2i(x_chunk, y_chunk), [blocks, no_reach_blocks, back_blocks])
+		game.set_chunk(Vector2i(x_chunk, y_chunk), block_list)
+		var chunk_entity_list = chunk_config.get_value("chunk", "entity_list")
 		if chunk_entity_list != null:
 			for uuid in chunk_entity_list:
 				var entity_info = chunk_config.get_value("entity", uuid)
@@ -1075,14 +1217,13 @@ func request_for_update_chunk(client_peer_id, is_init, x_chunk, y_chunk):
 		var seed = world_config.get_value("world", "seed", "1241999312")
 		var world_type = world_config.get_value("world", "world_type", "default")
 		var chunk = generate_chunk(Vector2i(x_chunk, y_chunk), seed, world_type)
-		blocks = chunk[0]
-		no_reach_blocks = chunk[1]
-		back_blocks = chunk[2]
 		game.loaded_chunk_num += 1
-		mca.set_value("chunk", "blocks", blocks)
-		mca.set_value("chunk", "no_reach_blocks", no_reach_blocks)
-		mca.set_value("chunk", "back_blocks", back_blocks)
-		mca.set_value("chunk", "entity_list", [])
+		var value_dict = {
+				"blocks" : chunk[0],
+				"no_reach_blocks" : chunk[1],
+				"back_blocks" : chunk[2]
+			}
+		set_mca_value(mca, value_dict)
 		mca.save_encrypted_pass(region_path+"/r."+str(x_chunk)+"."+str(y_chunk)+".mca", CONFIG_PASSWORD)
 		game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)] = Chunk.new()
 		game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)].is_to_save = false
@@ -1162,6 +1303,15 @@ func create_entity(args):
 		StaticLoad.game.items.add_child(item)
 		item.init([uuid, droppped_item_name, pos, amount, no_collect_time, x_velocity])
 		StaticLoad.game.entities[item.get_uuid()] = item
+
+@rpc("authority", "call_remote", "reliable", 1)
+func set_block(args):
+	if not is_in_game:
+		return
+	var block_pos = args[0]
+	var block_id = args[1]
+	var tile_map_type = args[2]
+	game.set_block(block_pos, block_id, tile_map_type)
 
 # 获取服务器在线状态
 @rpc("any_peer", "call_remote", "reliable", 1)
@@ -1317,7 +1467,7 @@ func reply_for_update_player_inventory(item_bar_names, item_bar_amounts):
 	game.player.item_bar_amounts = item_bar_amounts
 	for i in range(9):
 		game.refresh_item_grid(i)
-	game.refresh_to_process.append("refresh_inventory")
+	game.append_process_refresh("refresh_inventory")
 
 # 三次握手：同步各个客户端玩家及信息
 @rpc("any_peer", "call_local", "reliable", 1)

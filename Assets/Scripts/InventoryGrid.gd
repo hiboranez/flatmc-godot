@@ -92,15 +92,15 @@ func _on_gui_input(event: InputEvent) -> void:
 							player.item_bar_names[sort] = item_name
 							player.item_bar_amounts[sort] = item_amount
 							StaticLoad.game.refresh_item_grid(sort)
-							StaticLoad.game.refresh_to_process.append("refresh_inventory")
+							StaticLoad.game.append_process_refresh("refresh_inventory")
 						elif sort >= 9 and sort < 36:
 							item_amount = player.get_item([item_name, item_amount, 0, 9, false])
 							if item_amount == 0:
 								item_name = "AIR"
 							player.item_bar_names[sort] = item_name
 							player.item_bar_amounts[sort] = item_amount
-							StaticLoad.game.refresh_to_process.append("refresh_inventory")
-							StaticLoad.game.refresh_to_process.append("refresh_item_grid")
+							StaticLoad.game.append_process_refresh("refresh_inventory")
+							StaticLoad.game.append_process_refresh("refresh_item_grid")
 					elif player.gamemode == "creative":
 						player.item_bar_names[sort] = "AIR"
 						player.item_bar_amounts[sort] = 0

@@ -1,4 +1,4 @@
-[gd_scene load_steps=91 format=4 uid="uid://2hv5eany3vpf"]
+[gd_scene load_steps=94 format=4 uid="uid://2hv5eany3vpf"]
 
 [ext_resource type="Script" path="res://Assets/Scripts/Game.gd" id="1_ctu8j"]
 [ext_resource type="Script" path="res://Assets/Scripts/BgmAudioPlayer.gd" id="2_gyse0"]
@@ -17,7 +17,10 @@
 [ext_resource type="Texture2D" uid="uid://bve61l2aynnoa" path="res://Assets/Textures/GUI/move_button_right_down.png" id="7_aqtia"]
 [ext_resource type="Texture2D" uid="uid://dggx0hmyex5x6" path="res://Assets/Textures/GUI/item_bar.png" id="7_cjy4x"]
 [ext_resource type="Texture2D" uid="uid://gkbqtdcsmhs0" path="res://Assets/Textures/GUI/jump_button_normal.tres" id="11_as60q"]
+[ext_resource type="Script" path="res://Assets/Scripts/Background.gd" id="13_exxx2"]
 [ext_resource type="Script" path="res://Assets/Scripts/DragScroll.gd" id="13_wfnj5"]
+[ext_resource type="Texture2D" uid="uid://4yhjmj0m1jrd" path="res://Assets/Textures/Backgrounds/stars_full.png" id="14_76111"]
+[ext_resource type="Texture2D" uid="uid://cjqmycl5ommk1" path="res://Assets/Textures/Backgrounds/clouds.png" id="14_dflqh"]
 [ext_resource type="Script" path="res://Assets/Scripts/Options.gd" id="14_ic0qm"]
 [ext_resource type="Texture2D" uid="uid://b14xkgu1d1omr" path="res://Assets/Textures/Backgrounds/stone_wall.png" id="15_e4i4j"]
 [ext_resource type="Texture2D" uid="uid://p66pcctndsk1" path="res://Assets/Textures/GUI/close_button.png" id="15_tbxis"]
@@ -1673,11 +1676,12 @@ content_margin_left = 30.0
 [node name="Game" type="Node2D"]
 script = ExtResource("1_ctu8j")
 metadata/_edit_horizontal_guides_ = [-10.0]
+metadata/_edit_vertical_guides_ = [1640.0]
 
 [node name="Lights" type="Node2D" parent="."]
 
 [node name="DarkLight" type="PointLight2D" parent="Lights"]
-position = Vector2(-1, 0)
+position = Vector2(-72, -264)
 scale = Vector2(20000, 20000)
 color = Color(0, 0, 0, 1)
 blend_mode = 2
@@ -1688,6 +1692,11 @@ texture = ExtResource("17_ud88f")
 script = ExtResource("2_vxlg4")
 
 [node name="World" type="Node2D" parent="."]
+
+[node name="BlockSelectionUI" type="Sprite2D" parent="World"]
+light_mask = 4
+z_index = 1
+texture = ExtResource("6_k82cs")
 
 [node name="BackTileMapLayer" type="TileMapLayer" parent="World"]
 modulate = Color(0.393086, 0.393086, 0.393085, 1)
@@ -1700,11 +1709,6 @@ collision_enabled = false
 
 [node name="TileMapLayer" type="TileMapLayer" parent="World"]
 tile_set = ExtResource("3_fa3r6")
-
-[node name="BlockSelectionUI" type="Sprite2D" parent="World/TileMapLayer"]
-light_mask = 4
-z_index = 1
-texture = ExtResource("6_k82cs")
 
 [node name="Items" type="Node2D" parent="."]
 
@@ -2072,16 +2076,55 @@ offset_bottom = 87.5
 mouse_filter = 0
 texture = ExtResource("11_as60q")
 
-[node name="Background" type="CanvasLayer" parent="."]
-layer = -1
+[node name="StaticBackground" type="ParallaxBackground" parent="."]
+layer = -3
 
-[node name="TextureRect" type="TextureRect" parent="Background"]
+[node name="BlackBack" type="ColorRect" parent="StaticBackground"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+color = Color(0, 0, 0, 1)
+
+[node name="Sky" type="TextureRect" parent="StaticBackground"]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("2_xngfj")
+
+[node name="ParallaxLayer" type="ParallaxLayer" parent="StaticBackground"]
+motion_scale = Vector2(0.5, 0.5)
+motion_offset = Vector2(0, -300)
+motion_mirroring = Vector2(2112, 1920.01)
+
+[node name="Star" type="TextureRect" parent="StaticBackground/ParallaxLayer"]
+texture_filter = 1
+texture_repeat = 3
+offset_right = 2112.0
+offset_bottom = 1920.0
+texture = ExtResource("14_76111")
+stretch_mode = 1
+
+[node name="MoveBackground" type="ParallaxBackground" parent="."]
+layer = -2
+script = ExtResource("13_exxx2")
+
+[node name="ParallaxLayer" type="ParallaxLayer" parent="MoveBackground"]
+motion_scale = Vector2(0.5, 0.5)
+motion_offset = Vector2(0, -300)
+motion_mirroring = Vector2(1920, 0)
+
+[node name="Cloud" type="TextureRect" parent="MoveBackground/ParallaxLayer"]
+texture_repeat = 1
+offset_right = 1920.0
+offset_bottom = 400.0
+texture = ExtResource("14_dflqh")
+stretch_mode = 1
 
 [node name="OnlineUI" type="CanvasLayer" parent="."]
 visible = false
@@ -3330,7 +3373,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.95158, 0.95158, 0.951579, 1)
 
-[node name="BlueBack" type="ColorRect" parent="GameUI/MiniMap"]
+[node name="SkyBack" type="ColorRect" parent="GameUI/MiniMap"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -3348,10 +3391,10 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 15.0
+offset_left = 14.0
 offset_top = 15.0
 offset_right = -15.0
-offset_bottom = -15.0
+offset_bottom = -14.0
 grow_horizontal = 2
 grow_vertical = 2
 stretch = true
@@ -3361,8 +3404,27 @@ transparent_bg = true
 handle_input_locally = false
 snap_2d_transforms_to_pixel = true
 canvas_item_default_texture_filter = 0
-size = Vector2i(240, 240)
+size = Vector2i(241, 241)
 render_target_update_mode = 4
+
+[node name="StaticBackground" type="ParallaxBackground" parent="GameUI/MiniMap/SubViewportContainer/SubViewport"]
+layer = -3
+scroll_ignore_camera_zoom = true
+
+[node name="ParallaxLayer" type="ParallaxLayer" parent="GameUI/MiniMap/SubViewportContainer/SubViewport/StaticBackground"]
+motion_scale = Vector2(0.5, 0.5)
+motion_offset = Vector2(10000, 4000)
+motion_mirroring = Vector2(20000, 8000)
+
+[node name="StarBack" type="TextureRect" parent="GameUI/MiniMap/SubViewportContainer/SubViewport/StaticBackground/ParallaxLayer"]
+texture_filter = 1
+texture_repeat = 3
+offset_right = 20000.0
+offset_bottom = 8000.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+texture = ExtResource("14_76111")
+stretch_mode = 1
 
 [node name="BackTileMapLayer" type="TileMapLayer" parent="GameUI/MiniMap/SubViewportContainer/SubViewport"]
 modulate = Color(0.393086, 0.393086, 0.393085, 1)
