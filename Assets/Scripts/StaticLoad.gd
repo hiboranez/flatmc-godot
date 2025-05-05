@@ -863,8 +863,8 @@ func get_max_amount_by_name(item_name):
 		value = item_max_amounts[item_name]
 	return value
 	
-func get_is_durable_by_name(item_name):
-	return false
+func get_is_durable_by_name(got_name):
+	return tools_type.has(got_name)
 
 func get_is_clingling_by_name(block_name):
 	if clinging_block_dict.has(block_name):

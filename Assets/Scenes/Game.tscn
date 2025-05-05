@@ -1,4 +1,4 @@
-[gd_scene load_steps=94 format=4 uid="uid://2hv5eany3vpf"]
+[gd_scene load_steps=98 format=4 uid="uid://2hv5eany3vpf"]
 
 [ext_resource type="Script" path="res://Assets/Scripts/Game.gd" id="1_ctu8j"]
 [ext_resource type="Script" path="res://Assets/Scripts/BgmAudioPlayer.gd" id="2_gyse0"]
@@ -96,6 +96,12 @@ region = Rect2(218, 82, 18, 18)
 atlas = ExtResource("2_mnda3")
 region = Rect2(80, 109, 22, 22)
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_u1cbi"]
+bg_color = Color(0.270222, 0.270222, 0.270222, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_exuaq"]
+bg_color = Color(9.62615e-07, 0.72704, 0.134648, 1)
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ursv3"]
 bg_color = Color(0, 0, 0, 0.392157)
 border_width_left = 10
@@ -131,6 +137,12 @@ animations = [{
 "name": &"transparent",
 "speed": 5.0
 }]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8iecq"]
+bg_color = Color(0.270222, 0.270222, 0.270222, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_u6ms7"]
+bg_color = Color(9.62615e-07, 0.72704, 0.134648, 1)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_kgr7b"]
 size = Vector2(270, 270)
@@ -2222,6 +2234,25 @@ theme_override_font_sizes/font_size = 30
 horizontal_alignment = 2
 text_overrun_behavior = 1
 
+[node name="ProgressBar" type="ProgressBar" parent="GameUI/MouseItem"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 83.0
+offset_right = -10.0
+offset_bottom = -9.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("4_nsj5b")
+theme_override_font_sizes/font_size = 30
+theme_override_styles/background = SubResource("StyleBoxFlat_u1cbi")
+theme_override_styles/fill = SubResource("StyleBoxFlat_exuaq")
+step = 1.0
+show_percentage = false
+
 [node name="Details" type="VFlowContainer" parent="GameUI"]
 visible = false
 layout_direction = 3
@@ -2844,6 +2875,26 @@ grow_vertical = 2
 texture = ExtResource("6_d227v")
 expand_mode = 1
 
+[node name="ProgressBar" type="ProgressBar" parent="GameUI/ItemBarPanel/ItemBar/1"]
+visible = false
+z_index = 2
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 28.0
+offset_top = 102.0
+offset_right = -21.0
+offset_bottom = -26.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("4_nsj5b")
+theme_override_font_sizes/font_size = 30
+theme_override_styles/background = SubResource("StyleBoxFlat_8iecq")
+theme_override_styles/fill = SubResource("StyleBoxFlat_u6ms7")
+step = 1.0
+show_percentage = false
+
 [node name="Amount" type="Label" parent="GameUI/ItemBarPanel/ItemBar/1"]
 z_index = 1
 layout_mode = 1
@@ -2853,7 +2904,7 @@ anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = -106.0
-offset_top = -49.2
+offset_top = -50.0
 offset_right = -18.0
 offset_bottom = -19.0
 grow_horizontal = 0
@@ -2919,6 +2970,26 @@ theme_override_font_sizes/font_size = 30
 horizontal_alignment = 2
 text_overrun_behavior = 1
 
+[node name="ProgressBar" type="ProgressBar" parent="GameUI/ItemBarPanel/ItemBar/2"]
+visible = false
+z_index = 2
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 22.3
+offset_top = 102.0
+offset_right = -20.7
+offset_bottom = -26.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("4_nsj5b")
+theme_override_font_sizes/font_size = 30
+theme_override_styles/background = SubResource("StyleBoxFlat_8iecq")
+theme_override_styles/fill = SubResource("StyleBoxFlat_u6ms7")
+step = 1.0
+show_percentage = false
+
 [node name="2" type="TouchScreenButton" parent="GameUI/ItemBarPanel/ItemBar/2"]
 z_index = 1
 position = Vector2(62.5, 62.5)
@@ -2974,6 +3045,26 @@ theme_override_fonts/font = ExtResource("4_nsj5b")
 theme_override_font_sizes/font_size = 30
 horizontal_alignment = 2
 text_overrun_behavior = 1
+
+[node name="ProgressBar" type="ProgressBar" parent="GameUI/ItemBarPanel/ItemBar/3"]
+visible = false
+z_index = 2
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 22.3
+offset_top = 102.0
+offset_right = -20.7
+offset_bottom = -26.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("4_nsj5b")
+theme_override_font_sizes/font_size = 30
+theme_override_styles/background = SubResource("StyleBoxFlat_8iecq")
+theme_override_styles/fill = SubResource("StyleBoxFlat_u6ms7")
+step = 1.0
+show_percentage = false
 
 [node name="3" type="TouchScreenButton" parent="GameUI/ItemBarPanel/ItemBar/3"]
 z_index = 1
@@ -3031,6 +3122,26 @@ theme_override_font_sizes/font_size = 30
 horizontal_alignment = 2
 text_overrun_behavior = 1
 
+[node name="ProgressBar" type="ProgressBar" parent="GameUI/ItemBarPanel/ItemBar/4"]
+visible = false
+z_index = 2
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 22.3
+offset_top = 102.0
+offset_right = -20.7
+offset_bottom = -26.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("4_nsj5b")
+theme_override_font_sizes/font_size = 30
+theme_override_styles/background = SubResource("StyleBoxFlat_8iecq")
+theme_override_styles/fill = SubResource("StyleBoxFlat_u6ms7")
+step = 1.0
+show_percentage = false
+
 [node name="4" type="TouchScreenButton" parent="GameUI/ItemBarPanel/ItemBar/4"]
 z_index = 1
 position = Vector2(62.5, 62.5)
@@ -3086,6 +3197,26 @@ theme_override_fonts/font = ExtResource("4_nsj5b")
 theme_override_font_sizes/font_size = 30
 horizontal_alignment = 2
 text_overrun_behavior = 1
+
+[node name="ProgressBar" type="ProgressBar" parent="GameUI/ItemBarPanel/ItemBar/5"]
+visible = false
+z_index = 2
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 22.3
+offset_top = 102.0
+offset_right = -20.7
+offset_bottom = -26.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("4_nsj5b")
+theme_override_font_sizes/font_size = 30
+theme_override_styles/background = SubResource("StyleBoxFlat_8iecq")
+theme_override_styles/fill = SubResource("StyleBoxFlat_u6ms7")
+step = 1.0
+show_percentage = false
 
 [node name="5" type="TouchScreenButton" parent="GameUI/ItemBarPanel/ItemBar/5"]
 z_index = 1
@@ -3143,6 +3274,26 @@ theme_override_font_sizes/font_size = 30
 horizontal_alignment = 2
 text_overrun_behavior = 1
 
+[node name="ProgressBar" type="ProgressBar" parent="GameUI/ItemBarPanel/ItemBar/6"]
+visible = false
+z_index = 2
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 22.3
+offset_top = 102.0
+offset_right = -20.7
+offset_bottom = -26.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("4_nsj5b")
+theme_override_font_sizes/font_size = 30
+theme_override_styles/background = SubResource("StyleBoxFlat_8iecq")
+theme_override_styles/fill = SubResource("StyleBoxFlat_u6ms7")
+step = 1.0
+show_percentage = false
+
 [node name="6" type="TouchScreenButton" parent="GameUI/ItemBarPanel/ItemBar/6"]
 z_index = 1
 position = Vector2(62.5, 62.5)
@@ -3198,6 +3349,26 @@ theme_override_fonts/font = ExtResource("4_nsj5b")
 theme_override_font_sizes/font_size = 30
 horizontal_alignment = 2
 text_overrun_behavior = 1
+
+[node name="ProgressBar" type="ProgressBar" parent="GameUI/ItemBarPanel/ItemBar/7"]
+visible = false
+z_index = 2
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 22.3
+offset_top = 102.0
+offset_right = -20.7
+offset_bottom = -26.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("4_nsj5b")
+theme_override_font_sizes/font_size = 30
+theme_override_styles/background = SubResource("StyleBoxFlat_8iecq")
+theme_override_styles/fill = SubResource("StyleBoxFlat_u6ms7")
+step = 1.0
+show_percentage = false
 
 [node name="7" type="TouchScreenButton" parent="GameUI/ItemBarPanel/ItemBar/7"]
 z_index = 1
@@ -3255,6 +3426,26 @@ theme_override_font_sizes/font_size = 30
 horizontal_alignment = 2
 text_overrun_behavior = 1
 
+[node name="ProgressBar" type="ProgressBar" parent="GameUI/ItemBarPanel/ItemBar/8"]
+visible = false
+z_index = 2
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 22.3
+offset_top = 102.0
+offset_right = -20.7
+offset_bottom = -26.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("4_nsj5b")
+theme_override_font_sizes/font_size = 30
+theme_override_styles/background = SubResource("StyleBoxFlat_8iecq")
+theme_override_styles/fill = SubResource("StyleBoxFlat_u6ms7")
+step = 1.0
+show_percentage = false
+
 [node name="8" type="TouchScreenButton" parent="GameUI/ItemBarPanel/ItemBar/8"]
 z_index = 1
 position = Vector2(62.5, 62.5)
@@ -3310,6 +3501,26 @@ theme_override_fonts/font = ExtResource("4_nsj5b")
 theme_override_font_sizes/font_size = 30
 horizontal_alignment = 2
 text_overrun_behavior = 1
+
+[node name="ProgressBar" type="ProgressBar" parent="GameUI/ItemBarPanel/ItemBar/9"]
+visible = false
+z_index = 2
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 22.3
+offset_top = 102.0
+offset_right = -20.7
+offset_bottom = -26.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("4_nsj5b")
+theme_override_font_sizes/font_size = 30
+theme_override_styles/background = SubResource("StyleBoxFlat_8iecq")
+theme_override_styles/fill = SubResource("StyleBoxFlat_u6ms7")
+step = 1.0
+show_percentage = false
 
 [node name="9" type="TouchScreenButton" parent="GameUI/ItemBarPanel/ItemBar/9"]
 z_index = 1

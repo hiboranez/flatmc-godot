@@ -1,0 +1,11 @@
+[gd_resource type="StandardMaterial3D" load_steps=2 format=3 uid="uid://clu2q1fgwxctw"]
+
+[ext_resource type="Texture2D" uid="uid://c7d807by75vlh" path="res://Assets/ResourcePacks/official_old/Entites/pig.png" id="1_bxmv2"]
+
+[resource]
+resource_local_to_scene = true
+resource_name = "Pig.003"
+cull_mode = 2
+shading_mode = 0
+albedo_texture = ExtResource("1_bxmv2")
+texture_filter = 2

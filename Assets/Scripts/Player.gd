@@ -40,7 +40,7 @@ var selected_item_grid: int = 0
 var step_sound_timer: float = 0
 var move_state = "idle"
 var face_state: int = -1
-var turn_state: float = -1
+var turn_state: float = 0
 var is_jump_pressed = false
 var last_is_jump_pressed = false
 var is_down_pressed = false
@@ -55,6 +55,7 @@ var is_punching = false
 var is_up_area_colliding = false
 var is_down_area_colliding = false
 var is_top_area_colliding = false
+var is_on_ladder = false
 var animation_tree_parameters = {
 	"walk": 0,
 	"run": 0
@@ -92,6 +93,7 @@ func _process(delta: float) -> void:
 	update_local_fall_damage_by_data()
 	update_local_health_recover()
 	# 本地更新
+	update_local_is_on_ladder()
 	update_local_set_block()
 	update_local_gravity()
 	update_local_move_by_data()
@@ -177,14 +179,37 @@ func init_local(peer_id):
 		if item_bar_names[i] == "AIR":
 			continue
 		StaticLoad.game.item_grids[i].get_node("ItemIcon").init_icon(item_bar_names[i].to_lower())
-		if item_bar_amounts[i] <= 1:
+		var item_name = item_bar_names[i]
+		var item_amount = item_bar_amounts[i]
+		if StaticLoad.get_is_durable_by_name(item_name):
 			StaticLoad.game.item_grids[i].get_node("Amount").text = ""
+			StaticLoad.game.item_grids[i].get_node("Amount").visible = false
+			var progress_bar = StaticLoad.game.item_grids[i].get_node("ProgressBar")
+			progress_bar.max_value = StaticLoad.get_max_amount_by_name(item_name)
+			progress_bar.value = item_amount
+			StaticLoad.game.item_grids[i].get_node("ProgressBar").visible = true
 		else:
-			StaticLoad.game.item_grids[i].get_node("Amount").text = str(item_bar_amounts[i])
+			StaticLoad.game.item_grids[i].get_node("ProgressBar").visible = false
+			if item_amount <= 1:
+				StaticLoad.game.item_grids[i].get_node("Amount").text = ""
+				StaticLoad.game.item_grids[i].get_node("Amount").visible = false
+			else:
+				StaticLoad.game.item_grids[i].get_node("Amount").text = str(item_amount)
+				StaticLoad.game.item_grids[i].get_node("Amount").visible = true
 	
 	if not StaticLoad.is_muti_mode:
 		return
 	StaticLoad.rpc("create_new_peer_player", player_peer_id)
+
+func update_local_is_on_ladder():
+	var foot_pos = position + Vector2(0, 23)
+	var foot_block_pos = StaticLoad.game.tile_map_layer.local_to_map(foot_pos)
+	var foot_block_id = StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.tile_map_layer.get_cell_atlas_coords(foot_block_pos))
+	if StaticLoad.get_block_name_by_id(foot_block_id) == "LADDER":
+		if not is_on_ladder:
+			is_on_ladder = true
+	elif is_on_ladder:
+		is_on_ladder = false
 
 func update_sound_by_data():
 	if abs(current_velocity.y) < StaticLoad.FLOAT_DELTA and last_velocity.y > 1100:
@@ -192,11 +217,8 @@ func update_sound_by_data():
 			StaticLoad.game.sound_audio_manager.play_random_audio_at_position("damage", "fallbig", position, 1)
 		else:
 			StaticLoad.game.sound_audio_manager.play_random_audio_at_position("damage", "fallsmall", position, 1)
-	var foot_pos = position + Vector2(0, 25)
-	var foot_block_pos = StaticLoad.game.tile_map_layer.local_to_map(foot_pos)
-	var foot_block_id = StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.tile_map_layer.get_cell_atlas_coords(foot_block_pos))
-	if not is_flying and StaticLoad.get_block_name_by_id(foot_block_id) == "LADDER":
-		if step_sound_timer <= 0 and current_velocity.y < 0:
+	if not is_flying and is_on_ladder:
+		if step_sound_timer <= 0 and current_velocity.y != 0:
 			step_sound_timer = walk_period
 			StaticLoad.game.sound_audio_manager.play_random_audio_at_position("step", "ladder", position, 1)
 	elif move_state != "idle":
@@ -277,7 +299,7 @@ func update_local_fall_damage_by_data():
 		return
 	#更新摔落
 	if gamemode == "survival":
-		if last_velocity.y > 1000:
+		if last_velocity.y > 1000 and not is_on_ladder:
 			if abs(current_velocity.y) < StaticLoad.FLOAT_DELTA or current_velocity.y < 0:
 				@warning_ignore("integer_division")
 				var damage = (int(last_velocity.y)-1000)/50
@@ -336,7 +358,7 @@ func update_local_gravity():
 		velocity.x = StaticLoad.MAX_SPEED
 	if velocity.y > StaticLoad.MAX_SPEED:
 		velocity.y = StaticLoad.MAX_SPEED
-	if is_flying or is_frozen:
+	if is_flying or is_frozen or is_on_ladder:
 		return
 	if not is_on_floor():
 		velocity += get_gravity() * get_process_delta_time()
@@ -349,10 +371,7 @@ func update_local_move_by_data():
 			velocity = Vector2(0, 0)
 		return
 	if is_jump_pressed:
-		var foot_pos = position + Vector2(0, 25)
-		var foot_block_pos = StaticLoad.game.tile_map_layer.local_to_map(foot_pos)
-		var foot_block_id = StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.tile_map_layer.get_cell_atlas_coords(foot_block_pos))
-		if not is_flying and StaticLoad.get_block_name_by_id(foot_block_id) == "LADDER":
+		if not is_flying and is_on_ladder:
 			velocity.y = -move_speed
 		else:
 			if not is_flying and is_on_floor():
@@ -364,6 +383,8 @@ func update_local_move_by_data():
 					velocity.y = jump_velocity
 			elif is_flying:
 				velocity.y = jump_velocity * 0.7
+	elif not is_down_pressed and not is_flying and is_on_ladder:
+		velocity.y = 0
 	if not is_top_area_colliding and is_down_area_colliding and not is_up_area_colliding:
 		if move_state != "idle":
 			if not is_flying and is_on_floor():
@@ -376,6 +397,8 @@ func update_local_move_by_data():
 	if is_down_pressed:
 		if is_flying:
 			velocity.y = -jump_velocity * 0.7
+		elif is_on_ladder:
+			velocity.y = move_speed
 	if last_is_down_pressed and not is_down_pressed:
 		if is_flying:
 			velocity.y = 0
@@ -879,7 +902,7 @@ func get_item(args):
 	var search_begin = args[2]
 	var search_size = args[3]
 	var sound_on = args[4]
-	var list = GameCalculator.get_item(item_name, amount, search_begin, search_size, PackedStringArray(item_bar_names), PackedInt32Array(item_bar_amounts), StaticLoad.get_is_durable_by_name(name), StaticLoad.get_max_amount_by_name(name), selected_item_grid)
+	var list = GameCalculator.get_item(item_name, amount, search_begin, search_size, PackedStringArray(item_bar_names), PackedInt32Array(item_bar_amounts), StaticLoad.get_is_durable_by_name(item_name), StaticLoad.get_max_amount_by_name(item_name), selected_item_grid)
 	item_bar_names = list[2]
 	item_bar_amounts = list[3]
 	#var empty_list = []
@@ -924,8 +947,8 @@ func get_item(args):
 	return list[0]
 
 # 玩家拾取掉落物，返回未被拾取的数量
-func if_get_item_left(name: String, amount: int, search_begin: int, search_size: int) -> int:
-	return GameCalculator.if_get_item_left(name, amount, search_begin, search_size, PackedStringArray(item_bar_names), PackedInt32Array(item_bar_amounts), StaticLoad.get_is_durable_by_name(name), StaticLoad.get_max_amount_by_name(name))
+func if_get_item_left(got_item_name: String, amount: int, search_begin: int, search_size: int) -> int:
+	return GameCalculator.if_get_item_left(got_item_name, amount, search_begin, search_size, PackedStringArray(item_bar_names), PackedInt32Array(item_bar_amounts), StaticLoad.get_is_durable_by_name(got_item_name), StaticLoad.get_max_amount_by_name(got_item_name))
 	#var amount_left = amount
 	#if not StaticLoad.get_is_durable_by_name(name):
 		#for i in range(search_begin, search_size):

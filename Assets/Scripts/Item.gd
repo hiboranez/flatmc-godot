@@ -167,7 +167,7 @@ func refresh_model():
 			return
 		block_material.albedo_texture = texture
 		block_model.get_node("Mesh").mesh.surface_set_material(0, block_material)
-		if item_amount >= 2:
+		if item_amount >= 2 and not StaticLoad.get_is_durable_by_name(item_name):
 			block_model.get_node("Mesh2").visible = true
 		block_model.visible = true
 	else:
@@ -179,7 +179,7 @@ func refresh_model():
 			item_model.visible = true
 			return
 		item_model.get_node("Mesh").mesh.surface_set_material(0, item_material)
-		if item_amount >= 2:
+		if item_amount >= 2 and not StaticLoad.get_is_durable_by_name(item_name):
 			item_model.get_node("Mesh2").visible = true
 		item_model.visible = true
 
@@ -244,12 +244,14 @@ func on_body_collide_entered(body: Node) -> void:
 func combine_item(target_item_uuid):
 	if not StaticLoad.game.items.has_node(str(target_item_uuid)):
 		return
+	if StaticLoad.get_is_durable_by_name(item_name):
+		return
 	var target_item = StaticLoad.game.items.get_node(str(target_item_uuid))
 	if target_item == null:
 		return
 	if item_amount+target_item.item_amount <= StaticLoad.get_max_amount_by_name(item_name):
 		item_amount = item_amount+target_item.item_amount
-		if item_amount+target_item.item_amount >= 2:
+		if item_amount+target_item.item_amount >= 2 and not StaticLoad.get_is_durable_by_name(item_name):
 			if item_model_type == "block":
 				block_model.get_node("Mesh2").visible = true
 			elif item_model_type == "item":
@@ -260,20 +262,20 @@ func combine_item(target_item_uuid):
 			StaticLoad.game.entities.erase(target_item)
 	else:
 		item_amount = StaticLoad.get_max_amount_by_name(item_name)
-		if item_model_type == "block":
+		if item_model_type == "block" and not StaticLoad.get_is_durable_by_name(item_name):
 			block_model.get_node("Mesh2").visible = true
-		elif item_model_type == "item":
+		elif item_model_type == "item" and not StaticLoad.get_is_durable_by_name(item_name):
 			item_model.get_node("Mesh2").visible = true
 		target_item.item_amount = item_amount+target_item.item_amount-StaticLoad.get_max_amount_by_name(item_name)
 		if target_item.item_amount >= 2:
-			if item_model_type == "block":
+			if item_model_type == "block" and not StaticLoad.get_is_durable_by_name(item_name):
 				block_model.get_node("Mesh2").visible = true
-			elif item_model_type == "item":
+			elif item_model_type == "item" and not StaticLoad.get_is_durable_by_name(item_name):
 				item_model.get_node("Mesh2").visible = true
 		else:
-			if item_model_type == "block":
+			if item_model_type == "block" and not StaticLoad.get_is_durable_by_name(item_name):
 				block_model.get_node("Mesh2").visible = false
-			elif item_model_type == "item":
+			elif item_model_type == "item" and not StaticLoad.get_is_durable_by_name(item_name):
 				item_model.get_node("Mesh2").visible = false
 
 func destroy_entity(args):

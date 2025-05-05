@@ -86,6 +86,7 @@ extends Node2D
 
 var is_mouse_motion_updated = false
 var destroy_light_names = {}
+var mouse_in_inventory_grid = null
 var mouse_item_name = "AIR"
 var mouse_item_amount = 0
 var light_thread = Thread.new()
@@ -891,6 +892,7 @@ func _input(event: InputEvent) -> void:
 			inventory_ui.visible = false
 			is_input_frozen = false
 			is_inventory = false
+			mouse_in_inventory_grid = null
 			player.stop_move()
 		else:
 			pause_ui.visible = !pause_ui.visible
@@ -920,6 +922,7 @@ func _input(event: InputEvent) -> void:
 			inventory_ui.visible = false
 			is_input_frozen = false
 			is_inventory = false
+			mouse_in_inventory_grid = null
 			move_input_list.clear()
 			player.stop_move()
 		elif not is_chat:
@@ -957,6 +960,53 @@ func _input(event: InputEvent) -> void:
 			player.stop_move()
 			is_map = true
 			is_input_frozen = true
+	
+	if mouse_in_inventory_grid != null and mouse_in_inventory_grid.name.contains("InfiniteGrid") and is_inventory and player != null and player.gamemode == "creative":
+		if Input.is_action_just_pressed("select_item_grid_1"):
+			player.item_bar_names[0] = mouse_in_inventory_grid.item_name
+			player.item_bar_amounts[0] = StaticLoad.get_max_amount_by_name(mouse_in_inventory_grid.item_name)
+			refresh_single_inventory_grid(0)
+			refresh_item_grid(0)
+		if Input.is_action_just_pressed("select_item_grid_2"):
+			player.item_bar_names[1] = mouse_in_inventory_grid.item_name
+			player.item_bar_amounts[1] = StaticLoad.get_max_amount_by_name(mouse_in_inventory_grid.item_name)
+			refresh_single_inventory_grid(1)
+			refresh_item_grid(1)
+		if Input.is_action_just_pressed("select_item_grid_3"):
+			player.item_bar_names[2] = mouse_in_inventory_grid.item_name
+			player.item_bar_amounts[2] = StaticLoad.get_max_amount_by_name(mouse_in_inventory_grid.item_name)
+			refresh_single_inventory_grid(2)
+			refresh_item_grid(2)
+		if Input.is_action_just_pressed("select_item_grid_4"):
+			player.item_bar_names[3] = mouse_in_inventory_grid.item_name
+			player.item_bar_amounts[3] = StaticLoad.get_max_amount_by_name(mouse_in_inventory_grid.item_name)
+			refresh_single_inventory_grid(3)
+			refresh_item_grid(3)
+		if Input.is_action_just_pressed("select_item_grid_5"):
+			player.item_bar_names[4] = mouse_in_inventory_grid.item_name
+			player.item_bar_amounts[4] = StaticLoad.get_max_amount_by_name(mouse_in_inventory_grid.item_name)
+			refresh_single_inventory_grid(4)
+			refresh_item_grid(4)
+		if Input.is_action_just_pressed("select_item_grid_6"):
+			player.item_bar_names[5] = mouse_in_inventory_grid.item_name
+			player.item_bar_amounts[5] = StaticLoad.get_max_amount_by_name(mouse_in_inventory_grid.item_name)
+			refresh_single_inventory_grid(5)
+			refresh_item_grid(5)
+		if Input.is_action_just_pressed("select_item_grid_7"):
+			player.item_bar_names[6] = mouse_in_inventory_grid.item_name
+			player.item_bar_amounts[6] = StaticLoad.get_max_amount_by_name(mouse_in_inventory_grid.item_name)
+			refresh_single_inventory_grid(6)
+			refresh_item_grid(6)
+		if Input.is_action_just_pressed("select_item_grid_8"):
+			player.item_bar_names[7] = mouse_in_inventory_grid.item_name
+			player.item_bar_amounts[7] = StaticLoad.get_max_amount_by_name(mouse_in_inventory_grid.item_name)
+			refresh_single_inventory_grid(7)
+			refresh_item_grid(7)
+		if Input.is_action_just_pressed("select_item_grid_9"):
+			player.item_bar_names[8] = mouse_in_inventory_grid.item_name
+			player.item_bar_amounts[8] = StaticLoad.get_max_amount_by_name(mouse_in_inventory_grid.item_name)
+			refresh_single_inventory_grid(8)
+			refresh_item_grid(8)
 	
 	if is_input_frozen:
 		return
@@ -1022,7 +1072,7 @@ func _input(event: InputEvent) -> void:
 	
 	if Input.is_action_just_pressed("switch_details_visibility"):
 		switch_details_visibility()
-	
+
 	if Input.is_action_just_pressed("select_item_grid_1"):
 		select_item_grid(1)
 	if Input.is_action_just_pressed("select_item_grid_2"):
@@ -1045,7 +1095,15 @@ func _input(event: InputEvent) -> void:
 	if Input.is_action_just_released("drop_item"):
 		var selected_item_grid_tmp = player.selected_item_grid
 		var item_to_drop = player.item_bar_names[selected_item_grid_tmp]
-		if drop_timer < StaticLoad.DROP_ALL_TIME and item_to_drop != "AIR":
+		if StaticLoad.get_is_durable_by_name(item_to_drop):
+			sound_audio_manager.play_audio_static("player", "pop")
+			player.drop_item(player.item_bar_names[selected_item_grid_tmp], player.item_bar_amounts[selected_item_grid_tmp])
+			player.item_bar_amounts[selected_item_grid_tmp] = 0
+			player.item_bar_names[selected_item_grid_tmp] = "AIR"
+			StaticLoad.game.refresh_item_grid(selected_item_grid_tmp)
+			inventory_show_grids.get_node("InventoryGrid"+str(selected_item_grid_tmp)).init_inventory_grid(player.item_bar_names[selected_item_grid_tmp], player.item_bar_amounts[selected_item_grid_tmp])
+			drop_timer = 0
+		elif drop_timer < StaticLoad.DROP_ALL_TIME and item_to_drop != "AIR":
 			sound_audio_manager.play_audio_static("player", "pop")
 			player.drop_item(item_to_drop, 1)
 			player.item_bar_amounts[selected_item_grid_tmp] -= 1
@@ -1336,6 +1394,8 @@ func grab_item(block_pos):
 	var block_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(block_pos))
 	if block_id == 0:
 		block_id = StaticLoad.get_block_id_by_atlas_coords(no_reach_tile_map_layer.get_cell_atlas_coords(block_pos))
+	if block_id == 0 and player.current_set_layer == "back":
+		block_id = StaticLoad.get_block_id_by_atlas_coords(back_tile_map_layer.get_cell_atlas_coords(block_pos))
 	var player_select_sort = player.selected_item_grid
 	if block_id == 0:
 		return
@@ -1499,6 +1559,8 @@ func init_game_as_single():
 			if chunk_entity_list != null:
 				for uuid in chunk_entity_list:
 					var entity_info = chunk_config.get_value("entity", uuid)
+					if entity_info == null:
+						continue
 					if entity_info[0] == "item":
 						StaticLoad.create_entity(["item", entity_info[1], entity_info[3], entity_info[2], 0, 2, uuid])
 			loaded_chunk_num += 1
@@ -1608,14 +1670,27 @@ func refresh_item_grid(sort):
 	var item_amount = player.item_bar_amounts[sort]
 	if item_name == "AIR":
 		item_grids[sort].get_node("ItemIcon").visible = false
+		item_grids[sort].get_node("ProgressBar").visible = false
+		item_grids[sort].get_node("Amount").visible = false
 		item_grids[sort].get_node("Amount").text = ""
 	else:
 		item_grids[sort].get_node("ItemIcon").init_icon(player.item_bar_names[sort].to_lower())
 		item_grids[sort].get_node("ItemIcon").visible = true
-		if item_amount <= 1:
+		if StaticLoad.get_is_durable_by_name(item_name):
+			item_grids[sort].get_node("Amount").visible = false
 			item_grids[sort].get_node("Amount").text = ""
+			var progress_bar = item_grids[sort].get_node("ProgressBar")
+			progress_bar.max_value = StaticLoad.get_max_amount_by_name(item_name)
+			progress_bar.value = item_amount
+			item_grids[sort].get_node("ProgressBar").visible = true
 		else:
-			item_grids[sort].get_node("Amount").text = str(item_amount)
+			item_grids[sort].get_node("ProgressBar").visible = false
+			if item_amount <= 1:
+				item_grids[sort].get_node("Amount").visible = false
+				item_grids[sort].get_node("Amount").text = ""
+			else:
+				item_grids[sort].get_node("Amount").text = str(item_amount)
+				item_grids[sort].get_node("Amount").visible = true
 
 func rectify_emulate_mouse_from_touch():
 	if is_input_frozen:
@@ -2483,20 +2558,24 @@ func select_item_grid(grid_name) -> void:
 	item_name_label.text = player.item_bar_names[sort]
 	item_name_timer = StaticLoad.ITEM_NAME_SHOW_TIME
 
-func refresh_inventory():
-	for i in range(0, 9):
-		var item_name = player.item_bar_names[i]
-		var item_amount = player.item_bar_amounts[i]
+func refresh_single_inventory_grid(sort):
+	if sort >= 0 and sort < 9:
+		var item_name = player.item_bar_names[sort]
+		var item_amount = player.item_bar_amounts[sort]
 		@warning_ignore("shadowed_variable")
-		var inventory_grid = inventory_show_grids.get_node("InventoryGrid"+str(i))
+		var inventory_grid = inventory_show_grids.get_node("InventoryGrid"+str(sort))
 		inventory_grid.init_inventory_grid(item_name, item_amount)
-	for i in range(9, 36):
-		var item_name = player.item_bar_names[i]
-		var item_amount = player.item_bar_amounts[i]
+	elif sort >= 9:
+		var item_name = player.item_bar_names[sort]
+		var item_amount = player.item_bar_amounts[sort]
 		@warning_ignore("shadowed_variable")
-		var inventory_grid = inventory_back_grids.get_node("InventoryGrid"+str(i))
+		var inventory_grid = inventory_back_grids.get_node("InventoryGrid"+str(sort))
 		inventory_grid.init_inventory_grid(item_name, item_amount)
 
+func refresh_inventory():
+	for i in range(0, 36):
+		refresh_single_inventory_grid(i)
+		
 func init_inventory():
 	refresh_inventory()
 	for i in range(9):
