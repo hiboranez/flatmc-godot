@@ -171,6 +171,8 @@ func update_chunk_light(chunk_pos_tmp, update_neighbour_state):
 		return
 	if update_neighbour_state.contains("update"):
 		StaticLoad.game.chunk_lights[chunk_light_name].refresh()
+	if get_tree() == null:
+		return
 	await get_tree().process_frame
 	var chunk_light = StaticLoad.game.chunk_light_scene.instantiate()
 	if StaticLoad.game.chunk_lights.has(chunk_light_name):

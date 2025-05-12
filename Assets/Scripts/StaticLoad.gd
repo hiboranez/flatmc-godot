@@ -13,6 +13,7 @@ extends Node2D
 @onready var mouse_item_name_label_scene = load("res://Assets/Scenes/MouseItemNameLabel.tscn") as PackedScene
 @onready var player_icon_scene = load("res://Assets/Scenes/PlayerIcon.tscn") as PackedScene
 @onready var item_scene = load("res://Assets/Scenes/Item.tscn") as PackedScene
+@onready var pig_scene = load("res://Assets/Scenes/Pig.tscn") as PackedScene
 @onready var animation:AnimationPlayer = $AnimationPlayer
 @onready var click_audio_player = $ClickAudioPlayer
 
@@ -142,6 +143,7 @@ var dropped_items: Dictionary
 var item_max_amounts: Dictionary
 var tools_efficiency: Dictionary
 var tools_type: Dictionary
+var spawn_egg_colors: Dictionary
 var special_block_destroy_time: Dictionary
 var commands: Dictionary
 var clinging_block_dict: Dictionary
@@ -212,6 +214,7 @@ func _ready() -> void:
 	item_max_amounts = game_dict["item_max_amounts"]
 	tools_efficiency = game_dict["tools_efficiency"]
 	tools_type = game_dict["tools_type"]
+	spawn_egg_colors = game_dict["spawn_egg_colors"]
 	special_block_destroy_time = game_dict["special_block_destroy_time"]
 	commands = game_dict["commands"]
 	clinging_block_dict = game_dict["clinging_block_dict"]
@@ -1303,6 +1306,13 @@ func create_entity(args):
 		StaticLoad.game.items.add_child(item)
 		item.init([uuid, droppped_item_name, pos, amount, no_collect_time, x_velocity])
 		StaticLoad.game.entities[item.get_uuid()] = item
+	elif args[0] == "pig":
+		var uuid = args[1]
+		var pos = args[2]
+		var pig = pig_scene.instantiate()
+		StaticLoad.game.items.add_child(pig)
+		pig.init([uuid, pos])
+		StaticLoad.game.entities[pig.get_uuid()] = pig
 
 @rpc("authority", "call_remote", "reliable", 1)
 func set_block(args):

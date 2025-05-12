@@ -39,6 +39,15 @@ func update_progress_bar(got_item_name, got_item_amount):
 	if StaticLoad.get_is_durable_by_name(got_item_name):
 		$ProgressBar.max_value = StaticLoad.get_max_amount_by_name(got_item_name)
 		$ProgressBar.value = got_item_amount
+		var percentage =  got_item_amount / float(StaticLoad.get_max_amount_by_name(got_item_name))
+		var stylebox = $ProgressBar.get_theme_stylebox("fill")
+		if percentage > 0.667:
+			stylebox.bg_color = Color(0, 0.727, 0.135)
+		elif percentage > 0.333 and percentage <= 0.667:
+			stylebox.bg_color = Color(0.863, 0.675, 0)
+		elif percentage >= 0 and percentage <= 0.333:
+			stylebox.bg_color = Color(0.73, 0, 0)
+		$ProgressBar.add_theme_stylebox_override("fill", stylebox)
 		$Amount.visible = false
 		$ProgressBar.visible = true
 	else:

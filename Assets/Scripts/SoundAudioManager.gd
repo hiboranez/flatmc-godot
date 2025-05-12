@@ -83,6 +83,12 @@ extends Node2D
 @onready var hoe_till2 = load("res://Assets/Sounds/Item/Hoe/hoe_till2.mp3") as AudioStream
 @onready var hoe_till3 = load("res://Assets/Sounds/Item/Hoe/hoe_till3.mp3") as AudioStream
 @onready var hoe_till4 = load("res://Assets/Sounds/Item/Hoe/hoe_till4.mp3") as AudioStream
+@onready var tool_break = load("res://Assets/Sounds/Random/tool_break.mp3") as AudioStream
+@onready var player_attack = load("res://Assets/Sounds/Player/attack.mp3") as AudioStream
+@onready var pig_death = load("res://Assets/Sounds/Pig/death.mp3") as AudioStream
+@onready var pig_say1 = load("res://Assets/Sounds/Pig/say1.mp3") as AudioStream
+@onready var pig_say2 = load("res://Assets/Sounds/Pig/say2.mp3") as AudioStream
+@onready var pig_say3 = load("res://Assets/Sounds/Pig/say3.mp3") as AudioStream
 
 var volume_db = 0
 var dig_cloth_sound_list = []
@@ -103,9 +109,13 @@ var step_stone_sound_list = []
 var step_wood_sound_list = []
 var damage_fallsmall_sound_list = []
 var damage_fallbig_sound_list = []
+var tool_break_sound_list = []
 var hurt_sound_list = []
 var hit_sound_list = []
 var hoe_still_sound_list = []
+var player_attack_sound_list = []
+var pig_death_sound_list = []
+var pig_say_sound_list = []
 
 func _ready() -> void:
 	dig_cloth_sound_list = [dig_cloth1, dig_cloth2, dig_cloth3, dig_cloth4]
@@ -128,9 +138,13 @@ func _ready() -> void:
 	
 	damage_fallsmall_sound_list = [fall_small]
 	damage_fallbig_sound_list = [fall_big]
+	tool_break_sound_list = [tool_break]
 	hurt_sound_list = [hurt]
 	hit_sound_list = [hit1, hit2, hit3]
 	hoe_still_sound_list = [hoe_till1, hoe_till2, hoe_till3, hoe_till4]
+	player_attack_sound_list = [player_attack]
+	pig_death_sound_list = [pig_death]
+	pig_say_sound_list = [pig_say1, pig_say2, pig_say3]
 
 func play_audio_static(type, sub_type):
 	var audio_player = AudioStreamPlayer.new()
@@ -174,9 +188,19 @@ func play_random_audio_at_position(type, sub_type, sound_position: Vector2, pitc
 	elif type == "player":
 		if sub_type == "hurt":
 			sound_list = hurt_sound_list
+		elif sub_type == "attack":
+			sound_list = player_attack_sound_list
+	elif type == "pig":
+		if sub_type == "death":
+			sound_list = pig_death_sound_list
+		elif sub_type == "say":
+			sound_list = pig_say_sound_list
 	elif type == "item":
 		if sub_type == "hoe_still":
 			sound_list = hoe_still_sound_list
+	elif type == "random":
+		if sub_type == "tool_break":
+			sound_list = tool_break_sound_list
 	elif type == "step":
 		if sub_type == "cloth":
 			sound_list = step_cloth_sound_list

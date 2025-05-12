@@ -1,0 +1,131 @@
+[gd_scene load_steps=12 format=3 uid="uid://du2661adlbfc7"]
+
+[ext_resource type="Script" path="res://Assets/Scripts/DeathParticle.gd" id="1_4yuiw"]
+[ext_resource type="Texture2D" uid="uid://bo14nwudx2ec3" path="res://Assets/Textures/GUI/particles.png" id="1_cps7l"]
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_2xuqn"]
+particle_flag_disable_z = true
+emission_shape = 3
+emission_box_extents = Vector3(25, 10, 1)
+angle_min = 1.07288e-05
+angle_max = 1.07288e-05
+direction = Vector3(0, -1, 0)
+spread = 30.0
+flatness = 1.0
+initial_velocity_min = 2.0
+initial_velocity_max = 8.0
+angular_velocity_min = -1.60933e-05
+angular_velocity_max = -1.60933e-05
+orbit_velocity_min = 9.49949e-08
+orbit_velocity_max = 9.49949e-08
+gravity = Vector3(0, 0, 0)
+linear_accel_min = -2.23517e-06
+linear_accel_max = -2.23517e-06
+radial_accel_min = -2.23517e-06
+radial_accel_max = -2.23517e-06
+tangential_accel_min = -2.23517e-06
+tangential_accel_max = -2.23517e-06
+scale_min = 2.0
+scale_max = 3.0
+collision_mode = 1
+collision_friction = 0.0
+collision_bounce = 0.0
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_28xt8"]
+atlas = ExtResource("1_cps7l")
+region = Rect2(0, 0, 8, 8)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_aiudq"]
+atlas = ExtResource("1_cps7l")
+region = Rect2(8, 0, 8, 8)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cbykv"]
+atlas = ExtResource("1_cps7l")
+region = Rect2(16, 0, 8, 8)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_snb8m"]
+atlas = ExtResource("1_cps7l")
+region = Rect2(24, 0, 8, 8)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_v7qer"]
+atlas = ExtResource("1_cps7l")
+region = Rect2(32, 0, 8, 8)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hes8p"]
+atlas = ExtResource("1_cps7l")
+region = Rect2(40, 0, 8, 8)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_o3w1j"]
+atlas = ExtResource("1_cps7l")
+region = Rect2(48, 0, 8, 8)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_qwyqw"]
+atlas = ExtResource("1_cps7l")
+region = Rect2(56, 0, 8, 8)
+
+[node name="DeathParticle" type="Node2D"]
+script = ExtResource("1_4yuiw")
+
+[node name="GPUParticles1" type="GPUParticles2D" parent="."]
+emitting = false
+amount = 1
+process_material = SubResource("ParticleProcessMaterial_2xuqn")
+texture = SubResource("AtlasTexture_28xt8")
+lifetime = 4.0
+one_shot = true
+
+[node name="GPUParticles2" type="GPUParticles2D" parent="."]
+emitting = false
+amount = 1
+process_material = SubResource("ParticleProcessMaterial_2xuqn")
+texture = SubResource("AtlasTexture_aiudq")
+lifetime = 4.0
+one_shot = true
+
+[node name="GPUParticles3" type="GPUParticles2D" parent="."]
+emitting = false
+amount = 1
+process_material = SubResource("ParticleProcessMaterial_2xuqn")
+texture = SubResource("AtlasTexture_cbykv")
+lifetime = 4.0
+one_shot = true
+
+[node name="GPUParticles4" type="GPUParticles2D" parent="."]
+emitting = false
+amount = 1
+process_material = SubResource("ParticleProcessMaterial_2xuqn")
+texture = SubResource("AtlasTexture_snb8m")
+lifetime = 4.0
+one_shot = true
+
+[node name="GPUParticles5" type="GPUParticles2D" parent="."]
+emitting = false
+amount = 1
+process_material = SubResource("ParticleProcessMaterial_2xuqn")
+texture = SubResource("AtlasTexture_v7qer")
+lifetime = 4.0
+one_shot = true
+
+[node name="GPUParticles6" type="GPUParticles2D" parent="."]
+emitting = false
+amount = 1
+process_material = SubResource("ParticleProcessMaterial_2xuqn")
+texture = SubResource("AtlasTexture_hes8p")
+lifetime = 4.0
+one_shot = true
+
+[node name="GPUParticles7" type="GPUParticles2D" parent="."]
+emitting = false
+amount = 1
+process_material = SubResource("ParticleProcessMaterial_2xuqn")
+texture = SubResource("AtlasTexture_o3w1j")
+lifetime = 4.0
+one_shot = true
+
+[node name="GPUParticles8" type="GPUParticles2D" parent="."]
+emitting = false
+amount = 1
+process_material = SubResource("ParticleProcessMaterial_2xuqn")
+texture = SubResource("AtlasTexture_qwyqw")
+lifetime = 4.0
+one_shot = true

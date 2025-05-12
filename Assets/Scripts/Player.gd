@@ -12,11 +12,17 @@ extends CharacterBody2D
 @onready var up_area_collision_shape = $UpArea/CollisionShape2D
 @onready var down_area_collision_shape = $DownArea/CollisionShape2D
 @onready var top_area_collision_shape = $TopArea/CollisionShape2D
+@onready var attack_animation = $AttackAnimation
+@onready var attack_area = $AttackArea
+@onready var attack_area_collision_shape = $AttackArea/CollisionShape2D
 
 # 实体变量
 var uuid = UUID.v4()
 var entity_type = "player"
 var player_name: String
+var chunk_pos = Vector2i(0, 0)
+var expected_velocity = Vector2(0, 0)
+var is_dead = false
 
 # 子类变量
 var move_speed: float = 200
@@ -36,11 +42,16 @@ var last_velocity = Vector2(0, 0)
 var selected_block_pos = Vector2i(0, 0)
 var destroying_block_pos = Vector2i(0, 0)
 var destroy_timer: float = 0
+var attack_timer: float = 1
+var attacking_decline_timer: float = 0
+var attacking_damage: int = 0
 var selected_item_grid: int = 0
 var step_sound_timer: float = 0
 var move_state = "idle"
 var face_state: int = -1
 var turn_state: float = 0
+var breaking_tool = "null"
+var hurt_tween
 var is_jump_pressed = false
 var last_is_jump_pressed = false
 var is_down_pressed = false
@@ -48,7 +59,6 @@ var last_is_down_pressed = false
 var is_other = false
 var is_pause = false
 var is_frozen = false
-var is_dead = false
 var is_in_water = false
 var is_flying = false
 var is_punching = false
@@ -61,10 +71,10 @@ var animation_tree_parameters = {
 	"run": 0
 }
 var only_server_change_state_list = [
-	"health"
+	"health", "attack_timer", "attacking_decline_timer", "attacking_damage"
 ]
 var trigger_change_state_list = [
-	"is_punching", "set_block_list"
+	"is_punching", "set_block_list", "breaking_tool"
 ]
 var state_dict = {}
 var last_state_dict = {}
@@ -72,6 +82,7 @@ var changed_state_dict = {}
 var only_server_change_state_dict = {}
 var set_block_list = []
 var success_set_block_list = []
+var attacking_list = []
 var item_bar_names = StaticLoad.default_item_bar_names
 var item_bar_amounts = StaticLoad.default_item_bar_amounts
 var in_hand_item_name = "AIR"
@@ -84,7 +95,6 @@ func _ready():
 
 func _process(delta: float) -> void:
 	update_current_velocity()
-	
 	# 通过接收的数据同步更新
 	move_and_slide()
 	update_sound_by_data()
@@ -92,7 +102,9 @@ func _process(delta: float) -> void:
 	# 仅在服务端的本地更新
 	update_local_fall_damage_by_data()
 	update_local_health_recover()
+	update_local_attack_timer()
 	# 本地更新
+	update_local_velocity()
 	update_local_is_on_ladder()
 	update_local_set_block()
 	update_local_gravity()
@@ -217,6 +229,12 @@ func update_sound_by_data():
 			StaticLoad.game.sound_audio_manager.play_random_audio_at_position("damage", "fallbig", position, 1)
 		else:
 			StaticLoad.game.sound_audio_manager.play_random_audio_at_position("damage", "fallsmall", position, 1)
+	if breaking_tool != "null":
+		StaticLoad.game.sound_audio_manager.play_random_audio_at_position("random", "tool_break", position, 1)
+		StaticLoad.game.summon_destroy_particle(position-Vector2(0,16), "item", breaking_tool)
+		if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == player_peer_id:
+			changed_state_dict["breaking_tool"] = breaking_tool
+		breaking_tool = "null"
 	if not is_flying and is_on_ladder:
 		if step_sound_timer <= 0 and current_velocity.y != 0:
 			step_sound_timer = walk_period
@@ -286,9 +304,22 @@ func update_animation_by_data():
 		if abs(turn_state-face_state)<0.01:
 			turn_state = face_state
 			update_player_face_rotation()
+	if face_state > 0 and not attack_animation.flip_v:
+		attack_animation.flip_v = true
+		attack_animation.position.x = 72
+		#attacking_decline_timer = 0
+		attack_area_collision_shape.position.x = 66
+	elif face_state < 0 and attack_animation.flip_v:
+		attack_animation.flip_v = false
+		attack_animation.position.x = -72
+		#attacking_decline_timer = 0
+		attack_area_collision_shape.position.x = -66
 	if is_punching:
 		if not animation_tree["parameters/Punch/active"]:
 			animation_tree["parameters/Punch/request"] = AnimationNodeOneShot.ONE_SHOT_REQUEST_FIRE
+		if StaticLoad.tools_type.has(in_hand_item_name) and StaticLoad.tools_type[in_hand_item_name].has("sword"):
+			if attack_timer <= 0:
+				attack()
 		if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == player_peer_id:
 			changed_state_dict["is_punching"] = true
 		is_punching = false
@@ -303,10 +334,10 @@ func update_local_fall_damage_by_data():
 			if abs(current_velocity.y) < StaticLoad.FLOAT_DELTA or current_velocity.y < 0:
 				@warning_ignore("integer_division")
 				var damage = (int(last_velocity.y)-1000)/50
-				get_damage(damage)
+				get_damage([damage, "down"])
 				
 				if StaticLoad.is_muti_mode:
-					StaticLoad.rpc_entity_func_by_uuid(uuid, "get_damage", damage, "others", true)
+					StaticLoad.rpc_entity_func_by_uuid(uuid, "get_damage", [damage, "down"], "others", true)
 
 func update_local_health_recover():
 	if StaticLoad.is_muti_mode and not StaticLoad.multiplayer.get_unique_id() == 1:
@@ -322,6 +353,85 @@ func update_local_health_recover():
 	if health_recover_timer < -1.5:
 		health += 1
 		health_recover_timer = 0
+
+func update_local_attack_timer():
+	if StaticLoad.is_muti_mode and not StaticLoad.multiplayer.get_unique_id() == 1:
+		return
+	if attacking_decline_timer > 0:
+		attacking_decline_timer -= get_process_delta_time()
+	elif attacking_decline_timer < 0:
+		attacking_decline_timer = 0
+		attacking_list.clear()
+	if attack_timer > 0:
+		attack_timer -= get_process_delta_time()
+	elif attack_timer < 0:
+		attack_timer = 0
+
+func update_local_velocity():
+	if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() != 1:
+		return
+	var delta = get_process_delta_time()
+	var mutiply_x = velocity.x * expected_velocity.x
+	if mutiply_x >= 0:
+		if abs(velocity.x) < abs(expected_velocity.x):
+			velocity.x = expected_velocity.x
+		elif expected_velocity.x == 0:
+			var diff = abs(velocity.x)
+			var max_diff = move_speed*delta*10
+			if abs(velocity.x) >= max_diff:
+				diff = max_diff
+			if velocity.x * diff > 0:
+				diff = -diff
+			velocity += Vector2(diff, 0)
+		elif abs(velocity.x) > abs(expected_velocity.x):
+			var diff = velocity.x - expected_velocity.x
+			var max_diff = 200*delta*20
+			if abs(diff) >= max_diff:
+				if diff < 0:
+					diff = -max_diff
+				else:
+					diff = max_diff
+			velocity += Vector2(-diff, 0)
+	elif mutiply_x < 0:
+		var diff = abs(velocity.x - expected_velocity.x)
+		var max_diff = expected_velocity.x*delta*20
+		if diff >= abs(max_diff):
+			diff = abs(max_diff)
+		if expected_velocity.x * diff < 0:
+			diff = -diff
+		velocity += Vector2(diff, 0)
+	
+	
+	if is_flying or is_on_ladder:
+		var mutiply_y = velocity.y * expected_velocity.y
+		if mutiply_y >= 0:
+			if abs(velocity.y) < abs(expected_velocity.y):
+				velocity.y = expected_velocity.y
+			elif expected_velocity.y == 0:
+				var diff = abs(velocity.y)
+				var max_diff = move_speed*delta*10
+				if abs(velocity.y) >= max_diff:
+					diff = max_diff
+				if velocity.y * diff > 0:
+					diff = -diff
+				velocity += Vector2(0, diff)
+			elif abs(velocity.y) > abs(expected_velocity.y):
+				var diff = velocity.y - expected_velocity.y
+				var max_diff = 200*delta*20
+				if abs(diff) >= max_diff:
+					if diff < 0:
+						diff = -max_diff
+					else:
+						diff = max_diff
+				velocity += Vector2(0, -diff)
+		elif mutiply_y < 0:
+			var diff = abs(velocity.y - expected_velocity.y)
+			var max_diff = expected_velocity.y*delta*20
+			if diff >= abs(max_diff):
+				diff = abs(max_diff)
+			if expected_velocity.y * diff < 0:
+				diff = -diff
+			velocity += Vector2(0, diff)
 
 func update_local_set_block():
 	if not set_block_list.is_empty():
@@ -372,7 +482,7 @@ func update_local_move_by_data():
 		return
 	if is_jump_pressed:
 		if not is_flying and is_on_ladder:
-			velocity.y = -move_speed
+			expected_velocity.y = -move_speed
 		else:
 			if not is_flying and is_on_floor():
 				last_velocity = current_velocity
@@ -380,42 +490,44 @@ func update_local_move_by_data():
 				update_local_fall_damage_by_data()
 				update_sound_by_data()
 				if not is_dead:
-					velocity.y = jump_velocity
+					if velocity.y >= 0:
+						velocity.y += jump_velocity
 			elif is_flying:
-				velocity.y = jump_velocity * 0.7
+				expected_velocity.y = jump_velocity * 0.7
 	elif not is_down_pressed and not is_flying and is_on_ladder:
-		velocity.y = 0
+		expected_velocity.y = 0
 	if not is_top_area_colliding and is_down_area_colliding and not is_up_area_colliding:
 		if move_state != "idle":
 			if not is_flying and is_on_floor():
-				velocity.y = jump_velocity
+				if velocity.y >= 0:
+					velocity.y += jump_velocity
 	if last_is_jump_pressed and not is_jump_pressed:
 		if is_flying:
-			velocity.y = 0
+			expected_velocity.y = 0
 	last_is_jump_pressed = is_jump_pressed
 	
 	if is_down_pressed:
 		if is_flying:
-			velocity.y = -jump_velocity * 0.7
+			expected_velocity.y = -jump_velocity * 0.7
 		elif is_on_ladder:
-			velocity.y = move_speed
+			expected_velocity.y = move_speed
 	if last_is_down_pressed and not is_down_pressed:
 		if is_flying:
-			velocity.y = 0
+			expected_velocity.y = 0
 	last_is_down_pressed = is_down_pressed
 	
 	if move_state == "run":
 		if is_in_water:
-			velocity.x = face_state * move_speed
+			expected_velocity.x = face_state * move_speed
 		else:
-			velocity.x = face_state * move_speed * 2
+			expected_velocity.x = face_state * move_speed * 2
 	elif move_state == "walk":
 		if is_in_water:
-			velocity.x = face_state * move_speed * 0.5
+			expected_velocity.x = face_state * move_speed * 0.5
 		else:
-			velocity.x = face_state * move_speed
+			expected_velocity.x = face_state * move_speed
 	elif move_state == "idle":
-		velocity.x = 0
+		expected_velocity.x = 0
 	
 	if velocity.length() > StaticLoad.FLOAT_DELTA:
 		var player_block_pos = StaticLoad.game.tile_map_layer.local_to_map(position)
@@ -429,6 +541,7 @@ func update_local_move_by_data():
 func set_item_in_hand(got_item_name):
 	if StaticLoad.get_item_model_type_by_name(got_item_name) == 0:
 		item_in_hand.get_node("Item").visible = false
+		item_in_hand.get_node("ItemTop").visible = false
 		item_in_hand.get_node("Tool").visible = false
 		item_in_hand.get_node("Block").visible = false
 		if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id()==player_peer_id):
@@ -436,23 +549,56 @@ func set_item_in_hand(got_item_name):
 			StaticLoad.game.inventory_player_model_item_in_hand.get_node("Tool").visible = false
 			StaticLoad.game.inventory_player_model_item_in_hand.get_node("Block").visible = false
 	elif StaticLoad.get_item_model_type_by_name(got_item_name) == 1:
-		var item_mesh = item_in_hand.get_node("Item/Mesh")
-		var inventory_player_model_item_mesh = StaticLoad.game.inventory_player_model_item_in_hand.get_node("Item/Mesh")
-		var item_material = load("res://Assets/Materials/ItemModel.tres").duplicate(true)
-		var item_texture = load("res://Assets/ResourcePacks/"+StaticLoad.game.resource_pack+"/Items/"+got_item_name.to_lower()+".png")
-		if item_texture == null:
-			item_texture = load("res://Assets/ResourcePacks/"+StaticLoad.game.resource_pack+"/Items/missing_texture.png")
-		item_material.albedo_texture = item_texture
-		item_mesh.mesh.surface_set_material(0, item_material)
-		if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id()==player_peer_id):
-			inventory_player_model_item_mesh.mesh.surface_set_material(0, item_material)
-		item_in_hand.get_node("Item").visible = true
-		item_in_hand.get_node("Tool").visible = false
-		item_in_hand.get_node("Block").visible = false
-		if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id()==player_peer_id):
-			StaticLoad.game.inventory_player_model_item_in_hand.get_node("Item").visible = true
-			StaticLoad.game.inventory_player_model_item_in_hand.get_node("Tool").visible = false
-			StaticLoad.game.inventory_player_model_item_in_hand.get_node("Block").visible = false
+		if got_item_name.contains("SPAWN_EGG"):
+			var item_mesh = item_in_hand.get_node("Item/Mesh")
+			var inventory_player_model_item_mesh = StaticLoad.game.inventory_player_model_item_in_hand.get_node("Item/Mesh")
+			var item_material = load("res://Assets/Materials/ItemModel.tres").duplicate(true)
+			var item_texture = load("res://Assets/ResourcePacks/"+StaticLoad.game.resource_pack+"/Items/spawn_egg.png")
+			item_material.albedo_texture = item_texture
+			item_mesh.mesh.surface_set_material(0, item_material)
+			if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id()==player_peer_id):
+				inventory_player_model_item_mesh.mesh.surface_set_material(0, item_material)
+			var item_top_mesh = item_in_hand.get_node("ItemTop/Mesh")
+			var inventory_player_model_item_top_mesh = StaticLoad.game.inventory_player_model_item_in_hand.get_node("ItemTop/Mesh")
+			var item_top_material = load("res://Assets/Materials/ItemModel.tres").duplicate(true)
+			var item_top_texture = load("res://Assets/ResourcePacks/"+StaticLoad.game.resource_pack+"/Items/spawn_egg_overlay.png")
+			item_top_material.albedo_texture = item_top_texture
+			item_top_mesh.mesh.surface_set_material(0, item_top_material)
+			if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id()==player_peer_id):
+				inventory_player_model_item_top_mesh.mesh.surface_set_material(0, item_top_material)
+			if StaticLoad.spawn_egg_colors.has(got_item_name):
+				var color_info = StaticLoad.spawn_egg_colors[got_item_name]
+				item_material.albedo_color = Color.html(color_info[0])
+				item_top_material.albedo_color = Color.html(color_info[1])
+			item_in_hand.get_node("Item").visible = true
+			item_in_hand.get_node("ItemTop").visible = true
+			item_in_hand.get_node("Tool").visible = false
+			item_in_hand.get_node("Block").visible = false
+			if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id()==player_peer_id):
+				StaticLoad.game.inventory_player_model_item_in_hand.get_node("Item").visible = true
+				StaticLoad.game.inventory_player_model_item_in_hand.get_node("ItemTop").visible = true
+				StaticLoad.game.inventory_player_model_item_in_hand.get_node("Tool").visible = false
+				StaticLoad.game.inventory_player_model_item_in_hand.get_node("Block").visible = false
+		else:
+			var item_mesh = item_in_hand.get_node("Item/Mesh")
+			var inventory_player_model_item_mesh = StaticLoad.game.inventory_player_model_item_in_hand.get_node("Item/Mesh")
+			var item_material = load("res://Assets/Materials/ItemModel.tres").duplicate(true)
+			var item_texture = load("res://Assets/ResourcePacks/"+StaticLoad.game.resource_pack+"/Items/"+got_item_name.to_lower()+".png")
+			if item_texture == null:
+				item_texture = load("res://Assets/ResourcePacks/"+StaticLoad.game.resource_pack+"/Items/missing_texture.png")
+			item_material.albedo_texture = item_texture
+			item_mesh.mesh.surface_set_material(0, item_material)
+			if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id()==player_peer_id):
+				inventory_player_model_item_mesh.mesh.surface_set_material(0, item_material)
+			item_in_hand.get_node("Item").visible = true
+			item_in_hand.get_node("ItemTop").visible = false
+			item_in_hand.get_node("Tool").visible = false
+			item_in_hand.get_node("Block").visible = false
+			if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id()==player_peer_id):
+				StaticLoad.game.inventory_player_model_item_in_hand.get_node("Item").visible = true
+				StaticLoad.game.inventory_player_model_item_in_hand.get_node("Item").visible = false
+				StaticLoad.game.inventory_player_model_item_in_hand.get_node("Tool").visible = false
+				StaticLoad.game.inventory_player_model_item_in_hand.get_node("Block").visible = false
 	elif StaticLoad.get_item_model_type_by_name(got_item_name) == 2:
 		var tool_mesh = item_in_hand.get_node("Tool/Mesh")
 		var inventory_player_model_tool_mesh = StaticLoad.game.inventory_player_model_item_in_hand.get_node("Tool/Mesh")
@@ -465,9 +611,11 @@ func set_item_in_hand(got_item_name):
 		if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id()==player_peer_id):
 			inventory_player_model_tool_mesh.mesh.surface_set_material(0, tool_material)
 		item_in_hand.get_node("Item").visible = false
+		item_in_hand.get_node("ItemTop").visible = false
 		item_in_hand.get_node("Tool").visible = true
 		item_in_hand.get_node("Block").visible = false
 		if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id()==player_peer_id):
+			StaticLoad.game.inventory_player_model_item_in_hand.get_node("Item").visible = false
 			StaticLoad.game.inventory_player_model_item_in_hand.get_node("Item").visible = false
 			StaticLoad.game.inventory_player_model_item_in_hand.get_node("Tool").visible = true
 			StaticLoad.game.inventory_player_model_item_in_hand.get_node("Block").visible = false
@@ -484,10 +632,12 @@ func set_item_in_hand(got_item_name):
 		if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id()==player_peer_id):
 			inventory_player_model_block_mesh.mesh.surface_set_material(0, block_material)
 		item_in_hand.get_node("Item").visible = false
+		item_in_hand.get_node("ItemTop").visible = false
 		item_in_hand.get_node("Tool").visible = false
 		item_in_hand.get_node("Block").visible = true
 		if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id()==player_peer_id):
 			StaticLoad.game.inventory_player_model_item_in_hand.get_node("Item").visible = false
+			StaticLoad.game.inventory_player_model_item_in_hand.get_node("ItemTop").visible = false
 			StaticLoad.game.inventory_player_model_item_in_hand.get_node("Tool").visible = false
 			StaticLoad.game.inventory_player_model_item_in_hand.get_node("Block").visible = true
 
@@ -498,6 +648,10 @@ func update_local_item_in_hand():
 	if last_in_hand_item_name == in_hand_item_name:
 		return
 	in_hand_item_name = last_in_hand_item_name
+	attacking_decline_timer = 0
+	attacking_list.clear()
+	attack_animation.stop()
+	attack_animation.visible = false
 	set_item_in_hand(in_hand_item_name)
 
 func update_state_dict():
@@ -509,6 +663,9 @@ func update_state_dict():
 	state_dict["gamemode"] = gamemode
 	state_dict["selected_block_pos"] = selected_block_pos
 	state_dict["destroy_timer"] = destroy_timer
+	state_dict["attack_timer"] = attack_timer
+	state_dict["attacking_damage"] = attacking_damage
+	state_dict["attacking_decline_timer"] = attacking_decline_timer
 	state_dict["position"] = position
 	state_dict["in_hand_item_name"] = in_hand_item_name
 	state_dict["current_velocity"] = current_velocity
@@ -618,24 +775,36 @@ func update_player_face_rotation():
 	var looking_at = Vector3(current_rotation.x, 90+turn_state*90*StaticLoad.TURN_STATE_SCALE_FACTOR, current_rotation.z)
 	player_model.rotation_degrees = looking_at
 
-func get_damage(damage):
+func get_damage(args):
+	var damage = args[0]
+	var side = args[1]
+	if side == "left":
+		velocity += Vector2(500, -400)
+	elif side == "right":
+		velocity += Vector2(-500, -400)
 	if damage > 0:
 		health_recover_timer = StaticLoad.HEALTH_RECOVER_TIME
 	var final_damage = damage
 	if final_damage > StaticLoad.DEFAULT_PLAYER_HEALTH:
 		final_damage = damage
 	health -= final_damage
-	var tween = get_tree().create_tween()
-	tween.tween_method(set_shader_blink_intensity, 0.5, 0, StaticLoad.HURT_TIME)
 	if health <= 0:
+		if hurt_tween != null:
+			hurt_tween.stop()
 		player_die()
+		set_shader_blink_intensity(0.6)
 		var tween1 = get_tree().create_tween()
 		tween1.tween_method(set_name_label_modulate, Color(1,1,1,1), Color(1,1,1,0), StaticLoad.DISSOLVE_TIME)
 		StaticLoad.game.sound_audio_manager.play_random_audio_at_position("player", "hurt", position, 1)
 		var tween2 = get_tree().create_tween()
-		tween2.tween_method(set_shader_dissolve_intensity, -0.6, 0.6, StaticLoad.DISSOLVE_TIME)
+		tween2.tween_method(set_z_rotation, 0, 90, StaticLoad.DISSOLVE_TIME)
 	else:
+		hurt_tween = get_tree().create_tween()
+		hurt_tween.tween_method(set_shader_blink_intensity, 0.6, 0, StaticLoad.HURT_TIME)
 		StaticLoad.game.sound_audio_manager.play_random_audio_at_position("damage", "hit", position, 1)
+
+func set_z_rotation(got_rotation):
+	player_model.rotation.z = deg_to_rad(got_rotation)
 
 func set_block(args):
 	var set_block_id = args[0]
@@ -681,6 +850,26 @@ func destroy_block(block_pos: Vector2i):
 		else:
 			return false
 
+func check_attached_block(block_pos, tile_map_layer_tmp):
+	var chunk_pos_tmp
+	var block_pos_tmp
+	var is_attached_block = false
+	for i in [1, -1]:
+		block_pos_tmp = block_pos + Vector2i(i, 0)
+		chunk_pos_tmp = StaticLoad.game.get_chunk_position(block_pos_tmp)
+		if StaticLoad.game.loaded_chunks.has(str(chunk_pos_tmp[0])+"."+str(chunk_pos_tmp[1])):
+			var block_id_tmp = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer_tmp.get_cell_atlas_coords(block_pos_tmp))
+			if block_id_tmp != 0:	
+				is_attached_block = true
+	for i in [1, -1]:
+		block_pos_tmp = block_pos + Vector2i(0, i)
+		chunk_pos_tmp = StaticLoad.game.get_chunk_position(block_pos_tmp)
+		if StaticLoad.game.loaded_chunks.has(str(chunk_pos_tmp[0])+"."+str(chunk_pos_tmp[1])):
+			var block_id_tmp = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer_tmp.get_cell_atlas_coords(block_pos_tmp))
+			if block_id_tmp != 0:	
+				is_attached_block = true
+	return is_attached_block
+
 func place_block(block_pos):
 	var place_layer = current_set_layer
 	var chunk_pos = StaticLoad.game.get_chunk_position(block_pos)
@@ -707,6 +896,7 @@ func place_block(block_pos):
 			StaticLoad.game.set_block(block_pos, StaticLoad.get_block_id_by_name("FARM_LAND"), "solid", true)
 			if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == 1:
 				StaticLoad.rpc("set_block", [local_block_id, StaticLoad.get_block_id_by_name("FARM_LAND"), "solid"])
+			wear_and_update_in_hand_tool(1)
 			var rng = RandomNumberGenerator.new()
 			var num = rng.randf()
 			if num > 0.7:
@@ -739,24 +929,7 @@ func place_block(block_pos):
 	if not StaticLoad.game.check_place_block_state(block_pos, block_id):
 		return false
 	if gamemode != "creative":
-		var chunk_pos_tmp
-		var block_pos_tmp
-		var is_attached_block = false
-		for i in [1, -1]:
-			block_pos_tmp = block_pos + Vector2i(i, 0)
-			chunk_pos_tmp = StaticLoad.game.get_chunk_position(block_pos_tmp)
-			if StaticLoad.game.loaded_chunks.has(str(chunk_pos_tmp[0])+"."+str(chunk_pos_tmp[1])):
-				var block_id_tmp = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer_tmp.get_cell_atlas_coords(block_pos_tmp))
-				if block_id_tmp != 0:	
-					is_attached_block = true
-		for i in [1, -1]:
-			block_pos_tmp = block_pos + Vector2i(0, i)
-			chunk_pos_tmp = StaticLoad.game.get_chunk_position(block_pos_tmp)
-			if StaticLoad.game.loaded_chunks.has(str(chunk_pos_tmp[0])+"."+str(chunk_pos_tmp[1])):
-				var block_id_tmp = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer_tmp.get_cell_atlas_coords(block_pos_tmp))
-				if block_id_tmp != 0:	
-					is_attached_block = true
-		if not is_attached_block:
+		if not check_attached_block(block_pos, tile_map_layer_tmp):
 			return false
 	if tile_map_layer_tmp.get_cell_source_id(block_pos) == -1 and StaticLoad.game.no_reach_tile_map_layer.get_cell_source_id(block_pos) == -1 and StaticLoad.block_ids.has(final_item_name):
 		if place_layer == "back":
@@ -771,10 +944,22 @@ func place_block(block_pos):
 			return true
 	return false
 
+func wear_and_update_in_hand_tool(damage):
+	if not StaticLoad.tools_type.has(in_hand_item_name):
+		return
+	item_bar_amounts[selected_item_grid] -= damage
+	if item_bar_amounts[selected_item_grid] <= 0:
+		breaking_tool = item_bar_names[selected_item_grid]
+		item_bar_names[selected_item_grid] = "AIR"
+		item_bar_amounts[selected_item_grid] = 0
+			
+	if selected_item_grid < 9:
+		StaticLoad.game.refresh_item_grid(selected_item_grid)
 
 func player_die():
 	is_dead = true
 	stop_move()
+	update_animation_by_data()
 	if is_other:
 		return
 	if StaticLoad.game.is_pause:
@@ -827,10 +1012,12 @@ func send_command(command: String):
 			else:
 				if StaticLoad.is_dedicated_server or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == 1):
 					position = Vector2i(x*50+25, -y*50+50)
-				var tween1 = get_tree().create_tween()
-				tween1.tween_method(set_shader_blink_intensity, 0.0, -1.0, StaticLoad.TELEPORT_TIME/2.0)
 				var tween2 = get_tree().create_tween()
-				tween2.tween_method(set_shader_transparent_intensity, 0.0, 1.0, StaticLoad.TELEPORT_TIME/2.0)
+				tween2.tween_method(set_shader_dissolve_intensity, -0.6, 0.6, StaticLoad.TELEPORT_TIME/2.0)
+				#var tween1 = get_tree().create_tween()
+				#tween1.tween_method(set_shader_blink_intensity, 0.0, -1.0, StaticLoad.TELEPORT_TIME/2.0)
+				#var tween2 = get_tree().create_tween()
+				#tween2.tween_method(set_shader_transparent_intensity, 0.0, 1.0, StaticLoad.TELEPORT_TIME/2.0)
 				var tween3 = get_tree().create_tween()
 				tween3.tween_method(set_name_label_modulate, Color(1,1,1,1), Color(1,1,1,0), StaticLoad.TELEPORT_TIME/2.0)
 				await tween3.finished
@@ -841,11 +1028,13 @@ func send_command(command: String):
 					await get_tree().process_frame
 				unfreeze()
 				var tween4 = get_tree().create_tween()
-				tween4.tween_method(set_shader_transparent_intensity, 1.0, 0.0, StaticLoad.TELEPORT_TIME/2.0)
+				tween4.tween_method(set_shader_dissolve_intensity, 0.6, -0.6, StaticLoad.TELEPORT_TIME/2.0)
+				#var tween4 = get_tree().create_tween()
+				#tween4.tween_method(set_shader_transparent_intensity, 1.0, 0.0, StaticLoad.TELEPORT_TIME/2.0)
 				var tween5 = get_tree().create_tween()
 				tween5.tween_method(set_name_label_modulate, Color(1,1,1,0), Color(1,1,1,1), StaticLoad.TELEPORT_TIME/2.0)
-				var tween6 = get_tree().create_tween()
-				tween6.tween_method(set_shader_blink_intensity, -1.0, 0.0, StaticLoad.TELEPORT_TIME/2.0)
+				#var tween6 = get_tree().create_tween()
+				#tween6.tween_method(set_shader_blink_intensity, -1.0, 0.0, StaticLoad.TELEPORT_TIME/2.0)
 				StaticLoad.game.update_new_chunk(false)
 				StaticLoad.game.broadcast_to_person(player_name, tr("TELEPORT_INFO_1")+player_name+tr("TELEPORT_INFO_2")+"x="+str(x)+", y="+str(y), "chartreuse")
 				await get_tree().create_timer(0.01).timeout
@@ -1003,11 +1192,11 @@ func stop_move():
 	last_is_jump_pressed = false
 	is_jump_pressed = false
 	move_state = "idle"
-	velocity.x = 0
-	if is_flying:
-		velocity.y = 0
+	expected_velocity.x = 0
 
 func respawn(is_animation = true):
+	set_z_rotation(0)
+	set_shader_blink_intensity(0)
 	freeze()
 	position = Vector2(0, -24)
 	if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == player_peer_id):
@@ -1030,15 +1219,57 @@ func respawn(is_animation = true):
 		var tween2 = get_tree().create_tween()
 		tween2.tween_method(set_shader_dissolve_intensity, 0.6, -0.6, StaticLoad.DISSOLVE_TIME)
 	unfreeze()
-	
+
+func check_wear_sword():
+	if attacking_list.size() == 1:
+		wear_and_update_in_hand_tool(1)
+
+func attack():
+	if not StaticLoad.tools_type.has(in_hand_item_name):
+		return
+	var tool_info = StaticLoad.tools_type[in_hand_item_name]
+	if not tool_info.has("sword"):
+		return
+	attacking_list.clear()
+	if not is_up_area_colliding:
+		attacking_damage = tool_info["sword"]
+		for body in attack_area.get_overlapping_bodies():
+			if not body.has_method("get_uuid"):
+				continue
+			if body.get_uuid() == null:
+				continue
+			if body.get_uuid() == uuid or body.get_entity_type() == "item":
+				continue
+			if body.get_is_dead():
+				continue
+			if attacking_list.has(body):
+				continue
+			var side = "left"
+			if body.position.x < position.x:
+				side = "right"
+			body.get_damage([attacking_damage, side])
+			attacking_list.append(body)
+			check_wear_sword()
+	StaticLoad.game.sound_audio_manager.play_random_audio_at_position("player", "attack", position, 1)
+	if not attack_animation.visible:
+		attack_animation.visible = true
+	attack_animation.play("sweep")
+	attacking_decline_timer = 0.25
+	if in_hand_item_name.contains("GOLD") and in_hand_item_name.contains("SWORD"):
+		attack_timer = 0.5
+	else:
+		attack_timer = 1
+
 func set_name_label_modulate(color):
 	name_label.modulate = color
 
 func leave_server_and_destroy():
 	var tween1 = get_tree().create_tween()
-	tween1.tween_method(set_shader_blink_intensity, 0.0, -1.0, StaticLoad.TELEPORT_TIME/2.0)
-	var tween2 = get_tree().create_tween()
-	tween2.tween_method(set_shader_transparent_intensity, 0.0, 1.0, StaticLoad.TELEPORT_TIME/2.0)
+	tween1.tween_method(set_shader_dissolve_intensity, -0.6, 0.6, StaticLoad.TELEPORT_TIME/2.0)
+	#var tween1 = get_tree().create_tween()
+	#tween1.tween_method(set_shader_blink_intensity, 0.0, -1.0, StaticLoad.TELEPORT_TIME/2.0)
+	#var tween2 = get_tree().create_tween()
+	#tween2.tween_method(set_shader_transparent_intensity, 0.0, 1.0, StaticLoad.TELEPORT_TIME/2.0)
 	var tween3 = get_tree().create_tween()
 	tween3.tween_method(set_name_label_modulate, Color(1,1,1,1), Color(1,1,1,0), StaticLoad.TELEPORT_TIME/2.0)
 	await tween3.finished
@@ -1138,6 +1369,12 @@ func get_entity_type():
 func get_entity_name():
 	return player_name
 
+func get_chunk_pos():
+	return chunk_pos
+
+func get_is_dead():
+	return is_dead
+
 func _on_up_area_body_entered(body: Node2D) -> void:
 	if body.name != "TileMapLayer":
 		return
@@ -1167,3 +1404,24 @@ func _on_top_area_body_exited(body: Node2D) -> void:
 	if body.name != "TileMapLayer":
 		return
 	is_top_area_colliding = false
+
+func _on_attack_area_body_entered(body: Node2D) -> void:
+	if attacking_decline_timer > 0:
+		if not is_up_area_colliding:
+			var damage = attacking_damage
+			if not body.has_method("get_uuid"):
+				return
+			if body.get_uuid() == null:
+				return
+			if body.get_uuid() == uuid or body.get_entity_type() == "item":
+				return
+			if body.get_is_dead():
+				return
+			if attacking_list.has(body):
+				return
+			var side = "left"
+			if face_state < 0:
+				side = "right"
+			body.get_damage([damage, side])
+			attacking_list.append(body)
+			check_wear_sword()

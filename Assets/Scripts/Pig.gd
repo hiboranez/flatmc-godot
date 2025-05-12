@@ -13,13 +13,17 @@ extends CharacterBody2D
 var uuid = UUID.v4()
 var entity_type = "pig"
 var entity_name: String
+var chunk_pos = Vector2i(0, 0)
+var expected_velocity = Vector2i(0, 0)
+var is_dead = false
 
 # 子类变量
-var move_speed: float = 150
+var move_speed: float = 200
 var jump_velocity: float = -550
 var walk_period: float = 0.83
 var run_period: float = 0.42
 var refresh_target_timer: float = 5
+var panic_timer: float = 0
 var health: int = 20
 var health_recover_timer: float = 10
 var velocity_before_pause = velocity
@@ -32,13 +36,13 @@ var face_state: int = -1
 var turn_state: float = 0
 var is_pause = false
 var is_frozen = false
-var is_dead = false
 var is_in_water = false
 var is_flying = false
 var is_up_area_colliding = false
 var is_down_area_colliding = false
 var is_top_area_colliding = false
 var is_on_ladder = false
+var hurt_tween
 var animation_tree_parameters = {
 	"walk": 0,
 	"run": 0
@@ -63,6 +67,7 @@ func _process(delta: float) -> void:
 	# 仅在服务端的本地更新
 	update_local_fall_damage_by_data()
 	update_local_health_recover()
+	update_local_velocity()
 	update_local_refresh_target_timer()
 	update_local_is_on_ladder()
 	update_local_gravity()
@@ -71,6 +76,11 @@ func _process(delta: float) -> void:
 	update_local_changed_state_dict()
 	
 	update_last_velocity()
+
+func init(args):
+	uuid = args[0]
+	position = args[1]
+	update_target_pos()
 
 func update_sound_by_data():
 	if abs(current_velocity.y) < StaticLoad.FLOAT_DELTA and last_velocity.y > 1100:
@@ -119,7 +129,7 @@ func update_animation_by_data():
 	var detect_size = 40
 	if move_state == "run":
 		detect_size = 80
-	var half_detect_size = detect_size/2
+	var half_detect_size = 30+(detect_size/2)
 	up_area_collision_shape.shape.size.x = detect_size
 	down_area_collision_shape.shape.size.x = detect_size
 	if turn_state > 0:
@@ -152,10 +162,10 @@ func update_local_fall_damage_by_data():
 		if abs(current_velocity.y) < StaticLoad.FLOAT_DELTA or current_velocity.y < 0:
 			@warning_ignore("integer_division")
 			var damage = (int(last_velocity.y)-1000)/50
-			get_damage(damage)
+			get_damage([damage, "down"])
 			
 			if StaticLoad.is_muti_mode:
-				StaticLoad.rpc_entity_func_by_uuid(uuid, "get_damage", damage, "others", true)
+				StaticLoad.rpc_entity_func_by_uuid(uuid, "get_damage", [damage, "down"], "others", true)
 
 func update_local_health_recover():
 	if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() != 1:
@@ -170,17 +180,108 @@ func update_local_health_recover():
 		health += 1
 		health_recover_timer = 0
 
+func update_local_velocity():
+	if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() != 1:
+		return
+	var delta = get_process_delta_time()
+	var mutiply_x = velocity.x * expected_velocity.x
+	if mutiply_x >= 0:
+		if abs(velocity.x) < abs(expected_velocity.x):
+			velocity.x = expected_velocity.x
+		elif expected_velocity.x == 0:
+			var diff = abs(velocity.x)
+			var max_diff = move_speed*delta*10
+			if abs(velocity.x) >= max_diff:
+				diff = max_diff
+			if velocity.x * diff > 0:
+				diff = -diff
+			velocity += Vector2(diff, 0)
+		elif abs(velocity.x) > abs(expected_velocity.x):
+			var diff = velocity.x - expected_velocity.x
+			var max_diff = 200*delta*20
+			if abs(diff) >= max_diff:
+				if diff < 0:
+					diff = -max_diff
+				else:
+					diff = max_diff
+			velocity += Vector2(-diff, 0)
+	elif mutiply_x < 0:
+		var diff = abs(velocity.x - expected_velocity.x)
+		var max_diff = expected_velocity.x*delta*20
+		if diff >= abs(max_diff):
+			diff = abs(max_diff)
+		if expected_velocity.x * diff < 0:
+			diff = -diff
+		velocity += Vector2(diff, 0)
+	
+	
+	if is_flying or is_on_ladder:
+		var mutiply_y = velocity.y * expected_velocity.y
+		if mutiply_y >= 0:
+			if abs(velocity.y) < abs(expected_velocity.y):
+				velocity.y = expected_velocity.y
+			elif expected_velocity.y == 0:
+				var diff = abs(velocity.y)
+				var max_diff = move_speed*delta*10
+				if abs(velocity.y) >= max_diff:
+					diff = max_diff
+				if velocity.y * diff > 0:
+					diff = -diff
+				velocity += Vector2(0, diff)
+			elif abs(velocity.y) > abs(expected_velocity.y):
+				var diff = velocity.y - expected_velocity.y
+				var max_diff = 200*delta*20
+				if abs(diff) >= max_diff:
+					if diff < 0:
+						diff = -max_diff
+					else:
+						diff = max_diff
+				velocity += Vector2(0, -diff)
+		elif mutiply_y < 0:
+			var diff = abs(velocity.y - expected_velocity.y)
+			var max_diff = expected_velocity.y*delta*20
+			if diff >= abs(max_diff):
+				diff = abs(max_diff)
+			if expected_velocity.y * diff < 0:
+				diff = -diff
+			velocity += Vector2(0, diff)
+		
+	#if impulse_list.is_empty():
+		#return
+	#for impulse in impulse_list.copy():
+		#if impulse[0].length() <= 1:
+			#impulse_list.erase(impulse)
+			#continue
+		#var accelerate = impulse[0]/impulse[1]
+		#velocity += accelerate
+		#impulse[0] -= accelerate
+		#if impulse[0].x <= 1:
+			#impulse[0].x = 0
+		#if impulse[0].y <= 1:
+			#impulse[0].y = 0
+
+func update_target_pos():
+	var rng = RandomNumberGenerator.new()
+	var num1 = rng.randf()-0.5
+	var num2 = rng.randf()-0.5
+	target_pos = StaticLoad.game.tile_map_layer.local_to_map(position)+Vector2i(int(num1*20),int(num2*20))
+
 func update_local_refresh_target_timer():
 	if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() != 1:
 		return
+	if panic_timer <= 0:
+		panic_timer = 0
+	elif panic_timer > 0:
+		if move_state != "run":
+			move_state = "run"
+		panic_timer -= get_process_delta_time()
+		return
 	if refresh_target_timer <= 0:
 		refresh_target_timer = 5
-		var rng = RandomNumberGenerator.new()
-		var num1 = rng.randf()-0.5
-		var num2 = rng.randf()-0.5
-		target_pos = StaticLoad.game.tile_map_layer.local_to_map(position)+Vector2i(int(num1*20),int(num2*20))
+		update_target_pos()
 	else:
 		refresh_target_timer -= get_process_delta_time()
+	
 
 func update_local_is_on_ladder():
 	if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() != 1:
@@ -225,11 +326,13 @@ func update_local_move_by_data():
 		if velocity.length() > StaticLoad.FLOAT_DELTA:
 			velocity = Vector2(0, 0)
 		return
+	if is_dead:
+		return
 	var current_block_pos = StaticLoad.game.tile_map_layer.local_to_map(position)
 	if current_block_pos[0] == target_pos[0]:
 		if move_state != "idle":
 			move_state = "idle"
-			velocity.x = 0
+			expected_velocity.x = 0
 		return
 	elif current_block_pos[0] != target_pos[0]:
 		if current_block_pos[0] < target_pos[0] and face_state == -1:
@@ -238,7 +341,10 @@ func update_local_move_by_data():
 			face_state = -1
 		if not is_down_area_colliding or (is_down_area_colliding and not is_up_area_colliding):
 			if not is_down_area_colliding:
-				move_state = "walk"
+				if panic_timer > 0:
+					move_state = "run"
+				else:
+					move_state = "walk"
 			elif is_top_area_colliding:
 				move_state = "idle"
 		else:
@@ -250,34 +356,35 @@ func update_local_move_by_data():
 			update_local_fall_damage_by_data()
 			update_sound_by_data()
 			if not is_dead:
-				velocity.y = jump_velocity
+				if velocity.y >= 0:
+					velocity.y += jump_velocity
 		elif is_flying:
-			velocity.y = jump_velocity * 0.7
+			expected_velocity.y = jump_velocity * 0.7
 	elif current_block_pos[1] < target_pos[1]:
 		if is_flying:
-			velocity.y = jump_velocity * 0.7
+			expected_velocity.y = jump_velocity * 0.7
 		elif is_on_ladder:
-			velocity.y = -move_speed
+			expected_velocity.y = -move_speed
 	elif current_block_pos[1] > target_pos[1]:
 		if is_flying:
-			velocity.y = -jump_velocity * 0.7
+			expected_velocity.y = -jump_velocity * 0.7
 		elif is_on_ladder:
-			velocity.y = move_speed
+			expected_velocity.y = move_speed
 	elif not is_flying and is_on_ladder:
-		velocity.y = 0
+		expected_velocity.y = 0
 	
 	if move_state == "run":
 		if is_in_water:
-			velocity.x = face_state * move_speed
+			expected_velocity.x = face_state * move_speed
 		else:
-			velocity.x = face_state * move_speed * 2
+			expected_velocity.x = face_state * move_speed * 2
 	elif move_state == "walk":
 		if is_in_water:
-			velocity.x = face_state * move_speed * 0.5
+			expected_velocity.x = face_state * move_speed * 0.5
 		else:
-			velocity.x = face_state * move_speed
+			expected_velocity.x = face_state * move_speed
 	elif move_state == "idle":
-		velocity.x = 0
+		expected_velocity.x = 0
 	
 	if velocity.length() > StaticLoad.FLOAT_DELTA:
 		var entity_block_pos = StaticLoad.game.tile_map_layer.local_to_map(position)
@@ -370,36 +477,56 @@ func update_entity_face_rotation():
 func set_name_label_modulate(color):
 	name_label.modulate = color
 
-func get_damage(damage):
+func get_damage(args):
+	var damage = args[0]
+	var side = args[1]
+	if side == "left":
+		velocity += Vector2(500, -400)
+	elif side == "right":
+		velocity += Vector2(-500, -400)
 	if damage > 0:
 		health_recover_timer = StaticLoad.HEALTH_RECOVER_TIME
 	var final_damage = damage
 	if final_damage > StaticLoad.DEFAULT_PLAYER_HEALTH:
 		final_damage = damage
 	health -= final_damage
-	var tween = get_tree().create_tween()
-	tween.tween_method(set_shader_blink_intensity, 0.5, 0, StaticLoad.HURT_TIME)
+	panic_timer = 5
+	var rng = RandomNumberGenerator.new()
+	var num1 = rng.randf()+0.5
+	if num1 > 1:
+		num1 = 1
+	var num2 = rng.randf()-0.5
+	if side == "right":
+		num1 = -num1
+	target_pos = StaticLoad.game.tile_map_layer.local_to_map(position)+Vector2i(int(num1*50),int(num2*40))
 	if health <= 0:
+		if hurt_tween != null:
+			hurt_tween.stop()
 		die()
 	else:
-		StaticLoad.game.sound_audio_manager.play_random_audio_at_position("damage", "hit", position, 1)
+		hurt_tween = get_tree().create_tween()
+		hurt_tween.tween_method(set_shader_blink_intensity, 0.6, 0, StaticLoad.HURT_TIME)
+		StaticLoad.game.sound_audio_manager.play_random_audio_at_position("pig", "say", position, 1)
+
+func set_z_rotation(got_rotation):
+	entity_model.rotation.z = deg_to_rad(got_rotation)
+
+func stop_move():
+	move_state = "idle"
+	expected_velocity.x = 0
 
 func die():
 	is_dead = true
 	stop_move()
+	set_shader_blink_intensity(0.6)
 	var tween1 = get_tree().create_tween()
 	tween1.tween_method(set_name_label_modulate, Color(1,1,1,1), Color(1,1,1,0), StaticLoad.DISSOLVE_TIME)
-	StaticLoad.game.sound_audio_manager.play_random_audio_at_position("player", "hurt", position, 1)
+	StaticLoad.game.sound_audio_manager.play_random_audio_at_position("pig", "death", position, 1)
 	var tween2 = get_tree().create_tween()
-	tween2.tween_method(set_shader_dissolve_intensity, -0.6, 0.6, StaticLoad.DISSOLVE_TIME)
-	await get_tree().create_timer(StaticLoad.DISSOLVE_TIME).timeout
+	tween2.tween_method(set_z_rotation, 0, 90, StaticLoad.DISSOLVE_TIME)
+	await get_tree().create_timer(StaticLoad.DISSOLVE_TIME*3).timeout
+	StaticLoad.game.summon_death_particle(position)
 	queue_free()
-
-func stop_move():
-	move_state = "idle"
-	velocity.x = 0
-	if is_flying:
-		velocity.y = 0
 
 func set_entity_model_skin_by_texture(got_skin_texture):
 	var entity_material = load("res://Assets/Materials/Pig.tres").duplicate(true)
@@ -431,6 +558,18 @@ func get_entity_type():
 
 func get_entity_name():
 	return entity_name
+
+func get_chunk_pos():
+	return chunk_pos
+
+func get_is_dead():
+	return is_dead
+	
+func destroy_entity(args):
+	if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == 1):
+		if StaticLoad.game.loaded_chunks.has(str(chunk_pos[0])+"."+str(chunk_pos[1])):
+			StaticLoad.game.loaded_chunks[str(chunk_pos[0])+"."+str(chunk_pos[1])].entity_list.erase(uuid)
+	queue_free()
 
 func _on_up_area_body_entered(body: Node2D) -> void:
 	if body.name != "TileMapLayer":

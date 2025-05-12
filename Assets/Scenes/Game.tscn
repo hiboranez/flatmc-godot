@@ -1,4 +1,4 @@
-[gd_scene load_steps=98 format=4 uid="uid://2hv5eany3vpf"]
+[gd_scene load_steps=110 format=4 uid="uid://2hv5eany3vpf"]
 
 [ext_resource type="Script" path="res://Assets/Scripts/Game.gd" id="1_ctu8j"]
 [ext_resource type="Script" path="res://Assets/Scripts/BgmAudioPlayer.gd" id="2_gyse0"]
@@ -43,7 +43,10 @@
 [ext_resource type="Texture2D" uid="uid://22byb2ldosct" path="res://Assets/Textures/GUI/half_heart.png" id="19_olvt3"]
 [ext_resource type="Texture2D" uid="uid://18usdnqj200e" path="res://Assets/Textures/GUI/more_ui.png" id="21_gulf0"]
 [ext_resource type="Texture2D" uid="uid://4xb0w6so7sy1" path="res://Assets/Textures/GUI/item_bar_left.png" id="21_mtss6"]
+[ext_resource type="Texture2D" uid="uid://cs3fok1sy1875" path="res://Assets/Textures/GUI/hotbar_attack_indicator_background.png" id="24_rsqfj"]
+[ext_resource type="Shader" path="res://Assets/Shaders/VProgress.gdshader" id="25_q208f"]
 [ext_resource type="Texture2D" uid="uid://dk0idgw4v2ve2" path="res://Assets/Textures/GUI/item_bar_right.png" id="26_anhwf"]
+[ext_resource type="Texture2D" uid="uid://2bluohf2j7v0" path="res://Assets/Textures/GUI/hotbar_attack_indicator_progress.png" id="26_ivk6m"]
 [ext_resource type="PackedScene" uid="uid://dx77wbim6mom7" path="res://Assets/Scenes/ItemInHand.tscn" id="30_shd7e"]
 [ext_resource type="Theme" uid="uid://do1xfdxltcv20" path="res://Assets/Themes/gui_theme.tres" id="31_nincb"]
 [ext_resource type="Texture2D" uid="uid://5usjvr6nn8e1" path="res://Assets/Textures/GUI/tab_panel_right.png" id="35_p3vs0"]
@@ -100,6 +103,7 @@ region = Rect2(80, 109, 22, 22)
 bg_color = Color(0.270222, 0.270222, 0.270222, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_exuaq"]
+resource_local_to_scene = true
 bg_color = Color(9.62615e-07, 0.72704, 0.134648, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ursv3"]
@@ -109,6 +113,10 @@ border_width_top = 7
 border_width_right = 10
 border_width_bottom = 5
 border_color = Color(0, 0, 0, 0.588235)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_eoy31"]
+shader = ExtResource("25_q208f")
+shader_parameter/progress = 1.0
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_0ltg1"]
 animations = [{
@@ -141,8 +149,41 @@ animations = [{
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8iecq"]
 bg_color = Color(0.270222, 0.270222, 0.270222, 1)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_u6ms7"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_p0aq2"]
+resource_local_to_scene = true
 bg_color = Color(9.62615e-07, 0.72704, 0.134648, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7tyyt"]
+resource_local_to_scene = true
+bg_color = Color(9.62615e-07, 0.72704, 0.134648, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_frqq0"]
+resource_local_to_scene = true
+bg_color = Color(9.62615e-07, 0.72704, 0.134648, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_whs3c"]
+resource_local_to_scene = true
+bg_color = Color(9.62615e-07, 0.72704, 0.134648, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dksgm"]
+resource_local_to_scene = true
+bg_color = Color(9.62615e-07, 0.72704, 0.134648, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6s1pf"]
+resource_local_to_scene = true
+bg_color = Color(9.62615e-07, 0.72704, 0.134648, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_l7tdd"]
+resource_local_to_scene = true
+bg_color = Color(9.62615e-07, 0.72704, 0.134648, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_b6xrp"]
+resource_local_to_scene = true
+bg_color = Color(9.62615e-07, 0.72704, 0.134648, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yt4bh"]
+resource_local_to_scene = true
+bg_color = Color(0.862745, 0.67451, 0, 1)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_kgr7b"]
 size = Vector2(270, 270)
@@ -1703,28 +1744,32 @@ texture = ExtResource("17_ud88f")
 [node name="SoundAudioManager" type="Node2D" parent="."]
 script = ExtResource("2_vxlg4")
 
-[node name="World" type="Node2D" parent="."]
-
-[node name="BlockSelectionUI" type="Sprite2D" parent="World"]
-light_mask = 4
-z_index = 1
-texture = ExtResource("6_k82cs")
-
-[node name="BackTileMapLayer" type="TileMapLayer" parent="World"]
+[node name="BackTileMapLayer" type="TileMapLayer" parent="."]
 modulate = Color(0.393086, 0.393086, 0.393085, 1)
 tile_set = ExtResource("3_fa3r6")
 collision_enabled = false
 
-[node name="NoReachTileMapLayer" type="TileMapLayer" parent="World"]
+[node name="NoReachTileMapLayer" type="TileMapLayer" parent="."]
 tile_set = ExtResource("3_fa3r6")
 collision_enabled = false
 
-[node name="TileMapLayer" type="TileMapLayer" parent="World"]
+[node name="BackParticles" type="Node2D" parent="."]
+
+[node name="TileMapLayer" type="TileMapLayer" parent="."]
 tile_set = ExtResource("3_fa3r6")
 
 [node name="Items" type="Node2D" parent="."]
 
+[node name="Entities" type="Node2D" parent="."]
+
 [node name="Players" type="Node2D" parent="."]
+
+[node name="FrontParticles" type="Node2D" parent="."]
+
+[node name="BlockSelectionUI" type="Sprite2D" parent="."]
+light_mask = 4
+z_index = 1
+texture = ExtResource("6_k82cs")
 
 [node name="TouchTimeCounters" type="Node2D" parent="."]
 
@@ -2828,6 +2873,55 @@ theme_override_fonts/font = ExtResource("4_nsj5b")
 theme_override_font_sizes/font_size = 50
 text = "test"
 
+[node name="AttackIcon" type="Control" parent="GameUI/ItemBarPanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="AttackIndicatorBackground" type="TextureRect" parent="GameUI/ItemBarPanel/AttackIcon"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 648.0
+offset_top = -39.5
+offset_right = 752.0
+offset_bottom = 64.5
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_vertical = 3
+texture = ExtResource("24_rsqfj")
+expand_mode = 1
+
+[node name="AttackIndicatorProgress" type="TextureRect" parent="GameUI/ItemBarPanel/AttackIcon"]
+material = SubResource("ShaderMaterial_eoy31")
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 648.0
+offset_top = -39.5
+offset_right = 752.0
+offset_bottom = 64.5
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_vertical = 3
+texture = ExtResource("26_ivk6m")
+expand_mode = 1
+
 [node name="ItemBar" type="GridContainer" parent="GameUI/ItemBarPanel"]
 z_index = -1
 layout_mode = 1
@@ -2891,7 +2985,7 @@ grow_vertical = 2
 theme_override_fonts/font = ExtResource("4_nsj5b")
 theme_override_font_sizes/font_size = 30
 theme_override_styles/background = SubResource("StyleBoxFlat_8iecq")
-theme_override_styles/fill = SubResource("StyleBoxFlat_u6ms7")
+theme_override_styles/fill = SubResource("StyleBoxFlat_p0aq2")
 step = 1.0
 show_percentage = false
 
@@ -2986,7 +3080,7 @@ grow_vertical = 2
 theme_override_fonts/font = ExtResource("4_nsj5b")
 theme_override_font_sizes/font_size = 30
 theme_override_styles/background = SubResource("StyleBoxFlat_8iecq")
-theme_override_styles/fill = SubResource("StyleBoxFlat_u6ms7")
+theme_override_styles/fill = SubResource("StyleBoxFlat_7tyyt")
 step = 1.0
 show_percentage = false
 
@@ -3062,7 +3156,7 @@ grow_vertical = 2
 theme_override_fonts/font = ExtResource("4_nsj5b")
 theme_override_font_sizes/font_size = 30
 theme_override_styles/background = SubResource("StyleBoxFlat_8iecq")
-theme_override_styles/fill = SubResource("StyleBoxFlat_u6ms7")
+theme_override_styles/fill = SubResource("StyleBoxFlat_frqq0")
 step = 1.0
 show_percentage = false
 
@@ -3138,7 +3232,7 @@ grow_vertical = 2
 theme_override_fonts/font = ExtResource("4_nsj5b")
 theme_override_font_sizes/font_size = 30
 theme_override_styles/background = SubResource("StyleBoxFlat_8iecq")
-theme_override_styles/fill = SubResource("StyleBoxFlat_u6ms7")
+theme_override_styles/fill = SubResource("StyleBoxFlat_whs3c")
 step = 1.0
 show_percentage = false
 
@@ -3214,7 +3308,7 @@ grow_vertical = 2
 theme_override_fonts/font = ExtResource("4_nsj5b")
 theme_override_font_sizes/font_size = 30
 theme_override_styles/background = SubResource("StyleBoxFlat_8iecq")
-theme_override_styles/fill = SubResource("StyleBoxFlat_u6ms7")
+theme_override_styles/fill = SubResource("StyleBoxFlat_dksgm")
 step = 1.0
 show_percentage = false
 
@@ -3290,7 +3384,7 @@ grow_vertical = 2
 theme_override_fonts/font = ExtResource("4_nsj5b")
 theme_override_font_sizes/font_size = 30
 theme_override_styles/background = SubResource("StyleBoxFlat_8iecq")
-theme_override_styles/fill = SubResource("StyleBoxFlat_u6ms7")
+theme_override_styles/fill = SubResource("StyleBoxFlat_6s1pf")
 step = 1.0
 show_percentage = false
 
@@ -3366,7 +3460,7 @@ grow_vertical = 2
 theme_override_fonts/font = ExtResource("4_nsj5b")
 theme_override_font_sizes/font_size = 30
 theme_override_styles/background = SubResource("StyleBoxFlat_8iecq")
-theme_override_styles/fill = SubResource("StyleBoxFlat_u6ms7")
+theme_override_styles/fill = SubResource("StyleBoxFlat_l7tdd")
 step = 1.0
 show_percentage = false
 
@@ -3442,7 +3536,7 @@ grow_vertical = 2
 theme_override_fonts/font = ExtResource("4_nsj5b")
 theme_override_font_sizes/font_size = 30
 theme_override_styles/background = SubResource("StyleBoxFlat_8iecq")
-theme_override_styles/fill = SubResource("StyleBoxFlat_u6ms7")
+theme_override_styles/fill = SubResource("StyleBoxFlat_b6xrp")
 step = 1.0
 show_percentage = false
 
@@ -3518,7 +3612,7 @@ grow_vertical = 2
 theme_override_fonts/font = ExtResource("4_nsj5b")
 theme_override_font_sizes/font_size = 30
 theme_override_styles/background = SubResource("StyleBoxFlat_8iecq")
-theme_override_styles/fill = SubResource("StyleBoxFlat_u6ms7")
+theme_override_styles/fill = SubResource("StyleBoxFlat_yt4bh")
 step = 1.0
 show_percentage = false
 

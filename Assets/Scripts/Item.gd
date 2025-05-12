@@ -3,6 +3,7 @@ extends CharacterBody2D
 @onready var animation_player = $AnimationPlayer
 @onready var block_model = $SubViewportContainer/SubViewport/Block
 @onready var item_model = $SubViewportContainer/SubViewport/Item
+@onready var item_top_model = $SubViewportContainer/SubViewport/ItemTop
 @onready var collide_area = $CollideArea
 @onready var attract_area = $AttractArea
 
@@ -11,6 +12,7 @@ var uuid = UUID.v4()
 var entity_type = "item"
 var item_name = "AIR"
 var chunk_pos = Vector2i(0, 0)
+var is_dead = false
 
 # 子类变量
 var item_model_type = "block"
@@ -151,11 +153,14 @@ func get_uuid():
 func get_entity_type():
 	return entity_type
 
+func get_entity_name():
+	return item_name
+
 func get_chunk_pos():
 	return chunk_pos
 
-func get_entity_name():
-	return item_name
+func get_is_dead():
+	return is_dead
 
 func refresh_model():
 	if StaticLoad.block_ids.has(item_name) and StaticLoad.get_item_model_type_by_name(item_name) >= 3:
@@ -172,16 +177,41 @@ func refresh_model():
 		block_model.visible = true
 	else:
 		item_model_type = "item"
-		var item_material = load("res://Assets/Materials/ItemModel.tres").duplicate(true)
-		var texture = load("res://Assets/ResourcePacks/"+StaticLoad.game.resource_pack+"/Items/"+item_name.to_lower()+".png")
-		item_material.albedo_texture = texture
-		if texture == null:
+		if item_name.contains("SPAWN_EGG"):
+			var item_material = load("res://Assets/Materials/ItemModel.tres").duplicate(true)
+			var texture = load("res://Assets/ResourcePacks/"+StaticLoad.game.resource_pack+"/Items/spawn_egg.png")
+			item_material.albedo_texture = texture
+			if texture == null:
+				item_model.visible = true
+				return
+			item_model.get_node("Mesh").mesh.surface_set_material(0, item_material)
+			var item_top_material = load("res://Assets/Materials/ItemModel.tres").duplicate(true)
+			var texture_top = load("res://Assets/ResourcePacks/"+StaticLoad.game.resource_pack+"/Items/spawn_egg_overlay.png")
+			item_top_material.albedo_texture = texture_top
+			if texture_top == null:
+				item_top_model.visible = true
+				return
+			item_top_model.get_node("Mesh").mesh.surface_set_material(0, item_top_material)
+			if StaticLoad.spawn_egg_colors.has(item_name):
+				var color_info = StaticLoad.spawn_egg_colors[item_name]
+				item_material.albedo_color = Color.html(color_info[0])
+				item_top_material.albedo_color = Color.html(color_info[1])
+			if item_amount >= 2 and not StaticLoad.get_is_durable_by_name(item_name):
+				item_model.get_node("Mesh2").visible = true
+				item_top_model.get_node("Mesh2").visible = true
 			item_model.visible = true
-			return
-		item_model.get_node("Mesh").mesh.surface_set_material(0, item_material)
-		if item_amount >= 2 and not StaticLoad.get_is_durable_by_name(item_name):
-			item_model.get_node("Mesh2").visible = true
-		item_model.visible = true
+			item_top_model.visible = true
+		else:
+			var item_material = load("res://Assets/Materials/ItemModel.tres").duplicate(true)
+			var texture = load("res://Assets/ResourcePacks/"+StaticLoad.game.resource_pack+"/Items/"+item_name.to_lower()+".png")
+			item_material.albedo_texture = texture
+			if texture == null:
+				item_model.visible = true
+				return
+			item_model.get_node("Mesh").mesh.surface_set_material(0, item_material)
+			if item_amount >= 2 and not StaticLoad.get_is_durable_by_name(item_name):
+				item_model.get_node("Mesh2").visible = true
+			item_model.visible = true
 
 func on_body_attract_entered(body: Node) -> void:
 	if not body.has_method("get_uuid"):
@@ -256,6 +286,8 @@ func combine_item(target_item_uuid):
 				block_model.get_node("Mesh2").visible = true
 			elif item_model_type == "item":
 				item_model.get_node("Mesh2").visible = true
+				if item_name.contains("SPAWN_EGG"):
+					item_top_model.get_node("Mesh2").visible = true
 		velocity.x = (item_amount*velocity.x+target_item.item_amount*target_item.velocity.x)/(item_amount+target_item.item_amount)
 		target_item.destroy_entity([])
 		if StaticLoad.game.entities.find_key(target_item) != null:
@@ -266,17 +298,23 @@ func combine_item(target_item_uuid):
 			block_model.get_node("Mesh2").visible = true
 		elif item_model_type == "item" and not StaticLoad.get_is_durable_by_name(item_name):
 			item_model.get_node("Mesh2").visible = true
+			if item_name.contains("SPAWN_EGG"):
+				item_top_model.get_node("Mesh2").visible = true
 		target_item.item_amount = item_amount+target_item.item_amount-StaticLoad.get_max_amount_by_name(item_name)
 		if target_item.item_amount >= 2:
 			if item_model_type == "block" and not StaticLoad.get_is_durable_by_name(item_name):
 				block_model.get_node("Mesh2").visible = true
 			elif item_model_type == "item" and not StaticLoad.get_is_durable_by_name(item_name):
 				item_model.get_node("Mesh2").visible = true
+				if item_name.contains("SPAWN_EGG"):
+					item_top_model.get_node("Mesh2").visible = true
 		else:
 			if item_model_type == "block" and not StaticLoad.get_is_durable_by_name(item_name):
 				block_model.get_node("Mesh2").visible = false
 			elif item_model_type == "item" and not StaticLoad.get_is_durable_by_name(item_name):
 				item_model.get_node("Mesh2").visible = false
+				if item_name.contains("SPAWN_EGG"):
+					item_top_model.get_node("Mesh2").visible = false
 
 func destroy_entity(args):
 	if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == 1):

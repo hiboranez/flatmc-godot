@@ -1,8 +1,8 @@
 extends Node2D
 
-@onready var tile_map_layer = $World/TileMapLayer
-@onready var no_reach_tile_map_layer = $World/NoReachTileMapLayer
-@onready var back_tile_map_layer = $World/BackTileMapLayer
+@onready var tile_map_layer = $TileMapLayer
+@onready var no_reach_tile_map_layer = $NoReachTileMapLayer
+@onready var back_tile_map_layer = $BackTileMapLayer
 @onready var death_ui = $DeathUI
 @onready var pause_ui = $PauseUI
 @onready var game_ui = $GameUI
@@ -21,6 +21,8 @@ extends Node2D
 @onready var destory_light_scene = load("res://Assets/Scenes/DestroyLight.tscn") as PackedScene
 @onready var item_icon_scene = load("res://Assets/Scenes/ItemIcon.tscn") as PackedScene
 @onready var tab_panel_scene = load("res://Assets/Scenes/TabPanel.tscn") as PackedScene
+@onready var destroy_particle_scene = load("res://Assets/Scenes/DestroyParticle.tscn") as PackedScene
+@onready var death_particle_scene = load("res://Assets/Scenes/DeathParticle.tscn") as PackedScene
 @onready var move_center_button_normal = load("res://Assets/Textures/GUI/move_center_button_normal.tres") as AtlasTexture
 @onready var jump_button_normal = load("res://Assets/Textures/GUI/jump_button_normal.tres") as AtlasTexture
 @onready var move_center_button_fly = load("res://Assets/Textures/GUI/move_center_button_fly.tres") as AtlasTexture
@@ -32,7 +34,7 @@ extends Node2D
 @onready var item_name_label = $GameUI/ItemBarPanel/ItemNameLabel
 @onready var bgm_audio_player = $BgmAudioPlayer
 @onready var sound_audio_manager = $SoundAudioManager
-@onready var block_selection_ui = $World/BlockSelectionUI
+@onready var block_selection_ui = $BlockSelectionUI
 @onready var chat_panel = $GameUI/ChatPanel
 @onready var chat_line_edit = $GameUI/ChatPanel/ChatLineEdit
 @onready var chat_history_in = $GameUI/ChatPanel/ChatHistory
@@ -83,6 +85,10 @@ extends Node2D
 @onready var background_cloud = $MoveBackground/ParallaxLayer/Cloud
 @onready var mini_map_sky_back = $GameUI/MiniMap/SkyBack
 @onready var mini_map_star_back = $GameUI/MiniMap/SubViewportContainer/SubViewport/StaticBackground/ParallaxLayer/StarBack
+@onready var front_particles = $FrontParticles
+@onready var back_particles = $BackParticles
+@onready var attack_icon = $GameUI/ItemBarPanel/AttackIcon
+@onready var attack_indicator_progress = $GameUI/ItemBarPanel/AttackIcon/AttackIndicatorProgress
 
 var is_mouse_motion_updated = false
 var destroy_light_names = {}
@@ -219,6 +225,7 @@ func _process(delta: float) -> void:
 		return
 	
 	# 本地更新
+	update_hotbar_attack_indicator()
 	update_inventroy_player_model()
 	update_game_details()
 	update_local_player_data()
@@ -281,6 +288,20 @@ func update_day_night_cycle() -> void:
 	background_star.modulate = Color(1, 1, 1, night_ratio)
 	mini_map_sky_back.color = lerp(Color(0.443, 0.698, 1),Color(0, 0.008, 0.137),night_ratio)
 	mini_map_star_back.modulate = Color(1, 1, 1, night_ratio)
+
+func update_hotbar_attack_indicator():
+	if player == null:
+		return
+	if player.attack_timer <= 0:
+		if attack_icon.visible:
+			attack_icon.visible = false
+		return
+	if not attack_icon.visible:
+		attack_icon.visible = true
+	if player.in_hand_item_name.contains("GOLD"):
+		attack_indicator_progress.material.set_shader_parameter("progress", (0.5-player.attack_timer)*2)
+	else:
+		attack_indicator_progress.material.set_shader_parameter("progress", 1-player.attack_timer)
 
 func update_nature_growth():
 	if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == 1):
@@ -556,6 +577,19 @@ func process_set_block():
 				var entity = entities[uuid]
 				if entity.get_entity_type() == "player":
 					in_hand_item_name = entity.in_hand_item_name
+					if StaticLoad.tools_type.has(in_hand_item_name):
+						if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == 1) or (StaticLoad.is_muti_mode and uuid == player.get_uuid()):
+							var is_to_wear = true
+							var to_destroy_block_name = StaticLoad.get_block_name_by_id(block_to_destroy_id)
+							if entity.gamemode == "creative":
+								is_to_wear = false
+							elif StaticLoad.special_block_destroy_time.has(to_destroy_block_name) and StaticLoad.special_block_destroy_time[to_destroy_block_name] < 0.1:
+								is_to_wear = false
+							elif StaticLoad.tools_type[in_hand_item_name].has("hoe"):
+								is_to_wear = false
+							if is_to_wear:
+								entity.wear_and_update_in_hand_tool(1)
+									
 			var droppped_item_list = StaticLoad.get_dropped_item_by_name(StaticLoad.get_block_name_by_id(block_to_destroy_id), in_hand_item_name)
 			if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == 1):
 				if uuid != "destroy":
@@ -565,6 +599,10 @@ func process_set_block():
 						#nearby_update_double_dict[set_block_pos] = "before"
 					update_nearby_block_state(set_block_pos, "before")
 			if set_block(set_block_pos, set_block_id, set_block_layer):
+				if set_block_id == 0 and uuid != "destroy":
+					var entity = entities[uuid]
+					if entity.get_entity_type() == "player" and entity.gamemode != "creative":
+						summon_destroy_particle(tile_map_layer.map_to_local(set_block_pos), "block", StaticLoad.get_block_name_by_id(block_to_destroy_id))
 				update_chunk_light_by_pos(chunk_pos)
 				if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == 1):
 					if uuid != "destroy":
@@ -1175,6 +1213,27 @@ func _unhandled_input(event: InputEvent) -> void:
 			else:
 				select_item_grid(9)
 	
+	if event is InputEventMouseButton:
+		if event.button_index == 2 and event.pressed and not Input.is_mouse_button_pressed(1):
+			if player.in_hand_item_name.contains("SPAWN_EGG"):
+				var is_can_spawn = true
+				var mouse_in_world_pos = tile_map_layer.get_local_mouse_position()
+				var mouse_to_block_pos = tile_map_layer.local_to_map(mouse_in_world_pos)
+				if player.gamemode != "creative" and not player.check_attached_block(mouse_to_block_pos, tile_map_layer):
+					is_can_spawn = false
+				if is_can_spawn:
+					var splits = player.in_hand_item_name.split("_")
+					var entity_type = splits[0].to_lower()
+					var summon_entity_args = [entity_type, UUID.v4() ,mouse_in_world_pos]
+					StaticLoad.create_entity(summon_entity_args)
+					StaticLoad.rpc("create_entity", summon_entity_args)
+					if player.gamemode != "creative":
+						var select_sort = player.selected_item_grid
+						player.item_bar_amounts[select_sort] -= 1
+						if player.item_bar_amounts[select_sort] <= 0:
+							player.item_bar_names[select_sort] = "AIR"
+						refresh_item_grid(select_sort)
+	
 	if Input.is_action_just_released("mouse_scroll_up"):
 		if Input.is_action_pressed("ctrl"):
 			if mini_map_camera.zoom[0] <= 0.9:
@@ -1237,12 +1296,17 @@ func process_mouse_action():
 	var mouse_to_block_pos = tile_map_layer.local_to_map(mouse_in_world_pos)
 	if not is_map and not is_pause and not is_chat and not is_inventory:
 		if Input.is_mouse_button_pressed(1) and not Input.is_mouse_button_pressed(2):
-			if player.gamemode == "creative":
+			if StaticLoad.tools_type.has(player.in_hand_item_name) and StaticLoad.tools_type[player.in_hand_item_name].has("sword"):
+				if player.attack_timer <= 0:
+					player.is_punching = true
+			elif player.gamemode == "creative":
 				player.destroy_block(mouse_to_block_pos)
 			else:
 				player.destroy_timer += get_process_delta_time()
 		elif Input.is_mouse_button_pressed(2) and not Input.is_mouse_button_pressed(1):
-			if player.gamemode == "creative":
+			if player.in_hand_item_name.contains("SPAWN_EGG"):
+				pass
+			elif player.gamemode == "creative":
 				player.place_block(mouse_to_block_pos)
 			else:
 				player.place_block(tile_map_layer.local_to_map(get_restricted_block_selection_pos()))
@@ -1673,7 +1737,12 @@ func refresh_item_grid(sort):
 		item_grids[sort].get_node("ProgressBar").visible = false
 		item_grids[sort].get_node("Amount").visible = false
 		item_grids[sort].get_node("Amount").text = ""
+		if not block_selection_ui.visible:
+			block_selection_ui.visible = true
 	else:
+		if item_name.contains("GOLD") and item_name.contains("SWORD"):
+			if block_selection_ui.visible:
+				block_selection_ui.visible = false
 		item_grids[sort].get_node("ItemIcon").init_icon(player.item_bar_names[sort].to_lower())
 		item_grids[sort].get_node("ItemIcon").visible = true
 		if StaticLoad.get_is_durable_by_name(item_name):
@@ -1682,7 +1751,16 @@ func refresh_item_grid(sort):
 			var progress_bar = item_grids[sort].get_node("ProgressBar")
 			progress_bar.max_value = StaticLoad.get_max_amount_by_name(item_name)
 			progress_bar.value = item_amount
-			item_grids[sort].get_node("ProgressBar").visible = true
+			var percentage =  item_amount / float(StaticLoad.get_max_amount_by_name(item_name))
+			var stylebox = progress_bar.get_theme_stylebox("fill")
+			if percentage > 0.667:
+				stylebox.bg_color = Color(0, 0.727, 0.135)
+			elif percentage > 0.333 and percentage <= 0.667:
+				stylebox.bg_color = Color(0.863, 0.675, 0)
+			elif percentage >= 0 and percentage <= 0.333:
+				stylebox.bg_color = Color(0.73, 0, 0)
+			progress_bar.add_theme_stylebox_override("fill", stylebox)
+			progress_bar.visible = true
 		else:
 			item_grids[sort].get_node("ProgressBar").visible = false
 			if item_amount <= 1:
@@ -1973,7 +2051,9 @@ func update_new_chunk(is_pre_load: bool):
 							var chunk_entity_list = chunk_config.get_value("chunk", "entity_list")
 							if chunk_entity_list != null:
 								for uuid in chunk_entity_list:
-									var entity_info = chunk_config.get_value("entity", uuid)
+									var entity_info = chunk_config.get_value("entity", uuid, null)
+									if entity_info == null:
+										continue
 									if entity_info[0] == "item":
 										var item_info = ["item", entity_info[1], entity_info[3], entity_info[2], 0, 2, uuid]
 										StaticLoad.create_entity(item_info)
@@ -2006,12 +2086,16 @@ func update_new_chunk(is_pre_load: bool):
 								else:
 									chunk_light_to_process[str(x)+"."+str(y)] = "create"
 					for i in range(30):
+						if get_tree() == null:
+							break
 						await get_tree().process_frame
 		player_last_chunk = Vector2i(x_player_chunk, y_player_chunk)
 
 func free_chunk(pos: Vector2i) -> void:
 	var chunk_name = str(pos[0])+"."+str(pos[1])
 	for uuid in loaded_chunks[chunk_name].entity_list.duplicate():
+		if entities[uuid] == null:
+			continue
 		entities[uuid].destroy_entity([])
 		if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == 1:
 			StaticLoad.rpc_entity_func_by_uuid(uuid, "destroy_entity", [], "others", true)
@@ -2553,6 +2637,11 @@ func select_item_grid(grid_name) -> void:
 	var sort = int(str(grid_name))-1
 	player.selected_item_grid = sort
 	item_grids[sort].get_node("SelectBar").visible = true
+	var select_item_name = player.item_bar_names[sort]
+	if StaticLoad.tools_type.has(select_item_name) and StaticLoad.tools_type[select_item_name].has("sword"):
+		block_selection_ui.visible = false
+	else:
+		block_selection_ui.visible = true
 	if player.item_bar_names[sort] == "AIR":
 		return
 	item_name_label.text = player.item_bar_names[sort]
@@ -2628,6 +2717,18 @@ func broadcast_to_all(text:String, color="white"):
 	chat_history_in.scroll_vertical = 1e9
 	messgae_out_instance.is_disappearing = true
 	messgae_out_instance.detect_and_disappear()
+
+func summon_destroy_particle(got_position, type, item_name):
+	if item_name == "TORCH":
+		return
+	var particle = destroy_particle_scene.instantiate()
+	back_particles.add_child(particle)
+	particle.init(got_position, type, item_name)
+
+func summon_death_particle(got_position):
+	var particle = death_particle_scene.instantiate()
+	front_particles.add_child(particle)
+	particle.init(got_position)
 
 func _on_pause_button_1_pressed() -> void:
 	StaticLoad.click_audio_player.play()

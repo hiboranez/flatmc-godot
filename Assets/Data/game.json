@@ -209,7 +209,22 @@
 		"STONE_HOE": 2,
 		"IRON_HOE": 2,
 		"GOLD_HOE": 2,
-		"DIAMOND_HOE": 2
+		"DIAMOND_HOE": 2,
+		"PIG_SPAWN_EGG": 1,
+		"COW_SPAWN_EGG": 1,
+		"SHEEP_SPAWN_EGG": 1,
+		"CHICKEN_SPAWN_EGG": 1,
+		"ZOMBIE_SPAWN_EGG": 1,
+		"SKELETON_SPAWN_EGG": 1
+	},
+	
+	"spawn_egg_colors" : {
+		"PIG_SPAWN_EGG" : ["#F0A5A2", "#DB635F"],
+		"COW_SPAWN_EGG" : ["#443626", "#A1A1A1"],
+		"SHEEP_SPAWN_EGG" : ["#E7E7E7", "#FFB5B5"],
+		"CHICKEN_SPAWN_EGG" : ["#A1A1A1", "#FF0000"],
+		"ZOMBIE_SPAWN_EGG" : ["#00AFAF", "#799C65"],
+		"SKELETON_SPAWN_EGG" : ["#C1C1C1", "#494949"]
 	},
 	
 	"dropped_items" : {
@@ -317,11 +332,11 @@
 	},
 	
 	"tools_type" : {
-		"WOOD_SWORD": {"sword" : 1},
-		"STONE_SWORD": {"sword" : 2},
-		"IRON_SWORD": {"sword" : 3},
-		"GOLD_SWORD": {"sword" : 1},
-		"DIAMOND_SWORD": {"sword" : 3},
+		"WOOD_SWORD": {"sword" : 4},
+		"STONE_SWORD": {"sword" : 5},
+		"IRON_SWORD": {"sword" : 6},
+		"GOLD_SWORD": {"sword" : 4},
+		"DIAMOND_SWORD": {"sword" : 7},
 		"WOOD_PICKAXE": {"pickaxe" : 1},
 		"STONE_PICKAXE": {"pickaxe" : 2},
 		"IRON_PICKAXE": {"pickaxe" : 3},
