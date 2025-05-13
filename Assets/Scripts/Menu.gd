@@ -21,6 +21,14 @@ func _ready() -> void:
 	if result == OK:
 		StaticLoad.language = config.get_value("options", "language")
 		TranslationServer.set_locale(StaticLoad.language)
+		if config.get_value("options", "full_screen") == "on":
+			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+		else:
+			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+		if config.get_value("options", "v_sync") == "on":
+			DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_ENABLED)
+		else:
+			DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
 		var updated = config.get_value("options", "updated", "false")
 		var version = config.get_value("options", "version", "null")
 		var sound_volume = config.get_value("options", "sound_volume", 100)

@@ -140,6 +140,7 @@ var untouchable_blocks: Array
 var block_types: Dictionary
 var item_model_types: Dictionary
 var dropped_items: Dictionary
+var entity_dropped_loots: Dictionary
 var item_max_amounts: Dictionary
 var tools_efficiency: Dictionary
 var tools_type: Dictionary
@@ -211,6 +212,7 @@ func _ready() -> void:
 	block_types = game_dict["block_types"]
 	item_model_types = game_dict["item_model_types"]
 	dropped_items = game_dict["dropped_items"]
+	entity_dropped_loots = game_dict["entity_dropped_loots"]
 	item_max_amounts = game_dict["item_max_amounts"]
 	tools_efficiency = game_dict["tools_efficiency"]
 	tools_type = game_dict["tools_type"]
@@ -778,12 +780,15 @@ func get_item_model_type_by_name(item_name) -> int:
 		value = item_model_types[item_name]
 	return value
 
-func get_dropped_item_by_name(block_name, tool_name):
-	if dropped_items.has(block_name):
+func get_dropped_item_by_name(find_type, block_name, tool_name):
+	var find_dict = dropped_items
+	if find_type == "entity":
+		find_dict = entity_dropped_loots
+	if find_dict.has(block_name):
 		var tool_type_dict = get_tools_type_by_name(tool_name)
 		var tool_type = tool_type_dict.keys()[0]
 		var tool_level = int(tool_type_dict[tool_type])
-		var info_dict = dropped_items[block_name]
+		var info_dict = find_dict[block_name]
 		var item_dict = {}
 		if not info_dict.has(tool_type):
 			item_dict = info_dict["others"].duplicate()
@@ -837,7 +842,10 @@ func get_dropped_item_by_name(block_name, tool_name):
 			drop_item_dict[item] = final_drop_num
 		return drop_item_dict
 	else:
-		return {block_name:1}
+		if find_type == "block":
+			return {block_name:1}
+		elif find_type == "entity":
+			return {"AIR":1}
 
 func get_light_color_by_id(id: int):
 	var block_name = get_block_name_by_id(id)
@@ -1308,10 +1316,12 @@ func create_entity(args):
 		StaticLoad.game.entities[item.get_uuid()] = item
 	elif args[0] == "pig":
 		var uuid = args[1]
-		var pos = args[2]
+		var entity_name = args[2]
+		var pos = args[3]
+		var health = args[4]
 		var pig = pig_scene.instantiate()
-		StaticLoad.game.items.add_child(pig)
-		pig.init([uuid, pos])
+		StaticLoad.game.mobs.add_child(pig)
+		pig.init([uuid, entity_name, pos, health])
 		StaticLoad.game.entities[pig.get_uuid()] = pig
 
 @rpc("authority", "call_remote", "reliable", 1)

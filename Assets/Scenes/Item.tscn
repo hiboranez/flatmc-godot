@@ -125,6 +125,7 @@ offset_left = -100.0
 offset_top = -100.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 
 [node name="SubViewport" type="SubViewport" parent="SubViewportContainer"]
 own_world_3d = true
@@ -188,12 +189,13 @@ skeleton = NodePath("")
 
 [node name="Icon" type="Sprite2D" parent="."]
 light_mask = 2
+position = Vector2(0, 1)
 scale = Vector2(0.35, 0.35)
 texture = SubResource("ViewportTexture_g6qy8")
 offset = Vector2(0, -50.245)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(0, -18)
+position = Vector2(0, -17)
 scale = Vector2(0.99608, 1)
 shape = SubResource("RectangleShape2D_j2ain")
 
@@ -204,6 +206,7 @@ libraries = {
 autoplay = "float"
 
 [node name="AttractArea" type="Area2D" parent="."]
+position = Vector2(0, 1)
 collision_mask = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="AttractArea"]
@@ -211,6 +214,7 @@ position = Vector2(0, -10)
 shape = SubResource("RectangleShape2D_dgnjb")
 
 [node name="CollideArea" type="Area2D" parent="."]
+position = Vector2(0, 1)
 collision_mask = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="CollideArea"]

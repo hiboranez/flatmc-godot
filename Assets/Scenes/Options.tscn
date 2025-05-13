@@ -258,6 +258,182 @@ text = "50%"
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="AutoJump" type="HSplitContainer" parent="ColorRect/ScrollContainer/VBoxContainer"]
+z_index = 1
+layout_mode = 2
+collapsed = true
+
+[node name="Title" type="Label" parent="ColorRect/ScrollContainer/VBoxContainer/AutoJump"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_fonts/font = ExtResource("2_5ysu4")
+theme_override_font_sizes/font_size = 40
+text = "AUTO_JUMP"
+
+[node name="OptionButton" type="OptionButton" parent="ColorRect/ScrollContainer/VBoxContainer/AutoJump"]
+custom_minimum_size = Vector2(0, 70)
+layout_mode = 2
+size_flags_horizontal = 3
+theme = ExtResource("7_tggb6")
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_constants/h_separation = 10
+theme_override_fonts/font = ExtResource("2_5ysu4")
+theme_override_font_sizes/font_size = 40
+theme_override_styles/focus = SubResource("StyleBoxEmpty_k1gad")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_t7o14")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_y24qp")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_cfs5x")
+theme_override_constants/arrow_margin = 30
+flat = true
+selected = 0
+item_count = 2
+popup/item_0/text = "ON"
+popup/item_1/text = "OFF"
+popup/item_1/id = 1
+
+[node name="TextureRect" type="TextureRect" parent="ColorRect/ScrollContainer/VBoxContainer/AutoJump/OptionButton"]
+z_index = -1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("7_tggb6")
+texture = ExtResource("4_tjirk")
+
+[node name="ParticleEffect" type="HSplitContainer" parent="ColorRect/ScrollContainer/VBoxContainer"]
+z_index = 1
+layout_mode = 2
+collapsed = true
+
+[node name="Title" type="Label" parent="ColorRect/ScrollContainer/VBoxContainer/ParticleEffect"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_fonts/font = ExtResource("2_5ysu4")
+theme_override_font_sizes/font_size = 40
+text = "PARTICLE_EFFECT"
+
+[node name="OptionButton" type="OptionButton" parent="ColorRect/ScrollContainer/VBoxContainer/ParticleEffect"]
+custom_minimum_size = Vector2(0, 70)
+layout_mode = 2
+size_flags_horizontal = 3
+theme = ExtResource("7_tggb6")
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_constants/h_separation = 10
+theme_override_fonts/font = ExtResource("2_5ysu4")
+theme_override_font_sizes/font_size = 40
+theme_override_styles/focus = SubResource("StyleBoxEmpty_k1gad")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_t7o14")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_y24qp")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_cfs5x")
+theme_override_constants/arrow_margin = 30
+flat = true
+selected = 0
+item_count = 2
+popup/item_0/text = "ON"
+popup/item_1/text = "OFF"
+popup/item_1/id = 1
+
+[node name="TextureRect" type="TextureRect" parent="ColorRect/ScrollContainer/VBoxContainer/ParticleEffect/OptionButton"]
+z_index = -1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("7_tggb6")
+texture = ExtResource("4_tjirk")
+
+[node name="VSync" type="HSplitContainer" parent="ColorRect/ScrollContainer/VBoxContainer"]
+z_index = 1
+layout_mode = 2
+collapsed = true
+
+[node name="Title" type="Label" parent="ColorRect/ScrollContainer/VBoxContainer/VSync"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_fonts/font = ExtResource("2_5ysu4")
+theme_override_font_sizes/font_size = 40
+text = "V_SYNC"
+
+[node name="OptionButton" type="OptionButton" parent="ColorRect/ScrollContainer/VBoxContainer/VSync"]
+custom_minimum_size = Vector2(0, 70)
+layout_mode = 2
+size_flags_horizontal = 3
+theme = ExtResource("7_tggb6")
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_constants/h_separation = 10
+theme_override_fonts/font = ExtResource("2_5ysu4")
+theme_override_font_sizes/font_size = 40
+theme_override_styles/focus = SubResource("StyleBoxEmpty_k1gad")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_t7o14")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_y24qp")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_cfs5x")
+theme_override_constants/arrow_margin = 30
+flat = true
+selected = 0
+item_count = 2
+popup/item_0/text = "ON"
+popup/item_1/text = "OFF"
+popup/item_1/id = 1
+
+[node name="TextureRect" type="TextureRect" parent="ColorRect/ScrollContainer/VBoxContainer/VSync/OptionButton"]
+z_index = -1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("7_tggb6")
+texture = ExtResource("4_tjirk")
+
+[node name="FullScreen" type="HSplitContainer" parent="ColorRect/ScrollContainer/VBoxContainer"]
+z_index = 1
+layout_mode = 2
+collapsed = true
+
+[node name="Title" type="Label" parent="ColorRect/ScrollContainer/VBoxContainer/FullScreen"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_fonts/font = ExtResource("2_5ysu4")
+theme_override_font_sizes/font_size = 40
+text = "FULL_SCREEN"
+
+[node name="OptionButton" type="OptionButton" parent="ColorRect/ScrollContainer/VBoxContainer/FullScreen"]
+custom_minimum_size = Vector2(0, 70)
+layout_mode = 2
+size_flags_horizontal = 3
+theme = ExtResource("7_tggb6")
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_constants/h_separation = 10
+theme_override_fonts/font = ExtResource("2_5ysu4")
+theme_override_font_sizes/font_size = 40
+theme_override_styles/focus = SubResource("StyleBoxEmpty_k1gad")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_t7o14")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_y24qp")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_cfs5x")
+theme_override_constants/arrow_margin = 30
+flat = true
+selected = 1
+item_count = 2
+popup/item_0/text = "ON"
+popup/item_1/text = "OFF"
+popup/item_1/id = 1
+
+[node name="TextureRect" type="TextureRect" parent="ColorRect/ScrollContainer/VBoxContainer/FullScreen/OptionButton"]
+z_index = -1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("7_tggb6")
+texture = ExtResource("4_tjirk")
+
 [node name="BlockSelectionBox" type="HSplitContainer" parent="ColorRect/ScrollContainer/VBoxContainer"]
 z_index = 1
 layout_mode = 2

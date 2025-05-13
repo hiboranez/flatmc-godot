@@ -76,6 +76,7 @@ extends Node2D
 @onready var inventory_player_model_mesh = $GameUI/InventoryUI/Panel/InventoryPanel/Player/SubViewportContainer/SubViewport/PlayerModel/Root/Skeleton3D/Mesh
 @onready var inventory_player_model_item_in_hand = $GameUI/InventoryUI/Panel/InventoryPanel/Player/SubViewportContainer/SubViewport/PlayerModel/Root/Skeleton3D/Hand/Item
 @onready var items = $Items
+@onready var mobs = $Mobs
 @onready var inventory_tabs = $GameUI/InventoryUI/Panel/Tabs
 @onready var blocks_infinite_container = $GameUI/InventoryUI/Panel/BlocksPanel/InfiniteScrollContainer/InfiniteContainer
 @onready var items_infinite_container = $GameUI/InventoryUI/Panel/ItemsPanel/InfiniteScrollContainer/InfiniteContainer
@@ -90,7 +91,6 @@ extends Node2D
 @onready var attack_icon = $GameUI/ItemBarPanel/AttackIcon
 @onready var attack_indicator_progress = $GameUI/ItemBarPanel/AttackIcon/AttackIndicatorProgress
 
-var is_mouse_motion_updated = false
 var destroy_light_names = {}
 var mouse_in_inventory_grid = null
 var mouse_item_name = "AIR"
@@ -124,6 +124,8 @@ var block_selection_box
 var mini_map_on
 var mini_map_zoom: float
 var chunk_to_load = []
+var is_mouse_motion_updated: bool = false
+var is_particle_effect_on: bool = true
 var is_online_info: bool = false
 var is_input_frozen: bool = false
 var is_map: bool = false
@@ -590,7 +592,7 @@ func process_set_block():
 							if is_to_wear:
 								entity.wear_and_update_in_hand_tool(1)
 									
-			var droppped_item_list = StaticLoad.get_dropped_item_by_name(StaticLoad.get_block_name_by_id(block_to_destroy_id), in_hand_item_name)
+			var droppped_item_list = StaticLoad.get_dropped_item_by_name("block", StaticLoad.get_block_name_by_id(block_to_destroy_id), in_hand_item_name)
 			if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == 1):
 				if uuid != "destroy":
 					#if not nearby_update_dict.has(set_block_pos):
@@ -780,6 +782,8 @@ func process_light():
 						continue
 					chunk_lights[chunk_light_name].update_chunk_light(Vector2i(int(splits[0]), int(splits[1])), chunk_light_to_process_tmp[chunk_light_name])
 					await chunk_light_updated_signal
+				if get_tree() == null:
+					return
 				await get_tree().process_frame
 				chunk_light_to_process.erase(chunk_light_name)
 				#break
@@ -906,6 +910,37 @@ func screenshot():
 	
 @warning_ignore("unused_parameter")
 func _input(event: InputEvent) -> void:
+	
+	if event is InputEventMouseButton:
+		if event.button_index == 2 and event.pressed and not Input.is_mouse_button_pressed(1):
+			if player.in_hand_item_name.contains("SPAWN_EGG"):
+				var is_can_spawn = true
+				var mouse_in_world_pos = tile_map_layer.get_local_mouse_position()
+				var mouse_to_block_pos = tile_map_layer.local_to_map(mouse_in_world_pos)
+				if player.gamemode != "creative" and not player.check_attached_block(mouse_to_block_pos, tile_map_layer):
+					is_can_spawn = false
+				else:
+					var original_block_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(mouse_to_block_pos))
+					if original_block_id != 0 and not StaticLoad.get_is_transparent_by_id(original_block_id):
+						is_can_spawn = false
+				if is_can_spawn:
+					var splits = player.in_hand_item_name.split("_")
+					var entity_type = splits[0].to_lower()
+					var uuid = UUID.v4()
+					var summon_entity_args = [entity_type, uuid, str(uuid) ,mouse_in_world_pos, "default"]
+					StaticLoad.create_entity(summon_entity_args)
+					StaticLoad.rpc("create_entity", summon_entity_args)
+					player.is_punching = true
+					if player.face_state < 0 and tile_map_layer.local_to_map(player.position).x < mouse_to_block_pos.x:
+						player.face_state = 1
+					elif player.face_state > 0 and tile_map_layer.local_to_map(player.position).x > mouse_to_block_pos.x:
+						player.face_state = -1
+					if player.gamemode != "creative":
+						var select_sort = player.selected_item_grid
+						player.item_bar_amounts[select_sort] -= 1
+						if player.item_bar_amounts[select_sort] <= 0:
+							player.item_bar_names[select_sort] = "AIR"
+						refresh_item_grid(select_sort)
 	
 	if event is InputEventMouseMotion and not is_input_frozen and not player.is_dead:
 		set_block_selection_pos(get_local_mouse_position(), true)
@@ -1213,27 +1248,6 @@ func _unhandled_input(event: InputEvent) -> void:
 			else:
 				select_item_grid(9)
 	
-	if event is InputEventMouseButton:
-		if event.button_index == 2 and event.pressed and not Input.is_mouse_button_pressed(1):
-			if player.in_hand_item_name.contains("SPAWN_EGG"):
-				var is_can_spawn = true
-				var mouse_in_world_pos = tile_map_layer.get_local_mouse_position()
-				var mouse_to_block_pos = tile_map_layer.local_to_map(mouse_in_world_pos)
-				if player.gamemode != "creative" and not player.check_attached_block(mouse_to_block_pos, tile_map_layer):
-					is_can_spawn = false
-				if is_can_spawn:
-					var splits = player.in_hand_item_name.split("_")
-					var entity_type = splits[0].to_lower()
-					var summon_entity_args = [entity_type, UUID.v4() ,mouse_in_world_pos]
-					StaticLoad.create_entity(summon_entity_args)
-					StaticLoad.rpc("create_entity", summon_entity_args)
-					if player.gamemode != "creative":
-						var select_sort = player.selected_item_grid
-						player.item_bar_amounts[select_sort] -= 1
-						if player.item_bar_amounts[select_sort] <= 0:
-							player.item_bar_names[select_sort] = "AIR"
-						refresh_item_grid(select_sort)
-	
 	if Input.is_action_just_released("mouse_scroll_up"):
 		if Input.is_action_pressed("ctrl"):
 			if mini_map_camera.zoom[0] <= 0.9:
@@ -1299,6 +1313,8 @@ func process_mouse_action():
 			if StaticLoad.tools_type.has(player.in_hand_item_name) and StaticLoad.tools_type[player.in_hand_item_name].has("sword"):
 				if player.attack_timer <= 0:
 					player.is_punching = true
+			elif player.sword_breaking_timer > 0:
+				pass
 			elif player.gamemode == "creative":
 				player.destroy_block(mouse_to_block_pos)
 			else:
@@ -1576,6 +1592,11 @@ func init_game_as_single():
 			mini_map.visible = false
 		elif mini_map_on == "on":
 			mini_map.visible = true
+		var particle_effect_on = config.get_value("options", "particle_effect", StaticLoad.options["particle_effect"])
+		if particle_effect_on == "off":
+			is_particle_effect_on = false
+		elif particle_effect_on == "on":
+			is_particle_effect_on = true
 		#player.player_name = config.get_value("options", "player_name", StaticLoad.options["player_name"])
 		#player.name_label.text = player.player_name
 		#var fov_zoom = 1+1.6*(int(config.get_value("options", "fov_zoom", StaticLoad.options["fov_zoom"]))/100.0)
@@ -1619,14 +1640,20 @@ func init_game_as_single():
 			var block_list = value_list[2]
 			loaded_success_chunk_list.append(str(x)+"."+str(y))
 			set_chunk(Vector2i(x, y), block_list)
-			var chunk_entity_list = chunk_config.get_value("chunk", "entity_list")
-			if chunk_entity_list != null:
-				for uuid in chunk_entity_list:
-					var entity_info = chunk_config.get_value("entity", uuid)
-					if entity_info == null:
-						continue
-					if entity_info[0] == "item":
-						StaticLoad.create_entity(["item", entity_info[1], entity_info[3], entity_info[2], 0, 2, uuid])
+			create_chunk_entities(str(x)+"."+str(y), chunk_config)
+			#var chunk_entity_list = chunk_config.get_value("chunk", "entity_list")
+			#if chunk_entity_list != null:
+				#for uuid in chunk_entity_list:
+					#var entity_info = chunk_config.get_value("entity", uuid)
+					#if entity_info == null:
+						#if not loaded_chunks.has(str(x)+"."+str(y)):
+							#loaded_chunks[str(x)+"."+str(y)] = StaticLoad.Chunk.new()
+						#loaded_chunks[str(x)+"."+str(y)].is_to_save = true
+						#continue
+					#if entity_info[0] == "item":
+						#StaticLoad.create_entity(["item", entity_info[1], entity_info[3], entity_info[2], 0, 2, uuid])
+					#else:
+						#StaticLoad.create_entity([entity_info[0], uuid, entity_info[1], entity_info[2], entity_info[3]])
 			loaded_chunk_num += 1
 	for x in range(x_player_chunk-render_chunk_tmp, x_player_chunk+render_chunk_tmp+1):
 		var min_y: int = 2000000
@@ -1652,6 +1679,20 @@ func init_game_as_single():
 	light_thread.start(process_light)
 	refresh_thread.start(process_refresh)
 	#nearby_thread.start(process_nearby)
+
+func create_chunk_entities(chunk_name, chunk_config):
+	var chunk_entity_list = chunk_config.get_value("chunk", "entity_list")
+	for uuid in chunk_entity_list:
+		var entity_info = chunk_config.get_value("entity", uuid)
+		if entity_info == null:
+			if not loaded_chunks.has(chunk_name):
+				loaded_chunks[chunk_name] = StaticLoad.Chunk.new()
+			loaded_chunks[chunk_name].is_to_save = true
+			continue
+		if entity_info[0] == "item":
+			StaticLoad.create_entity(["item", entity_info[1], entity_info[3], entity_info[2], 0, 2, uuid])
+		else:
+			StaticLoad.create_entity([entity_info[0], uuid, entity_info[1], entity_info[2], entity_info[3]])
 
 func init_game_as_client():
 	StaticLoad.select_world = "new world"
@@ -1684,6 +1725,11 @@ func init_game_as_client():
 		mini_map.visible = false
 	elif mini_map_on == "on":
 		mini_map.visible = true
+	var particle_effect_on = config.get_value("options", "particle_effect", StaticLoad.options["particle_effect"])
+	if particle_effect_on == "off":
+		is_particle_effect_on = false
+	elif particle_effect_on == "on":
+		is_particle_effect_on = true
 	var player_pos = tile_map_layer.local_to_map(player.position)
 	var chunk_pos = get_chunk_position(player_pos)
 	var x_player_chunk = chunk_pos[0]
@@ -1737,10 +1783,10 @@ func refresh_item_grid(sort):
 		item_grids[sort].get_node("ProgressBar").visible = false
 		item_grids[sort].get_node("Amount").visible = false
 		item_grids[sort].get_node("Amount").text = ""
-		if not block_selection_ui.visible:
+		if sort == player.selected_item_grid and not block_selection_ui.visible:
 			block_selection_ui.visible = true
 	else:
-		if item_name.contains("GOLD") and item_name.contains("SWORD"):
+		if sort == player.selected_item_grid and item_name.contains("SWORD"):
 			if block_selection_ui.visible:
 				block_selection_ui.visible = false
 		item_grids[sort].get_node("ItemIcon").init_icon(player.item_bar_names[sort].to_lower())
@@ -1835,7 +1881,10 @@ func update_local_player_data():
 		move_input_list.push_back("left")
 		var current_time = Time.get_ticks_msec() / 1000.0
 		if current_time - last_left_time < StaticLoad.DOUBLE_CLICK_THRESHOLD:
-			player.move_state = "run"
+			if not player.is_sneaking:
+				player.move_state = "run"
+			else:
+				player.move_state = "walk"
 		else:
 			player.move_state = "walk"
 		last_left_time = current_time
@@ -1848,7 +1897,10 @@ func update_local_player_data():
 		move_input_list.push_back("right")
 		var current_time = Time.get_ticks_msec() / 1000.0
 		if current_time - last_right_time < StaticLoad.DOUBLE_CLICK_THRESHOLD:
-			player.move_state = "run"
+			if not player.is_sneaking:
+				player.move_state = "run"
+			else:
+				player.move_state = "walk"
 		else:
 			player.move_state = "walk"
 		last_right_time = current_time
@@ -2048,16 +2100,17 @@ func update_new_chunk(is_pre_load: bool):
 							var block_list = value_list[2]
 							set_chunk(Vector2i(x, y), block_list)
 							loaded_chunk_num += 1
-							var chunk_entity_list = chunk_config.get_value("chunk", "entity_list")
-							if chunk_entity_list != null:
-								for uuid in chunk_entity_list:
-									var entity_info = chunk_config.get_value("entity", uuid, null)
-									if entity_info == null:
-										continue
-									if entity_info[0] == "item":
-										var item_info = ["item", entity_info[1], entity_info[3], entity_info[2], 0, 2, uuid]
-										StaticLoad.create_entity(item_info)
-										StaticLoad.rpc("create_entity", item_info)
+							create_chunk_entities(str(x)+"."+str(y), chunk_config)
+							#var chunk_entity_list = chunk_config.get_value("chunk", "entity_list")
+							#if chunk_entity_list != null:
+								#for uuid in chunk_entity_list:
+									#var entity_info = chunk_config.get_value("entity", uuid, null)
+									#if entity_info == null:
+										#continue
+									#if entity_info[0] == "item":
+										#var item_info = ["item", entity_info[1], entity_info[3], entity_info[2], 0, 2, uuid]
+										#StaticLoad.create_entity(item_info)
+										#StaticLoad.rpc("create_entity", item_info)
 						else:
 							var mca = ConfigFile.new()
 							var chunk = StaticLoad.generate_chunk(Vector2i(x, y), world_info_dictionary["seed"], world_info_dictionary["world_type"])
@@ -2118,6 +2171,8 @@ func set_chunk(pos: Vector2i, blocks_list) -> void:
 		chunk_packed_byte_array.resize(256)
 		chunk_packed_byte_array.fill(0)
 		loaded_chunk_packed_byte_arrays[str(pos[0])+"."+str(pos[1])] = chunk_packed_byte_array
+	if blocks_list[0].is_empty():
+		return
 	for x in range(0, 16):
 		for y in range(0, 16):
 			set_block(Vector2i(pos[0] * 16 + x, pos[1] * 16 + y), blocks_list[0][y][x], "solid", true)
@@ -2606,8 +2661,15 @@ func save_chunk(chunk_pos: Vector2i):
 	StaticLoad.set_mca_value(mca, value_dict)
 	for uuid in chunk.entity_list:
 		var entity = entities[uuid]
-		if entity != null and entity.get_entity_type() == "item":
+		if entity == null:
+			continue
+		if entity.get_is_dead():
+			continue
+		if entity.get_entity_type() == "item":
 			var entity_info = ["item", entity.item_name, entity.item_amount, entity.position]
+			mca.set_value("entity", uuid, entity_info)
+		else:
+			var entity_info = [entity.get_entity_type(), entity.get_entity_name(), entity.position, entity.get_health()]
 			mca.set_value("entity", uuid, entity_info)
 	mca.save_encrypted_pass(StaticLoad.region_path+"/r."+str(x_chunk)+"."+str(y_chunk)+".mca", StaticLoad.CONFIG_PASSWORD)
 	
@@ -2718,7 +2780,15 @@ func broadcast_to_all(text:String, color="white"):
 	messgae_out_instance.is_disappearing = true
 	messgae_out_instance.detect_and_disappear()
 
+func clear_particles():
+	for particle in back_particles.get_children():
+		particle.queue_free()
+	for particle in front_particles.get_children():
+		particle.queue_free()
+
 func summon_destroy_particle(got_position, type, item_name):
+	if not is_particle_effect_on:
+		return
 	if item_name == "TORCH":
 		return
 	var particle = destroy_particle_scene.instantiate()
@@ -2726,6 +2796,8 @@ func summon_destroy_particle(got_position, type, item_name):
 	particle.init(got_position, type, item_name)
 
 func summon_death_particle(got_position):
+	if not is_particle_effect_on:
+		return
 	var particle = death_particle_scene.instantiate()
 	front_particles.add_child(particle)
 	particle.init(got_position)

@@ -8,13 +8,15 @@ extends CharacterBody2D
 @onready var name_label = $Sprite2D/NameLable
 @onready var up_area_collision_shape = $UpArea/CollisionShape2D
 @onready var down_area_collision_shape = $DownArea/CollisionShape2D
+@onready var ground_area1_collision_shape = $GroundArea1/CollisionShape2D
+@onready var ground_area2_collision_shape = $GroundArea2/CollisionShape2D
 
 # 实体变量
 var uuid = UUID.v4()
 var entity_type = "pig"
-var entity_name: String
+var entity_name: String = str(uuid)
 var chunk_pos = Vector2i(0, 0)
-var expected_velocity = Vector2i(0, 0)
+var health: int = 20
 var is_dead = false
 
 # 子类变量
@@ -24,12 +26,14 @@ var walk_period: float = 0.83
 var run_period: float = 0.42
 var refresh_target_timer: float = 5
 var panic_timer: float = 0
-var health: int = 20
 var health_recover_timer: float = 10
+var ladder_repeat_timer: float = 0
 var velocity_before_pause = velocity
 var current_velocity = Vector2(0, 0)
 var last_velocity = Vector2(0, 0)
 var target_pos = Vector2i(0, 0)
+var expected_velocity = Vector2i(0, 0)
+var say_timer: float = 8
 var step_sound_timer: float = 0
 var move_state = "idle"
 var face_state: int = -1
@@ -40,7 +44,10 @@ var is_in_water = false
 var is_flying = false
 var is_up_area_colliding = false
 var is_down_area_colliding = false
+var is_ground_area1_colliding = false
+var is_ground_area2_colliding = false
 var is_top_area_colliding = false
+var last_is_on_ladder = false
 var is_on_ladder = false
 var hurt_tween
 var animation_tree_parameters = {
@@ -56,6 +63,11 @@ var only_server_change_state_dict = {}
 
 func _ready():
 	update_state_dict()
+	var rng = RandomNumberGenerator.new()
+	var num = rng.randf()+0.5
+	if num > 1:
+		num = 1
+	refresh_target_timer = 6*num
 
 func _process(delta: float) -> void:
 	update_current_velocity()
@@ -67,9 +79,9 @@ func _process(delta: float) -> void:
 	# 仅在服务端的本地更新
 	update_local_fall_damage_by_data()
 	update_local_health_recover()
+	update_local_is_on_ladder()
 	update_local_velocity()
 	update_local_refresh_target_timer()
-	update_local_is_on_ladder()
 	update_local_gravity()
 	update_local_move_by_data()
 	update_local_state_dict()
@@ -79,10 +91,25 @@ func _process(delta: float) -> void:
 
 func init(args):
 	uuid = args[0]
-	position = args[1]
+	name = str(uuid)
+	if args[1] != null:
+		name = args[1]
+	position = args[2]
+	if args[3] is int:
+		health = args[3]
 	update_target_pos()
+	StaticLoad.game.sound_audio_manager.play_random_audio_at_position("pig", "say", position, 1)
 
 func update_sound_by_data():
+	var delta = get_process_delta_time()
+	if say_timer > 0:
+		say_timer -= delta
+	else:
+		var rng = RandomNumberGenerator.new()
+		var num = rng.randf()
+		if num < 0.6:
+			StaticLoad.game.sound_audio_manager.play_random_audio_at_position("pig", "say", position, 1)
+		say_timer = 8
 	if abs(current_velocity.y) < StaticLoad.FLOAT_DELTA and last_velocity.y > 1100:
 		if last_velocity.y > 1300:
 			StaticLoad.game.sound_audio_manager.play_random_audio_at_position("damage", "fallbig", position, 1)
@@ -106,7 +133,7 @@ func update_sound_by_data():
 	elif step_sound_timer > 0:
 		step_sound_timer = 0
 	if step_sound_timer > 0:
-		step_sound_timer -= get_process_delta_time()
+		step_sound_timer -= delta
 
 func update_animation_tree():
 	animation_tree["parameters/Run/blend_amount"] = animation_tree_parameters["run"]
@@ -128,7 +155,7 @@ func update_animation_by_data():
 	
 	var detect_size = 40
 	if move_state == "run":
-		detect_size = 80
+		detect_size = 100
 	var half_detect_size = 30+(detect_size/2)
 	up_area_collision_shape.shape.size.x = detect_size
 	down_area_collision_shape.shape.size.x = detect_size
@@ -137,11 +164,19 @@ func update_animation_by_data():
 			up_area_collision_shape.position.x = half_detect_size
 		if down_area_collision_shape.position.x < 0:
 			down_area_collision_shape.position.x = half_detect_size
+		if ground_area1_collision_shape.position.x < 0:
+			ground_area1_collision_shape.position.x = 36
+		if ground_area2_collision_shape.position.x < 0:
+			ground_area2_collision_shape.position.x = 86
 	else:
 		if up_area_collision_shape.position.x > 0:
 			up_area_collision_shape.position.x = -half_detect_size
 		if down_area_collision_shape.position.x > 0:
 			down_area_collision_shape.position.x = -half_detect_size
+		if ground_area1_collision_shape.position.x > 0:
+			ground_area1_collision_shape.position.x = -36
+		if ground_area2_collision_shape.position.x > 0:
+			ground_area2_collision_shape.position.x = -86
 	
 	if abs(turn_state-face_state) > 0.01:
 		update_entity_face_rotation()
@@ -183,68 +218,69 @@ func update_local_health_recover():
 func update_local_velocity():
 	if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() != 1:
 		return
-	var delta = get_process_delta_time()
-	var mutiply_x = velocity.x * expected_velocity.x
-	if mutiply_x >= 0:
-		if abs(velocity.x) < abs(expected_velocity.x):
-			velocity.x = expected_velocity.x
-		elif expected_velocity.x == 0:
-			var diff = abs(velocity.x)
-			var max_diff = move_speed*delta*10
-			if abs(velocity.x) >= max_diff:
-				diff = max_diff
-			if velocity.x * diff > 0:
-				diff = -diff
-			velocity += Vector2(diff, 0)
-		elif abs(velocity.x) > abs(expected_velocity.x):
-			var diff = velocity.x - expected_velocity.x
-			var max_diff = 200*delta*20
-			if abs(diff) >= max_diff:
-				if diff < 0:
-					diff = -max_diff
-				else:
-					diff = max_diff
-			velocity += Vector2(-diff, 0)
-	elif mutiply_x < 0:
-		var diff = abs(velocity.x - expected_velocity.x)
-		var max_diff = expected_velocity.x*delta*20
-		if diff >= abs(max_diff):
-			diff = abs(max_diff)
-		if expected_velocity.x * diff < 0:
-			diff = -diff
-		velocity += Vector2(diff, 0)
-	
-	
-	if is_flying or is_on_ladder:
-		var mutiply_y = velocity.y * expected_velocity.y
-		if mutiply_y >= 0:
-			if abs(velocity.y) < abs(expected_velocity.y):
-				velocity.y = expected_velocity.y
-			elif expected_velocity.y == 0:
-				var diff = abs(velocity.y)
-				var max_diff = move_speed*delta*10
-				if abs(velocity.y) >= max_diff:
-					diff = max_diff
-				if velocity.y * diff > 0:
-					diff = -diff
-				velocity += Vector2(0, diff)
-			elif abs(velocity.y) > abs(expected_velocity.y):
-				var diff = velocity.y - expected_velocity.y
-				var max_diff = 200*delta*20
-				if abs(diff) >= max_diff:
-					if diff < 0:
-						diff = -max_diff
-					else:
-						diff = max_diff
-				velocity += Vector2(0, -diff)
-		elif mutiply_y < 0:
-			var diff = abs(velocity.y - expected_velocity.y)
-			var max_diff = expected_velocity.y*delta*20
-			if diff >= abs(max_diff):
-				diff = abs(max_diff)
-			if expected_velocity.y * diff < 0:
-				diff = -diff
-			velocity += Vector2(0, diff)
+	velocity = GameCalculator.calculate_velocity_by_data(get_process_delta_time(), velocity, expected_velocity, move_speed, is_flying, is_on_ladder)
+	#var delta = get_process_delta_time()
+	#var mutiply_x = velocity.x * expected_velocity.x
+	#if mutiply_x >= 0:
+		#if abs(velocity.x) < abs(expected_velocity.x):
+			#velocity.x = expected_velocity.x
+		#elif expected_velocity.x == 0:
+			#var diff = abs(velocity.x)
+			#var max_diff = move_speed*delta*10
+			#if abs(velocity.x) >= max_diff:
+				#diff = max_diff
+			#if velocity.x * diff > 0:
+				#diff = -diff
+			#velocity += Vector2(diff, 0)
+		#elif abs(velocity.x) > abs(expected_velocity.x):
+			#var diff = velocity.x - expected_velocity.x
+			#var max_diff = 200*delta*20
+			#if abs(diff) >= max_diff:
+				#if diff < 0:
+					#diff = -max_diff
+				#else:
+					#diff = max_diff
+			#velocity += Vector2(-diff, 0)
+	#elif mutiply_x < 0:
+		#var diff = abs(velocity.x - expected_velocity.x)
+		#var max_diff = expected_velocity.x*delta*20
+		#if diff >= abs(max_diff):
+			#diff = abs(max_diff)
+		#if expected_velocity.x * diff < 0:
+			#diff = -diff
+		#velocity += Vector2(diff, 0)
+	#
+	#
+	#if is_flying or is_on_ladder:
+		#var mutiply_y = velocity.y * expected_velocity.y
+		#if mutiply_y >= 0:
+			#if abs(velocity.y) < abs(expected_velocity.y):
+				#velocity.y = expected_velocity.y
+			#elif expected_velocity.y == 0:
+				#var diff = abs(velocity.y)
+				#var max_diff = move_speed*delta*10
+				#if abs(velocity.y) >= max_diff:
+					#diff = max_diff
+				#if velocity.y * diff > 0:
+					#diff = -diff
+				#velocity += Vector2(0, diff)
+			#elif abs(velocity.y) > abs(expected_velocity.y):
+				#var diff = velocity.y - expected_velocity.y
+				#var max_diff = 200*delta*20
+				#if abs(diff) >= max_diff:
+					#if diff < 0:
+						#diff = -max_diff
+					#else:
+						#diff = max_diff
+				#velocity += Vector2(0, -diff)
+		#elif mutiply_y < 0:
+			#var diff = abs(velocity.y - expected_velocity.y)
+			#var max_diff = expected_velocity.y*delta*20
+			#if diff >= abs(max_diff):
+				#diff = abs(max_diff)
+			#if expected_velocity.y * diff < 0:
+				#diff = -diff
+			#velocity += Vector2(0, diff)
 		
 	#if impulse_list.is_empty():
 		#return
@@ -271,13 +307,19 @@ func update_local_refresh_target_timer():
 		return
 	if panic_timer <= 0:
 		panic_timer = 0
+		if move_state == "run":
+			move_state = "idle"
 	elif panic_timer > 0:
 		if move_state != "run":
 			move_state = "run"
 		panic_timer -= get_process_delta_time()
 		return
 	if refresh_target_timer <= 0:
-		refresh_target_timer = 5
+		var rng = RandomNumberGenerator.new()
+		var num = rng.randf()+0.5
+		if num > 1:
+			num = 1
+		refresh_target_timer = 6*num
 		update_target_pos()
 	else:
 		refresh_target_timer -= get_process_delta_time()
@@ -289,11 +331,19 @@ func update_local_is_on_ladder():
 	var foot_pos = position + Vector2(0, 23)
 	var foot_block_pos = StaticLoad.game.tile_map_layer.local_to_map(foot_pos)
 	var foot_block_id = StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.tile_map_layer.get_cell_atlas_coords(foot_block_pos))
+	if ladder_repeat_timer > 0:
+		ladder_repeat_timer -= get_process_delta_time()
+	elif ladder_repeat_timer < 0:
+		ladder_repeat_timer = 0
 	if StaticLoad.get_block_name_by_id(foot_block_id) == "LADDER":
 		if not is_on_ladder:
 			is_on_ladder = true
 	elif is_on_ladder:
 		is_on_ladder = false
+	if last_is_on_ladder != is_on_ladder:
+		if last_is_on_ladder:
+			ladder_repeat_timer = 2
+		last_is_on_ladder = is_on_ladder
 
 func update_local_gravity():
 	if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() != 1:
@@ -339,7 +389,7 @@ func update_local_move_by_data():
 			face_state = 1
 		elif current_block_pos[0] > target_pos[0] and face_state == 1:
 			face_state = -1
-		if not is_down_area_colliding or (is_down_area_colliding and not is_up_area_colliding):
+		if ((abs(velocity.x) > abs(move_speed) and is_ground_area1_colliding and is_ground_area2_colliding) or (abs(velocity.x) <= abs(move_speed) and is_ground_area1_colliding)) and (not is_down_area_colliding or (is_down_area_colliding and not is_up_area_colliding)):
 			if not is_down_area_colliding:
 				if panic_timer > 0:
 					move_state = "run"
@@ -348,7 +398,24 @@ func update_local_move_by_data():
 			elif is_top_area_colliding:
 				move_state = "idle"
 		else:
-			move_state = "idle"
+			if is_down_area_colliding and not is_up_area_colliding and not is_top_area_colliding:
+				if panic_timer > 0:
+					move_state = "run"
+				else:
+					move_state = "walk"
+				if not is_dead and not is_flying and is_on_floor():
+					if velocity.y >= 0:
+						velocity.y += jump_velocity
+			elif not is_ground_area1_colliding and is_ground_area2_colliding and not is_up_area_colliding and not is_top_area_colliding:
+				if panic_timer > 0:
+					move_state = "run"
+				else:
+					move_state = "walk"
+				if not is_dead and not is_flying and is_on_floor():
+					if velocity.y >= 0:
+						velocity.y += jump_velocity
+			else:
+				move_state = "idle"
 	if move_state != "idle" and is_down_area_colliding and not is_up_area_colliding and not is_top_area_colliding:
 		if not is_flying and is_on_floor():
 			last_velocity = current_velocity
@@ -360,20 +427,24 @@ func update_local_move_by_data():
 					velocity.y += jump_velocity
 		elif is_flying:
 			expected_velocity.y = jump_velocity * 0.7
-	elif current_block_pos[1] < target_pos[1]:
+	elif current_block_pos[1] < target_pos[1] and not is_top_area_colliding and ladder_repeat_timer <= 0:
 		if is_flying:
 			expected_velocity.y = jump_velocity * 0.7
 		elif is_on_ladder:
 			expected_velocity.y = -move_speed
-	elif current_block_pos[1] > target_pos[1]:
+	elif current_block_pos[1] > target_pos[1] and not is_on_floor():
 		if is_flying:
 			expected_velocity.y = -jump_velocity * 0.7
 		elif is_on_ladder:
 			expected_velocity.y = move_speed
 	elif not is_flying and is_on_ladder:
 		expected_velocity.y = 0
+		if is_top_area_colliding or ladder_repeat_timer <= 0 or is_on_floor():
+			move_state = "idle"
 	
-	if move_state == "run":
+	if is_on_ladder and ladder_repeat_timer <= 0 and current_block_pos[1] != target_pos[1]:
+		expected_velocity.x = 0
+	elif move_state == "run":
 		if is_in_water:
 			expected_velocity.x = face_state * move_speed
 		else:
@@ -478,6 +549,8 @@ func set_name_label_modulate(color):
 	name_label.modulate = color
 
 func get_damage(args):
+	if is_dead:
+		return
 	var damage = args[0]
 	var side = args[1]
 	if side == "left":
@@ -512,6 +585,7 @@ func set_z_rotation(got_rotation):
 	entity_model.rotation.z = deg_to_rad(got_rotation)
 
 func stop_move():
+	panic_timer = 0
 	move_state = "idle"
 	expected_velocity.x = 0
 
@@ -526,7 +600,17 @@ func die():
 	tween2.tween_method(set_z_rotation, 0, 90, StaticLoad.DISSOLVE_TIME)
 	await get_tree().create_timer(StaticLoad.DISSOLVE_TIME*3).timeout
 	StaticLoad.game.summon_death_particle(position)
-	queue_free()
+	var droppped_item_list = StaticLoad.get_dropped_item_by_name("entity", "PIG", "others")
+	for droppped_item_name in droppped_item_list:
+		if droppped_item_name != "AIR" and droppped_item_list[droppped_item_name] > 0:
+			var summon_item_args = ["item", droppped_item_name, position+Vector2(0, 23), droppped_item_list[droppped_item_name], 0, 0, UUID.v4()]
+			if StaticLoad.is_muti_mode:
+				if StaticLoad.multiplayer.get_unique_id() == 1:
+					StaticLoad.create_entity(summon_item_args)
+					StaticLoad.rpc("create_entity", summon_item_args)
+			else:
+				StaticLoad.create_entity(summon_item_args)
+	destroy_entity([])
 
 func set_entity_model_skin_by_texture(got_skin_texture):
 	var entity_material = load("res://Assets/Materials/Pig.tres").duplicate(true)
@@ -562,6 +646,9 @@ func get_entity_name():
 func get_chunk_pos():
 	return chunk_pos
 
+func get_health():
+	return health
+
 func get_is_dead():
 	return is_dead
 	
@@ -590,6 +677,26 @@ func _on_down_area_body_exited(body: Node2D) -> void:
 	if body.name != "TileMapLayer":
 		return
 	is_down_area_colliding = false
+
+func _on_ground_area1_body_entered(body: Node2D) -> void:
+	if body.name != "TileMapLayer":
+		return
+	is_ground_area1_colliding = true
+
+func _on_ground_area1_body_exited(body: Node2D) -> void:
+	if body.name != "TileMapLayer":
+		return
+	is_ground_area1_colliding = false
+
+func _on_ground_area2_body_entered(body: Node2D) -> void:
+	if body.name != "TileMapLayer":
+		return
+	is_ground_area2_colliding = true
+
+func _on_ground_area2_body_exited(body: Node2D) -> void:
+	if body.name != "TileMapLayer":
+		return
+	is_ground_area2_colliding = false
 
 func _on_top_area_body_entered(body: Node2D) -> void:
 	if body.name != "TileMapLayer":

@@ -107,6 +107,10 @@ ONLINE_PLAYERS;在线玩家;online players
 POSITON;坐标;position
 SELECTED_POSITION;选中坐标;selected position
 CHUNK;区块;chunk
+FULL_SCREEN;全屏;full screen
+AUTO_JUMP;自动跳跃;auto jump
+PARTICLE_EFFECT;粒子效果;particle effect
+V_SYNC;垂直同步;vertical sync
 MINI_MAP;小地图;mini map
 ON;开;on
 OFF;关;off

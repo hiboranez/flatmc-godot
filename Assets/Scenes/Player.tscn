@@ -1,4 +1,4 @@
-[gd_scene load_steps=46 format=4 uid="uid://d2gan73x74ccr"]
+[gd_scene load_steps=49 format=4 uid="uid://d2gan73x74ccr"]
 
 [ext_resource type="Script" path="res://Assets/Scripts/Player.gd" id="1_dne4j"]
 [ext_resource type="PackedScene" uid="uid://dx77wbim6mom7" path="res://Assets/Scenes/ItemInHand.tscn" id="3_ly0ea"]
@@ -1486,6 +1486,10 @@ mix_mode = 1
 
 [sub_resource type="AnimationNodeBlend2" id="AnimationNodeBlend2_2ayjp"]
 
+[sub_resource type="AnimationNodeBlend2" id="AnimationNodeBlend2_p3oxb"]
+filter_enabled = true
+filters = ["Root/Skeleton3D:BodyDown", "Root/Skeleton3D:Head"]
+
 [sub_resource type="AnimationNodeBlend2" id="AnimationNodeBlend2_htq1h"]
 
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_dd1wg"]
@@ -1509,15 +1513,20 @@ animation = &"punch"
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_r2xi4"]
 animation = &"run"
 
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_ul24y"]
+animation = &"sneak"
+
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_opule"]
 animation = &"walk"
 
 [sub_resource type="AnimationNodeBlendTree" id="AnimationNodeBlendTree_nj6go"]
-graph_offset = Vector2(-623.315, 11.802)
+graph_offset = Vector2(-440.376, 6.69249)
 nodes/Punch/node = SubResource("AnimationNodeOneShot_gwgtn")
-nodes/Punch/position = Vector2(400, 40)
+nodes/Punch/position = Vector2(660, 40)
 nodes/Run/node = SubResource("AnimationNodeBlend2_2ayjp")
-nodes/Run/position = Vector2(140, 40)
+nodes/Run/position = Vector2(160, 40)
+nodes/Sneak/node = SubResource("AnimationNodeBlend2_p3oxb")
+nodes/Sneak/position = Vector2(420, 40)
 nodes/Walk/node = SubResource("AnimationNodeBlend2_htq1h")
 nodes/Walk/position = Vector2(-100, 40)
 nodes/attack0/node = SubResource("AnimationNodeAnimation_dd1wg")
@@ -1530,14 +1539,16 @@ nodes/attack3/node = SubResource("AnimationNodeAnimation_fcswu")
 nodes/attack3/position = Vector2(40, 520)
 nodes/idle/node = SubResource("AnimationNodeAnimation_rhfpr")
 nodes/idle/position = Vector2(-260, 80)
-nodes/output/position = Vector2(620, 140)
+nodes/output/position = Vector2(860, 100)
 nodes/punch/node = SubResource("AnimationNodeAnimation_p4a5d")
-nodes/punch/position = Vector2(220, 300)
+nodes/punch/position = Vector2(520, 300)
 nodes/run/node = SubResource("AnimationNodeAnimation_r2xi4")
 nodes/run/position = Vector2(20, 300)
+nodes/sneak/node = SubResource("AnimationNodeAnimation_ul24y")
+nodes/sneak/position = Vector2(260, 300)
 nodes/walk/node = SubResource("AnimationNodeAnimation_opule")
-nodes/walk/position = Vector2(-200, 300)
-node_connections = [&"Punch", 0, &"Run", &"Punch", 1, &"punch", &"Run", 0, &"Walk", &"Run", 1, &"run", &"Walk", 0, &"idle", &"Walk", 1, &"walk", &"output", 0, &"Punch"]
+nodes/walk/position = Vector2(-240, 300)
+node_connections = [&"Punch", 0, &"Sneak", &"Punch", 1, &"punch", &"Run", 0, &"Walk", &"Run", 1, &"run", &"Sneak", 0, &"Run", &"Sneak", 1, &"sneak", &"Walk", 0, &"idle", &"Walk", 1, &"walk", &"output", 0, &"Punch"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_scabt"]
 resource_local_to_scene = true
@@ -1561,6 +1572,9 @@ size = Vector2(34.1338, 95)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_mlgel"]
 size = Vector2(60, 40)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ldy5s"]
+size = Vector2(34, 20)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_aw5yj"]
 size = Vector2(58, 113)
@@ -1613,6 +1627,7 @@ modulate = Color(1, 1, 1, 0)
 offset_right = 1024.0
 offset_bottom = 1024.0
 scale = Vector2(0.194021, 0.194021)
+mouse_filter = 2
 
 [node name="SubViewport" type="SubViewport" parent="SubViewportContainer"]
 own_world_3d = true
@@ -1638,7 +1653,7 @@ bones/1/name = "BodyDown"
 bones/1/parent = 0
 bones/1/rest = Transform3D(1, 0, 2.38419e-07, 0, 1, 0, -2.38419e-07, 0, 1, 0, 1.55791, 0)
 bones/1/enabled = true
-bones/1/position = Vector3(0, 1.45902, 0)
+bones/1/position = Vector3(0, 1.4586, 0)
 bones/1/rotation = Quaternion(0, 1.19209e-07, 0, 1)
 bones/1/scale = Vector3(1, 1, 1)
 bones/2/name = "BodyUp"
@@ -1660,14 +1675,14 @@ bones/4/parent = 2
 bones/4/rest = Transform3D(-1, 1.66534e-16, -1.10467e-06, 1.63078e-09, -0.999999, -0.00147626, -1.10467e-06, -0.00147626, 0.999999, 0.747292, 0.644238, 1.73634e-07)
 bones/4/enabled = true
 bones/4/position = Vector3(0.747292, 0.644238, 1.73634e-07)
-bones/4/rotation = Quaternion(0.00372949, -0.0014491, 0.999315, -0.0367786)
+bones/4/rotation = Quaternion(0.00208834, -0.035416, 0.999252, -0.0153627)
 bones/4/scale = Vector3(1, 1, 1)
 bones/5/name = "LeftArmDown"
 bones/5/parent = 4
 bones/5/rest = Transform3D(1, 9.87771e-09, -6.35172e-08, -9.12693e-09, 0.99993, 0.0118091, 6.36295e-08, -0.0118091, 0.99993, 6.41423e-08, 0.677385, 2.75065e-10)
 bones/5/enabled = true
 bones/5/position = Vector3(6.41423e-08, 0.677385, 2.75065e-10)
-bones/5/rotation = Quaternion(-0.000759768, -3.17873e-08, -6.25975e-10, 1)
+bones/5/rotation = Quaternion(-0.000759768, -3.17872e-08, -6.21252e-10, 1)
 bones/5/scale = Vector3(1, 1, 1)
 bones/6/name = "LeftHand"
 bones/6/parent = 5
@@ -1681,14 +1696,14 @@ bones/7/parent = 2
 bones/7/rest = Transform3D(-1, 2.22045e-16, -1.10467e-06, 1.63078e-09, -0.999999, -0.00147626, -1.10467e-06, -0.00147626, 0.999999, -0.747292, 0.644238, -1.82703e-07)
 bones/7/enabled = true
 bones/7/position = Vector3(-0.747292, 0.644238, -1.82703e-07)
-bones/7/rotation = Quaternion(-0.00358123, 0.00247191, 0.999316, 0.036722)
+bones/7/rotation = Quaternion(-0.000969226, 0.0361687, 0.999229, 0.0152544)
 bones/7/scale = Vector3(1, 1, 1)
 bones/8/name = "RightArmDown"
 bones/8/parent = 7
 bones/8/rest = Transform3D(1, 9.87788e-09, -6.35172e-08, -9.12709e-09, 0.99993, 0.0118093, 6.36294e-08, -0.0118093, 0.99993, -5.5067e-08, 0.677385, 5.39956e-10)
 bones/8/enabled = true
 bones/8/position = Vector3(-5.5067e-08, 0.677385, 5.39956e-10)
-bones/8/rotation = Quaternion(-0.000759778, -3.17874e-08, -6.23177e-10, 1)
+bones/8/rotation = Quaternion(-0.000759778, -3.17882e-08, -5.89285e-10, 1)
 bones/8/scale = Vector3(1, 1, 1)
 bones/9/name = "RightHand"
 bones/9/parent = 8
@@ -1701,14 +1716,14 @@ bones/10/name = "CLeftHand"
 bones/10/parent = 0
 bones/10/rest = Transform3D(-1, 0, -1.50996e-07, -1.50996e-07, 0, 1, 0, 1, 0, 0.747292, 1.57395, -1.35385e-07)
 bones/10/enabled = true
-bones/10/position = Vector3(0.846755, 1.47415, -0.00529623)
+bones/10/position = Vector3(0.788807, 1.47395, -0.0972994)
 bones/10/rotation = Quaternion(-5.33851e-08, 0.707107, 0.707107, -5.33851e-08)
 bones/10/scale = Vector3(1, 1, 1)
 bones/11/name = "CRightHand"
 bones/11/parent = 0
 bones/11/rest = Transform3D(-1, 0, -1.50996e-07, -1.50996e-07, 0, 1, 0, 1, 0, -0.747292, 1.57395, -1.35385e-07)
 bones/11/enabled = true
-bones/11/position = Vector3(-0.846755, 1.47415, 0.00529595)
+bones/11/position = Vector3(-0.788807, 1.47395, 0.0972991)
 bones/11/rotation = Quaternion(-5.33851e-08, 0.707107, 0.707107, -5.33851e-08)
 bones/11/scale = Vector3(1, 1, 1)
 bones/12/name = "RightLegUp"
@@ -1787,7 +1802,7 @@ mesh = SubResource("ArrayMesh_0wekq")
 skin = SubResource("Skin_psw6a")
 
 [node name="Hand" type="BoneAttachment3D" parent="SubViewportContainer/SubViewport/PlayerModel/Root/Skeleton3D"]
-transform = Transform3D(-0.997277, -0.0734884, -0.00611083, 0.073376, -0.99716, 0.0169372, -0.00733816, 0.0164427, 0.999838, -0.846806, 1.47883, 0.0153061)
+transform = Transform3D(-0.999533, -0.0305631, -0.000472964, 0.0304153, -0.995998, 0.084036, -0.00303947, 0.0839823, 0.996463, -0.788693, 1.47953, 0.106827)
 bone_name = "RightHand"
 bone_idx = 9
 
@@ -1808,6 +1823,7 @@ parameters/Punch/active = false
 parameters/Punch/internal_active = false
 parameters/Punch/request = 0
 parameters/Run/blend_amount = 0.0
+parameters/Sneak/blend_amount = 0.0
 parameters/Walk/blend_amount = 0.0
 
 [node name="Camera3D" type="Camera3D" parent="SubViewportContainer/SubViewport"]
@@ -1841,7 +1857,6 @@ grow_vertical = 2
 size_flags_horizontal = 6
 size_flags_vertical = 0
 localize_numeral_system = false
-mouse_filter = 1
 theme_override_fonts/font = ExtResource("4_07vdp")
 theme_override_font_sizes/font_size = 70
 theme_override_styles/normal = SubResource("StyleBoxEmpty_ct4td")
@@ -1863,7 +1878,7 @@ offset_right = 17.0
 offset_bottom = 10.8
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 1
+mouse_filter = 2
 color = Color(0, 0, 0, 0.509804)
 metadata/_edit_use_anchors_ = true
 
@@ -1908,6 +1923,13 @@ position = Vector2(0, 23)
 position = Vector2(-28, -25)
 shape = SubResource("RectangleShape2D_mlgel")
 
+[node name="GroundArea" type="Area2D" parent="."]
+position = Vector2(0, 23)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="GroundArea"]
+position = Vector2(-6, 12)
+shape = SubResource("RectangleShape2D_ldy5s")
+
 [node name="AttackArea" type="Area2D" parent="."]
 position = Vector2(0, 23)
 collision_mask = 2
@@ -1939,4 +1961,6 @@ frame_progress = 1.0
 [connection signal="body_exited" from="UpArea" to="." method="_on_up_area_body_exited"]
 [connection signal="body_entered" from="DownArea" to="." method="_on_down_area_body_entered"]
 [connection signal="body_exited" from="DownArea" to="." method="_on_down_area_body_exited"]
+[connection signal="body_entered" from="GroundArea" to="." method="_on_ground_area_body_entered"]
+[connection signal="body_exited" from="GroundArea" to="." method="_on_ground_area_body_exited"]
 [connection signal="body_entered" from="AttackArea" to="." method="_on_attack_area_body_entered"]

@@ -15,6 +15,7 @@ extends CharacterBody2D
 @onready var attack_animation = $AttackAnimation
 @onready var attack_area = $AttackArea
 @onready var attack_area_collision_shape = $AttackArea/CollisionShape2D
+@onready var ground_area_collision_shape = $GroundArea/CollisionShape2D
 
 # 实体变量
 var uuid = UUID.v4()
@@ -22,6 +23,7 @@ var entity_type = "player"
 var player_name: String
 var chunk_pos = Vector2i(0, 0)
 var expected_velocity = Vector2(0, 0)
+var health: int = 20
 var is_dead = false
 
 # 子类变量
@@ -33,7 +35,8 @@ var dropped_item_speed: float = 1000
 var dropped_item_no_collect_time: float = 2
 var render_chunk: int = 1
 var player_peer_id: int
-var health: int = 20
+signal up_area_colliding_false
+var sword_breaking_timer: float = 0
 var health_recover_timer: float = 10
 var gamemode: String = "survival"
 var velocity_before_pause = velocity
@@ -52,6 +55,8 @@ var face_state: int = -1
 var turn_state: float = 0
 var breaking_tool = "null"
 var hurt_tween
+var is_sneaking = false
+var is_auto_jump = false
 var is_jump_pressed = false
 var last_is_jump_pressed = false
 var is_down_pressed = false
@@ -65,10 +70,12 @@ var is_punching = false
 var is_up_area_colliding = false
 var is_down_area_colliding = false
 var is_top_area_colliding = false
+var is_ground_area_colliding = false
 var is_on_ladder = false
 var animation_tree_parameters = {
 	"walk": 0,
-	"run": 0
+	"run": 0,
+	"sneak": 0,
 }
 var only_server_change_state_list = [
 	"health", "attack_timer", "attacking_decline_timer", "attacking_damage"
@@ -131,6 +138,11 @@ func init_local(peer_id):
 		uuid = UUID.uuid_from_username(player_name)
 		name_label.text = player_name
 		StaticLoad.player_peer_dict[player_peer_id] = StaticLoad.game.player
+		var auto_jump_on = config.get_value("options", "auto_jump", StaticLoad.options["auto_jump"])
+		if auto_jump_on == "on":
+			is_auto_jump = true
+		elif auto_jump_on == "off":
+			is_auto_jump = false
 		var fov_zoom = 1+1.6*(int(config.get_value("options", "fov_zoom", StaticLoad.options["fov_zoom"]))/100.0)
 		camera.zoom = Vector2(fov_zoom, fov_zoom)
 		render_chunk = int(config.get_value("options", "render_chunk", StaticLoad.options["render_chunk"]))
@@ -250,20 +262,29 @@ func update_sound_by_data():
 				elif move_state == "run":
 					step_sound_timer = run_period
 					StaticLoad.game.sound_audio_manager.play_random_audio_at_position("step", StaticLoad.get_step_type_by_name(StaticLoad.get_block_name_by_id(block_id)), position, 1)
-	elif step_sound_timer > 0:
+	elif step_sound_timer > 0 and not is_sneaking:
 		step_sound_timer = 0
-	if step_sound_timer > 0:
+	if step_sound_timer > 0 and not is_sneaking:
 		step_sound_timer -= get_process_delta_time()
 
 func update_animation_tree():
 	animation_tree["parameters/Run/blend_amount"] = animation_tree_parameters["run"]
 	animation_tree["parameters/Walk/blend_amount"] = animation_tree_parameters["walk"]
+	animation_tree["parameters/Sneak/blend_amount"] = animation_tree_parameters["sneak"]
 
 func update_animation_by_data():
 	var delta = get_process_delta_time()
 	if is_frozen:
 		return
-	if move_state == "run":
+	
+	if Input.is_action_pressed("shift") and not is_sneaking:
+		is_sneaking = true
+		if move_state == "run":
+			move_state = "walk"
+	elif not Input.is_action_pressed("shift") and is_sneaking:
+		is_sneaking = false
+		
+	if move_state == "run" and not is_sneaking:
 		animation_tree_parameters["run"] = lerpf(animation_tree_parameters["run"], 1, StaticLoad.BLEND_SPEED*delta)
 		animation_tree_parameters["walk"] = lerpf(animation_tree_parameters["walk"], 0, StaticLoad.BLEND_SPEED*delta)
 	elif move_state == "walk":
@@ -273,27 +294,39 @@ func update_animation_by_data():
 		animation_tree_parameters["run"] = lerpf(animation_tree_parameters["run"], 0, StaticLoad.BLEND_SPEED*delta)
 		animation_tree_parameters["walk"] = lerpf(animation_tree_parameters["walk"], 0, StaticLoad.BLEND_SPEED*delta)
 	
+	if is_sneaking:
+		animation_tree_parameters["sneak"] = lerpf(animation_tree_parameters["sneak"], 1.2, StaticLoad.BLEND_SPEED*delta*2)
+	else:
+		animation_tree_parameters["sneak"] = lerpf(animation_tree_parameters["sneak"], 0, StaticLoad.BLEND_SPEED*delta*2)
+	set_name_label_modulate(Color(1,1,1,lerpf(1, 0, animation_tree_parameters["sneak"]/1.2)))
+	
 	var detect_size = 60
 	if move_state == "run":
-		detect_size = 100
+		detect_size = 120
+	if is_sneaking:
+		detect_size = 28
 	var half_detect_size = detect_size/2
 	up_area_collision_shape.shape.size.x = detect_size
 	down_area_collision_shape.shape.size.x = detect_size
 	top_area_collision_shape.shape.size.x = detect_size
 	if turn_state > 0:
-		if up_area_collision_shape.position.x < 0:
+		if up_area_collision_shape.position.x < 0 or abs(up_area_collision_shape.position.x) != half_detect_size:
 			up_area_collision_shape.position.x = half_detect_size
-		if down_area_collision_shape.position.x < 0:
+		if down_area_collision_shape.position.x < 0 or abs(down_area_collision_shape.position.x) != half_detect_size:
 			down_area_collision_shape.position.x = half_detect_size
-		if top_area_collision_shape.position.x < 0:
+		if top_area_collision_shape.position.x < 0 or abs(top_area_collision_shape.position.x) != half_detect_size:
 			top_area_collision_shape.position.x = half_detect_size
+		if ground_area_collision_shape.position.x < 0:
+			ground_area_collision_shape.position.x = 6
 	else:
-		if up_area_collision_shape.position.x > 0:
+		if up_area_collision_shape.position.x > 0 or abs(up_area_collision_shape.position.x) != half_detect_size:
 			up_area_collision_shape.position.x = -half_detect_size
-		if down_area_collision_shape.position.x > 0:
+		if down_area_collision_shape.position.x > 0 or abs(down_area_collision_shape.position.x) != half_detect_size:
 			down_area_collision_shape.position.x = -half_detect_size
-		if top_area_collision_shape.position.x > 0:
+		if top_area_collision_shape.position.x > 0 or abs(top_area_collision_shape.position.x) != half_detect_size:
 			top_area_collision_shape.position.x = -half_detect_size
+		if ground_area_collision_shape.position.x > 0:
+			ground_area_collision_shape.position.x = -6
 	
 	if abs(turn_state-face_state) > 0.01:
 		update_player_face_rotation()
@@ -366,72 +399,77 @@ func update_local_attack_timer():
 		attack_timer -= get_process_delta_time()
 	elif attack_timer < 0:
 		attack_timer = 0
+	if sword_breaking_timer > 0:
+		sword_breaking_timer -= get_process_delta_time()
+	elif sword_breaking_timer < 0:
+		sword_breaking_timer = 0
 
 func update_local_velocity():
 	if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() != 1:
 		return
-	var delta = get_process_delta_time()
-	var mutiply_x = velocity.x * expected_velocity.x
-	if mutiply_x >= 0:
-		if abs(velocity.x) < abs(expected_velocity.x):
-			velocity.x = expected_velocity.x
-		elif expected_velocity.x == 0:
-			var diff = abs(velocity.x)
-			var max_diff = move_speed*delta*10
-			if abs(velocity.x) >= max_diff:
-				diff = max_diff
-			if velocity.x * diff > 0:
-				diff = -diff
-			velocity += Vector2(diff, 0)
-		elif abs(velocity.x) > abs(expected_velocity.x):
-			var diff = velocity.x - expected_velocity.x
-			var max_diff = 200*delta*20
-			if abs(diff) >= max_diff:
-				if diff < 0:
-					diff = -max_diff
-				else:
-					diff = max_diff
-			velocity += Vector2(-diff, 0)
-	elif mutiply_x < 0:
-		var diff = abs(velocity.x - expected_velocity.x)
-		var max_diff = expected_velocity.x*delta*20
-		if diff >= abs(max_diff):
-			diff = abs(max_diff)
-		if expected_velocity.x * diff < 0:
-			diff = -diff
-		velocity += Vector2(diff, 0)
-	
-	
-	if is_flying or is_on_ladder:
-		var mutiply_y = velocity.y * expected_velocity.y
-		if mutiply_y >= 0:
-			if abs(velocity.y) < abs(expected_velocity.y):
-				velocity.y = expected_velocity.y
-			elif expected_velocity.y == 0:
-				var diff = abs(velocity.y)
-				var max_diff = move_speed*delta*10
-				if abs(velocity.y) >= max_diff:
-					diff = max_diff
-				if velocity.y * diff > 0:
-					diff = -diff
-				velocity += Vector2(0, diff)
-			elif abs(velocity.y) > abs(expected_velocity.y):
-				var diff = velocity.y - expected_velocity.y
-				var max_diff = 200*delta*20
-				if abs(diff) >= max_diff:
-					if diff < 0:
-						diff = -max_diff
-					else:
-						diff = max_diff
-				velocity += Vector2(0, -diff)
-		elif mutiply_y < 0:
-			var diff = abs(velocity.y - expected_velocity.y)
-			var max_diff = expected_velocity.y*delta*20
-			if diff >= abs(max_diff):
-				diff = abs(max_diff)
-			if expected_velocity.y * diff < 0:
-				diff = -diff
-			velocity += Vector2(0, diff)
+	velocity = GameCalculator.calculate_velocity_by_data(get_process_delta_time(), velocity, expected_velocity, move_speed, is_flying, is_on_ladder)
+	#var delta = get_process_delta_time()
+	#var mutiply_x = velocity.x * expected_velocity.x
+	#if mutiply_x >= 0:
+		#if abs(velocity.x) < abs(expected_velocity.x):
+			#velocity.x = expected_velocity.x
+		#elif expected_velocity.x == 0:
+			#var diff = abs(velocity.x)
+			#var max_diff = move_speed*delta*10
+			#if abs(velocity.x) >= max_diff:
+				#diff = max_diff
+			#if velocity.x * diff > 0:
+				#diff = -diff
+			#velocity += Vector2(diff, 0)
+		#elif abs(velocity.x) > abs(expected_velocity.x):
+			#var diff = velocity.x - expected_velocity.x
+			#var max_diff = 200*delta*20
+			#if abs(diff) >= max_diff:
+				#if diff < 0:
+					#diff = -max_diff
+				#else:
+					#diff = max_diff
+			#velocity += Vector2(-diff, 0)
+	#elif mutiply_x < 0:
+		#var diff = abs(velocity.x - expected_velocity.x)
+		#var max_diff = expected_velocity.x*delta*20
+		#if diff >= abs(max_diff):
+			#diff = abs(max_diff)
+		#if expected_velocity.x * diff < 0:
+			#diff = -diff
+		#velocity += Vector2(diff, 0)
+	#
+	#
+	#if is_flying or is_on_ladder:
+		#var mutiply_y = velocity.y * expected_velocity.y
+		#if mutiply_y >= 0:
+			#if abs(velocity.y) < abs(expected_velocity.y):
+				#velocity.y = expected_velocity.y
+			#elif expected_velocity.y == 0:
+				#var diff = abs(velocity.y)
+				#var max_diff = move_speed*delta*10
+				#if abs(velocity.y) >= max_diff:
+					#diff = max_diff
+				#if velocity.y * diff > 0:
+					#diff = -diff
+				#velocity += Vector2(0, diff)
+			#elif abs(velocity.y) > abs(expected_velocity.y):
+				#var diff = velocity.y - expected_velocity.y
+				#var max_diff = 200*delta*20
+				#if abs(diff) >= max_diff:
+					#if diff < 0:
+						#diff = -max_diff
+					#else:
+						#diff = max_diff
+				#velocity += Vector2(0, -diff)
+		#elif mutiply_y < 0:
+			#var diff = abs(velocity.y - expected_velocity.y)
+			#var max_diff = expected_velocity.y*delta*20
+			#if diff >= abs(max_diff):
+				#diff = abs(max_diff)
+			#if expected_velocity.y * diff < 0:
+				#diff = -diff
+			#velocity += Vector2(0, diff)
 
 func update_local_set_block():
 	if not set_block_list.is_empty():
@@ -496,11 +534,12 @@ func update_local_move_by_data():
 				expected_velocity.y = jump_velocity * 0.7
 	elif not is_down_pressed and not is_flying and is_on_ladder:
 		expected_velocity.y = 0
-	if not is_top_area_colliding and is_down_area_colliding and not is_up_area_colliding:
-		if move_state != "idle":
-			if not is_flying and is_on_floor():
-				if velocity.y >= 0:
-					velocity.y += jump_velocity
+	if is_auto_jump:
+		if not is_top_area_colliding and is_down_area_colliding and not is_up_area_colliding:
+			if move_state != "idle":
+				if not is_flying and is_on_floor():
+					if velocity.y >= 0:
+						velocity.y += jump_velocity
 	if last_is_jump_pressed and not is_jump_pressed:
 		if is_flying:
 			expected_velocity.y = 0
@@ -522,10 +561,15 @@ func update_local_move_by_data():
 		else:
 			expected_velocity.x = face_state * move_speed * 2
 	elif move_state == "walk":
-		if is_in_water:
-			expected_velocity.x = face_state * move_speed * 0.5
+		var sneaking_factor = 1
+		if is_sneaking:
+			sneaking_factor = 0.3
+		if is_sneaking and not is_ground_area_colliding and is_on_floor():
+			expected_velocity.x = 0
+		elif is_in_water:
+			expected_velocity.x = face_state * move_speed * 0.5 * sneaking_factor
 		else:
-			expected_velocity.x = face_state * move_speed
+			expected_velocity.x = face_state * move_speed * sneaking_factor
 	elif move_state == "idle":
 		expected_velocity.x = 0
 	
@@ -546,6 +590,7 @@ func set_item_in_hand(got_item_name):
 		item_in_hand.get_node("Block").visible = false
 		if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id()==player_peer_id):
 			StaticLoad.game.inventory_player_model_item_in_hand.get_node("Item").visible = false
+			StaticLoad.game.inventory_player_model_item_in_hand.get_node("ItemTop").visible = false
 			StaticLoad.game.inventory_player_model_item_in_hand.get_node("Tool").visible = false
 			StaticLoad.game.inventory_player_model_item_in_hand.get_node("Block").visible = false
 	elif StaticLoad.get_item_model_type_by_name(got_item_name) == 1:
@@ -596,7 +641,7 @@ func set_item_in_hand(got_item_name):
 			item_in_hand.get_node("Block").visible = false
 			if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id()==player_peer_id):
 				StaticLoad.game.inventory_player_model_item_in_hand.get_node("Item").visible = true
-				StaticLoad.game.inventory_player_model_item_in_hand.get_node("Item").visible = false
+				StaticLoad.game.inventory_player_model_item_in_hand.get_node("ItemTop").visible = false
 				StaticLoad.game.inventory_player_model_item_in_hand.get_node("Tool").visible = false
 				StaticLoad.game.inventory_player_model_item_in_hand.get_node("Block").visible = false
 	elif StaticLoad.get_item_model_type_by_name(got_item_name) == 2:
@@ -616,7 +661,7 @@ func set_item_in_hand(got_item_name):
 		item_in_hand.get_node("Block").visible = false
 		if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id()==player_peer_id):
 			StaticLoad.game.inventory_player_model_item_in_hand.get_node("Item").visible = false
-			StaticLoad.game.inventory_player_model_item_in_hand.get_node("Item").visible = false
+			StaticLoad.game.inventory_player_model_item_in_hand.get_node("ItemTop").visible = false
 			StaticLoad.game.inventory_player_model_item_in_hand.get_node("Tool").visible = true
 			StaticLoad.game.inventory_player_model_item_in_hand.get_node("Block").visible = false
 	elif StaticLoad.get_item_model_type_by_name(got_item_name) == 3:
@@ -657,6 +702,7 @@ func update_local_item_in_hand():
 func update_state_dict():
 	state_dict["face_state"] = face_state
 	state_dict["move_state"] = move_state
+	state_dict["is_sneaking"] = is_sneaking
 	state_dict["is_flying"] = is_flying
 	state_dict["is_frozen"] = is_frozen
 	state_dict["render_chunk"] = render_chunk
@@ -776,6 +822,8 @@ func update_player_face_rotation():
 	player_model.rotation_degrees = looking_at
 
 func get_damage(args):
+	if is_dead:
+		return
 	var damage = args[0]
 	var side = args[1]
 	if side == "left":
@@ -952,6 +1000,11 @@ func wear_and_update_in_hand_tool(damage):
 		breaking_tool = item_bar_names[selected_item_grid]
 		item_bar_names[selected_item_grid] = "AIR"
 		item_bar_amounts[selected_item_grid] = 0
+		if breaking_tool.contains("SWORD"):
+			if breaking_tool.contains("GOLD"):
+				sword_breaking_timer = 0.5
+			else:
+				sword_breaking_timer = 1
 			
 	if selected_item_grid < 9:
 		StaticLoad.game.refresh_item_grid(selected_item_grid)
@@ -1162,7 +1215,7 @@ func drop_item(item_name, item_amount):
 	if item_name == "AIR":
 		return
 	var x_velocity = face_state*dropped_item_speed
-	var summon_item_args = [item_name, position-Vector2(0,55), item_amount, x_velocity, dropped_item_no_collect_time, UUID.v4()]
+	var summon_item_args = [item_name, position-Vector2(0,30), item_amount, x_velocity, dropped_item_no_collect_time, UUID.v4()]
 	if StaticLoad.is_muti_mode:
 		if StaticLoad.multiplayer.get_unique_id() == 1:
 			summon_item(summon_item_args)
@@ -1372,6 +1425,9 @@ func get_entity_name():
 func get_chunk_pos():
 	return chunk_pos
 
+func get_health():
+	return health
+
 func get_is_dead():
 	return is_dead
 
@@ -1384,6 +1440,7 @@ func _on_up_area_body_exited(body: Node2D) -> void:
 	if body.name != "TileMapLayer":
 		return
 	is_up_area_colliding = false
+	up_area_colliding_false.emit()
 
 func _on_down_area_body_entered(body: Node2D) -> void:
 	if body.name != "TileMapLayer":
@@ -1425,3 +1482,33 @@ func _on_attack_area_body_entered(body: Node2D) -> void:
 			body.get_damage([damage, side])
 			attacking_list.append(body)
 			check_wear_sword()
+		else:
+			await up_area_colliding_false
+			if attacking_decline_timer > 0:
+				var damage = attacking_damage
+				if not body.has_method("get_uuid"):
+					return
+				if body.get_uuid() == null:
+					return
+				if body.get_uuid() == uuid or body.get_entity_type() == "item":
+					return
+				if body.get_is_dead():
+					return
+				if attacking_list.has(body):
+					return
+				var side = "left"
+				if face_state < 0:
+					side = "right"
+				body.get_damage([damage, side])
+				attacking_list.append(body)
+				check_wear_sword()
+			
+func _on_ground_area_body_entered(body: Node2D) -> void:
+	if body.name != "TileMapLayer":
+		return
+	is_ground_area_colliding = true
+
+func _on_ground_area_body_exited(body: Node2D) -> void:
+	if body.name != "TileMapLayer":
+		return
+	is_ground_area_colliding = false

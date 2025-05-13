@@ -14,7 +14,10 @@ extends Node
 @onready var mini_map_option_bar = $ColorRect/ScrollContainer/VBoxContainer/MiniMap/OptionButton
 @onready var mini_map_zoom_label = $ColorRect/ScrollContainer/VBoxContainer/MiniMapZoom/HScrollBar/Label
 @onready var mini_map_zoom_scroll_bar = $ColorRect/ScrollContainer/VBoxContainer/MiniMapZoom/HScrollBar
-
+@onready var auto_jump_option_bar = $ColorRect/ScrollContainer/VBoxContainer/AutoJump/OptionButton
+@onready var particle_effect_option_bar = $ColorRect/ScrollContainer/VBoxContainer/ParticleEffect/OptionButton
+@onready var v_sync_option_bar = $ColorRect/ScrollContainer/VBoxContainer/VSync/OptionButton
+@onready var full_screen_option_bar = $ColorRect/ScrollContainer/VBoxContainer/FullScreen/OptionButton
 
 func _ready() -> void:
 	load_options()
@@ -38,6 +41,13 @@ func _on_options_button_1_pressed() -> void:
 	if player_name_line_edit.text.contains(" "):
 		StaticLoad.pop_notification(self, "WARNING", "WARNING_10")
 		return
+	var stored_full_screen = StaticLoad.options["full_screen"]
+	var stored_v_sync = StaticLoad.options["v_sync"]
+	var config = ConfigFile.new()
+	var result = config.load("user://configs.cfg")
+	if result == OK:
+		stored_full_screen = config.get_value("options", "full_screen", StaticLoad.options["full_screen"])
+		stored_v_sync = config.get_value("options", "v_sync", StaticLoad.options["v_sync"])
 	var change_value = {
 		"player_name": str(player_name_line_edit.text),
 		"render_chunk": str(render_chunk_scroll_bar.value),
@@ -45,11 +55,25 @@ func _on_options_button_1_pressed() -> void:
 		"bgm_volume": str(bgm_volume_scroll_bar.value),
 		"sound_volume": str(sound_volume_scroll_bar.value),
 		"block_selection_box": StaticLoad.block_selection_box_dictionary[block_selection_box_option_bar.selected],
-		"mini_map": StaticLoad.get_on_or_off_by_selection(mini_map_option_bar.selected, "on"),
+		"mini_map": StaticLoad.get_on_or_off_by_selection(mini_map_option_bar.selected, StaticLoad.options["mini_map"]),
+		"auto_jump": StaticLoad.get_on_or_off_by_selection(auto_jump_option_bar.selected, StaticLoad.options["auto_jump"]),
+		"particle_effect": StaticLoad.get_on_or_off_by_selection(particle_effect_option_bar.selected, StaticLoad.options["particle_effect"]),
+		"v_sync": StaticLoad.get_on_or_off_by_selection(v_sync_option_bar.selected, StaticLoad.options["v_sync"]),
+		"full_screen": StaticLoad.get_on_or_off_by_selection(full_screen_option_bar.selected, StaticLoad.options["full_screen"]),
 		"mini_map_zoom": str(mini_map_zoom_scroll_bar.value)
 	}
 	StaticLoad.save_options(change_value)
 	StaticLoad.click_audio_player.volume_db = linear_to_db(int(change_value["sound_volume"])/50.0)
+	if stored_full_screen != change_value["full_screen"]:
+		if change_value["full_screen"] == "on":
+			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+		else:
+			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+	if stored_v_sync != change_value["v_sync"]:
+		if change_value["v_sync"] == "on":
+			DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_ENABLED)
+		else:
+			DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
 	if StaticLoad.is_in_game:
 		var game = $".."
 		game.player.render_chunk = int(change_value["render_chunk"])
@@ -59,6 +83,17 @@ func _on_options_button_1_pressed() -> void:
 		game.sound_audio_manager.volume_db = linear_to_db(int(change_value["sound_volume"])/50.0)
 		game.block_selection_box = StaticLoad.block_selection_box_dictionary[block_selection_box_option_bar.selected]
 		game.mini_map_on = StaticLoad.get_on_or_off_by_selection(mini_map_option_bar.selected, "on")
+		var auto_jump_on = StaticLoad.get_on_or_off_by_selection(auto_jump_option_bar.selected, "on")
+		if auto_jump_on == "on":
+			game.player.is_auto_jump = true
+		elif auto_jump_on == "off":
+			game.player.is_auto_jump = false
+		var particle_effect_on = StaticLoad.get_on_or_off_by_selection(particle_effect_option_bar.selected, "on")
+		if particle_effect_on == "on":
+			game.is_particle_effect_on = true
+		elif particle_effect_on == "off":
+			game.is_particle_effect_on = false
+			game.clear_particles()
 		game.mini_map_zoom = str(mini_map_zoom_scroll_bar.value)
 		var mini_map_zoom_tmp = game.mini_map_zoom/100
 		game.mini_map_camera.zoom = Vector2(mini_map_zoom_tmp, mini_map_zoom_tmp)
@@ -111,7 +146,11 @@ func load_options():
 		sound_volume_label.text = config.get_value("options", "sound_volume")+"%"
 		sound_volume_scroll_bar.value = int(config.get_value("options", "sound_volume"))
 		block_selection_box_option_bar.selected = StaticLoad.block_selection_box_dictionary.find_key(config.get_value("options", "block_selection_box"))
-		mini_map_option_bar.selected = StaticLoad.get_selection_by_on_or_off(config.get_value("options", "mini_map"), "on")
+		mini_map_option_bar.selected = StaticLoad.get_selection_by_on_or_off(config.get_value("options", "mini_map"), StaticLoad.options["mini_map"])
+		auto_jump_option_bar.selected = StaticLoad.get_selection_by_on_or_off(config.get_value("options", "auto_jump"), StaticLoad.options["auto_jump"])
+		particle_effect_option_bar.selected = StaticLoad.get_selection_by_on_or_off(config.get_value("options", "particle_effect"), StaticLoad.options["particle_effect"])
+		v_sync_option_bar.selected = StaticLoad.get_selection_by_on_or_off(config.get_value("options", "v_sync"), StaticLoad.options["v_sync"])
+		full_screen_option_bar.selected = StaticLoad.get_selection_by_on_or_off(config.get_value("options", "full_screen"), StaticLoad.options["full_screen"])
 		mini_map_zoom_label.text = config.get_value("options", "mini_map_zoom")+"%"
 		mini_map_zoom_scroll_bar.value = int(config.get_value("options", "mini_map_zoom"))
 

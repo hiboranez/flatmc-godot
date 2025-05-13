@@ -1,4 +1,4 @@
-[gd_scene load_steps=110 format=4 uid="uid://2hv5eany3vpf"]
+[gd_scene load_steps=118 format=4 uid="uid://2hv5eany3vpf"]
 
 [ext_resource type="Script" path="res://Assets/Scripts/Game.gd" id="1_ctu8j"]
 [ext_resource type="Script" path="res://Assets/Scripts/BgmAudioPlayer.gd" id="2_gyse0"]
@@ -1726,6 +1726,30 @@ content_margin_left = 30.0
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_cfs5x"]
 content_margin_left = 30.0
 
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_px3yf"]
+content_margin_left = 30.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_jsfme"]
+content_margin_left = 30.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_d5dkx"]
+content_margin_left = 30.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_8ilgk"]
+content_margin_left = 30.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_wh11l"]
+content_margin_left = 30.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_sy2dc"]
+content_margin_left = 30.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_sr32r"]
+content_margin_left = 30.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_hir2s"]
+content_margin_left = 30.0
+
 [node name="Game" type="Node2D"]
 script = ExtResource("1_ctu8j")
 metadata/_edit_horizontal_guides_ = [-10.0]
@@ -1760,7 +1784,7 @@ tile_set = ExtResource("3_fa3r6")
 
 [node name="Items" type="Node2D" parent="."]
 
-[node name="Entities" type="Node2D" parent="."]
+[node name="Mobs" type="Node2D" parent="."]
 
 [node name="Players" type="Node2D" parent="."]
 
@@ -2309,6 +2333,7 @@ offset_top = -549.0
 offset_right = 522.0
 offset_bottom = -181.0
 grow_vertical = 0
+mouse_filter = 2
 theme_override_constants/v_separation = 30
 alignment = 1
 
@@ -2333,7 +2358,7 @@ offset_right = 7.0
 offset_bottom = 8.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 1
+mouse_filter = 2
 color = Color(0, 0, 0, 0.509804)
 
 [node name="SelectedPosition" type="Label" parent="GameUI/Details"]
@@ -2356,7 +2381,7 @@ offset_right = 7.0
 offset_bottom = 8.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 1
+mouse_filter = 2
 color = Color(0, 0, 0, 0.509804)
 
 [node name="Position" type="Label" parent="GameUI/Details"]
@@ -2379,7 +2404,7 @@ offset_right = 7.0
 offset_bottom = 8.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 1
+mouse_filter = 2
 color = Color(0, 0, 0, 0.509804)
 
 [node name="Chunk" type="Label" parent="GameUI/Details"]
@@ -2402,7 +2427,7 @@ offset_right = 7.0
 offset_bottom = 8.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 1
+mouse_filter = 2
 color = Color(0, 0, 0, 0.509804)
 
 [node name="Fps" type="Label" parent="GameUI/Details"]
@@ -2425,7 +2450,7 @@ offset_right = 7.0
 offset_bottom = 8.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 1
+mouse_filter = 2
 color = Color(0, 0, 0, 0.509804)
 
 [node name="ChatHistory" type="ScrollContainer" parent="GameUI"]
@@ -4972,6 +4997,182 @@ theme_override_font_sizes/font_size = 40
 text = "50%"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="AutoJump" type="HSplitContainer" parent="Options/ColorRect/ScrollContainer/VBoxContainer"]
+z_index = 1
+layout_mode = 2
+collapsed = true
+
+[node name="Title" type="Label" parent="Options/ColorRect/ScrollContainer/VBoxContainer/AutoJump"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_fonts/font = ExtResource("4_nsj5b")
+theme_override_font_sizes/font_size = 40
+text = "AUTO_JUMP"
+
+[node name="OptionButton" type="OptionButton" parent="Options/ColorRect/ScrollContainer/VBoxContainer/AutoJump"]
+custom_minimum_size = Vector2(0, 70)
+layout_mode = 2
+size_flags_horizontal = 3
+theme = ExtResource("31_nincb")
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_constants/h_separation = 10
+theme_override_fonts/font = ExtResource("4_nsj5b")
+theme_override_font_sizes/font_size = 40
+theme_override_styles/focus = SubResource("StyleBoxEmpty_px3yf")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_jsfme")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_d5dkx")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_8ilgk")
+theme_override_constants/arrow_margin = 30
+flat = true
+selected = 0
+item_count = 2
+popup/item_0/text = "ON"
+popup/item_1/text = "OFF"
+popup/item_1/id = 1
+
+[node name="TextureRect" type="TextureRect" parent="Options/ColorRect/ScrollContainer/VBoxContainer/AutoJump/OptionButton"]
+z_index = -1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("31_nincb")
+texture = ExtResource("16_pttjf")
+
+[node name="ParticleEffect" type="HSplitContainer" parent="Options/ColorRect/ScrollContainer/VBoxContainer"]
+z_index = 1
+layout_mode = 2
+collapsed = true
+
+[node name="Title" type="Label" parent="Options/ColorRect/ScrollContainer/VBoxContainer/ParticleEffect"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_fonts/font = ExtResource("4_nsj5b")
+theme_override_font_sizes/font_size = 40
+text = "PARTICLE_EFFECT"
+
+[node name="OptionButton" type="OptionButton" parent="Options/ColorRect/ScrollContainer/VBoxContainer/ParticleEffect"]
+custom_minimum_size = Vector2(0, 70)
+layout_mode = 2
+size_flags_horizontal = 3
+theme = ExtResource("31_nincb")
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_constants/h_separation = 10
+theme_override_fonts/font = ExtResource("4_nsj5b")
+theme_override_font_sizes/font_size = 40
+theme_override_styles/focus = SubResource("StyleBoxEmpty_wh11l")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_sy2dc")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_sr32r")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_hir2s")
+theme_override_constants/arrow_margin = 30
+flat = true
+selected = 0
+item_count = 2
+popup/item_0/text = "ON"
+popup/item_1/text = "OFF"
+popup/item_1/id = 1
+
+[node name="TextureRect" type="TextureRect" parent="Options/ColorRect/ScrollContainer/VBoxContainer/ParticleEffect/OptionButton"]
+z_index = -1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("31_nincb")
+texture = ExtResource("16_pttjf")
+
+[node name="VSync" type="HSplitContainer" parent="Options/ColorRect/ScrollContainer/VBoxContainer"]
+z_index = 1
+layout_mode = 2
+collapsed = true
+
+[node name="Title" type="Label" parent="Options/ColorRect/ScrollContainer/VBoxContainer/VSync"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_fonts/font = ExtResource("4_nsj5b")
+theme_override_font_sizes/font_size = 40
+text = "V_SYNC"
+
+[node name="OptionButton" type="OptionButton" parent="Options/ColorRect/ScrollContainer/VBoxContainer/VSync"]
+custom_minimum_size = Vector2(0, 70)
+layout_mode = 2
+size_flags_horizontal = 3
+theme = ExtResource("31_nincb")
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_constants/h_separation = 10
+theme_override_fonts/font = ExtResource("4_nsj5b")
+theme_override_font_sizes/font_size = 40
+theme_override_styles/focus = SubResource("StyleBoxEmpty_px3yf")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_jsfme")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_d5dkx")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_8ilgk")
+theme_override_constants/arrow_margin = 30
+flat = true
+selected = 0
+item_count = 2
+popup/item_0/text = "ON"
+popup/item_1/text = "OFF"
+popup/item_1/id = 1
+
+[node name="TextureRect" type="TextureRect" parent="Options/ColorRect/ScrollContainer/VBoxContainer/VSync/OptionButton"]
+z_index = -1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("31_nincb")
+texture = ExtResource("16_pttjf")
+
+[node name="FullScreen" type="HSplitContainer" parent="Options/ColorRect/ScrollContainer/VBoxContainer"]
+z_index = 1
+layout_mode = 2
+collapsed = true
+
+[node name="Title" type="Label" parent="Options/ColorRect/ScrollContainer/VBoxContainer/FullScreen"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_fonts/font = ExtResource("4_nsj5b")
+theme_override_font_sizes/font_size = 40
+text = "FULL_SCREEN"
+
+[node name="OptionButton" type="OptionButton" parent="Options/ColorRect/ScrollContainer/VBoxContainer/FullScreen"]
+custom_minimum_size = Vector2(0, 70)
+layout_mode = 2
+size_flags_horizontal = 3
+theme = ExtResource("31_nincb")
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_constants/h_separation = 10
+theme_override_fonts/font = ExtResource("4_nsj5b")
+theme_override_font_sizes/font_size = 40
+theme_override_styles/focus = SubResource("StyleBoxEmpty_px3yf")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_jsfme")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_d5dkx")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_8ilgk")
+theme_override_constants/arrow_margin = 30
+flat = true
+selected = 1
+item_count = 2
+popup/item_0/text = "ON"
+popup/item_1/text = "OFF"
+popup/item_1/id = 1
+
+[node name="TextureRect" type="TextureRect" parent="Options/ColorRect/ScrollContainer/VBoxContainer/FullScreen/OptionButton"]
+z_index = -1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("31_nincb")
+texture = ExtResource("16_pttjf")
 
 [node name="BlockSelectionBox" type="HSplitContainer" parent="Options/ColorRect/ScrollContainer/VBoxContainer"]
 z_index = 1

@@ -12,9 +12,11 @@ var uuid = UUID.v4()
 var entity_type = "item"
 var item_name = "AIR"
 var chunk_pos = Vector2i(0, 0)
+var health: int = 20
 var is_dead = false
 
 # 子类变量
+var expected_velocity = Vector2i(0, 0)
 var item_model_type = "block"
 var item_amount = 1
 var attract_target = null
@@ -77,17 +79,19 @@ func update_local_air_resistance():
 		return
 	if abs(velocity.x) < 0.1:
 		return
-	var delta = get_process_delta_time()
-	if velocity.x > 0:
-		if velocity.x < StaticLoad.AIR_RESISTANCE*delta:
-			velocity.x = 0
-		else:
-			velocity.x -= StaticLoad.AIR_RESISTANCE*delta
-	else:
-		if velocity.x + StaticLoad.AIR_RESISTANCE*delta > 0:
-			velocity.x = 0
-		else:
-			velocity.x += StaticLoad.AIR_RESISTANCE*delta
+	var move_speed = StaticLoad.AIR_RESISTANCE/10.0
+	velocity = GameCalculator.calculate_velocity_by_data(get_process_delta_time(), velocity, expected_velocity, move_speed, false, false)
+	#var delta = get_process_delta_time()
+	#if velocity.x > 0:
+		#if velocity.x < StaticLoad.AIR_RESISTANCE*delta:
+			#velocity.x = 0
+		#else:
+			#velocity.x -= StaticLoad.AIR_RESISTANCE*delta
+	#else:
+		#if velocity.x + StaticLoad.AIR_RESISTANCE*delta > 0:
+			#velocity.x = 0
+		#else:
+			#velocity.x += StaticLoad.AIR_RESISTANCE*delta
 
 func update_local_no_collect_timer():
 	if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id()!=1:
@@ -158,6 +162,9 @@ func get_entity_name():
 
 func get_chunk_pos():
 	return chunk_pos
+
+func get_health():
+	return health
 
 func get_is_dead():
 	return is_dead

@@ -215,6 +215,10 @@ switch_layer={
 
 locale/translations=PackedStringArray("res://language.en.translation", "res://language.zh.translation")
 
+[memory]
+
+limits/message_queue/max_size_mb=64
+
 [physics]
 
 2d/default_gravity=2750.0
