@@ -159,7 +159,7 @@ var nearby_update_double_dict = {}
 
 func _notification(what):
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
-		if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() != 1:
+		if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
 			return
 		save_world()
 		save_player()
@@ -306,7 +306,7 @@ func update_hotbar_attack_indicator():
 		attack_indicator_progress.material.set_shader_parameter("progress", 1-player.attack_timer)
 
 func update_nature_growth():
-	if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == 1):
+	if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1):
 		for chunk_name in loaded_chunks:
 			var chunk = loaded_chunks[chunk_name]
 			var splits = chunk_name.split(".")
@@ -323,7 +323,7 @@ func update_nature_growth():
 				if num > 0.7:
 					chunk.dirt_list.erase(dirt_pos)
 					set_block(dirt_block_pos, StaticLoad.get_block_id_by_name("GRASS_BLOCK"), "solid", true)
-					if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == 1:
+					if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1:
 						StaticLoad.rpc("set_block", [dirt_block_pos, StaticLoad.get_block_id_by_name("GRASS_BLOCK"), "solid"])
 			for grass_pos in chunk.grass_block_list.duplicate():
 				var up_block_pos = Vector2i(int(splits[0])*16,int(splits[1])*16-1)+grass_pos
@@ -336,7 +336,7 @@ func update_nature_growth():
 				if num > 0.7:
 					chunk.grass_block_list.erase(grass_pos)
 					set_block(grass_block_pos, StaticLoad.get_block_id_by_name("DIRT"), "solid", true)
-					if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == 1:
+					if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1:
 						StaticLoad.rpc("set_block", [grass_block_pos, StaticLoad.get_block_id_by_name("DIRT"), "solid"])
 			for farm_land_pos in chunk.farm_land_list.duplicate():
 				var up_block_pos = Vector2i(int(splits[0])*16,int(splits[1])*16-1)+farm_land_pos
@@ -349,7 +349,7 @@ func update_nature_growth():
 				if num > 0.7:
 					chunk.farm_land_list.erase(farm_land_pos)
 					set_block(farm_land_block_pos, StaticLoad.get_block_id_by_name("DIRT"), "solid", true)
-					if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == 1:
+					if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1:
 						StaticLoad.rpc("set_block", [farm_land_block_pos, StaticLoad.get_block_id_by_name("DIRT"), "solid"])
 			for leaves_pos in chunk.leaves_list.duplicate():
 				var rng = RandomNumberGenerator.new()
@@ -380,7 +380,7 @@ func update_nature_growth():
 						set_block(seed_block_pos, StaticLoad.get_block_id_by_name(next_stage_name), "solid", true)
 						if next_stage_num == 7:
 							chunk.seed_list.erase(seed_pos)
-						if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == 1:
+						if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1:
 							StaticLoad.rpc("set_block", [seed_block_pos, StaticLoad.get_block_id_by_name(next_stage_name), "solid"])
 					else:
 						chunk.seed_list.erase(seed_pos)
@@ -415,11 +415,11 @@ func update_nature_growth():
 					for i in range(3):
 						var to_set_block_pos = Vector2i(int(splits[0])*16,int(splits[1])*16)+sapling_pos+Vector2i(0,-i)
 						set_block(to_set_block_pos, StaticLoad.get_block_id_by_name("LOG_OAK"), "no_reach", true)
-						if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == 1:
+						if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1:
 							StaticLoad.rpc("set_block", [to_set_block_pos, StaticLoad.get_block_id_by_name("LOG_OAK"), "no_reach"])
 						if i == 0:
 							set_block(to_set_block_pos, StaticLoad.get_block_id_by_name("AIR"), "solid", true)
-							if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == 1:
+							if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1:
 								StaticLoad.rpc("set_block", [to_set_block_pos, StaticLoad.get_block_id_by_name("AIR"), "solid"])
 					for j in range(-2,3):
 						var to_set_block_pos = Vector2i(int(splits[0])*16,int(splits[1])*16)+sapling_pos+Vector2i(j,-3)
@@ -427,7 +427,7 @@ func update_nature_growth():
 						if no_reach_block_id == StaticLoad.get_block_id_by_name("LOG_OAK"):
 							continue
 						set_block(to_set_block_pos, StaticLoad.get_block_id_by_name("LEAVES"), "no_reach", true)
-						if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == 1:
+						if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1:
 							StaticLoad.rpc("set_block", [to_set_block_pos, StaticLoad.get_block_id_by_name("LEAVES"), "no_reach"])
 					for j in range(-1,2):
 						var to_set_block_pos = Vector2i(int(splits[0])*16,int(splits[1])*16)+sapling_pos+Vector2i(j,-4)
@@ -435,7 +435,7 @@ func update_nature_growth():
 						if no_reach_block_id == StaticLoad.get_block_id_by_name("LOG_OAK"):
 							continue
 						set_block(to_set_block_pos, StaticLoad.get_block_id_by_name("LEAVES"), "no_reach", true)
-						if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == 1:
+						if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1:
 							StaticLoad.rpc("set_block", [to_set_block_pos, StaticLoad.get_block_id_by_name("LEAVES"), "no_reach"])
 					var chunk_pos = get_chunk_position(Vector2i(int(splits[0])*16,int(splits[1])*16)+sapling_pos)
 					await get_tree().process_frame
@@ -463,7 +463,7 @@ func update_nature_growth():
 						if no_reach_block_id != 0:
 							break
 						set_block(to_set_block_pos, StaticLoad.get_block_id_by_name("REEDS"), "solid", true)
-						if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == 1:
+						if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1:
 							StaticLoad.rpc("set_block", [to_set_block_pos, StaticLoad.get_block_id_by_name("REEDS"), "solid"])
 
 func check_has_nearby_grass_block(block_pos):
@@ -580,7 +580,7 @@ func process_set_block():
 				if entity.get_entity_type() == "player":
 					in_hand_item_name = entity.in_hand_item_name
 					if StaticLoad.tools_type.has(in_hand_item_name):
-						if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == 1) or (StaticLoad.is_muti_mode and uuid == player.get_uuid()):
+						if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1) or (StaticLoad.is_muti_mode and uuid == player.get_uuid()):
 							var is_to_wear = true
 							var to_destroy_block_name = StaticLoad.get_block_name_by_id(block_to_destroy_id)
 							if entity.gamemode == "creative":
@@ -593,7 +593,7 @@ func process_set_block():
 								entity.wear_and_update_in_hand_tool(1)
 									
 			var droppped_item_list = StaticLoad.get_dropped_item_by_name("block", StaticLoad.get_block_name_by_id(block_to_destroy_id), in_hand_item_name)
-			if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == 1):
+			if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1):
 				if uuid != "destroy":
 					#if not nearby_update_dict.has(set_block_pos):
 						#nearby_update_dict[set_block_pos] = "before"
@@ -606,7 +606,7 @@ func process_set_block():
 					if entity.get_entity_type() == "player" and entity.gamemode != "creative":
 						summon_destroy_particle(tile_map_layer.map_to_local(set_block_pos), "block", StaticLoad.get_block_name_by_id(block_to_destroy_id))
 				update_chunk_light_by_pos(chunk_pos)
-				if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == 1):
+				if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1):
 					if uuid != "destroy":
 						#if not nearby_update_dict.has(set_block_pos):
 							#nearby_update_dict[set_block_pos] = "after"
@@ -624,7 +624,7 @@ func process_set_block():
 							var item_pos = tile_map_layer.map_to_local(set_block_pos)+Vector2(0, 25)
 							var summon_item_args = ["item", droppped_item_name, item_pos, droppped_item_list[droppped_item_name], 0, 0, UUID.v4()]
 							if StaticLoad.is_muti_mode:
-								if StaticLoad.multiplayer.get_unique_id() == 1:
+								if multiplayer.get_unique_id() == 1:
 									StaticLoad.create_entity(summon_item_args)
 									StaticLoad.rpc("create_entity", summon_item_args)
 									StaticLoad.rpc("set_block", [set_block_pos, 0, set_block_layer])
@@ -637,7 +637,7 @@ func process_set_block():
 							entity.face_state = 1
 						elif entity.face_state > 0 and tile_map_layer.local_to_map(entity.position).x > set_block_pos.x:
 							entity.face_state = -1
-						if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == entity.player_peer_id):
+						if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == entity.player_peer_id):
 							set_block_selection_pos(tile_map_layer.map_to_local(set_block_pos), true)
 						if set_block_id == 0 and entity.gamemode != "creative":
 							for droppped_item_name in droppped_item_list:
@@ -645,7 +645,7 @@ func process_set_block():
 									var item_pos = tile_map_layer.map_to_local(set_block_pos)+Vector2(0, 25)
 									var summon_item_args = [droppped_item_name, item_pos, droppped_item_list[droppped_item_name], 0, 0, UUID.v4()]
 									if StaticLoad.is_muti_mode:
-										if StaticLoad.multiplayer.get_unique_id() == 1:
+										if multiplayer.get_unique_id() == 1:
 											entity.summon_item(summon_item_args)
 											StaticLoad.rpc_entity_func_by_uuid(entity.get_uuid(), "summon_item", summon_item_args, "others", true)
 									else:
@@ -665,13 +665,13 @@ func process_set_block():
 									item_name_timer = 0
 								refresh_item_grid(entity.selected_item_grid)
 								inventory_show_grids.get_node("InventoryGrid"+str(entity.selected_item_grid)).init_inventory_grid(entity.item_bar_names[entity.selected_item_grid], entity.item_bar_amounts[entity.selected_item_grid])
-						if is_to_sync and StaticLoad.multiplayer.get_unique_id() != 1:
-							if StaticLoad.multiplayer.get_unique_id() == entity.player_peer_id:
+						if is_to_sync and multiplayer.get_unique_id() != 1:
+							if multiplayer.get_unique_id() == entity.player_peer_id:
 								var player_set_block_info = [set_block_id, set_block_pos, set_block_layer]
 								entity.success_set_block_list.append(player_set_block_info)
 
 func process_entity_save():
-	if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() != 1:
+	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
 		return
 	for uuid in entities:
 		var entity = entities[uuid]
@@ -693,7 +693,7 @@ func process_entity_save():
 func dispatch_set_block_state_dict():
 	if not StaticLoad.is_muti_mode:
 		return
-	if not StaticLoad.multiplayer.get_unique_id() == 1:
+	if not multiplayer.get_unique_id() == 1:
 		return
 	for pos_string in success_set_block_dict:
 		var set_time = success_set_block_dict[pos_string][0]
@@ -834,13 +834,13 @@ func process_item():
 			var item2_uuid = item_to_combine[item1_uuid]
 			item1.combine_item(item2_uuid)
 			item_to_combine.erase(item1_uuid)
-			if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == 1:
+			if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1:
 				StaticLoad.rpc_entity_func_by_uuid(item1.get_uuid(), "combine_item", item2_uuid, "others", true)
 
 func dispatch_all_entity_state_dict():
 	if not StaticLoad.is_muti_mode:
 		return
-	if not StaticLoad.multiplayer.get_unique_id() == 1:
+	if not multiplayer.get_unique_id() == 1:
 		return
 	for peer_id in StaticLoad.player_peer_dict:
 		var player_tmp = StaticLoad.player_peer_dict[peer_id]
@@ -880,25 +880,25 @@ func open_online_info_ui():
 	online_ui.visible = true
 	for peer_id in StaticLoad.player_peer_dict:
 		if online_ui_vbox_container.has_node(str(peer_id)):
-			if peer_id == 1 and StaticLoad.multiplayer.get_unique_id() == 1:
+			if peer_id == 1 and multiplayer.get_unique_id() == 1:
 				continue
-			elif StaticLoad.multiplayer.get_unique_id() == 1:
+			elif multiplayer.get_unique_id() == 1:
 				StaticLoad.ping_peer_dict[peer_id].start_ping()
 				continue
-			StaticLoad.rpc_id(1, "request_for_ping", StaticLoad.multiplayer.get_unique_id(), peer_id)
+			StaticLoad.rpc_id(1, "request_for_ping", multiplayer.get_unique_id(), peer_id)
 			continue
 		var player_tmp = StaticLoad.player_peer_dict[peer_id]
 		var online_info_instance = online_info_scene.instantiate()
 		online_ui_vbox_container.add_child(online_info_instance)
 		online_info_instance.name = str(peer_id)
 		online_info_instance.player_name.text = player_tmp.player_name
-		if peer_id == 1 and StaticLoad.multiplayer.get_unique_id() == 1:
+		if peer_id == 1 and multiplayer.get_unique_id() == 1:
 			online_info_instance.animation.animation = "signal"
 			online_info_instance.animation.frame = StaticLoad.get_level_by_ping(0)
-		elif StaticLoad.multiplayer.get_unique_id() == 1:
+		elif multiplayer.get_unique_id() == 1:
 			StaticLoad.ping_peer_dict[peer_id].start_ping()
 		else:
-			StaticLoad.rpc_id(1, "request_for_ping", StaticLoad.multiplayer.get_unique_id(), peer_id)
+			StaticLoad.rpc_id(1, "request_for_ping", multiplayer.get_unique_id(), peer_id)
 
 func screenshot():
 	await RenderingServer.frame_post_draw
@@ -1410,7 +1410,7 @@ func update_destroy_ui():
 			continue
 		var destroy_sort = int((destroy_timer_tmp/destroy_total_time)*8)+1
 		#if player_tmp.destroy_timer != destroy_timer_tmp:
-			#if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == player_tmp.player_peer_id:
+			#if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == player_tmp.player_peer_id:
 				#var state_tmp = {"destroy_timer" : player_tmp.state_dict["destroy_timer"]}
 				#if player_tmp.player_peer_id == 1:
 					#StaticLoad.rpc_entity_func_by_uuid(player_tmp.get_uuid(), "apply_changed_state_dict", state_tmp, "others", true)
@@ -1422,7 +1422,7 @@ func update_destroy_ui():
 			player_tmp.is_punching = true
 		if destroy_sort >= 9:
 			player_tmp.destroy_block(player_selected_block_pos)
-			if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == player_tmp.player_peer_id:
+			if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == player_tmp.player_peer_id:
 				player_tmp.state_dict["destroy_timer"] = 0
 			continue
 		elif not destroy_light_names.has(peer_id) or destroy_sort != destroy_light_names[peer_id].sort:
@@ -1505,7 +1505,7 @@ func grab_item(block_pos):
 	
 func remove_outdated_chunks():
 	is_chunk_modifing = true
-	if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() != 1:
+	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
 		var player_block_pos = tile_map_layer.local_to_map(player.position)
 		var chunk_pos_tmp = get_chunk_position(player_block_pos)
 		var x_player_chunk = chunk_pos_tmp[0]
@@ -1532,7 +1532,7 @@ func remove_outdated_chunks():
 	for timer in to_removed_timers:
 		var splits = timer.split(".")
 		var chunk_pos = Vector2i(int(splits[0]), int(splits[1]))
-		if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == 1):
+		if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1):
 			save_chunk(chunk_pos)
 		free_chunk(chunk_pos)
 		loaded_chunks.erase(timer)
@@ -1697,8 +1697,8 @@ func create_chunk_entities(chunk_name, chunk_config):
 func init_game_as_client():
 	StaticLoad.select_world = "new world"
 	StaticLoad.update_select_world_path()
-	StaticLoad.rpc_id(1, "request_for_player_info", StaticLoad.multiplayer.get_unique_id(), player.player_name)
-	StaticLoad.rpc_id(1, "request_for_update_player_inventory", StaticLoad.multiplayer.get_unique_id(), player.player_name)
+	StaticLoad.rpc_id(1, "request_for_player_info", multiplayer.get_unique_id(), player.player_name)
+	StaticLoad.rpc_id(1, "request_for_update_player_inventory", multiplayer.get_unique_id(), player.player_name)
 	while not is_player_info_updated:
 		await get_tree().create_timer(1).timeout
 	var config = ConfigFile.new()
@@ -1741,7 +1741,7 @@ func init_game_as_client():
 	total_chunk_num = loading_chunk_total_sum
 	for x in range(x_player_chunk-player.render_chunk, x_player_chunk+player.render_chunk+1):
 		for y in range(y_player_chunk-player.render_chunk, y_player_chunk+player.render_chunk+1):
-			StaticLoad.rpc_id(1, "request_for_update_chunk", StaticLoad.multiplayer.get_unique_id(), true, x, y)
+			StaticLoad.rpc_id(1, "request_for_update_chunk", multiplayer.get_unique_id(), true, x, y)
 	set_block_selection_pos(get_local_mouse_position())
 	update_resource_pack()
 	init_inventory_tabs()
@@ -1759,7 +1759,7 @@ func create_player(peer_id = 1):
 	if not StaticLoad.is_muti_mode:
 		player = player_instance
 		player.init_local(peer_id)
-	elif peer_id == StaticLoad.multiplayer.get_unique_id():
+	elif peer_id == multiplayer.get_unique_id():
 		player = player_instance
 		player.init_local(peer_id)
 	else:
@@ -1871,7 +1871,7 @@ func update_local_player_data():
 			update_jump_button()
 			#if StaticLoad.is_muti_mode:
 				#var state_tmp = {"is_flying" : player.state_dict["is_flying"]}
-				#if StaticLoad.multiplayer.get_unique_id() == 1:
+				#if multiplayer.get_unique_id() == 1:
 					#StaticLoad.rpc_entity_func_by_uuid(player.get_uuid(), "apply_changed_state_dict", state_tmp, "others", true)
 				#else:
 					#StaticLoad.rpc_entity_func_by_uuid(player.get_uuid(), "apply_changed_state_dict", state_tmp, [player.player_peer_id], false)
@@ -2034,7 +2034,7 @@ func set_block_selection_pos(pos, is_timer_refresh = false):
 		player.selected_block_pos = block_pos
 		#if StaticLoad.is_muti_mode:
 			#var state_tmp = {"selected_block_pos" : player.state_dict["selected_block_pos"]}
-			#if StaticLoad.multiplayer.get_unique_id() == 1:
+			#if multiplayer.get_unique_id() == 1:
 				#StaticLoad.rpc_entity_func_by_uuid(player.get_uuid(), "apply_changed_state_dict", state_tmp, "others", true)
 			#else:
 				#StaticLoad.rpc_entity_func_by_uuid(player.get_uuid(), "apply_changed_state_dict", state_tmp, [player.player_peer_id], false)
@@ -2082,12 +2082,15 @@ func update_new_chunk(is_pre_load: bool):
 	var chunk_pos = get_chunk_position(player_pos)
 	var x_player_chunk = chunk_pos[0]
 	var y_player_chunk = chunk_pos[1]
+	if player == null:
+		return
+	var render_chunk_tmp = player.render_chunk
 	if is_pre_load or player_last_chunk != Vector2i(x_player_chunk, y_player_chunk):
-		for x in range(x_player_chunk-player.render_chunk, x_player_chunk+player.render_chunk+1):
-			for y in range(y_player_chunk-player.render_chunk, y_player_chunk+player.render_chunk+1):
+		for x in range(x_player_chunk-render_chunk_tmp, x_player_chunk+render_chunk_tmp+1):
+			for y in range(y_player_chunk-render_chunk_tmp, y_player_chunk+render_chunk_tmp+1):
 				if not loaded_chunks.has(str(x)+"."+str(y)):
-					if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() != 1:
-						StaticLoad.rpc_id(1, "request_for_update_chunk", StaticLoad.multiplayer.get_unique_id(), false, x, y)
+					if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
+						StaticLoad.rpc_id(1, "request_for_update_chunk", multiplayer.get_unique_id(), false, x, y)
 						loaded_chunks[str(x)+"."+str(y)] = StaticLoad.Chunk.new()
 						loaded_chunks[str(x)+"."+str(y)].is_to_save = false #防止重复向服务器发送申请
 						loaded_chunks_timer[str(x)+"."+str(y)] = StaticLoad.CHUNK_FREE_TIME
@@ -2133,7 +2136,7 @@ func update_new_chunk(is_pre_load: bool):
 								sky_light.resize(16)
 								sky_light.fill(current_sky_light)
 								chunk_sky_light_datas[str(x)+"."+str(y)] = sky_light
-							if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == 1):
+							if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1):
 								if chunk_lights.has(str(x)+"."+str(y)):
 									chunk_light_to_process[str(x)+"."+str(y)] = "null"
 								else:
@@ -2150,7 +2153,7 @@ func free_chunk(pos: Vector2i) -> void:
 		if entities[uuid] == null:
 			continue
 		entities[uuid].destroy_entity([])
-		if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == 1:
+		if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1:
 			StaticLoad.rpc_entity_func_by_uuid(uuid, "destroy_entity", [], "others", true)
 	for x in range(0, 16):
 		for y in range(0, 16):
@@ -2443,7 +2446,7 @@ func update_nearby_block_state(block_pos, update_state):
 							set_block(nearby_block_pos, 0, "no_reach", false)
 							var chunk_pos = get_chunk_position(nearby_block_pos)
 							update_chunk_light_by_pos(chunk_pos)
-							if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == 1:
+							if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1:
 								StaticLoad.rpc("set_block", [nearby_block_pos, 0, "no_reach"])
 							var seed_pos = nearby_block_pos-Vector2i(chunk_pos[0]*16,chunk_pos[1]*16)
 							var chunk = loaded_chunks[str(chunk_pos[0])+"."+str(chunk_pos[1])]
@@ -2854,7 +2857,7 @@ func _on_death_button_1_pressed() -> void:
 	StaticLoad.click_audio_player.play()
 	player.respawn(true)
 	if StaticLoad.is_muti_mode:
-		if StaticLoad.multiplayer.get_unique_id() == 1:
+		if multiplayer.get_unique_id() == 1:
 			StaticLoad.rpc_entity_func_by_uuid(player.get_uuid(), "respawn", true, "others", true)
 		else:
 			StaticLoad.rpc_entity_func_by_uuid(player.get_uuid(), "respawn", true, [player.player_peer_id], false)
@@ -2891,13 +2894,13 @@ func _on_chat_line_edit_text_submitted(new_text: String) -> void:
 	if StaticLoad.is_muti_mode:
 		if text[0] != "/":
 			player.send_message(text)
-			if StaticLoad.multiplayer.get_unique_id() == 1:
+			if multiplayer.get_unique_id() == 1:
 				StaticLoad.rpc_entity_func_by_uuid(player.get_uuid(), "send_message", text, "others", true)
 			else:
 				StaticLoad.rpc_entity_func_by_uuid(player.get_uuid(), "send_message", text, [player.player_peer_id], false)
 		else:
 			player.send_command(text)
-			if StaticLoad.multiplayer.get_unique_id() == 1:
+			if multiplayer.get_unique_id() == 1:
 				StaticLoad.rpc_entity_func_by_uuid(player.get_uuid(), "send_command", text, "others", true)
 			else:
 				StaticLoad.rpc_entity_func_by_uuid(player.get_uuid(), "send_command", text, [player.player_peer_id], false)

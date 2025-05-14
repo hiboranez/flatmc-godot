@@ -244,7 +244,7 @@ func update_sound_by_data():
 	if breaking_tool != "null":
 		StaticLoad.game.sound_audio_manager.play_random_audio_at_position("random", "tool_break", position, 1)
 		StaticLoad.game.summon_destroy_particle(position-Vector2(0,16), "item", breaking_tool)
-		if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == player_peer_id:
+		if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == player_peer_id:
 			changed_state_dict["breaking_tool"] = breaking_tool
 		breaking_tool = "null"
 	if not is_flying and is_on_ladder:
@@ -353,13 +353,13 @@ func update_animation_by_data():
 		if StaticLoad.tools_type.has(in_hand_item_name) and StaticLoad.tools_type[in_hand_item_name].has("sword"):
 			if attack_timer <= 0:
 				attack()
-		if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == player_peer_id:
+		if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == player_peer_id:
 			changed_state_dict["is_punching"] = true
 		is_punching = false
 	update_animation_tree()
 
 func update_local_fall_damage_by_data():
-	if StaticLoad.is_muti_mode and not StaticLoad.multiplayer.get_unique_id() == 1:
+	if StaticLoad.is_muti_mode and not multiplayer.get_unique_id() == 1:
 		return
 	#更新摔落
 	if gamemode == "survival":
@@ -373,7 +373,7 @@ func update_local_fall_damage_by_data():
 					StaticLoad.rpc_entity_func_by_uuid(uuid, "get_damage", [damage, "down"], "others", true)
 
 func update_local_health_recover():
-	if StaticLoad.is_muti_mode and not StaticLoad.multiplayer.get_unique_id() == 1:
+	if StaticLoad.is_muti_mode and not multiplayer.get_unique_id() == 1:
 		return
 	if health >= 20:
 		return
@@ -388,7 +388,7 @@ func update_local_health_recover():
 		health_recover_timer = 0
 
 func update_local_attack_timer():
-	if StaticLoad.is_muti_mode and not StaticLoad.multiplayer.get_unique_id() == 1:
+	if StaticLoad.is_muti_mode and not multiplayer.get_unique_id() == 1:
 		return
 	if attacking_decline_timer > 0:
 		attacking_decline_timer -= get_process_delta_time()
@@ -405,7 +405,7 @@ func update_local_attack_timer():
 		sword_breaking_timer = 0
 
 func update_local_velocity():
-	if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() != 1:
+	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
 		return
 	velocity = GameCalculator.calculate_velocity_by_data(get_process_delta_time(), velocity, expected_velocity, move_speed, is_flying, is_on_ladder)
 	#var delta = get_process_delta_time()
@@ -479,7 +479,7 @@ func update_local_set_block():
 			var set_block_layer = set_block_info[2]
 			StaticLoad.game.set_block_list.append([Time.get_ticks_msec(), uuid, set_block_id, set_block_pos, set_block_layer, true])
 			set_block_list.erase(set_block_info)
-	if not success_set_block_list.is_empty() and StaticLoad.multiplayer.get_unique_id() != 1:
+	if not success_set_block_list.is_empty() and multiplayer.get_unique_id() != 1:
 		for set_block_info in success_set_block_list.duplicate():
 			if changed_state_dict.has("set_block_list") and changed_state_dict["set_block_list"] is Array:
 				changed_state_dict["set_block_list"].append(set_block_info)
@@ -488,7 +488,7 @@ func update_local_set_block():
 			success_set_block_list.erase(set_block_info)
 
 func update_local_gravity():
-	if StaticLoad.is_muti_mode and not StaticLoad.multiplayer.get_unique_id() == player_peer_id:
+	if StaticLoad.is_muti_mode and not multiplayer.get_unique_id() == player_peer_id:
 		return
 	if StaticLoad.is_muti_mode:
 		var player_block_pos = StaticLoad.game.tile_map_layer.local_to_map(position-Vector2(0,24))
@@ -512,7 +512,7 @@ func update_local_gravity():
 		velocity += get_gravity() * get_process_delta_time()
 
 func update_local_move_by_data():
-	if StaticLoad.is_muti_mode and not StaticLoad.multiplayer.get_unique_id() == player_peer_id:
+	if StaticLoad.is_muti_mode and not multiplayer.get_unique_id() == player_peer_id:
 		return
 	if is_frozen:
 		if velocity.length() > StaticLoad.FLOAT_DELTA:
@@ -588,7 +588,7 @@ func set_item_in_hand(got_item_name):
 		item_in_hand.get_node("ItemTop").visible = false
 		item_in_hand.get_node("Tool").visible = false
 		item_in_hand.get_node("Block").visible = false
-		if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id()==player_peer_id):
+		if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id()==player_peer_id):
 			StaticLoad.game.inventory_player_model_item_in_hand.get_node("Item").visible = false
 			StaticLoad.game.inventory_player_model_item_in_hand.get_node("ItemTop").visible = false
 			StaticLoad.game.inventory_player_model_item_in_hand.get_node("Tool").visible = false
@@ -601,7 +601,7 @@ func set_item_in_hand(got_item_name):
 			var item_texture = load("res://Assets/ResourcePacks/"+StaticLoad.game.resource_pack+"/Items/spawn_egg.png")
 			item_material.albedo_texture = item_texture
 			item_mesh.mesh.surface_set_material(0, item_material)
-			if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id()==player_peer_id):
+			if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id()==player_peer_id):
 				inventory_player_model_item_mesh.mesh.surface_set_material(0, item_material)
 			var item_top_mesh = item_in_hand.get_node("ItemTop/Mesh")
 			var inventory_player_model_item_top_mesh = StaticLoad.game.inventory_player_model_item_in_hand.get_node("ItemTop/Mesh")
@@ -609,7 +609,7 @@ func set_item_in_hand(got_item_name):
 			var item_top_texture = load("res://Assets/ResourcePacks/"+StaticLoad.game.resource_pack+"/Items/spawn_egg_overlay.png")
 			item_top_material.albedo_texture = item_top_texture
 			item_top_mesh.mesh.surface_set_material(0, item_top_material)
-			if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id()==player_peer_id):
+			if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id()==player_peer_id):
 				inventory_player_model_item_top_mesh.mesh.surface_set_material(0, item_top_material)
 			if StaticLoad.spawn_egg_colors.has(got_item_name):
 				var color_info = StaticLoad.spawn_egg_colors[got_item_name]
@@ -619,7 +619,7 @@ func set_item_in_hand(got_item_name):
 			item_in_hand.get_node("ItemTop").visible = true
 			item_in_hand.get_node("Tool").visible = false
 			item_in_hand.get_node("Block").visible = false
-			if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id()==player_peer_id):
+			if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id()==player_peer_id):
 				StaticLoad.game.inventory_player_model_item_in_hand.get_node("Item").visible = true
 				StaticLoad.game.inventory_player_model_item_in_hand.get_node("ItemTop").visible = true
 				StaticLoad.game.inventory_player_model_item_in_hand.get_node("Tool").visible = false
@@ -633,13 +633,13 @@ func set_item_in_hand(got_item_name):
 				item_texture = load("res://Assets/ResourcePacks/"+StaticLoad.game.resource_pack+"/Items/missing_texture.png")
 			item_material.albedo_texture = item_texture
 			item_mesh.mesh.surface_set_material(0, item_material)
-			if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id()==player_peer_id):
+			if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id()==player_peer_id):
 				inventory_player_model_item_mesh.mesh.surface_set_material(0, item_material)
 			item_in_hand.get_node("Item").visible = true
 			item_in_hand.get_node("ItemTop").visible = false
 			item_in_hand.get_node("Tool").visible = false
 			item_in_hand.get_node("Block").visible = false
-			if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id()==player_peer_id):
+			if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id()==player_peer_id):
 				StaticLoad.game.inventory_player_model_item_in_hand.get_node("Item").visible = true
 				StaticLoad.game.inventory_player_model_item_in_hand.get_node("ItemTop").visible = false
 				StaticLoad.game.inventory_player_model_item_in_hand.get_node("Tool").visible = false
@@ -653,13 +653,13 @@ func set_item_in_hand(got_item_name):
 			tool_texture = load("res://Assets/ResourcePacks/"+StaticLoad.game.resource_pack+"/Items/missing_texture.png")
 		tool_material.albedo_texture = tool_texture
 		tool_mesh.mesh.surface_set_material(0, tool_material)
-		if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id()==player_peer_id):
+		if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id()==player_peer_id):
 			inventory_player_model_tool_mesh.mesh.surface_set_material(0, tool_material)
 		item_in_hand.get_node("Item").visible = false
 		item_in_hand.get_node("ItemTop").visible = false
 		item_in_hand.get_node("Tool").visible = true
 		item_in_hand.get_node("Block").visible = false
-		if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id()==player_peer_id):
+		if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id()==player_peer_id):
 			StaticLoad.game.inventory_player_model_item_in_hand.get_node("Item").visible = false
 			StaticLoad.game.inventory_player_model_item_in_hand.get_node("ItemTop").visible = false
 			StaticLoad.game.inventory_player_model_item_in_hand.get_node("Tool").visible = true
@@ -674,20 +674,20 @@ func set_item_in_hand(got_item_name):
 			block_texture = load("res://Assets/ResourcePacks/"+StaticLoad.game.resource_pack+"/ModelBlocks/missing_texture.png")
 		block_material.albedo_texture = block_texture
 		block_mesh.mesh.surface_set_material(0, block_material)
-		if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id()==player_peer_id):
+		if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id()==player_peer_id):
 			inventory_player_model_block_mesh.mesh.surface_set_material(0, block_material)
 		item_in_hand.get_node("Item").visible = false
 		item_in_hand.get_node("ItemTop").visible = false
 		item_in_hand.get_node("Tool").visible = false
 		item_in_hand.get_node("Block").visible = true
-		if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id()==player_peer_id):
+		if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id()==player_peer_id):
 			StaticLoad.game.inventory_player_model_item_in_hand.get_node("Item").visible = false
 			StaticLoad.game.inventory_player_model_item_in_hand.get_node("ItemTop").visible = false
 			StaticLoad.game.inventory_player_model_item_in_hand.get_node("Tool").visible = false
 			StaticLoad.game.inventory_player_model_item_in_hand.get_node("Block").visible = true
 
 func update_local_item_in_hand():
-	if StaticLoad.is_muti_mode and not StaticLoad.multiplayer.get_unique_id() == player_peer_id:
+	if StaticLoad.is_muti_mode and not multiplayer.get_unique_id() == player_peer_id:
 		return
 	var last_in_hand_item_name = item_bar_names[selected_item_grid]
 	if last_in_hand_item_name == in_hand_item_name:
@@ -721,7 +721,7 @@ func update_state_dict():
 func update_local_state_dict():
 	if not StaticLoad.is_muti_mode:
 		return
-	if not StaticLoad.multiplayer.get_unique_id() == 1 and not StaticLoad.multiplayer.get_unique_id() == player_peer_id:
+	if not multiplayer.get_unique_id() == 1 and not multiplayer.get_unique_id() == player_peer_id:
 		return
 	update_state_dict()
 
@@ -731,20 +731,20 @@ func update_local_state_dict():
 func update_local_changed_state_dict():
 	if not StaticLoad.is_muti_mode:
 		return
-	if not StaticLoad.multiplayer.get_unique_id() == 1 and not StaticLoad.multiplayer.get_unique_id() == player_peer_id:
+	if not multiplayer.get_unique_id() == 1 and not multiplayer.get_unique_id() == player_peer_id:
 		return
 	for key in state_dict:
 		if not last_state_dict.has(key) or last_state_dict[key] != state_dict[key]:
 			# 客户端仅上传非only_server_change_state_list状态
-			if not StaticLoad.multiplayer.get_unique_id() == 1:
+			if not multiplayer.get_unique_id() == 1:
 				if only_server_change_state_list.has(key):
 					continue
 			# 服务端仅更新only_server_change_state_list状态
-			if StaticLoad.multiplayer.get_unique_id() == 1 and not player_peer_id == 1:
+			if multiplayer.get_unique_id() == 1 and not player_peer_id == 1:
 				if not only_server_change_state_list.has(key):
 					continue
 			last_state_dict[key] = state_dict[key]
-			if StaticLoad.multiplayer.get_unique_id() == 1 and not player_peer_id == 1:
+			if multiplayer.get_unique_id() == 1 and not player_peer_id == 1:
 				only_server_change_state_dict[key] = state_dict[key]
 			else:
 				changed_state_dict[key] = state_dict[key]
@@ -777,9 +777,11 @@ func rectify_changed_state_dict():
 		StaticLoad.rpc_entity_func_by_uuid(uuid, "apply_changed_state_dict", changed_state_dict, [player_peer_id], true)
 
 func apply_changed_state_dict(got_changed_state_dict):
+	if got_changed_state_dict == null:
+		return
 	for key in got_changed_state_dict.duplicate():
 		if trigger_change_state_list.has(key):
-			if StaticLoad.multiplayer.get_unique_id() == player_peer_id:
+			if multiplayer.get_unique_id() == player_peer_id:
 				continue
 		if key == "position":
 			var tween = get_tree().create_tween()
@@ -797,9 +799,9 @@ func apply_changed_state_dict(got_changed_state_dict):
 func upload_local_player_changed_state_dict():
 	if not StaticLoad.is_muti_mode:
 		return
-	if StaticLoad.multiplayer.get_unique_id() == 1:
+	if multiplayer.get_unique_id() == 1:
 		return
-	if not StaticLoad.multiplayer.get_unique_id() == player_peer_id:
+	if not multiplayer.get_unique_id() == player_peer_id:
 		return
 	StaticLoad.rpc_entity_func_by_uuid(uuid, "set_changed_state_dict", changed_state_dict, [], true)
 	changed_state_dict.clear()
@@ -808,7 +810,7 @@ func update_last_velocity():
 	last_velocity = current_velocity
 
 func update_current_velocity():
-	if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() != player_peer_id:
+	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != player_peer_id:
 		return
 	if velocity.x > StaticLoad.MAX_SPEED:
 		velocity.x = StaticLoad.MAX_SPEED
@@ -942,7 +944,7 @@ func place_block(block_pos):
 			var sound_pos = StaticLoad.game.tile_map_layer.map_to_local(block_pos)+Vector2(0, 25)
 			StaticLoad.game.sound_audio_manager.play_random_audio_at_position("item", "hoe_still", sound_pos, 1)
 			StaticLoad.game.set_block(block_pos, StaticLoad.get_block_id_by_name("FARM_LAND"), "solid", true)
-			if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == 1:
+			if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1:
 				StaticLoad.rpc("set_block", [local_block_id, StaticLoad.get_block_id_by_name("FARM_LAND"), "solid"])
 			wear_and_update_in_hand_tool(1)
 			var rng = RandomNumberGenerator.new()
@@ -951,7 +953,7 @@ func place_block(block_pos):
 				var item_pos = StaticLoad.game.tile_map_layer.map_to_local(block_pos)-Vector2(0, 25)
 				var summon_item_args = ["item", "SEEDS_WHEAT", item_pos, 1, 0, 0, UUID.v4()]
 				if StaticLoad.is_muti_mode:
-					if StaticLoad.multiplayer.get_unique_id() == 1:
+					if multiplayer.get_unique_id() == 1:
 						StaticLoad.create_entity(summon_item_args)
 						StaticLoad.rpc("create_entity", summon_item_args)
 				else:
@@ -962,7 +964,7 @@ func place_block(block_pos):
 			var sound_pos = StaticLoad.game.tile_map_layer.map_to_local(block_pos)+Vector2(0, 25)
 			StaticLoad.game.sound_audio_manager.play_random_audio_at_position("item", "hoe_still", sound_pos, 1)
 			StaticLoad.game.set_block(block_pos, StaticLoad.get_block_id_by_name("FARM_LAND"), "solid", true)
-			if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == 1:
+			if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1:
 				StaticLoad.rpc("set_block", [local_block_id, StaticLoad.get_block_id_by_name("FARM_LAND"), "solid"])
 			is_punching = true
 			return true
@@ -1063,7 +1065,7 @@ func send_command(command: String):
 			if abs(x) >= 200000 or abs(y) >= 200000:
 				StaticLoad.game.broadcast_to_person(player_name, tr("RANGE_LIMIT"), "pink")
 			else:
-				if StaticLoad.is_dedicated_server or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == 1):
+				if StaticLoad.is_dedicated_server or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1):
 					position = Vector2i(x*50+25, -y*50+50)
 				var tween2 = get_tree().create_tween()
 				tween2.tween_method(set_shader_dissolve_intensity, -0.6, 0.6, StaticLoad.TELEPORT_TIME/2.0)
@@ -1179,7 +1181,7 @@ func get_item(args):
 		item_bar_names[selected_item_grid] = "AIR"
 	if list[0] < amount and sound_on:
 		StaticLoad.game.sound_audio_manager.play_audio_static("player", "pop")
-	if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and player_peer_id == StaticLoad.multiplayer.get_unique_id()):
+	if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and player_peer_id == multiplayer.get_unique_id()):
 		if StaticLoad.game.is_inventory:
 			StaticLoad.game.append_process_refresh("refresh_inventory")
 		if list[0] < amount and item_bar_names[selected_item_grid] != "AIR" and list[1]:
@@ -1217,7 +1219,7 @@ func drop_item(item_name, item_amount):
 	var x_velocity = face_state*dropped_item_speed
 	var summon_item_args = [item_name, position-Vector2(0,30), item_amount, x_velocity, dropped_item_no_collect_time, UUID.v4()]
 	if StaticLoad.is_muti_mode:
-		if StaticLoad.multiplayer.get_unique_id() == 1:
+		if multiplayer.get_unique_id() == 1:
 			summon_item(summon_item_args)
 			StaticLoad.rpc_entity_func_by_uuid(uuid, "summon_item", summon_item_args, "others", true)
 		else:
@@ -1230,7 +1232,7 @@ func summon_item(args):
 	var pos = args[1]
 	var amount = args[2]
 	var x_velocity = args[3]
-	if StaticLoad.is_muti_mode and not StaticLoad.multiplayer.get_unique_id() == 1:
+	if StaticLoad.is_muti_mode and not multiplayer.get_unique_id() == 1:
 		x_velocity = 0
 	var no_collect_time = args[4]
 	var uuid = args[5]
@@ -1252,7 +1254,7 @@ func respawn(is_animation = true):
 	set_shader_blink_intensity(0)
 	freeze()
 	position = Vector2(0, -24)
-	if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == player_peer_id):
+	if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == player_peer_id):
 		if StaticLoad.is_on_mobile_platform:
 			Input.emulate_mouse_from_touch = false
 		StaticLoad.game.death_ui.visible = false
@@ -1342,14 +1344,14 @@ func init_remote(got_data):
 	update_player_face_rotation()
 	StaticLoad.game.entities[uuid] = self
 	
-	if player_peer_id == StaticLoad.multiplayer.get_unique_id():
+	if player_peer_id == multiplayer.get_unique_id():
 		if self.gamemode == "creative":
 			StaticLoad.game.health_bar.visible = false
 	StaticLoad.player_peer_dict[player_peer_id] = StaticLoad.game.players.get_node(str(player_peer_id))
 	StaticLoad.game.update_new_chunk(true)
 	StaticLoad.game.update_game_details()
 	unfreeze()
-	if player_peer_id == StaticLoad.multiplayer.get_unique_id():
+	if player_peer_id == multiplayer.get_unique_id():
 		return
 	
 	var mini_map_camera_zoom = StaticLoad.game.mini_map_camera.zoom[0]
@@ -1357,7 +1359,7 @@ func init_remote(got_data):
 	player_icon_instance.scale = Vector2(player_icon_scale, player_icon_scale)
 	player_icon_instance.name = player_name
 	
-	if StaticLoad.multiplayer.get_unique_id() == 1:
+	if multiplayer.get_unique_id() == 1:
 		return
 	if not StaticLoad.game.online_ui_vbox_container.has_node(str(player_peer_id)):
 		var online_info_instance = StaticLoad.online_info_scene.instantiate()
@@ -1366,7 +1368,7 @@ func init_remote(got_data):
 		online_info_instance.player_name.text = self.player_name
 		#var online_info = StaticLoad.game.online_ui_vbox_container.get_node(str(peer_id))
 		await get_tree().create_timer(0.5).timeout
-		StaticLoad.rpc_id(1, "request_for_ping", StaticLoad.multiplayer.get_unique_id(), player_peer_id)
+		StaticLoad.rpc_id(1, "request_for_ping", multiplayer.get_unique_id(), player_peer_id)
 
 func set_player_model_skin_by_texture_buffer(got_skin_texture_buffer):
 	var player_material = load("res://Assets/Materials/PlayerSkin.tres").duplicate(true)
@@ -1377,7 +1379,7 @@ func set_player_model_skin_by_texture_buffer(got_skin_texture_buffer):
 	if StaticLoad.game.player_icons.has(player_name):
 		StaticLoad.game.player_icons[player_name].texture.atlas = ImageTexture.create_from_image(skin_texture_image)
 		StaticLoad.game.player_icons[player_name].get_node("UpSkin").texture.atlas = ImageTexture.create_from_image(skin_texture_image)
-	if not StaticLoad.is_muti_mode or player_peer_id == StaticLoad.multiplayer.get_unique_id():
+	if not StaticLoad.is_muti_mode or player_peer_id == multiplayer.get_unique_id():
 		StaticLoad.game.inventory_player_model_mesh.mesh.surface_set_material(0, player_material)
 
 func set_player_model_skin_by_texture(got_skin_texture):
@@ -1387,7 +1389,7 @@ func set_player_model_skin_by_texture(got_skin_texture):
 	if StaticLoad.game.player_icons.has(player_name):
 		StaticLoad.game.player_icons[player_name].texture.atlas = got_skin_texture
 		StaticLoad.game.player_icons[player_name].get_node("UpSkin").texture.atlas = got_skin_texture
-	if not StaticLoad.is_muti_mode or player_peer_id == StaticLoad.multiplayer.get_unique_id():
+	if not StaticLoad.is_muti_mode or player_peer_id == multiplayer.get_unique_id():
 		StaticLoad.game.inventory_player_model_mesh.mesh.surface_set_material(0, player_material)
 
 func change_skin(got_skin_texture_buffer):

@@ -40,11 +40,19 @@ _data = {
 "show": SubResource("Animation_ncxdh")
 }
 
-[node name="StaticLoad" type="Node2D"]
+[node name="StaticLoad" type="Control"]
+layout_mode = 3
+anchors_preset = 0
 script = ExtResource("1_r6xbh")
+
+[node name="ServerDetects" type="Control" parent="."]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
 
 [node name="ColorRect" type="ColorRect" parent="."]
 modulate = Color(1, 1, 1, 0)
+layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -59,3 +67,5 @@ libraries = {
 
 [node name="ClickAudioPlayer" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("1_udrac")
+
+[node name="Node2D" type="Node2D" parent="."]

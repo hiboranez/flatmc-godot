@@ -22,7 +22,7 @@ func _ready() -> void:
 		button1.visible = false
 		progress_bar.visible = true
 		StaticLoad.game.freeze_game()
-		StaticLoad.game.create_player(StaticLoad.multiplayer.get_unique_id())
+		StaticLoad.game.create_player(multiplayer.get_unique_id())
 		StaticLoad.game.init_game_as_client()
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -53,7 +53,7 @@ func start_connecting_timer():
 func connection_timeout():
 	title.text = tr("CONNECTION_TIMEOUT")
 	title.set("theme_override_colors/font_color", StaticLoad.colors["pink"])
-	if StaticLoad.multiplayer.multiplayer_peer != null and StaticLoad.multiplayer.multiplayer_peer.get_connection_status() != StaticLoad.multiplayer.multiplayer_peer.CONNECTION_DISCONNECTED:
+	if multiplayer.multiplayer_peer != null and multiplayer.multiplayer_peer.get_connection_status() != multiplayer.multiplayer_peer.CONNECTION_DISCONNECTED:
 		StaticLoad.clear_connections()
 	return
 
@@ -74,7 +74,7 @@ func connect_server():
 		title.text = tr("CONNECTION_FAIL")
 		title.set("theme_override_colors/font_color", StaticLoad.colors["pink"])
 		return
-	StaticLoad.multiplayer.multiplayer_peer = StaticLoad.multiplayer_peer
+	multiplayer.multiplayer_peer = StaticLoad.multiplayer_peer
 	var config = ConfigFile.new()
 	var result = config.load("user://configs.cfg")
 	var player_name
@@ -84,7 +84,7 @@ func connect_server():
 	while not is_server_connected:
 		await get_tree().create_timer(1).timeout
 	title.text = tr("CONNECTION_SUCCESS")
-	StaticLoad.rpc_id(1, "request_for_connect_state_check", StaticLoad.multiplayer.get_unique_id(), player_name, StaticLoad.options["version"])
+	StaticLoad.rpc_id(1, "request_for_connect_state_check", multiplayer.get_unique_id(), player_name, StaticLoad.options["version"])
 	while not is_server_state_checked:
 		if connect_interrupt_reason != "null":
 			if connect_interrupt_reason == "same_player_name":
@@ -96,7 +96,7 @@ func connect_server():
 			elif connect_interrupt_reason == "player_name_space":
 				title.text = tr("PLAYER_NAME_SPACE")
 			title.set("theme_override_colors/font_color", StaticLoad.colors["pink"])
-			if StaticLoad.multiplayer.multiplayer_peer != null and StaticLoad.multiplayer.multiplayer_peer.get_connection_status() != StaticLoad.multiplayer.multiplayer_peer.CONNECTION_DISCONNECTED:
+			if multiplayer.multiplayer_peer != null and multiplayer.multiplayer_peer.get_connection_status() != multiplayer.multiplayer_peer.CONNECTION_DISCONNECTED:
 				StaticLoad.clear_connections()
 			return
 		await get_tree().create_timer(1).timeout
@@ -136,6 +136,6 @@ func load_finished():
 
 func _on_loading_ui_button_1_pressed() -> void:
 	StaticLoad.click_audio_player.play()
-	if StaticLoad.multiplayer.multiplayer_peer != null and StaticLoad.multiplayer.multiplayer_peer.get_connection_status() != StaticLoad.multiplayer.multiplayer_peer.CONNECTION_DISCONNECTED:
+	if multiplayer.multiplayer_peer != null and multiplayer.multiplayer_peer.get_connection_status() != multiplayer.multiplayer_peer.CONNECTION_DISCONNECTED:
 		StaticLoad.clear_connections()
 	StaticLoad.change_scene("res://Assets/Scenes/MutiMenu.tscn")

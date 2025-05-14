@@ -13,7 +13,6 @@ extends Node
 @onready var searching_lan_scene = load("res://Assets/Scenes/SearchingLan.tscn") as PackedScene
 @onready var lan_server_scene = load("res://Assets/Scenes/LanServer.tscn") as PackedScene
 @onready var server_list_vboxcontainer = $ColorRect/ScrollContainer/VBoxContainer
-@onready var server_detect = $ServerDetect
 
 func _ready() -> void:
 	StaticLoad.is_lan_server = false
@@ -22,6 +21,7 @@ func _ready() -> void:
 	ServiceDiscovery.scanned.connect(on_scan_scanned)
 	add_server_name_line_edit.text = tr("DEFAULT_SERVER_NAME")
 	update_server_list()
+	detect_all_server()
 
 func _notification(what):
 	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
@@ -29,8 +29,29 @@ func _notification(what):
 		StaticLoad.select_world = null
 		StaticLoad.change_scene("res://Assets/Scenes/Menu.tscn")
 
+func detect_all_server():
+	await get_tree().create_timer(0.01).timeout
+	var server_list = DirAccess.get_files_at(StaticLoad.server_path)
+	for server in server_list:
+		var splits = server.split(".")
+		var server_config = ConfigFile.new()
+		var server_info = server_config.load_encrypted_pass(StaticLoad.server_path+"/"+splits[0]+".srv", StaticLoad.CONFIG_PASSWORD)
+		if server_info != OK:
+			var server_selection = server_list_vboxcontainer.get_node(splits[0])
+			server_selection.animation.animation = "disconnect"
+			server_selection.online_info_label.text = tr("CANNOT_CONNECT")
+			continue
+		var ip = server_config.get_value("server", "ip")
+		var port = int(server_config.get_value("server", "port"))
+		var server_detect = StaticLoad.server_detect_scene.instantiate()
+		StaticLoad.server_detects.add_child(server_detect)
+		server_detect.init(splits[0], ip, port)
+	#thread.wait_to_finish()
+
 func update_server_list():
 	var current_servers = server_list_vboxcontainer.get_children()
+	for server_detect in StaticLoad.server_detects.get_children():
+		server_detect.queue_free()
 	for server in current_servers:
 		server.free()
 	var server_list = DirAccess.get_files_at(StaticLoad.server_path)
@@ -62,6 +83,7 @@ func delete_server(server_name: String):
 	OS.move_to_trash(ProjectSettings.globalize_path(delete_path))
 	update_server_list()
 	StaticLoad.select_server = null
+	detect_all_server()
 
 func add_server(server_name: String):
 	var server_path = "user://servers/"
@@ -112,12 +134,14 @@ func _on_muti_menu_button_1_pressed() -> void:
 	StaticLoad.click_audio_player.play()
 	if StaticLoad.select_server == null and not StaticLoad.is_lan_server:
 		return
+	for server_detect in StaticLoad.server_detects.get_children():
+		server_detect.queue_free()
 	StaticLoad.change_scene("res://Assets/Scenes/LoadingServerUI.tscn")
 
 func _on_muti_menu_button_2_pressed() -> void:
 	StaticLoad.click_audio_player.play()
 	update_server_list()
-	server_detect.start_detecting()
+	detect_all_server()
 	
 func _on_muti_menu_button_3_pressed() -> void:
 	StaticLoad.click_audio_player.play()
@@ -173,7 +197,7 @@ func _on_add_server_button_1_pressed() -> void:
 		return
 	add_server(add_server_name_line_edit.text)
 	update_server_list()
-	server_detect.start_detecting()
+	detect_all_server()
 	add_server_ui.visible = false;
 
 func _on_add_server_button_2_pressed() -> void:
@@ -197,7 +221,7 @@ func _on_edit_server_button_1_pressed() -> void:
 		return
 	edit_server(edit_server_name_line_edit.text)
 	update_server_list()
-	server_detect.start_detecting()
+	detect_all_server()
 	edit_server_ui.visible = false;
 
 func _on_edit_server_button_2_pressed() -> void:

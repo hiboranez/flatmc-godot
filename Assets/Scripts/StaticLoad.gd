@@ -1,4 +1,4 @@
-extends Node2D
+extends Control
 
 # 预加载数据
 @onready var empty_heart_texture = load("res://Assets/Textures/GUI/empty_heart.png") as Texture2D
@@ -12,10 +12,12 @@ extends Node2D
 @onready var online_info_scene = load("res://Assets/Scenes/OnlineInfo.tscn") as PackedScene
 @onready var mouse_item_name_label_scene = load("res://Assets/Scenes/MouseItemNameLabel.tscn") as PackedScene
 @onready var player_icon_scene = load("res://Assets/Scenes/PlayerIcon.tscn") as PackedScene
+@onready var server_detect_scene = load("res://Assets/Scenes/ServerDetect.tscn") as PackedScene
 @onready var item_scene = load("res://Assets/Scenes/Item.tscn") as PackedScene
 @onready var pig_scene = load("res://Assets/Scenes/Pig.tscn") as PackedScene
 @onready var animation:AnimationPlayer = $AnimationPlayer
 @onready var click_audio_player = $ClickAudioPlayer
+@onready var server_detects = $ServerDetects
 
 class Chunk:
 	static var para_list = [
@@ -1094,7 +1096,9 @@ func destroy_peer(client_peer_id):
 		game.online_ui_vbox_container.get_node(str(client_peer_id)).queue_free()
 
 func server_got_peer_disconnected(client_peer_id):
-	#print(multiplayer.get_unique_id(), " : peer_disconnected")
+	for server_detect in server_detects.get_children():
+		if server_detect.name == str(client_peer_id):
+			server_detect.queue_free()
 	if ping_peer_dict.has(client_peer_id):
 		ping_peer_dict.erase(client_peer_id)
 	if player_peer_dict.has(client_peer_id):
@@ -1106,8 +1110,9 @@ func server_got_peer_disconnected(client_peer_id):
 	call_deferred("rpc", "peer_disconnect_broadcast", client_peer_id)
 
 func server_got_peer_connected(client_peer_id):
-	#print(multiplayer.get_unique_id(), " : peer_connected")
-	client_peer_id
+	var server_detect = server_detect_scene.instantiate()
+	server_detect.name = str(client_peer_id)
+	server_detects.add_child(server_detect)
 	game.save_world()
 
 func client_got_server_disconnected():
@@ -1135,6 +1140,8 @@ func check_ping():
 	
 @rpc("any_peer", "call_remote", "reliable", 1)
 func got_ping(client_peer_id):	
+	if not ping_peer_dict.has(client_peer_id):
+		return
 	ping_peer_dict[client_peer_id].got_ping()
 
 @rpc("any_peer", "call_remote", "reliable", 1)
@@ -1306,7 +1313,7 @@ func create_entity(args):
 		var pos = args[2]
 		var amount = args[3]
 		var x_velocity = args[4]
-		if StaticLoad.is_muti_mode and not StaticLoad.multiplayer.get_unique_id() == 1:
+		if StaticLoad.is_muti_mode and not multiplayer.get_unique_id() == 1:
 			x_velocity = 0
 		var no_collect_time = args[5]
 		var uuid = args[6]
@@ -1326,48 +1333,13 @@ func create_entity(args):
 
 @rpc("authority", "call_remote", "reliable", 1)
 func set_block(args):
+	multiplayer
 	if not is_in_game:
 		return
 	var block_pos = args[0]
 	var block_id = args[1]
 	var tile_map_type = args[2]
 	game.set_block(block_pos, block_id, tile_map_type)
-
-# 获取服务器在线状态
-@rpc("any_peer", "call_remote", "reliable", 1)
-func request_for_server_state(client_peer_id):
-	rpc_id(client_peer_id, "reply_for_server_state", player_peer_dict.size(), world_icon_buffer, options["version"])
-
-@rpc("authority", "call_remote", "reliable", 1)
-func reply_for_server_state(online_player_number, world_icon_buffer_tmp, version_tmp):
-	if has_node("/root/MutiMenu"):
-		var muti_menu = get_node("/root/MutiMenu")
-		var selection = muti_menu.server_list_vboxcontainer.get_node(muti_menu.server_detect.current_server_name)
-		if selection == null:
-			return
-		var icon = Image.new()
-		icon.load_png_from_buffer(world_icon_buffer_tmp)
-		selection.icon = ImageTexture.create_from_image(icon)
-		var server_path_tmp = "user://servers/"+muti_menu.server_detect.current_server_name+".srv"
-		var server_config = ConfigFile.new()
-		var server_info = server_config.load_encrypted_pass(server_path_tmp, CONFIG_PASSWORD)
-		if server_info != OK:
-			return
-		var ip_tmp = server_config.get_value("server", "ip")
-		var port_tmp = server_config.get_value("server", "port")
-		var server = ConfigFile.new()
-		server.set_value("server", "ip", ip_tmp)
-		server.set_value("server", "port", port_tmp)
-		server.set_value("server", "icon", world_icon_buffer_tmp)
-		server.save_encrypted_pass(server_path_tmp, CONFIG_PASSWORD)
-		if check_server_version(version_tmp):
-			selection.online_info_label.text = tr("ONLINE_PLAYERS")+" : "+str(online_player_number)
-			muti_menu.server_detect.is_server_info_received = true
-		else:
-			var splits = version_tmp.split(".")
-			var server_version = splits[0]+"."+splits[1]+"."+splits[2]
-			selection.online_info_label.text = tr("REQUIRED_VERSION")+" : "+str(server_version)
-			muti_menu.server_detect.is_server_version_conflict = true
 
 # 一次握手：检查服务器准入状态
 @rpc("any_peer", "call_remote", "reliable", 1)

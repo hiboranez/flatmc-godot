@@ -46,14 +46,14 @@ func update_state_dict():
 func update_local_state_dict():
 	if not StaticLoad.is_muti_mode:
 		return
-	if not StaticLoad.multiplayer.get_unique_id() == 1:
+	if not multiplayer.get_unique_id() == 1:
 		return
 	update_state_dict()
 
 func update_local_changed_state_dict():
 	if not StaticLoad.is_muti_mode:
 		return
-	if not StaticLoad.multiplayer.get_unique_id() == 1:
+	if not multiplayer.get_unique_id() == 1:
 		return
 	for key in state_dict:
 		if not last_state_dict.has(key) or last_state_dict[key] != state_dict[key]:
@@ -75,7 +75,7 @@ func apply_changed_state_dict(got_changed_state_dict):
 			self.set(key, got_changed_state_dict[key])
 
 func update_local_air_resistance():
-	if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id()!=1:
+	if StaticLoad.is_muti_mode and multiplayer.get_unique_id()!=1:
 		return
 	if abs(velocity.x) < 0.1:
 		return
@@ -94,7 +94,7 @@ func update_local_air_resistance():
 			#velocity.x += StaticLoad.AIR_RESISTANCE*delta
 
 func update_local_no_collect_timer():
-	if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id()!=1:
+	if StaticLoad.is_muti_mode and multiplayer.get_unique_id()!=1:
 		return
 	if no_collect_timer > 0:
 		no_collect_timer -= get_process_delta_time()
@@ -107,7 +107,7 @@ func update_local_no_collect_timer():
 		attract_area.monitoring = true
 		
 func update_local_attraction():
-	if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id()!=1:
+	if StaticLoad.is_muti_mode and multiplayer.get_unique_id()!=1:
 		return
 	if attract_target != null:
 		var distance = attract_target.position.x - position.x
@@ -120,7 +120,7 @@ func update_local_attraction():
 			position -= Vector2(movement, 0)
 
 func update_local_gravity():
-	if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id()!=1:
+	if StaticLoad.is_muti_mode and multiplayer.get_unique_id()!=1:
 		return
 	if not is_on_floor():
 		velocity += get_gravity() * get_process_delta_time()
@@ -134,7 +134,7 @@ func init(args):
 	velocity.x = args[5]
 	name = str(uuid)
 	chunk_pos = StaticLoad.game.get_chunk_position(StaticLoad.game.tile_map_layer.local_to_map(position))
-	if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == 1):
+	if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1):
 		StaticLoad.game.loaded_chunks[str(chunk_pos[0])+"."+str(chunk_pos[1])].entity_list.append(uuid)
 		StaticLoad.game.loaded_chunks[str(chunk_pos[0])+"."+str(chunk_pos[1])].is_to_save = true
 	else:
@@ -254,7 +254,7 @@ func on_body_collide_entered(body: Node) -> void:
 		return
 	if body.get_uuid() == uuid:
 		return
-	if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == 1):
+	if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1):
 		if body.entity_type == "item":
 			if body.item_name == self.item_name:
 				if not StaticLoad.game.item_to_combine.has(body.get_uuid()):
@@ -324,7 +324,7 @@ func combine_item(target_item_uuid):
 					item_top_model.get_node("Mesh2").visible = false
 
 func destroy_entity(args):
-	if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == 1):
+	if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1):
 		if StaticLoad.game.loaded_chunks.has(str(chunk_pos[0])+"."+str(chunk_pos[1])):
 			StaticLoad.game.loaded_chunks[str(chunk_pos[0])+"."+str(chunk_pos[1])].entity_list.erase(uuid)
 	queue_free()

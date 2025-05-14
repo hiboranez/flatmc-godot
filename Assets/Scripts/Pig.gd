@@ -190,7 +190,7 @@ func update_animation_by_data():
 	update_animation_tree()
 
 func update_local_fall_damage_by_data():
-	if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() != 1:
+	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
 		return
 	#更新摔落
 	if last_velocity.y > 1000 and not is_on_ladder:
@@ -203,7 +203,7 @@ func update_local_fall_damage_by_data():
 				StaticLoad.rpc_entity_func_by_uuid(uuid, "get_damage", [damage, "down"], "others", true)
 
 func update_local_health_recover():
-	if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() != 1:
+	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
 		return
 	if health >= 20:
 		return
@@ -216,7 +216,7 @@ func update_local_health_recover():
 		health_recover_timer = 0
 
 func update_local_velocity():
-	if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() != 1:
+	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
 		return
 	velocity = GameCalculator.calculate_velocity_by_data(get_process_delta_time(), velocity, expected_velocity, move_speed, is_flying, is_on_ladder)
 	#var delta = get_process_delta_time()
@@ -303,7 +303,7 @@ func update_target_pos():
 	target_pos = StaticLoad.game.tile_map_layer.local_to_map(position)+Vector2i(int(num1*20),int(num2*20))
 
 func update_local_refresh_target_timer():
-	if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() != 1:
+	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
 		return
 	if panic_timer <= 0:
 		panic_timer = 0
@@ -326,7 +326,7 @@ func update_local_refresh_target_timer():
 	
 
 func update_local_is_on_ladder():
-	if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() != 1:
+	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
 		return
 	var foot_pos = position + Vector2(0, 23)
 	var foot_block_pos = StaticLoad.game.tile_map_layer.local_to_map(foot_pos)
@@ -346,7 +346,7 @@ func update_local_is_on_ladder():
 		last_is_on_ladder = is_on_ladder
 
 func update_local_gravity():
-	if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() != 1:
+	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
 		return
 	if StaticLoad.is_muti_mode:
 		var entity_block_pos = StaticLoad.game.tile_map_layer.local_to_map(position-Vector2(0,24))
@@ -370,7 +370,7 @@ func update_local_gravity():
 		velocity += get_gravity() * get_process_delta_time()
 
 func update_local_move_by_data():
-	if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() != 1:
+	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
 		return
 	if is_frozen:
 		if velocity.length() > StaticLoad.FLOAT_DELTA:
@@ -473,7 +473,7 @@ func update_state_dict():
 	state_dict["health"] = health
 
 func update_local_state_dict():
-	if not StaticLoad.is_muti_mode or StaticLoad.multiplayer.get_unique_id() != 1:
+	if not StaticLoad.is_muti_mode or multiplayer.get_unique_id() != 1:
 		return
 	update_state_dict()
 
@@ -481,12 +481,12 @@ func update_local_state_dict():
 func update_local_changed_state_dict():
 	if not StaticLoad.is_muti_mode:
 		return
-	if StaticLoad.multiplayer.get_unique_id() != 1 and StaticLoad.multiplayer.get_unique_id() != 1:
+	if multiplayer.get_unique_id() != 1 and multiplayer.get_unique_id() != 1:
 		return
 	for key in state_dict:
 		if not last_state_dict.has(key) or last_state_dict[key] != state_dict[key]:
 			last_state_dict[key] = state_dict[key]
-			if StaticLoad.multiplayer.get_unique_id() == 1:
+			if multiplayer.get_unique_id() == 1:
 				only_server_change_state_dict[key] = state_dict[key]
 			else:
 				changed_state_dict[key] = state_dict[key]
@@ -532,7 +532,7 @@ func update_last_velocity():
 	last_velocity = current_velocity
 
 func update_current_velocity():
-	if StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() != 1:
+	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
 		return
 	if velocity.x > StaticLoad.MAX_SPEED:
 		velocity.x = StaticLoad.MAX_SPEED
@@ -605,7 +605,7 @@ func die():
 		if droppped_item_name != "AIR" and droppped_item_list[droppped_item_name] > 0:
 			var summon_item_args = ["item", droppped_item_name, position+Vector2(0, 23), droppped_item_list[droppped_item_name], 0, 0, UUID.v4()]
 			if StaticLoad.is_muti_mode:
-				if StaticLoad.multiplayer.get_unique_id() == 1:
+				if multiplayer.get_unique_id() == 1:
 					StaticLoad.create_entity(summon_item_args)
 					StaticLoad.rpc("create_entity", summon_item_args)
 			else:
@@ -653,7 +653,7 @@ func get_is_dead():
 	return is_dead
 	
 func destroy_entity(args):
-	if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and StaticLoad.multiplayer.get_unique_id() == 1):
+	if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1):
 		if StaticLoad.game.loaded_chunks.has(str(chunk_pos[0])+"."+str(chunk_pos[1])):
 			StaticLoad.game.loaded_chunks[str(chunk_pos[0])+"."+str(chunk_pos[1])].entity_list.erase(uuid)
 	queue_free()
