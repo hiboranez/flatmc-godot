@@ -23,6 +23,7 @@ DO_NOT_SHOW_AGAIN;不再显示;do not show again
 OPEN_TO_LAN;对局域网开放;open to lan
 BACK_TO_MENU;返回菜单;back to menu
 CONTINUE_GAME;继续游戏;continue game
+YOU_DIED;你死了;you died
 RESPAWN;重生;respawn
 OPTIONS;设置;options
 DISCONNECT;断开连接;disconnect

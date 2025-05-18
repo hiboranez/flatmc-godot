@@ -97,6 +97,12 @@ func init(args):
 	position = args[2]
 	if args[3] is int:
 		health = args[3]
+	chunk_pos = StaticLoad.game.get_chunk_position(StaticLoad.game.tile_map_layer.local_to_map(position))
+	if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1):
+		StaticLoad.game.loaded_chunks[str(chunk_pos[0])+"."+str(chunk_pos[1])].entity_list.append(uuid)
+		StaticLoad.game.loaded_chunks[str(chunk_pos[0])+"."+str(chunk_pos[1])].is_to_save = true
+	else:
+		StaticLoad.rpc_id(1, "request_for_mark_revised_chunk", chunk_pos)
 	update_target_pos()
 	StaticLoad.game.sound_audio_manager.play_random_audio_at_position("pig", "say", position, 1)
 
@@ -469,7 +475,7 @@ func update_state_dict():
 	state_dict["is_flying"] = is_flying
 	state_dict["is_frozen"] = is_frozen
 	state_dict["position"] = position
-	state_dict["current_velocity"] = current_velocity
+	state_dict["velocity"] = velocity
 	state_dict["health"] = health
 
 func update_local_state_dict():
@@ -481,15 +487,12 @@ func update_local_state_dict():
 func update_local_changed_state_dict():
 	if not StaticLoad.is_muti_mode:
 		return
-	if multiplayer.get_unique_id() != 1 and multiplayer.get_unique_id() != 1:
+	if multiplayer.get_unique_id() != 1:
 		return
 	for key in state_dict:
 		if not last_state_dict.has(key) or last_state_dict[key] != state_dict[key]:
 			last_state_dict[key] = state_dict[key]
-			if multiplayer.get_unique_id() == 1:
-				only_server_change_state_dict[key] = state_dict[key]
-			else:
-				changed_state_dict[key] = state_dict[key]
+			changed_state_dict[key] = state_dict[key]
 
 func set_changed_state_dict(got_changed_state_dict):
 	for key in got_changed_state_dict:

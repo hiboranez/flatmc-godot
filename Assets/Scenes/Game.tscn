@@ -1,4 +1,4 @@
-[gd_scene load_steps=118 format=4 uid="uid://2hv5eany3vpf"]
+[gd_scene load_steps=119 format=4 uid="uid://2hv5eany3vpf"]
 
 [ext_resource type="Script" path="res://Assets/Scripts/Game.gd" id="1_ctu8j"]
 [ext_resource type="Script" path="res://Assets/Scripts/BgmAudioPlayer.gd" id="2_gyse0"]
@@ -1689,6 +1689,12 @@ VScrollBar/styles/scroll = SubResource("StyleBoxLine_hxvga")
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_vm4jx"]
 size = Vector2(150, 150)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_pjen4"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_rfgq5"]
 content_margin_left = 30.0
@@ -4695,21 +4701,40 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 0.705882)
 
-[node name="FlowContainer" type="FlowContainer" parent="DeathUI"]
+[node name="VSplitContainer" type="VSplitContainer" parent="DeathUI"]
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -500.0
-offset_top = -166.0
+offset_top = -266.0
 offset_right = 500.0
-offset_bottom = 166.0
+offset_bottom = 110.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/separation = 85
+
+[node name="Title" type="Label" parent="DeathUI/VSplitContainer"]
+light_mask = 4
+z_index = 2
+layout_mode = 2
+size_flags_horizontal = 6
+size_flags_vertical = 0
+localize_numeral_system = false
+theme_override_fonts/font = ExtResource("4_nsj5b")
+theme_override_font_sizes/font_size = 70
+theme_override_styles/normal = SubResource("StyleBoxEmpty_pjen4")
+text = "YOU_DIED"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="FlowContainer" type="FlowContainer" parent="DeathUI/VSplitContainer"]
+z_index = 1
+layout_mode = 2
 size_flags_vertical = 4
 
-[node name="Button1" type="Button" parent="DeathUI/FlowContainer"]
+[node name="Button1" type="Button" parent="DeathUI/VSplitContainer/FlowContainer"]
 z_index = 1
 custom_minimum_size = Vector2(1000, 108)
 layout_mode = 2
@@ -4724,7 +4749,7 @@ icon_alignment = 1
 expand_icon = true
 script = ExtResource("6_u15tu")
 
-[node name="Icon" type="TextureRect" parent="DeathUI/FlowContainer/Button1"]
+[node name="Icon" type="TextureRect" parent="DeathUI/VSplitContainer/FlowContainer/Button1"]
 z_index = -1
 layout_mode = 1
 anchors_preset = 15
@@ -4734,7 +4759,7 @@ grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("5_0o0wo")
 
-[node name="Button2" type="Button" parent="DeathUI/FlowContainer"]
+[node name="Button2" type="Button" parent="DeathUI/VSplitContainer/FlowContainer"]
 z_index = 1
 custom_minimum_size = Vector2(1000, 108)
 layout_mode = 2
@@ -4749,7 +4774,7 @@ icon_alignment = 1
 expand_icon = true
 script = ExtResource("6_u15tu")
 
-[node name="Icon" type="TextureRect" parent="DeathUI/FlowContainer/Button2"]
+[node name="Icon" type="TextureRect" parent="DeathUI/VSplitContainer/FlowContainer/Button2"]
 z_index = -1
 layout_mode = 1
 anchors_preset = 15
@@ -4759,7 +4784,7 @@ grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("5_0o0wo")
 
-[node name="Button3" type="Button" parent="DeathUI/FlowContainer"]
+[node name="Button3" type="Button" parent="DeathUI/VSplitContainer/FlowContainer"]
 visible = false
 z_index = 1
 custom_minimum_size = Vector2(1000, 108)
@@ -4775,7 +4800,7 @@ icon_alignment = 1
 expand_icon = true
 script = ExtResource("6_u15tu")
 
-[node name="Icon" type="TextureRect" parent="DeathUI/FlowContainer/Button3"]
+[node name="Icon" type="TextureRect" parent="DeathUI/VSplitContainer/FlowContainer/Button3"]
 z_index = -1
 layout_mode = 1
 anchors_preset = 15
@@ -5425,9 +5450,9 @@ visible = false
 [connection signal="pressed" from="PauseUI/FlowContainer/Button4" to="." method="_on_pause_button_4_pressed"]
 [connection signal="pressed" from="PauseUI/FlowContainer/Button5" to="." method="_on_pause_button_5_pressed"]
 [connection signal="pressed" from="PauseUI/FlowContainer/Button6" to="." method="_on_pause_button_6_pressed"]
-[connection signal="pressed" from="DeathUI/FlowContainer/Button1" to="." method="_on_death_button_1_pressed"]
-[connection signal="pressed" from="DeathUI/FlowContainer/Button2" to="." method="_on_death_button_2_pressed"]
-[connection signal="pressed" from="DeathUI/FlowContainer/Button3" to="." method="_on_death_button_3_pressed"]
+[connection signal="pressed" from="DeathUI/VSplitContainer/FlowContainer/Button1" to="." method="_on_death_button_1_pressed"]
+[connection signal="pressed" from="DeathUI/VSplitContainer/FlowContainer/Button2" to="." method="_on_death_button_2_pressed"]
+[connection signal="pressed" from="DeathUI/VSplitContainer/FlowContainer/Button3" to="." method="_on_death_button_3_pressed"]
 [connection signal="gui_input" from="Options/ColorRect/ScrollContainer" to="Options/ColorRect/ScrollContainer" method="_on_scrollcontainer_gui_input"]
 [connection signal="scrolling" from="Options/ColorRect/ScrollContainer/VBoxContainer/RenderChunk/HScrollBar" to="Options" method="_on_options_render_chunk_scroll_bar_scrolling"]
 [connection signal="scrolling" from="Options/ColorRect/ScrollContainer/VBoxContainer/FovZoom/HScrollBar" to="Options" method="_on_options_fov_zoom_scroll_bar_scrolling"]

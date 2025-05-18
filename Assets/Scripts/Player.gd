@@ -40,7 +40,6 @@ var sword_breaking_timer: float = 0
 var health_recover_timer: float = 10
 var gamemode: String = "survival"
 var velocity_before_pause = velocity
-var current_velocity = Vector2(0, 0)
 var last_velocity = Vector2(0, 0)
 var selected_block_pos = Vector2i(0, 0)
 var destroying_block_pos = Vector2i(0, 0)
@@ -49,12 +48,19 @@ var attack_timer: float = 1
 var attacking_decline_timer: float = 0
 var attacking_damage: int = 0
 var selected_item_grid: int = 0
+var last_in_hand_item_name = "AIR"
 var step_sound_timer: float = 0
+var sneak_timer: float = 0
 var move_state = "idle"
 var face_state: int = -1
 var turn_state: float = 0
 var breaking_tool = "null"
+var mouse_item_name = "AIR"
+var mouse_item_amount = 0
 var hurt_tween
+var die_rotation_tween
+var die_name_tween
+var is_jumping = false
 var is_sneaking = false
 var is_auto_jump = false
 var is_jump_pressed = false
@@ -78,15 +84,20 @@ var animation_tree_parameters = {
 	"sneak": 0,
 }
 var only_server_change_state_list = [
-	"health", "attack_timer", "attacking_decline_timer", "attacking_damage"
+	"velocity", "health", "attack_timer", 
+	"attacking_decline_timer", "sword_breaking_timer",
+	"attacking_damage", "is_frozen"
 ]
 var trigger_change_state_list = [
-	"is_punching", "set_block_list", "breaking_tool"
+	"is_punching", "set_block_list", "breaking_tool",
+	"is_jumping", "farm_list", "inventory"
 ]
 var state_dict = {}
 var last_state_dict = {}
 var changed_state_dict = {}
 var only_server_change_state_dict = {}
+var inventory_dict = {}
+var farm_list = []
 var set_block_list = []
 var success_set_block_list = []
 var attacking_list = []
@@ -101,7 +112,6 @@ func _ready():
 	update_state_dict()
 
 func _process(delta: float) -> void:
-	update_current_velocity()
 	# 通过接收的数据同步更新
 	move_and_slide()
 	update_sound_by_data()
@@ -110,11 +120,11 @@ func _process(delta: float) -> void:
 	update_local_fall_damage_by_data()
 	update_local_health_recover()
 	update_local_attack_timer()
-	# 本地更新
 	update_local_velocity()
+	update_local_gravity()
+	# 本地更新
 	update_local_is_on_ladder()
 	update_local_set_block()
-	update_local_gravity()
 	update_local_move_by_data()
 	update_local_item_in_hand()
 	update_local_state_dict()
@@ -137,7 +147,7 @@ func init_local(peer_id):
 		StaticLoad.game.mini_map_players.add_child(player_icon_instance)
 		uuid = UUID.uuid_from_username(player_name)
 		name_label.text = player_name
-		StaticLoad.player_peer_dict[player_peer_id] = StaticLoad.game.player
+		StaticLoad.player_peer_dict[player_peer_id] = self
 		var auto_jump_on = config.get_value("options", "auto_jump", StaticLoad.options["auto_jump"])
 		if auto_jump_on == "on":
 			is_auto_jump = true
@@ -180,6 +190,7 @@ func init_local(peer_id):
 				health = player_config.get_value("player", "health", StaticLoad.DEFAULT_PLAYER_HEALTH)
 				item_bar_names = player_config.get_value("player", "item_bar_names", item_bar_names)
 				item_bar_amounts = player_config.get_value("player", "item_bar_amounts", item_bar_amounts)
+		inventory_dict = calculate_inventory_dict([item_bar_names, item_bar_amounts, mouse_item_name, mouse_item_amount])
 		if gamemode != "creative":
 			is_flying = false
 		if self.gamemode == "creative":
@@ -236,7 +247,7 @@ func update_local_is_on_ladder():
 		is_on_ladder = false
 
 func update_sound_by_data():
-	if abs(current_velocity.y) < StaticLoad.FLOAT_DELTA and last_velocity.y > 1100:
+	if abs(velocity.y) < StaticLoad.FLOAT_DELTA and last_velocity.y > 1100:
 		if last_velocity.y > 1300:
 			StaticLoad.game.sound_audio_manager.play_random_audio_at_position("damage", "fallbig", position, 1)
 		else:
@@ -244,11 +255,18 @@ func update_sound_by_data():
 	if breaking_tool != "null":
 		StaticLoad.game.sound_audio_manager.play_random_audio_at_position("random", "tool_break", position, 1)
 		StaticLoad.game.summon_destroy_particle(position-Vector2(0,16), "item", breaking_tool)
+		attack_timer = 0
+		if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1:
+			if breaking_tool.contains("SWORD"):
+				if breaking_tool.contains("GOLD"):
+					sword_breaking_timer = 0.5
+				else:
+					sword_breaking_timer = 1
 		if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == player_peer_id:
 			changed_state_dict["breaking_tool"] = breaking_tool
 		breaking_tool = "null"
 	if not is_flying and is_on_ladder:
-		if step_sound_timer <= 0 and current_velocity.y != 0:
+		if step_sound_timer <= 0 and velocity.y != 0:
 			step_sound_timer = walk_period
 			StaticLoad.game.sound_audio_manager.play_random_audio_at_position("step", "ladder", position, 1)
 	elif move_state != "idle":
@@ -274,15 +292,24 @@ func update_animation_tree():
 
 func update_animation_by_data():
 	var delta = get_process_delta_time()
-	if is_frozen:
+	if is_frozen or is_dead:
 		return
 	
-	if Input.is_action_pressed("shift") and not is_sneaking:
-		is_sneaking = true
-		if move_state == "run":
-			move_state = "walk"
-	elif not Input.is_action_pressed("shift") and is_sneaking:
-		is_sneaking = false
+	if is_sneaking:
+		if sneak_timer < 0.75:
+			sneak_timer += get_process_delta_time()
+		else:
+			sneak_timer = 0.75
+	elif sneak_timer != 0:
+		sneak_timer = 0
+	
+	if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == player_peer_id):
+		if Input.is_action_pressed("shift") and not is_sneaking:
+			is_sneaking = true
+			if move_state == "run":
+				move_state = "walk"
+		elif not Input.is_action_pressed("shift") and is_sneaking:
+			is_sneaking = false
 		
 	if move_state == "run" and not is_sneaking:
 		animation_tree_parameters["run"] = lerpf(animation_tree_parameters["run"], 1, StaticLoad.BLEND_SPEED*delta)
@@ -298,7 +325,10 @@ func update_animation_by_data():
 		animation_tree_parameters["sneak"] = lerpf(animation_tree_parameters["sneak"], 1.2, StaticLoad.BLEND_SPEED*delta*2)
 	else:
 		animation_tree_parameters["sneak"] = lerpf(animation_tree_parameters["sneak"], 0, StaticLoad.BLEND_SPEED*delta*2)
-	set_name_label_modulate(Color(1,1,1,lerpf(1, 0, animation_tree_parameters["sneak"]/1.2)))
+	var name_invisible_value = sneak_timer-0.5
+	if name_invisible_value < 0:
+		name_invisible_value = 0
+	set_name_label_modulate(Color(1,1,1,lerpf(1, 0, name_invisible_value/0.25)))
 	
 	var detect_size = 60
 	if move_state == "run":
@@ -351,12 +381,35 @@ func update_animation_by_data():
 		if not animation_tree["parameters/Punch/active"]:
 			animation_tree["parameters/Punch/request"] = AnimationNodeOneShot.ONE_SHOT_REQUEST_FIRE
 		if StaticLoad.tools_type.has(in_hand_item_name) and StaticLoad.tools_type[in_hand_item_name].has("sword"):
-			if attack_timer <= 0:
-				attack()
+			var tool_info = StaticLoad.tools_type[in_hand_item_name]
+			if not is_dead and StaticLoad.tools_type.has(in_hand_item_name) and tool_info.has("sword"):
+				if attack_timer <= 0:
+					if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1):
+						attack()
+				StaticLoad.game.sound_audio_manager.play_random_audio_at_position("player", "attack", position, 1)
+				if not attack_animation.visible:
+					attack_animation.visible = true
+				attack_animation.play("sweep")
+				attacking_decline_timer = 0.25
+				if in_hand_item_name.contains("GOLD") and in_hand_item_name.contains("SWORD"):
+					attack_timer = 0.5
+				else:
+					attack_timer = 1
 		if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == player_peer_id:
 			changed_state_dict["is_punching"] = true
 		is_punching = false
 	update_animation_tree()
+	if is_jumping:
+		if not is_flying and is_on_floor():
+			last_velocity = velocity
+			update_local_fall_damage_by_data()
+			update_sound_by_data()
+			if not is_dead:
+				if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1):
+					velocity.y += jump_velocity
+				if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == player_peer_id:
+					changed_state_dict["is_jumping"] = true
+		is_jumping = false
 
 func update_local_fall_damage_by_data():
 	if StaticLoad.is_muti_mode and not multiplayer.get_unique_id() == 1:
@@ -364,7 +417,7 @@ func update_local_fall_damage_by_data():
 	#更新摔落
 	if gamemode == "survival":
 		if last_velocity.y > 1000 and not is_on_ladder:
-			if abs(current_velocity.y) < StaticLoad.FLOAT_DELTA or current_velocity.y < 0:
+			if abs(velocity.y) < StaticLoad.FLOAT_DELTA or velocity.y < 0:
 				@warning_ignore("integer_division")
 				var damage = (int(last_velocity.y)-1000)/50
 				get_damage([damage, "down"])
@@ -388,7 +441,7 @@ func update_local_health_recover():
 		health_recover_timer = 0
 
 func update_local_attack_timer():
-	if StaticLoad.is_muti_mode and not multiplayer.get_unique_id() == 1:
+	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
 		return
 	if attacking_decline_timer > 0:
 		attacking_decline_timer -= get_process_delta_time()
@@ -399,6 +452,13 @@ func update_local_attack_timer():
 		attack_timer -= get_process_delta_time()
 	elif attack_timer < 0:
 		attack_timer = 0
+	if last_in_hand_item_name != in_hand_item_name:
+		if in_hand_item_name.contains("SWORD"):
+			if in_hand_item_name.contains("GOLD"):
+				attack_timer = 0.5
+			else:
+				attack_timer = 1
+		last_in_hand_item_name = in_hand_item_name
 	if sword_breaking_timer > 0:
 		sword_breaking_timer -= get_process_delta_time()
 	elif sword_breaking_timer < 0:
@@ -406,6 +466,15 @@ func update_local_attack_timer():
 
 func update_local_velocity():
 	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
+		if multiplayer.get_unique_id() != player_peer_id:
+			if velocity.length() > 0:
+				velocity = Vector2(0, 0)
+		return
+	if is_frozen or is_dead:
+		if velocity.length() > StaticLoad.FLOAT_DELTA:
+			velocity = Vector2(0, 0)
+		if expected_velocity.length() > StaticLoad.FLOAT_DELTA:
+			expected_velocity = Vector2(0, 0)
 		return
 	velocity = GameCalculator.calculate_velocity_by_data(get_process_delta_time(), velocity, expected_velocity, move_speed, is_flying, is_on_ladder)
 	#var delta = get_process_delta_time()
@@ -488,7 +557,7 @@ func update_local_set_block():
 			success_set_block_list.erase(set_block_info)
 
 func update_local_gravity():
-	if StaticLoad.is_muti_mode and not multiplayer.get_unique_id() == player_peer_id:
+	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
 		return
 	if StaticLoad.is_muti_mode:
 		var player_block_pos = StaticLoad.game.tile_map_layer.local_to_map(position-Vector2(0,24))
@@ -514,22 +583,23 @@ func update_local_gravity():
 func update_local_move_by_data():
 	if StaticLoad.is_muti_mode and not multiplayer.get_unique_id() == player_peer_id:
 		return
-	if is_frozen:
+	if is_frozen or is_dead:
 		if velocity.length() > StaticLoad.FLOAT_DELTA:
 			velocity = Vector2(0, 0)
+		if expected_velocity.length() > StaticLoad.FLOAT_DELTA:
+			expected_velocity = Vector2(0, 0)
 		return
 	if is_jump_pressed:
 		if not is_flying and is_on_ladder:
 			expected_velocity.y = -move_speed
 		else:
 			if not is_flying and is_on_floor():
-				last_velocity = current_velocity
-				current_velocity = velocity
+				last_velocity = velocity
 				update_local_fall_damage_by_data()
 				update_sound_by_data()
 				if not is_dead:
 					if velocity.y >= 0:
-						velocity.y += jump_velocity
+						is_jumping = true
 			elif is_flying:
 				expected_velocity.y = jump_velocity * 0.7
 	elif not is_down_pressed and not is_flying and is_on_ladder:
@@ -539,7 +609,7 @@ func update_local_move_by_data():
 			if move_state != "idle":
 				if not is_flying and is_on_floor():
 					if velocity.y >= 0:
-						velocity.y += jump_velocity
+						is_jumping = true
 	if last_is_jump_pressed and not is_jump_pressed:
 		if is_flying:
 			expected_velocity.y = 0
@@ -689,10 +759,10 @@ func set_item_in_hand(got_item_name):
 func update_local_item_in_hand():
 	if StaticLoad.is_muti_mode and not multiplayer.get_unique_id() == player_peer_id:
 		return
-	var last_in_hand_item_name = item_bar_names[selected_item_grid]
-	if last_in_hand_item_name == in_hand_item_name:
+	var in_hand_item_name_tmp = item_bar_names[selected_item_grid]
+	if in_hand_item_name_tmp == in_hand_item_name:
 		return
-	in_hand_item_name = last_in_hand_item_name
+	in_hand_item_name = in_hand_item_name_tmp
 	attacking_decline_timer = 0
 	attacking_list.clear()
 	attack_animation.stop()
@@ -712,9 +782,14 @@ func update_state_dict():
 	state_dict["attack_timer"] = attack_timer
 	state_dict["attacking_damage"] = attacking_damage
 	state_dict["attacking_decline_timer"] = attacking_decline_timer
+	state_dict["is_jumping"] = is_jumping
+	state_dict["sword_breaking_timer"] = sword_breaking_timer
 	state_dict["position"] = position
+	state_dict["velocity"] = velocity
+	state_dict["is_frozen"] = is_frozen
+	state_dict["selected_item_grid"] = selected_item_grid
+	state_dict["expected_velocity"] = expected_velocity
 	state_dict["in_hand_item_name"] = in_hand_item_name
-	state_dict["current_velocity"] = current_velocity
 	state_dict["health"] = health
 	state_dict["current_set_layer"] = current_set_layer
 
@@ -793,8 +868,52 @@ func apply_changed_state_dict(got_changed_state_dict):
 			for set_block_info in got_changed_state_dict[key]:
 				set_block_list.append(set_block_info)
 			changed_state_dict.erase(key)
+		elif key == "inventory":
+			if multiplayer.get_unique_id() == 1:
+				var got_item_bar_names = got_changed_state_dict[key][0]
+				var got_item_bar_amounts = got_changed_state_dict[key][1]
+				var got_mouse_item_name = got_changed_state_dict[key][2]
+				var got_mouse_item_amount = got_changed_state_dict[key][3]
+				var inventory_dict_tmp = calculate_inventory_dict([got_item_bar_names, got_item_bar_amounts, got_mouse_item_name, got_mouse_item_amount])
+				var is_correct = true
+				for item_name_tmp in inventory_dict_tmp:
+					if not inventory_dict.has(item_name_tmp):
+						is_correct = false
+						break
+					if inventory_dict[item_name_tmp] < inventory_dict_tmp[item_name_tmp]:
+						is_correct = false
+						break
+				if is_correct or gamemode == "creative":
+					item_bar_names = got_changed_state_dict[key][0]
+					item_bar_amounts = got_changed_state_dict[key][1]
+					mouse_item_name = got_changed_state_dict[key][2]
+					mouse_item_amount = got_changed_state_dict[key][3]
+					inventory_dict = inventory_dict_tmp
+				else:
+					StaticLoad.rpc_id(player_peer_id, "reply_for_update_player_inventory", item_bar_names, item_bar_amounts, mouse_item_name, mouse_item_amount)
+				changed_state_dict.erase(key)
 		else:
 			self.set(key, got_changed_state_dict[key])
+
+func calculate_inventory_dict(args):
+	var item_bar_names_tmp = args[0]
+	var item_bar_amounts_tmp = args[1]
+	var mouse_item_name_tmp = args[2]
+	var mouse_item_amount_tmp = args[3]
+	var inventory_dict_tmp = {}
+	for i in range(36):
+		var item_name_tmp = item_bar_names_tmp[i]
+		if item_name_tmp != "AIR":
+			if inventory_dict_tmp.has(item_name_tmp):
+				inventory_dict_tmp[item_name_tmp] += item_bar_amounts_tmp[i]
+			else:
+				inventory_dict_tmp[item_name_tmp] = item_bar_amounts_tmp[i]
+	if mouse_item_name_tmp != "AIR":
+		if inventory_dict_tmp.has(mouse_item_name_tmp):
+			inventory_dict_tmp[mouse_item_name_tmp] += mouse_item_amount_tmp
+		else:
+			inventory_dict_tmp[mouse_item_name_tmp] = mouse_item_amount_tmp
+	return inventory_dict_tmp
 
 func upload_local_player_changed_state_dict():
 	if not StaticLoad.is_muti_mode:
@@ -807,16 +926,19 @@ func upload_local_player_changed_state_dict():
 	changed_state_dict.clear()
 
 func update_last_velocity():
-	last_velocity = current_velocity
+	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
+		if last_velocity.length() > 0:
+			last_velocity = Vector2(0, 0)
+		return
+	last_velocity = velocity
 
 func update_current_velocity():
-	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != player_peer_id:
+	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
 		return
 	if velocity.x > StaticLoad.MAX_SPEED:
 		velocity.x = StaticLoad.MAX_SPEED
 	if velocity.y > StaticLoad.MAX_SPEED:
 		velocity.y = StaticLoad.MAX_SPEED
-	current_velocity = velocity
 
 func update_player_face_rotation():
 	var current_rotation = player_model.rotation_degrees
@@ -843,11 +965,11 @@ func get_damage(args):
 			hurt_tween.stop()
 		player_die()
 		set_shader_blink_intensity(0.6)
-		var tween1 = get_tree().create_tween()
-		tween1.tween_method(set_name_label_modulate, Color(1,1,1,1), Color(1,1,1,0), StaticLoad.DISSOLVE_TIME)
+		die_name_tween = get_tree().create_tween()
+		die_name_tween.tween_method(set_name_label_modulate, Color(1,1,1,1), Color(1,1,1,0), 0.25)
 		StaticLoad.game.sound_audio_manager.play_random_audio_at_position("player", "hurt", position, 1)
-		var tween2 = get_tree().create_tween()
-		tween2.tween_method(set_z_rotation, 0, 90, StaticLoad.DISSOLVE_TIME)
+		die_rotation_tween = get_tree().create_tween()
+		die_rotation_tween.tween_method(set_z_rotation, 0, 90, StaticLoad.DISSOLVE_TIME)
 	else:
 		hurt_tween = get_tree().create_tween()
 		hurt_tween.tween_method(set_shader_blink_intensity, 0.6, 0, StaticLoad.HURT_TIME)
@@ -941,31 +1063,33 @@ func place_block(block_pos):
 			return false
 		var local_block_id = StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.tile_map_layer.get_cell_atlas_coords(block_pos))
 		if StaticLoad.get_block_name_by_id(local_block_id) == "GRASS_BLOCK":
-			var sound_pos = StaticLoad.game.tile_map_layer.map_to_local(block_pos)+Vector2(0, 25)
-			StaticLoad.game.sound_audio_manager.play_random_audio_at_position("item", "hoe_still", sound_pos, 1)
-			StaticLoad.game.set_block(block_pos, StaticLoad.get_block_id_by_name("FARM_LAND"), "solid", true)
-			if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1:
-				StaticLoad.rpc("set_block", [local_block_id, StaticLoad.get_block_id_by_name("FARM_LAND"), "solid"])
-			wear_and_update_in_hand_tool(1)
-			var rng = RandomNumberGenerator.new()
-			var num = rng.randf()
-			if num > 0.7:
-				var item_pos = StaticLoad.game.tile_map_layer.map_to_local(block_pos)-Vector2(0, 25)
-				var summon_item_args = ["item", "SEEDS_WHEAT", item_pos, 1, 0, 0, UUID.v4()]
-				if StaticLoad.is_muti_mode:
-					if multiplayer.get_unique_id() == 1:
-						StaticLoad.create_entity(summon_item_args)
-						StaticLoad.rpc("create_entity", summon_item_args)
-				else:
-					StaticLoad.create_entity(summon_item_args)
+			#var sound_pos = StaticLoad.game.tile_map_layer.map_to_local(block_pos)+Vector2(0, 25)
+			#StaticLoad.game.sound_audio_manager.play_random_audio_at_position("item", "hoe_still", sound_pos, 1)
+			#StaticLoad.game.set_block(block_pos, StaticLoad.get_block_id_by_name("FARM_LAND"), "solid", true)
+			set_block_list.append([StaticLoad.get_block_id_by_name("FARM_LAND"), block_pos, "solid"])
+			#if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1:
+				#StaticLoad.rpc("set_block", [block_pos, StaticLoad.get_block_id_by_name("FARM_LAND"), "solid", true])
+			#wear_and_update_in_hand_tool(1)
+			#var rng = RandomNumberGenerator.new()
+			#var num = rng.randf()
+			#if num > 0.7:
+				#var item_pos = StaticLoad.game.tile_map_layer.map_to_local(block_pos)-Vector2(0, 25)
+				#var summon_item_args = ["item", "SEEDS_WHEAT", item_pos, 1, 0, 0, UUID.v4()]
+				#if StaticLoad.is_muti_mode:
+					#if multiplayer.get_unique_id() == 1:
+						#StaticLoad.create_entity(summon_item_args)
+						#StaticLoad.rpc("create_entity", summon_item_args)
+				#else:
+					#StaticLoad.create_entity(summon_item_args)
 			is_punching = true
 			return true
 		elif StaticLoad.get_block_name_by_id(local_block_id) == "DIRT":
-			var sound_pos = StaticLoad.game.tile_map_layer.map_to_local(block_pos)+Vector2(0, 25)
-			StaticLoad.game.sound_audio_manager.play_random_audio_at_position("item", "hoe_still", sound_pos, 1)
-			StaticLoad.game.set_block(block_pos, StaticLoad.get_block_id_by_name("FARM_LAND"), "solid", true)
-			if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1:
-				StaticLoad.rpc("set_block", [local_block_id, StaticLoad.get_block_id_by_name("FARM_LAND"), "solid"])
+			#var sound_pos = StaticLoad.game.tile_map_layer.map_to_local(block_pos)+Vector2(0, 25)
+			set_block_list.append([StaticLoad.get_block_id_by_name("FARM_LAND"), block_pos, "solid"])
+			#StaticLoad.game.sound_audio_manager.play_random_audio_at_position("item", "hoe_still", sound_pos, 1)
+			#StaticLoad.game.set_block(block_pos, StaticLoad.get_block_id_by_name("FARM_LAND"), "solid", true)
+			#if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1:
+				#StaticLoad.rpc("set_block", [block_pos, StaticLoad.get_block_id_by_name("FARM_LAND"), "solid", true])
 			is_punching = true
 			return true
 		else:
@@ -976,9 +1100,9 @@ func place_block(block_pos):
 	var tile_map_layer_tmp = StaticLoad.game.tile_map_layer
 	if place_layer == "back":
 		tile_map_layer_tmp = StaticLoad.game.back_tile_map_layer
-	if not StaticLoad.game.check_place_block_state(block_pos, block_id):
+	if not StaticLoad.game.check_place_block_state(block_pos, block_id, current_set_layer):
 		return false
-	if gamemode != "creative":
+	if gamemode != "creative" and current_set_layer == "solid":
 		if not check_attached_block(block_pos, tile_map_layer_tmp):
 			return false
 	if tile_map_layer_tmp.get_cell_source_id(block_pos) == -1 and StaticLoad.game.no_reach_tile_map_layer.get_cell_source_id(block_pos) == -1 and StaticLoad.block_ids.has(final_item_name):
@@ -994,21 +1118,53 @@ func place_block(block_pos):
 			return true
 	return false
 
-func wear_and_update_in_hand_tool(damage):
-	if not StaticLoad.tools_type.has(in_hand_item_name):
-		return
-	item_bar_amounts[selected_item_grid] -= damage
-	if item_bar_amounts[selected_item_grid] <= 0:
-		breaking_tool = item_bar_names[selected_item_grid]
-		item_bar_names[selected_item_grid] = "AIR"
-		item_bar_amounts[selected_item_grid] = 0
+func wear_inventory_amount(args):
+	var sort = args[0]
+	var damage = args[1]
+	item_bar_amounts[sort] -= damage
+	if item_bar_amounts[sort] <= 0:
+		item_bar_names[sort] = "AIR"
+		item_bar_amounts[sort] = 0
+	if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == player_peer_id):
+		StaticLoad.game.refresh_item_grid(sort)
+
+func server_breaking_tool(got_breaking_tool):
+	StaticLoad.game.sound_audio_manager.play_random_audio_at_position("random", "tool_break", position, 1)
+	StaticLoad.game.summon_destroy_particle(position-Vector2(0,16), "item", got_breaking_tool)
+	attack_timer = 0
+	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1:
 		if breaking_tool.contains("SWORD"):
 			if breaking_tool.contains("GOLD"):
 				sword_breaking_timer = 0.5
 			else:
 				sword_breaking_timer = 1
-			
-	if selected_item_grid < 9:
+
+func wear_and_update_in_hand_tool(damage, is_on_server):
+	#if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == player_peer_id):
+	if not StaticLoad.tools_type.has(in_hand_item_name):
+		return
+	item_bar_amounts[selected_item_grid] -= damage
+	if item_bar_amounts[selected_item_grid] <= 0:
+		if in_hand_item_name.contains("SWORD"):
+			if in_hand_item_name.contains("GOLD"):
+				sword_breaking_timer = 0.5
+			else:
+				sword_breaking_timer = 1
+		breaking_tool = in_hand_item_name
+		if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1 and is_on_server:
+			StaticLoad.rpc_entity_func_by_uuid(uuid, "server_breaking_tool", in_hand_item_name, "others", true)
+		item_bar_names[selected_item_grid] = "AIR"
+		item_bar_amounts[selected_item_grid] = 0
+	if is_on_server and StaticLoad.is_muti_mode:
+		if multiplayer.get_unique_id() == 1:
+			StaticLoad.rpc_entity_func_by_uuid(uuid, "wear_inventory_amount", [selected_item_grid, damage], "others", true)
+	elif not is_on_server and StaticLoad.is_muti_mode:
+		if multiplayer.get_unique_id() == player_peer_id:
+			if multiplayer.get_unique_id() == 1:
+				StaticLoad.rpc_entity_func_by_uuid(uuid, "wear_inventory_amount", [selected_item_grid, damage], "others", true)
+			else:
+				StaticLoad.rpc_entity_func_by_uuid(uuid, "wear_inventory_amount", [selected_item_grid, damage], [player_peer_id], false)
+	if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == player_peer_id):
 		StaticLoad.game.refresh_item_grid(selected_item_grid)
 
 func player_die():
@@ -1017,6 +1173,9 @@ func player_die():
 	update_animation_by_data()
 	if is_other:
 		return
+	for button in StaticLoad.game.death_ui_flow_container.get_children():
+		button.disabled = true
+	StaticLoad.game.die_no_press_timer = 1
 	if StaticLoad.game.is_pause:
 		StaticLoad.game.pause_ui.visible = false
 		StaticLoad.game.is_pause = false
@@ -1227,6 +1386,9 @@ func drop_item(item_name, item_amount):
 	else:
 		summon_item(summon_item_args)
 
+func create_entity(args):
+	StaticLoad.create_entity(args)
+
 func summon_item(args):
 	var droppped_item_name = args[0]
 	var pos = args[1]
@@ -1250,8 +1412,13 @@ func stop_move():
 	expected_velocity.x = 0
 
 func respawn(is_animation = true):
+	if die_rotation_tween != null:
+		die_rotation_tween.stop()
+	if die_name_tween != null:
+		die_name_tween.stop()
 	set_z_rotation(0)
 	set_shader_blink_intensity(0)
+	attack_timer = 0.5
 	freeze()
 	position = Vector2(0, -24)
 	if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == player_peer_id):
@@ -1277,43 +1444,36 @@ func respawn(is_animation = true):
 
 func check_wear_sword():
 	if attacking_list.size() == 1:
-		wear_and_update_in_hand_tool(1)
+		if gamemode != "creative":
+			wear_and_update_in_hand_tool(1, true)
 
 func attack():
-	if not StaticLoad.tools_type.has(in_hand_item_name):
-		return
 	var tool_info = StaticLoad.tools_type[in_hand_item_name]
-	if not tool_info.has("sword"):
-		return
-	attacking_list.clear()
-	if not is_up_area_colliding:
-		attacking_damage = tool_info["sword"]
-		for body in attack_area.get_overlapping_bodies():
-			if not body.has_method("get_uuid"):
-				continue
-			if body.get_uuid() == null:
-				continue
-			if body.get_uuid() == uuid or body.get_entity_type() == "item":
-				continue
-			if body.get_is_dead():
-				continue
-			if attacking_list.has(body):
-				continue
-			var side = "left"
-			if body.position.x < position.x:
-				side = "right"
-			body.get_damage([attacking_damage, side])
-			attacking_list.append(body)
-			check_wear_sword()
-	StaticLoad.game.sound_audio_manager.play_random_audio_at_position("player", "attack", position, 1)
-	if not attack_animation.visible:
-		attack_animation.visible = true
-	attack_animation.play("sweep")
-	attacking_decline_timer = 0.25
-	if in_hand_item_name.contains("GOLD") and in_hand_item_name.contains("SWORD"):
-		attack_timer = 0.5
-	else:
-		attack_timer = 1
+	if not is_dead and StaticLoad.tools_type.has(in_hand_item_name) and tool_info.has("sword"):
+		attacking_list.clear()
+		if not is_up_area_colliding:
+			attacking_damage = tool_info["sword"]
+			for body in attack_area.get_overlapping_bodies():
+				if not body.has_method("get_uuid"):
+					continue
+				if body.get_uuid() == null:
+					continue
+				if body.get_uuid() == uuid or body.get_entity_type() == "item":
+					continue
+				if body.get_entity_type() == "player" and body.gamemode == "creative":
+					continue
+				if body.get_is_dead():
+					continue
+				if attacking_list.has(body):
+					continue
+				var side = "left"
+				if body.position.x < position.x:
+					side = "right"
+				body.get_damage([attacking_damage, side])
+				if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1:
+					StaticLoad.rpc_entity_func_by_uuid(body.get_uuid(), "get_damage", [attacking_damage, side], "others", true)
+				attacking_list.append(body)
+				check_wear_sword()
 
 func set_name_label_modulate(color):
 	name_label.modulate = color
@@ -1334,9 +1494,16 @@ func init_remote(got_data):
 	player_peer_id = got_data[0]
 	player_name = got_data[1]
 	name_label.text = player_name
-	var player_icon_instance = StaticLoad.player_icon_scene.instantiate()
-	StaticLoad.game.player_icons[player_name] = player_icon_instance
-	StaticLoad.game.mini_map_players.add_child(player_icon_instance)
+	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == player_peer_id:
+		pass
+	else:
+		var player_icon_instance = StaticLoad.player_icon_scene.instantiate()
+		StaticLoad.game.player_icons[player_name] = player_icon_instance
+		StaticLoad.game.mini_map_players.add_child(player_icon_instance)
+		var mini_map_camera_zoom = StaticLoad.game.mini_map_camera.zoom[0]
+		var player_icon_scale = StaticLoad.MINI_MAP_SCALE_FACTOR/mini_map_camera_zoom
+		player_icon_instance.scale = Vector2(player_icon_scale, player_icon_scale)
+		player_icon_instance.name = player_name
 	apply_changed_state_dict(got_data[2])
 	uuid = UUID.uuid_from_username(player_name)
 	if gamemode != "creative":
@@ -1353,11 +1520,6 @@ func init_remote(got_data):
 	unfreeze()
 	if player_peer_id == multiplayer.get_unique_id():
 		return
-	
-	var mini_map_camera_zoom = StaticLoad.game.mini_map_camera.zoom[0]
-	var player_icon_scale = StaticLoad.MINI_MAP_SCALE_FACTOR/mini_map_camera_zoom
-	player_icon_instance.scale = Vector2(player_icon_scale, player_icon_scale)
-	player_icon_instance.name = player_name
 	
 	if multiplayer.get_unique_id() == 1:
 		return
@@ -1474,6 +1636,8 @@ func _on_attack_area_body_entered(body: Node2D) -> void:
 				return
 			if body.get_uuid() == uuid or body.get_entity_type() == "item":
 				return
+			if body.get_entity_type() == "player" and body.gamemode == "creative":
+				return
 			if body.get_is_dead():
 				return
 			if attacking_list.has(body):
@@ -1482,6 +1646,8 @@ func _on_attack_area_body_entered(body: Node2D) -> void:
 			if face_state < 0:
 				side = "right"
 			body.get_damage([damage, side])
+			if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1:
+				StaticLoad.rpc_entity_func_by_uuid(body.get_uuid(), "get_damage", [damage, side], "others", true)
 			attacking_list.append(body)
 			check_wear_sword()
 		else:
@@ -1494,6 +1660,8 @@ func _on_attack_area_body_entered(body: Node2D) -> void:
 					return
 				if body.get_uuid() == uuid or body.get_entity_type() == "item":
 					return
+				if body.get_entity_type() == "player" and body.gamemode == "creative":
+					return
 				if body.get_is_dead():
 					return
 				if attacking_list.has(body):
@@ -1502,6 +1670,8 @@ func _on_attack_area_body_entered(body: Node2D) -> void:
 				if face_state < 0:
 					side = "right"
 				body.get_damage([damage, side])
+				if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1:
+					StaticLoad.rpc_entity_func_by_uuid(body.get_uuid(), "get_damage", [damage, side], "others", true)
 				attacking_list.append(body)
 				check_wear_sword()
 			

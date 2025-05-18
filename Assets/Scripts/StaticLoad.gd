@@ -151,6 +151,7 @@ var special_block_destroy_time: Dictionary
 var commands: Dictionary
 var clinging_block_dict: Dictionary
 var special_place_dict: Dictionary
+var entity_scene_dict: Dictionary
 
 # 待更新数据
 var multiplayer_peer = ENetMultiplayerPeer.new()
@@ -223,6 +224,9 @@ func _ready() -> void:
 	commands = game_dict["commands"]
 	clinging_block_dict = game_dict["clinging_block_dict"]
 	special_place_dict = game_dict["special_place_dict"]
+	entity_scene_dict = {
+		"pig": pig_scene
+	}
 	
 	for i in range(8):
 		destroy_light_textures[i+1] = load("res://Assets/Textures/GUI/destroy"+str(i+1)+".png") as Texture2D
@@ -961,17 +965,22 @@ func dedicated_server_create_world():
 	player_path = "user://worlds/"+world_name+"/players"
 	DirAccess.make_dir_recursive_absolute(region_path)
 	DirAccess.make_dir_recursive_absolute(player_path)
+	var image = load("res://Assets/Textures/GUI/default_icon.png").get_image()
+	image.save_png(world_path+"/icon.png")
+	var level = ConfigFile.new()
+	var current_time = Time.get_datetime_string_from_system(false, true).replace(" ", "  ").replace("-", "/")
+	level.set_value("world", "last_modified", current_time)
+	level.set_value("world", "version", StaticLoad.options["version"])
+	var seed = "1241999312"
+	var world_type = "default"
+	level.set_value("world", "seed", seed)
+	level.set_value("world", "world_type", world_type)
+	level.set_value("world", "gamemode", "survival")
+	level.save_encrypted_pass(world_path+"/level.dat", StaticLoad.CONFIG_PASSWORD)
 	for x in range(-1,1):
 		for y in range(-1,1):
 			var mca = ConfigFile.new()
-			var worlds_path = "user://worlds"
-			var world_config = ConfigFile.new()
-			var world_info = world_config.load_encrypted_pass(worlds_path+"/"+StaticLoad.select_world+"/level.dat", StaticLoad.CONFIG_PASSWORD)
-			if world_info != OK:
-				return
-			var seed = world_config.get_value("world", "seed", "1241999312")
-			var world_type = world_config.get_value("world", "world_type", "default")
-			var chunk = generate_chunk(Vector2i(x, y), seed, world_type)
+			var chunk = StaticLoad.generate_chunk(Vector2i(x, y), seed, world_type)
 			var value_dict = {
 				"blocks" : chunk[0],
 				"no_reach_blocks" : chunk[1],
@@ -979,12 +988,6 @@ func dedicated_server_create_world():
 			}
 			set_mca_value(mca, value_dict)
 			mca.save_encrypted_pass(region_path+"/r."+str(x)+"."+str(y)+".mca", StaticLoad.CONFIG_PASSWORD)
-	var image = load("res://Assets/Textures/GUI/default_icon.png").get_image()
-	image.save_png(world_path+"/icon.png")
-	var level = ConfigFile.new()
-	var current_time = Time.get_datetime_string_from_system(false, true).replace(" ", "  ").replace("-", "/")
-	level.set_value("world", "last_modified", current_time)
-	level.save_encrypted_pass(world_path+"/level.dat", StaticLoad.CONFIG_PASSWORD)
 
 func get_random_available_port():
 	var port_range_start = 1024
@@ -1099,15 +1102,16 @@ func server_got_peer_disconnected(client_peer_id):
 	for server_detect in server_detects.get_children():
 		if server_detect.name == str(client_peer_id):
 			server_detect.queue_free()
+			break
 	if ping_peer_dict.has(client_peer_id):
 		ping_peer_dict.erase(client_peer_id)
 	if player_peer_dict.has(client_peer_id):
 		var left_player = player_peer_dict[client_peer_id]
 		if left_player.is_dead:
-			left_player.respawn_player(false)
+			left_player.respawn(false)
 		game.save_player(client_peer_id)
 		game.save_world()
-	call_deferred("rpc", "peer_disconnect_broadcast", client_peer_id)
+		call_deferred("rpc", "peer_disconnect_broadcast", client_peer_id)
 
 func server_got_peer_connected(client_peer_id):
 	var server_detect = server_detect_scene.instantiate()
@@ -1217,6 +1221,9 @@ func request_for_update_chunk(client_peer_id, is_init, x_chunk, y_chunk):
 		var block_list = value_list[2]
 		game.loaded_chunk_num += 1
 		game.set_chunk(Vector2i(x_chunk, y_chunk), block_list)
+		blocks = block_list[0]
+		no_reach_blocks = block_list[1]
+		back_blocks = block_list[2]
 		var chunk_entity_list = chunk_config.get_value("chunk", "entity_list")
 		if chunk_entity_list != null:
 			for uuid in chunk_entity_list:
@@ -1241,6 +1248,9 @@ func request_for_update_chunk(client_peer_id, is_init, x_chunk, y_chunk):
 				"no_reach_blocks" : chunk[1],
 				"back_blocks" : chunk[2]
 			}
+		blocks = chunk[0]
+		no_reach_blocks = chunk[1]
+		back_blocks = chunk[2]
 		set_mca_value(mca, value_dict)
 		mca.save_encrypted_pass(region_path+"/r."+str(x_chunk)+"."+str(y_chunk)+".mca", CONFIG_PASSWORD)
 		game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)] = Chunk.new()
@@ -1264,6 +1274,15 @@ func request_for_update_chunk(client_peer_id, is_init, x_chunk, y_chunk):
 					item["item_name"] = entity.item_name
 					item["item_amount"] = entity.item_amount
 					entities_to_transfer.append(item)
+				else:
+					var value_dict = {}
+					value_dict["type"] = entity.entity_type
+					value_dict["uuid"] = entity.get_uuid()
+					value_dict["entity_name"] = entity.get_entity_name()
+					value_dict["position"] = entity.position
+					value_dict["health"] = entity.get_health()
+					value_dict["type"] = "pig"
+					entities_to_transfer.append(value_dict)
 			
 	if not is_dedicated_server:
 		if not game.chunk_sky_light_datas.has(str(x_chunk)+"."+str(y_chunk-1)):
@@ -1294,6 +1313,11 @@ func reply_for_update_chunk(is_init, x_chunk, y_chunk, blocks_list, entities_to_
 			item.uuid = entity["uuid"]
 			item.name = entity["uuid"]
 			game.entities[item.get_uuid()] = item
+		else:
+			var entity_instance = entity_scene_dict[entity["type"]].instantiate()
+			game.mobs.add_child(entity_instance)
+			entity_instance.init([entity["uuid"], entity["entity_name"], entity["position"], entity["health"]])
+			game.entities[entity_instance.get_uuid()] = entity_instance
 	if is_init:
 		return
 	if not game.chunk_sky_light_datas.has(str(x_chunk)+"."+str(y_chunk-1)):
@@ -1333,13 +1357,13 @@ func create_entity(args):
 
 @rpc("authority", "call_remote", "reliable", 1)
 func set_block(args):
-	multiplayer
 	if not is_in_game:
 		return
 	var block_pos = args[0]
 	var block_id = args[1]
 	var tile_map_type = args[2]
-	game.set_block(block_pos, block_id, tile_map_type)
+	var is_pre_load = args[3]
+	game.set_block(block_pos, block_id, tile_map_type, is_pre_load)
 
 # 一次握手：检查服务器准入状态
 @rpc("any_peer", "call_remote", "reliable", 1)
@@ -1449,16 +1473,19 @@ func request_for_update_player_inventory(client_peer_id, player_name):
 		var item_bar_amounts = player_config.get_value("player", "item_bar_amounts", default_item_bar_amounts)
 		new_player.item_bar_names = item_bar_names
 		new_player.item_bar_amounts = item_bar_amounts
-		rpc_id(client_peer_id, "reply_for_update_player_inventory", item_bar_names, item_bar_amounts)
+		new_player.inventory_dict = new_player.calculate_inventory_dict([item_bar_names, item_bar_amounts, "AIR", 0])
+		rpc_id(client_peer_id, "reply_for_update_player_inventory", item_bar_names, item_bar_amounts, "AIR", 0)
 	else:
-		rpc_id(client_peer_id, "reply_for_update_player_inventory", default_item_bar_names, default_item_bar_amounts)
+		rpc_id(client_peer_id, "reply_for_update_player_inventory", default_item_bar_names, default_item_bar_amounts, "AIR", 0)
 
 @rpc("authority", "call_remote", "reliable", 1)
-func reply_for_update_player_inventory(item_bar_names, item_bar_amounts):
+func reply_for_update_player_inventory(item_bar_names, item_bar_amounts, mouse_item_name, mouse_item_amount):
 	game.player.item_bar_names = item_bar_names
 	game.player.item_bar_amounts = item_bar_amounts
-	for i in range(9):
-		game.refresh_item_grid(i)
+	game.player.mouse_item_name = mouse_item_name
+	game.player.mouse_item_amount = mouse_item_amount
+	game.player.inventory_dict = game.player.calculate_inventory_dict([item_bar_names, item_bar_amounts, mouse_item_name, mouse_item_amount])
+	game.append_process_refresh("refresh_item_grid")
 	game.append_process_refresh("refresh_inventory")
 
 # 三次握手：同步各个客户端玩家及信息
@@ -1558,10 +1585,12 @@ func reply_for_entity_func_by_uuid(uuid, rpc_func_name, args):
 		process_reply_for_entity_func_by_uuid(uuid, rpc_func_name, args)
 
 func process_reply_for_entity_func_by_uuid(uuid, rpc_func_name, args):
-	if game != null:
-		game.entities[uuid].call(rpc_func_name, args)
+	if game != null and game.entities.has(uuid):
+		if game.entities[uuid] != null:
+			game.entities[uuid].call(rpc_func_name, args)
 
 func call_entity_func(uuid, rpc_func_name, args):
 	if not game.entities.has(uuid):
 		return
-	game.entities[uuid].call(rpc_func_name, args)
+	if game.entities[uuid] != null:
+		game.entities[uuid].call(rpc_func_name, args)

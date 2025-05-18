@@ -51,7 +51,7 @@ func detect_all_server():
 func update_server_list():
 	var current_servers = server_list_vboxcontainer.get_children()
 	for server_detect in StaticLoad.server_detects.get_children():
-		server_detect.queue_free()
+		server_detect.disconnect_and_free()
 	for server in current_servers:
 		server.free()
 	var server_list = DirAccess.get_files_at(StaticLoad.server_path)
@@ -135,7 +135,7 @@ func _on_muti_menu_button_1_pressed() -> void:
 	if StaticLoad.select_server == null and not StaticLoad.is_lan_server:
 		return
 	for server_detect in StaticLoad.server_detects.get_children():
-		server_detect.queue_free()
+		server_detect.disconnect_and_free()
 	StaticLoad.change_scene("res://Assets/Scenes/LoadingServerUI.tscn")
 
 func _on_muti_menu_button_2_pressed() -> void:
@@ -146,6 +146,8 @@ func _on_muti_menu_button_2_pressed() -> void:
 func _on_muti_menu_button_3_pressed() -> void:
 	StaticLoad.click_audio_player.play()
 	StaticLoad.select_server = null
+	for server_detect in StaticLoad.server_detects.get_children():
+		server_detect.disconnect_and_free()
 	StaticLoad.change_scene("res://Assets/Scenes/Menu.tscn")
 
 func _on_muti_menu_button_4_pressed() -> void:

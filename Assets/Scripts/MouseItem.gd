@@ -9,7 +9,7 @@ func _ready() -> void:
 
 @warning_ignore("unused_parameter")
 func _process(delta: float) -> void:
-	if StaticLoad.game.mouse_item_name == "AIR":
+	if StaticLoad.game.player.mouse_item_name == "AIR":
 		if $ItemIcon.visible:
 			$ItemIcon.visible = false
 			$ProgressBar.visible = false
@@ -18,22 +18,22 @@ func _process(delta: float) -> void:
 		#await get_tree().create_timer(0.01).timeout
 		return
 	elif not $ItemIcon.visible:
-		$ItemIcon.init_icon(StaticLoad.game.mouse_item_name.to_lower())
-		mouse_item_name_now = StaticLoad.game.mouse_item_name
+		$ItemIcon.init_icon(StaticLoad.game.player.mouse_item_name.to_lower())
+		mouse_item_name_now = StaticLoad.game.player.mouse_item_name
 		$ItemIcon.visible = true
-	if StaticLoad.game.mouse_item_amount <= 1:
+	if StaticLoad.game.player.mouse_item_amount <= 1:
 		$Amount.text = ""
 		$Amount.visible = false
 	else:
-		$Amount.text = str(StaticLoad.game.mouse_item_amount)
+		$Amount.text = str(StaticLoad.game.player.mouse_item_amount)
 		$Amount.visible = true
-	update_progress_bar(StaticLoad.game.mouse_item_name, StaticLoad.game.mouse_item_amount)
+	update_progress_bar(StaticLoad.game.player.mouse_item_name, StaticLoad.game.player.mouse_item_amount)
 	position = get_global_mouse_position()-Vector2(50, 50)
 	if mouse_item_name_now == null:
 		return
-	if mouse_item_name_now != StaticLoad.game.mouse_item_name:
-		$ItemIcon.init_icon(StaticLoad.game.mouse_item_name.to_lower())
-	mouse_item_name_now = StaticLoad.game.mouse_item_name
+	if mouse_item_name_now != StaticLoad.game.player.mouse_item_name:
+		$ItemIcon.init_icon(StaticLoad.game.player.mouse_item_name.to_lower())
+	mouse_item_name_now = StaticLoad.game.player.mouse_item_name
 
 func update_progress_bar(got_item_name, got_item_amount):
 	if StaticLoad.get_is_durable_by_name(got_item_name):
