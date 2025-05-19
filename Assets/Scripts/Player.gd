@@ -304,7 +304,7 @@ func update_animation_by_data():
 		sneak_timer = 0
 	
 	if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == player_peer_id):
-		if Input.is_action_pressed("shift") and not is_sneaking:
+		if not StaticLoad.game.is_chat and not StaticLoad.game.is_inventory and not StaticLoad.game.is_pause and not StaticLoad.game.is_map and Input.is_action_pressed("shift") and not is_sneaking:
 			is_sneaking = true
 			if move_state == "run":
 				move_state = "walk"
@@ -1169,6 +1169,7 @@ func wear_and_update_in_hand_tool(damage, is_on_server):
 
 func player_die():
 	is_dead = true
+	attacking_decline_timer = 0
 	stop_move()
 	update_animation_by_data()
 	if is_other:
@@ -1191,6 +1192,7 @@ func player_die():
 		StaticLoad.game.mini_map.size = Vector2(270, 270)
 		StaticLoad.game.mini_map.position = Vector2(get_viewport_rect().size[0]-270, 0)
 		StaticLoad.game.is_map = false
+		StaticLoad.game.item_bar_panel.visible = true
 	StaticLoad.game.death_ui.visible = true
 	StaticLoad.game.is_input_frozen = true
 	if StaticLoad.is_on_mobile_platform:

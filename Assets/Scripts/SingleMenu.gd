@@ -32,8 +32,8 @@ func update_world_list():
 		world_list_vboxcontainer.add_child(selection)
 		selection.init("single_menu")
 		selection.icon = ImageTexture.create_from_image(Image.load_from_file(worlds_path+"/"+world+"/icon.png"))
-		selection.last_modified_label.text = tr("LAST_MODIFIED")+" : "+world_config.get_value("world", "last_modified", tr("UNKNOWN"))
-		selection.version_label.text = tr("VERSION")+" : "+world_config.get_value("world", "version", tr("UNKNOWN"))
+		selection.last_modified_label.text = tr("LAST_MODIFIED")+" : "+tr(world_config.get_value("world", "last_modified", "UNKNOWN"))
+		selection.version_label.text = tr("VERSION")+" : "+tr(world_config.get_value("world", "version", "UNKNOWN"))
 		selection.text = "   "+world
 
 func _notification(what):
@@ -65,8 +65,6 @@ func create_world(world_name: String):
 	image.save_png(world_path+"/icon.png")
 	var level = ConfigFile.new()
 	var current_time = Time.get_datetime_string_from_system(false, true).replace(" ", "  ").replace("-", "/")
-	level.set_value("world", "last_modified", current_time)
-	level.set_value("world", "version", StaticLoad.options["version"])
 	var world_seed = create_world_seed_line_edit.text
 	if world_seed == "":
 		var rng = RandomNumberGenerator.new()	
@@ -75,9 +73,14 @@ func create_world(world_name: String):
 		var rng = RandomNumberGenerator.new()	
 		world_seed = str(rng.randi())
 	var world_type = StaticLoad.world_type_dictionary[create_world_world_type_option_button.selected]
-	level.set_value("world", "seed", world_seed)
-	level.set_value("world", "world_type", world_type)
-	level.set_value("world", "gamemode", StaticLoad.gamemode_dictionary[create_world_gamemode_option_button.selected])
+	var level_change_value = {
+		"last_modified": current_time,
+		"version": StaticLoad.options["version"],
+		"seed": world_seed,
+		"world_type": world_type,
+		"gamemode": StaticLoad.gamemode_dictionary[create_world_gamemode_option_button.selected]
+	}
+	StaticLoad.save_level_dat(level, level_change_value)
 	level.save_encrypted_pass(world_path+"/level.dat", StaticLoad.CONFIG_PASSWORD)
 	for x in range(-1,1):
 		for y in range(-1,1):
@@ -178,7 +181,10 @@ func _on_edit_world_button_1_pressed() -> void:
 		return
 	var level = ConfigFile.new()
 	var current_time = Time.get_datetime_string_from_system(false, true).replace(" ", "  ").replace("-", "/")
-	level.set_value("world", "last_modified", current_time)
+	var level_change_value = {
+		"last_modified": current_time,
+	}
+	StaticLoad.save_level_dat(level, level_change_value)
 	level.save_encrypted_pass(world_path_tmp+StaticLoad.select_world+"/level.dat", StaticLoad.CONFIG_PASSWORD)
 	DirAccess.rename_absolute(world_path_tmp+StaticLoad.select_world, world_path_tmp+edit_world_name_line_edit.text)
 	StaticLoad.select_world = null

@@ -91,6 +91,11 @@ extends Node2D
 @onready var attack_icon = $GameUI/ItemBarPanel/AttackIcon
 @onready var attack_indicator_progress = $GameUI/ItemBarPanel/AttackIcon/AttackIndicatorProgress
 @onready var death_ui_flow_container = $DeathUI/VSplitContainer/FlowContainer
+@onready var path_2d = $StaticBackground/Path2D
+@onready var moon_path = $StaticBackground/Path2D/MoonPath
+@onready var sun_path = $StaticBackground/Path2D/SunPath
+@onready var moon_path_texture = $StaticBackground/Path2D/MoonPath/TextureRect
+@onready var sun_path_texture = $StaticBackground/Path2D/SunPath/TextureRect
 
 var destroy_light_names = {}
 var mouse_in_inventory_grid = null
@@ -151,7 +156,8 @@ var last_right_time = 0.0
 var last_jump_time = 0.0
 var drop_timer = 0.0
 var resource_pack = StaticLoad.default_resource_pack
-var tick_timer: int = 17700
+var tick_timer: int = 9000
+var world_day: int = 0
 var set_block_list = []
 var current_sky_light: int = 255
 var nearby_update_dict = {}
@@ -252,8 +258,14 @@ func process_tick_cycle():
 		update_day_night_cycle()
 		update_nature_growth()
 		tick_timer += 1
+		if tick_timer == 9000:
+			world_day += 1
+			update_moon_phase()	
 		if tick_timer >= 24000:
 			tick_timer = 0
+
+func update_path_2d():
+	path_2d.curve.set_point_position(1, Vector2(background_sky.size.x+80, 500))
 
 func update_day_night_cycle() -> void:
 	var cloud_dark_ratio: float = 0.0
@@ -270,25 +282,7 @@ func update_day_night_cycle() -> void:
 	elif tick_timer >= 20500 and tick_timer <= 24000:
 		cloud_dark_ratio = 1
 	
-	var night_ratio = 1
-	# 更新夜晚比例 (调整为24000一天)
-	if tick_timer >= 0 and tick_timer < 5000:
-		night_ratio = 1
-	elif tick_timer >= 5000 and tick_timer < 8000:
-		night_ratio = 1 - ((tick_timer - 5000) / 3000.0)
-	elif tick_timer >= 8000 and tick_timer < 18000:
-		night_ratio = 0
-	elif tick_timer >= 18000 and tick_timer <= 21000:
-		night_ratio = 1 - ((21000 - tick_timer) / 3000.0)
-	elif tick_timer >= 21000 and tick_timer <= 24000:
-		night_ratio = 1
-	
-	var sky_light: int = 255 * (1 - night_ratio)
-	if sky_light < 80:
-		sky_light = 80
-	if sky_light % 16 == 0 and sky_light != current_sky_light:
-		current_sky_light = sky_light
-		refresh_all_light()
+	var night_ratio = calculate_current_sky_light(false)
 	
 	# 更新各个节点的属性
 	background_sky.modulate = Color(1, 1, 1, 1 - night_ratio)
@@ -296,6 +290,55 @@ func update_day_night_cycle() -> void:
 	background_star.modulate = Color(1, 1, 1, night_ratio)
 	mini_map_sky_back.color = lerp(Color(0.443, 0.698, 1),Color(0, 0.008, 0.137),night_ratio)
 	mini_map_star_back.modulate = Color(1, 1, 1, night_ratio)
+
+func calculate_current_sky_light(is_init):
+	var night_ratio = 1
+	# 更新夜晚比例 (调整为24000一天)
+	if tick_timer >= 0 and tick_timer < 6000:
+		night_ratio = 1
+	elif tick_timer >= 6000 and tick_timer < 9000:
+		night_ratio = 1 - ((tick_timer - 6000) / 3000.0)
+	elif tick_timer >= 9000 and tick_timer < 18000:
+		night_ratio = 0
+	elif tick_timer >= 18000 and tick_timer <= 21000:
+		night_ratio = 1 - ((21000 - tick_timer) / 3000.0)
+	elif tick_timer >= 21000 and tick_timer <= 24000:
+		night_ratio = 1
+	
+	var moon_ratio = 0
+	if (tick_timer >= 18000 and tick_timer < 24000):
+		moon_ratio = (tick_timer - 18000) / 12000.0
+	elif (tick_timer >= 0 and tick_timer < 6000):
+		moon_ratio = (tick_timer + (24000 - 18000)) / 12000.0
+	else:
+		moon_ratio = 0.0
+	
+	var sun_ratio = 0.0
+	if tick_timer >= 6000 and tick_timer <= 18000:
+		sun_ratio = (tick_timer - 6000) / 12000.0
+	else:
+		sun_ratio = 0.0
+	
+	if moon_path.progress_ratio != moon_ratio:
+		moon_path.progress_ratio = moon_ratio
+	if sun_path.progress_ratio != sun_ratio:
+		sun_path.progress_ratio = sun_ratio
+	var sky_light: int = 255 * (1 - night_ratio)
+	if sky_light < 48:
+		sky_light = 48
+	if sky_light != current_sky_light:
+		if sky_light % 16 == 0 or is_init:
+			current_sky_light = sky_light
+			refresh_all_light()
+	
+	return night_ratio
+
+func update_moon_phase():
+	var moon_phase = world_day % 8
+	var moon_phase_info = StaticLoad.moon_phase_dict[moon_phase]
+	moon_path_texture.texture.set_region(Rect2(moon_phase_info[0], moon_phase_info[1], 8, 8))
+	var brightness = moon_phase_info[2]
+	moon_path_texture.modulate = Color(brightness, brightness, brightness)
 
 func update_hotbar_attack_indicator():
 	if player == null:
@@ -519,7 +562,7 @@ func refresh_all_light():
 	is_light_pause = true
 	for chunk_light_name in chunk_lights:
 		var splits = chunk_light_name.split(".")
-		if not chunk_lights.has(splits[0]+"."+str(int(splits[1])-1)):
+		if not chunk_sky_light_datas.has(splits[0]+"."+str(int(splits[1])-1)):
 			var sky_light: PackedByteArray
 			sky_light.resize(16)
 			sky_light.fill(current_sky_light)
@@ -1402,6 +1445,8 @@ func update_resource_pack():
 	mini_map_tile_map_layer.tile_set = load("res://Assets/TileSets/"+str(resource_pack)+".tres") as TileSet
 	mini_map_back_tile_map_layer.tile_set = load("res://Assets/TileSets/"+str(resource_pack)+".tres") as TileSet
 	mini_map_no_reach_tile_map_layer.tile_set = load("res://Assets/TileSets/"+str(resource_pack)+".tres") as TileSet
+	moon_path_texture.texture.atlas = load("res://Assets/ResourcePacks/"+str(resource_pack)+"/Environments/moon_phases.png") as Texture2D
+	sun_path_texture.texture.atlas = load("res://Assets/ResourcePacks/"+str(resource_pack)+"/Environments/sun.png") as Texture2D
 
 func init_inventory_tabs():
 	for tab_name in StaticLoad.tab_panels:
@@ -1602,10 +1647,11 @@ func init_game_as_dedicated_server():
 	var world_info = world_config.load_encrypted_pass(worlds_path+"/"+StaticLoad.select_world+"/level.dat", StaticLoad.CONFIG_PASSWORD)
 	if world_info != OK:
 		return
-	world_info_dictionary["version"] = world_config.get_value("world", "version", StaticLoad.options["version"])
-	world_info_dictionary["seed"] = world_config.get_value("world", "seed", "1241999312")
-	world_info_dictionary["world_type"] = world_config.get_value("world", "world_type", "default")
-	world_info_dictionary["gamemode"] = world_config.get_value("world", "gamemode", "survival")
+	for key in StaticLoad.world_level_infos:
+		world_info_dictionary[key] = world_config.get_value("world", key, StaticLoad.world_level_infos[key])
+	tick_timer = int(world_info_dictionary["tick_timer"])
+	world_day = int(world_info_dictionary["world_day"])
+	calculate_current_sky_light(true)
 	var regions = DirAccess.get_files_at(ProjectSettings.globalize_path(StaticLoad.region_path))
 	if regions.is_empty():
 		return
@@ -1658,10 +1704,11 @@ func init_game_as_single():
 	var world_info = world_config.load_encrypted_pass(worlds_path+"/"+StaticLoad.select_world+"/level.dat", StaticLoad.CONFIG_PASSWORD)
 	if world_info != OK:
 		return
-	world_info_dictionary["version"] = world_config.get_value("world", "version", StaticLoad.options["version"])
-	world_info_dictionary["seed"] = world_config.get_value("world", "seed", "1241999312")
-	world_info_dictionary["world_type"] = world_config.get_value("world", "world_type", "default")
-	world_info_dictionary["gamemode"] = world_config.get_value("world", "gamemode", "survival")
+	for key in StaticLoad.world_level_infos:
+		world_info_dictionary[key] = world_config.get_value("world", key, StaticLoad.world_level_infos[key])
+	tick_timer = int(world_info_dictionary["tick_timer"])
+	world_day = int(world_info_dictionary["world_day"])
+	calculate_current_sky_light(true)
 	var regions = DirAccess.get_files_at(ProjectSettings.globalize_path(StaticLoad.region_path))
 	if regions.is_empty():
 		return
@@ -1716,13 +1763,15 @@ func init_game_as_single():
 				min_y = int(splits[1])
 		var sky_light: PackedByteArray
 		sky_light.resize(16)
-		sky_light.fill(255)
+		sky_light.fill(current_sky_light)
 		chunk_sky_light_datas[str(x)+"."+str(min_y)] = sky_light
 	set_block_selection_pos(get_local_mouse_position())
+	update_moon_phase()
 	update_resource_pack()
 	init_inventory_tabs()
 	init_infinite_container()
 	init_light()
+	get_viewport().size_changed.connect(update_path_2d)
 	item_thread.start(process_item)
 	tick_cycle_thread.start(process_tick_cycle)
 	dispatch_thread.start(process_dispatch)
@@ -1732,7 +1781,9 @@ func init_game_as_single():
 	#nearby_thread.start(process_nearby)
 
 func create_chunk_entities(chunk_name, chunk_config):
-	var chunk_entity_list = chunk_config.get_value("chunk", "entity_list")
+	var chunk_entity_list = chunk_config.get_value("chunk", "entity_list", "null")
+	if chunk_entity_list is String and chunk_entity_list == "null":
+		return
 	for uuid in chunk_entity_list:
 		var entity_info = chunk_config.get_value("entity", uuid)
 		if entity_info == null:
@@ -1748,6 +1799,7 @@ func create_chunk_entities(chunk_name, chunk_config):
 func init_game_as_client():
 	StaticLoad.select_world = "new world"
 	StaticLoad.update_select_world_path()
+	StaticLoad.rpc_id(1, "request_for_world_info", multiplayer.get_unique_id(), true)
 	StaticLoad.rpc_id(1, "request_for_player_info", multiplayer.get_unique_id(), player.player_name)
 	StaticLoad.rpc_id(1, "request_for_update_player_inventory", multiplayer.get_unique_id(), player.player_name)
 	while not is_player_info_updated:
@@ -1797,6 +1849,7 @@ func init_game_as_client():
 	update_resource_pack()
 	init_inventory_tabs()
 	init_infinite_container()
+	get_viewport().size_changed.connect(update_path_2d)
 	set_block_thread.start(process_set_block)
 	light_thread.start(process_light)
 	tick_cycle_thread.start(process_tick_cycle)
@@ -2184,7 +2237,7 @@ func update_new_chunk(is_pre_load: bool):
 							loaded_chunks_timer[str(x)+"."+str(y)] = StaticLoad.CHUNK_FREE_TIME
 							database_chunks.push_back(str(x)+"."+str(y))
 						if not StaticLoad.is_dedicated_server:
-							if not chunk_sky_light_datas.has(str(x)+"."+str(y-1)):
+							if not chunk_lights.has(str(x)+"."+str(y-1)):
 								var sky_light: PackedByteArray
 								sky_light.resize(16)
 								sky_light.fill(current_sky_light)
@@ -2220,6 +2273,10 @@ func free_chunk(pos: Vector2i) -> void:
 		var byte_array_tmp = loaded_chunk_packed_byte_arrays[str(pos[0])+"."+str(pos[1])]
 		loaded_chunk_packed_byte_arrays.erase(str(pos[0])+"."+str(pos[1]))
 		byte_array_tmp.clear()
+	if chunk_sky_light_datas.has(str(pos[0])+"."+str(pos[1])):
+		var chunk_sky_light_tmp = chunk_sky_light_datas[str(pos[0])+"."+str(pos[1])]
+		chunk_sky_light_datas.erase(str(pos[0])+"."+str(pos[1]))
+		chunk_sky_light_tmp.clear()
 
 func set_chunk(pos: Vector2i, blocks_list) -> void:
 	if not loaded_chunk_packed_byte_arrays.has(str(pos[0])+"."+str(pos[1])):
@@ -2272,8 +2329,8 @@ func set_block(block_pos: Vector2i, block_id: int, tile_map_type, is_pre_load = 
 						#chunk.dirt_list.append(dirt_pos)
 		tile_map_layer_tmp.set_cell(block_pos)
 		if not StaticLoad.is_dedicated_server:
-			mini_map_tile_map_layer_tmp.set_cell(block_pos)
 			var chunk_pos = get_chunk_position(block_pos)
+			mini_map_tile_map_layer_tmp.set_cell(block_pos)
 			var relative_block_pos = block_pos-chunk_pos*16
 			if relative_block_pos[0] > 15:
 				relative_block_pos[0] = 15
@@ -2340,8 +2397,8 @@ func set_block(block_pos: Vector2i, block_id: int, tile_map_type, is_pre_load = 
 	var atlas_coords = StaticLoad.get_atlas_coords_by_block_id(block_id)
 	tile_map_layer_tmp.set_cell(block_pos, 9999, atlas_coords)
 	if not StaticLoad.is_dedicated_server:
-		mini_map_tile_map_layer_tmp.set_cell(block_pos, 9999, atlas_coords)
 		var chunk_pos = get_chunk_position(block_pos)
+		mini_map_tile_map_layer_tmp.set_cell(block_pos, 9999, atlas_coords)
 		var relative_block_pos = block_pos-chunk_pos*16
 		if relative_block_pos[0] > 15:
 			relative_block_pos[0] = 15
@@ -2646,11 +2703,16 @@ func save_world():
 			save_chunk(Vector2i(x_chunk, y_chunk))
 	var level = ConfigFile.new()
 	var current_time = Time.get_datetime_string_from_system(false, true).replace(" ", "  ").replace("-", "/")
-	level.set_value("world", "last_modified", current_time)
-	level.set_value("world", "version", world_info_dictionary["version"])
-	level.set_value("world", "seed", world_info_dictionary["seed"])
-	level.set_value("world", "world_type", world_info_dictionary["world_type"])
-	level.set_value("world", "gamemode", world_info_dictionary["gamemode"])
+	var level_change_value = {
+		"last_modified": current_time,
+		"version": world_info_dictionary["version"],
+		"seed": world_info_dictionary["seed"],
+		"world_type": world_info_dictionary["world_type"],
+		"gamemode": world_info_dictionary["gamemode"],
+		"tick_timer": str(tick_timer),
+		"world_day": str(world_day)
+	}
+	StaticLoad.save_level_dat(level, level_change_value)
 	level.save_encrypted_pass(StaticLoad.world_path+"/level.dat", StaticLoad.CONFIG_PASSWORD)
 
 func save_player(peer_id = 0):
@@ -2742,11 +2804,16 @@ func save_chunk(chunk_pos: Vector2i):
 	
 	var level = ConfigFile.new()
 	var current_time = Time.get_datetime_string_from_system(false, true).replace(" ", "  ").replace("-", "/")
-	level.set_value("world", "last_modified", current_time)
-	level.set_value("world", "version", world_info_dictionary["version"])
-	level.set_value("world", "seed", world_info_dictionary["seed"])
-	level.set_value("world", "world_type", world_info_dictionary["world_type"])
-	level.set_value("world", "gamemode", world_info_dictionary["gamemode"])
+	var level_change_value = {
+		"last_modified": current_time,
+		"version": world_info_dictionary["version"],
+		"seed": world_info_dictionary["seed"],
+		"world_type": world_info_dictionary["world_type"],
+		"gamemode": world_info_dictionary["gamemode"],
+		"tick_timer": str(tick_timer),
+		"world_day": str(world_day)
+	}
+	StaticLoad.save_level_dat(level, level_change_value)
 	level.save_encrypted_pass(StaticLoad.world_path+"/level.dat", StaticLoad.CONFIG_PASSWORD)
 
 func select_item_grid(grid_name) -> void:

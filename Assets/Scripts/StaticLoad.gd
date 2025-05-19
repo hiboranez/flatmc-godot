@@ -128,6 +128,7 @@ var block_ids_initial: Dictionary
 var block_ids_0_1: Dictionary
 var block_ids_0_2: Dictionary
 var options: Dictionary
+var world_level_infos: Dictionary
 var default_item_bar_names: Array
 var default_item_bar_amounts: Array
 var transparent_block_ids: Array
@@ -152,6 +153,7 @@ var commands: Dictionary
 var clinging_block_dict: Dictionary
 var special_place_dict: Dictionary
 var entity_scene_dict: Dictionary
+var moon_phase_dict: Dictionary
 
 # 待更新数据
 var multiplayer_peer = ENetMultiplayerPeer.new()
@@ -196,6 +198,9 @@ func _ready() -> void:
 	block_ids_0_2 = block_id_dict["0.2.x"]
 	var options_dict = load_json_file("res://Assets/Data/options.json", {})
 	options = options_dict["options"]
+	world_level_infos = options_dict["world_level_infos"]
+	var current_time = Time.get_datetime_string_from_system(false, true).replace(" ", "  ").replace("-", "/")
+	world_level_infos["last_modified"] = current_time
 	var game_data_type_dict = {
 		"default_item_bar_amounts" : "int",
 		"item_model_types" : "int",
@@ -224,6 +229,9 @@ func _ready() -> void:
 	commands = game_dict["commands"]
 	clinging_block_dict = game_dict["clinging_block_dict"]
 	special_place_dict = game_dict["special_place_dict"]
+	for key in game_dict["moon_phase_dict"]:
+		var splits = game_dict["moon_phase_dict"][key].split("-")
+		moon_phase_dict[int(key)] = Vector3(12+32*int(splits[0]), 12+32*int(splits[1]), float(splits[2]))
 	entity_scene_dict = {
 		"pig": pig_scene
 	}
@@ -295,6 +303,13 @@ func change_scene(path):
 	#animation.play_backwards("show")
 	#await animation.animation_finished
 	#self.set_layer(-1)
+
+func save_level_dat(world_config, change_value: Dictionary):
+	for key in world_level_infos.keys():
+		var current_value = world_config.get_value("world", key, world_level_infos[key])
+		world_config.set_value("world", key, current_value)
+	for key in change_value.keys():
+		world_config.set_value("world", key, change_value[key])
 
 func set_mca_value(got_mca, got_value_dict):
 	got_mca.set_value("chunk", "blocks", [])
@@ -379,29 +394,29 @@ func convert_world_version(world_name, old_version):
 		var chunk_result = chunk_config.load_encrypted_pass(region_path_tmp+"/"+region, StaticLoad.CONFIG_PASSWORD)
 		if chunk_result != OK:
 			return
-		var blocks
-		var no_reach_blocks
-		var back_blocks
+		var blocks = "null"
+		var no_reach_blocks = "null"
+		var back_blocks = "null"
 		if old_version_splits[0] == "0" and old_version_splits[1] == "1":
-			blocks = chunk_config.get_value("chunck", "blocks")
-			no_reach_blocks = chunk_config.get_value("chunck", "no_reach_blocks")
-			back_blocks = chunk_config.get_value("chunck", "back_blocks")
-			if blocks == null:
-				blocks = chunk_config.get_value("chunk", "blocks")
-				no_reach_blocks = chunk_config.get_value("chunk", "no_reach_blocks")
-				back_blocks = chunk_config.get_value("chunk", "back_blocks")
+			blocks = chunk_config.get_value("chunck", "blocks", "null")
+			no_reach_blocks = chunk_config.get_value("chunck", "no_reach_blocks", "null")
+			back_blocks = chunk_config.get_value("chunck", "back_blocks", "null")
+			if blocks == "null":
+				blocks = chunk_config.get_value("chunk", "blocks", "null")
+				no_reach_blocks = chunk_config.get_value("chunk", "no_reach_blocks", "null")
+				back_blocks = chunk_config.get_value("chunk", "back_blocks", "null")
 		else:
-			blocks = chunk_config.get_value("chunk", "blocks")
-			no_reach_blocks = chunk_config.get_value("chunk", "no_reach_blocks")
-			back_blocks = chunk_config.get_value("chunk", "back_blocks")
-		if no_reach_blocks == null:
+			blocks = chunk_config.get_value("chunk", "blocks", "null")
+			no_reach_blocks = chunk_config.get_value("chunk", "no_reach_blocks", "null")
+			back_blocks = chunk_config.get_value("chunk", "back_blocks", "null")
+		if no_reach_blocks == "null":
 			no_reach_blocks = []
 			for i in range(16):
 				var row = []
 				for j in range(16):
 					row.append(block_ids["AIR"])
 				no_reach_blocks.append(row)
-		if back_blocks == null:
+		if back_blocks == "null":
 			back_blocks = []
 			for i in range(16):
 				var row = []
@@ -419,8 +434,11 @@ func convert_world_version(world_name, old_version):
 	var world_path_tmp = "user://worlds/"+world_name
 	var level = ConfigFile.new()
 	var current_time = Time.get_datetime_string_from_system(false, true).replace(" ", "  ").replace("-", "/")
-	level.set_value("world", "last_modified", current_time)
-	level.set_value("world", "version", StaticLoad.options["version"])
+	var level_change_value = {
+		"last_modified": current_time,
+		"version": StaticLoad.options["version"]
+	}
+	save_level_dat(level, level_change_value)
 	level.save_encrypted_pass(world_path_tmp+"/level.dat", StaticLoad.CONFIG_PASSWORD)
 
 func convert_blocks_version(blocks, block_ids_old):
@@ -969,18 +987,19 @@ func dedicated_server_create_world():
 	image.save_png(world_path+"/icon.png")
 	var level = ConfigFile.new()
 	var current_time = Time.get_datetime_string_from_system(false, true).replace(" ", "  ").replace("-", "/")
-	level.set_value("world", "last_modified", current_time)
-	level.set_value("world", "version", StaticLoad.options["version"])
-	var seed = "1241999312"
-	var world_type = "default"
-	level.set_value("world", "seed", seed)
-	level.set_value("world", "world_type", world_type)
-	level.set_value("world", "gamemode", "survival")
+	var level_change_value = {
+		"last_modified": current_time,
+		"version": StaticLoad.options["version"],
+		"seed": "1241999312",
+		"world_type": "default",
+		"gamemode": "survival"
+	}
+	save_level_dat(level, level_change_value)
 	level.save_encrypted_pass(world_path+"/level.dat", StaticLoad.CONFIG_PASSWORD)
 	for x in range(-1,1):
 		for y in range(-1,1):
 			var mca = ConfigFile.new()
-			var chunk = StaticLoad.generate_chunk(Vector2i(x, y), seed, world_type)
+			var chunk = StaticLoad.generate_chunk(Vector2i(x, y), seed, "default")
 			var value_dict = {
 				"blocks" : chunk[0],
 				"no_reach_blocks" : chunk[1],
@@ -1285,15 +1304,18 @@ func request_for_update_chunk(client_peer_id, is_init, x_chunk, y_chunk):
 					entities_to_transfer.append(value_dict)
 			
 	if not is_dedicated_server:
-		if not game.chunk_sky_light_datas.has(str(x_chunk)+"."+str(y_chunk-1)):
+		if not game.chunk_lights.has(str(x_chunk)+"."+str(y_chunk-1)):
 			var sky_light: PackedByteArray
 			sky_light.resize(16)
-			sky_light.fill(255)
-			game.chunk_sky_light_datas[str(x_chunk)+"."+str(y_chunk-1)] = sky_light
-			if game.chunk_lights.has(str(x_chunk)+"."+str(y_chunk)):
+			sky_light.fill(game.current_sky_light)
+			game.chunk_sky_light_datas[str(x_chunk)+"."+str(y_chunk)] = sky_light
+		if game.chunk_lights.has(str(x_chunk)+"."+str(y_chunk)):
+			if not game.chunk_light_to_process.has(str(x_chunk)+"."+str(y_chunk)):
 				game.chunk_light_to_process[str(x_chunk)+"."+str(y_chunk)] = "null"
 			else:
-				game.chunk_light_to_process[str(x_chunk)+"."+str(y_chunk)] = "create"
+				game.chunk_light_to_process_double[str(x_chunk)+"."+str(y_chunk)] = "null"
+		else:
+			game.chunk_light_to_process[str(x_chunk)+"."+str(y_chunk)] = "create"
 	rpc_id(client_peer_id, "reply_for_update_chunk", is_init, x_chunk, y_chunk, [blocks, no_reach_blocks, back_blocks], entities_to_transfer)
 		
 @rpc("authority", "call_remote", "reliable", 1)
@@ -1318,15 +1340,18 @@ func reply_for_update_chunk(is_init, x_chunk, y_chunk, blocks_list, entities_to_
 			game.mobs.add_child(entity_instance)
 			entity_instance.init([entity["uuid"], entity["entity_name"], entity["position"], entity["health"]])
 			game.entities[entity_instance.get_uuid()] = entity_instance
-	if is_init:
-		return
-	if not game.chunk_sky_light_datas.has(str(x_chunk)+"."+str(y_chunk-1)):
+	if not game.chunk_lights.has(str(x_chunk)+"."+str(y_chunk-1)):
 		var sky_light: PackedByteArray
 		sky_light.resize(16)
-		sky_light.fill(255)
-		game.chunk_sky_light_datas[str(x_chunk)+"."+str(y_chunk-1)] = sky_light
+		sky_light.fill(game.current_sky_light)
+		game.chunk_sky_light_datas[str(x_chunk)+"."+str(y_chunk)] = sky_light
+	#if is_init:
+		#return
 	if game.chunk_lights.has(str(x_chunk)+"."+str(y_chunk)):
-		game.chunk_light_to_process[str(x_chunk)+"."+str(y_chunk)] = "null"
+		if not game.chunk_light_to_process.has(str(x_chunk)+"."+str(y_chunk)):
+			game.chunk_light_to_process[str(x_chunk)+"."+str(y_chunk)] = "null"
+		else:
+			game.chunk_light_to_process_double[str(x_chunk)+"."+str(y_chunk)] = "null"
 	else:
 		game.chunk_light_to_process[str(x_chunk)+"."+str(y_chunk)] = "create"
 
@@ -1458,6 +1483,19 @@ func broadcast_player_join_game(got_name_tag):
 		var text = "["+get_time_string(false)+" INFO]: "+got_name_tag+" joined the game"
 		print(text)
 		record_server_log(Time.get_date_string_from_system(), text)
+
+@rpc("any_peer", "call_remote", "reliable", 1)
+func request_for_world_info(client_peer_id, is_fresh):
+	rpc_id(client_peer_id, "reply_for_world_info", game.tick_timer, game.world_day, is_fresh)
+
+@rpc("authority", "call_remote", "reliable", 1)
+func reply_for_world_info(got_tick_timer, got_world_day, is_fresh):
+	game.tick_timer = got_tick_timer
+	game.world_day = got_world_day
+	game.calculate_current_sky_light(true)
+	game.update_moon_phase()
+	if is_fresh:
+		game.refresh_all_light()
 
 @rpc("any_peer", "call_remote", "reliable", 1)
 func request_for_update_player_inventory(client_peer_id, player_name):

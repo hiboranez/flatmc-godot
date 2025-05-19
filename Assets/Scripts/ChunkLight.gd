@@ -32,6 +32,9 @@ func destroy():
 	if StaticLoad.game.chunk_lights.has(chunk_name):
 		StaticLoad.game.chunk_lights.erase(chunk_name)
 		StaticLoad.game.chunk_light_datas.erase(chunk_name)
+	if StaticLoad.game.mini_map_chunk_lights.has(chunk_name):
+		StaticLoad.game.mini_map_chunk_lights[chunk_name].queue_free()
+		StaticLoad.game.mini_map_chunk_lights.erase(chunk_name)	
 	queue_free()
 
 func refresh():

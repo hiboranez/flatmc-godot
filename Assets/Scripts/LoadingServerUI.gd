@@ -131,6 +131,7 @@ func load_finished():
 	StaticLoad.game.death_button_2.visible = false
 	StaticLoad.game.death_button_3.visible = true
 	StaticLoad.game.unfreeze_game()
+	StaticLoad.rpc_id(1, "request_for_world_info", multiplayer.get_unique_id(), false)
 	self.visible = false
 	set_process(false)
 

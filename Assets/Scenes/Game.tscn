@@ -1,4 +1,4 @@
-[gd_scene load_steps=119 format=4 uid="uid://2hv5eany3vpf"]
+[gd_scene load_steps=124 format=4 uid="uid://2hv5eany3vpf"]
 
 [ext_resource type="Script" path="res://Assets/Scripts/Game.gd" id="1_ctu8j"]
 [ext_resource type="Script" path="res://Assets/Scripts/BgmAudioPlayer.gd" id="2_gyse0"]
@@ -24,11 +24,13 @@
 [ext_resource type="Script" path="res://Assets/Scripts/Options.gd" id="14_ic0qm"]
 [ext_resource type="Texture2D" uid="uid://b14xkgu1d1omr" path="res://Assets/Textures/Backgrounds/stone_wall.png" id="15_e4i4j"]
 [ext_resource type="Texture2D" uid="uid://p66pcctndsk1" path="res://Assets/Textures/GUI/close_button.png" id="15_tbxis"]
+[ext_resource type="Texture2D" uid="uid://dv7b4hmbshg8t" path="res://Assets/ResourcePacks/official_old/Environments/moon_phases.png" id="15_uryls"]
 [ext_resource type="Script" path="res://Assets/Scripts/MouseItem.gd" id="15_wgrmd"]
 [ext_resource type="Script" path="res://Assets/Scripts/TouchButton.gd" id="16_3a6pi"]
 [ext_resource type="PackedScene" uid="uid://bhyxpmrih3ijn" path="res://Assets/Scenes/InventoryGrid.tscn" id="16_bad8v"]
 [ext_resource type="PackedScene" uid="uid://dpnk4w3vgwyft" path="res://Assets/Scenes/ItemIcon.tscn" id="16_hr8b5"]
 [ext_resource type="Texture2D" uid="uid://caueuwmlcmeot" path="res://Assets/Textures/GUI/button_disabled.png" id="16_pttjf"]
+[ext_resource type="Texture2D" uid="uid://dvg2l0x635aky" path="res://Assets/ResourcePacks/official_old/Environments/sun.png" id="16_t1f4l"]
 [ext_resource type="Texture2D" uid="uid://bl03d3dhjffag" path="res://Assets/Textures/GUI/arrow_panel.png" id="17_1hju8"]
 [ext_resource type="Script" path="res://Assets/Scripts/HealthBar.gd" id="17_aqx3v"]
 [ext_resource type="Texture2D" uid="uid://5bfw6khqwyta" path="res://Assets/Textures/GUI/empty_heart.png" id="17_b2rft"]
@@ -98,6 +100,20 @@ region = Rect2(218, 82, 18, 18)
 [sub_resource type="AtlasTexture" id="AtlasTexture_l0u8a"]
 atlas = ExtResource("2_mnda3")
 region = Rect2(80, 109, 22, 22)
+
+[sub_resource type="Curve2D" id="Curve2D_wkano"]
+_data = {
+"points": PackedVector2Array(0, 0, 500, -500, -60, 500, -500, -500, 0, 0, 1980, 500)
+}
+point_count = 2
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_816wt"]
+atlas = ExtResource("16_t1f4l")
+region = Rect2(12, 12, 8, 8)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_sv2wn"]
+atlas = ExtResource("15_uryls")
+region = Rect2(12, 12, 8, 8)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_u1cbi"]
 bg_color = Color(0.270222, 0.270222, 0.270222, 1)
@@ -2196,6 +2212,25 @@ offset_right = 2112.0
 offset_bottom = 1920.0
 texture = ExtResource("14_76111")
 stretch_mode = 1
+
+[node name="Path2D" type="Path2D" parent="StaticBackground"]
+curve = SubResource("Curve2D_wkano")
+
+[node name="SunPath" type="PathFollow2D" parent="StaticBackground/Path2D"]
+position = Vector2(-60, 500)
+rotates = false
+
+[node name="TextureRect" type="Sprite2D" parent="StaticBackground/Path2D/SunPath"]
+scale = Vector2(10, 10)
+texture = SubResource("AtlasTexture_816wt")
+
+[node name="MoonPath" type="PathFollow2D" parent="StaticBackground/Path2D"]
+position = Vector2(-60, 500)
+rotates = false
+
+[node name="TextureRect" type="Sprite2D" parent="StaticBackground/Path2D/MoonPath"]
+scale = Vector2(10, 10)
+texture = SubResource("AtlasTexture_sv2wn")
 
 [node name="MoveBackground" type="ParallaxBackground" parent="."]
 layer = -2
