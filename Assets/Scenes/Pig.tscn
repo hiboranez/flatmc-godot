@@ -1,9 +1,10 @@
-[gd_scene load_steps=26 format=4 uid="uid://cylm5wpxdj3ts"]
+[gd_scene load_steps=61 format=4 uid="uid://cylm5wpxdj3ts"]
 
 [ext_resource type="Script" path="res://Assets/Scripts/Pig.gd" id="1_upq8j"]
 [ext_resource type="Material" uid="uid://clu2q1fgwxctw" path="res://Assets/Materials/Pig.tres" id="2_3fn4t"]
 [ext_resource type="Shader" path="res://Assets/Shaders/Blink.gdshader" id="3_6e6mf"]
 [ext_resource type="FontFile" uid="uid://csywm01568tlp" path="res://Assets/Fonts/MinecraftAE.ttf" id="4_kfgbv"]
+[ext_resource type="Texture2D" uid="uid://boxi6tixm5lhw" path="res://Assets/Textures/Blocks/fire_layer_1.png" id="5_nrumq"]
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_tybb0"]
 resource_name = "Pig_Cube_002"
@@ -758,8 +759,243 @@ content_margin_top = 0.0
 content_margin_right = 0.0
 content_margin_bottom = 0.0
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_kccm1"]
+atlas = ExtResource("5_nrumq")
+region = Rect2(0, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2p1xd"]
+atlas = ExtResource("5_nrumq")
+region = Rect2(0, 16, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2uewn"]
+atlas = ExtResource("5_nrumq")
+region = Rect2(0, 32, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vb8hj"]
+atlas = ExtResource("5_nrumq")
+region = Rect2(0, 48, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_tunro"]
+atlas = ExtResource("5_nrumq")
+region = Rect2(0, 64, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_r1xbi"]
+atlas = ExtResource("5_nrumq")
+region = Rect2(0, 80, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2d000"]
+atlas = ExtResource("5_nrumq")
+region = Rect2(0, 96, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hf7iv"]
+atlas = ExtResource("5_nrumq")
+region = Rect2(0, 112, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vtj1t"]
+atlas = ExtResource("5_nrumq")
+region = Rect2(0, 128, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_co2wg"]
+atlas = ExtResource("5_nrumq")
+region = Rect2(0, 144, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_7male"]
+atlas = ExtResource("5_nrumq")
+region = Rect2(0, 160, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fdc2y"]
+atlas = ExtResource("5_nrumq")
+region = Rect2(0, 176, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_rsut0"]
+atlas = ExtResource("5_nrumq")
+region = Rect2(0, 192, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vrq3l"]
+atlas = ExtResource("5_nrumq")
+region = Rect2(0, 208, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_dphks"]
+atlas = ExtResource("5_nrumq")
+region = Rect2(0, 224, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ei2tq"]
+atlas = ExtResource("5_nrumq")
+region = Rect2(0, 240, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_os3w0"]
+atlas = ExtResource("5_nrumq")
+region = Rect2(0, 256, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_nnc61"]
+atlas = ExtResource("5_nrumq")
+region = Rect2(0, 272, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_16a0s"]
+atlas = ExtResource("5_nrumq")
+region = Rect2(0, 288, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vhkyh"]
+atlas = ExtResource("5_nrumq")
+region = Rect2(0, 304, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2uarb"]
+atlas = ExtResource("5_nrumq")
+region = Rect2(0, 320, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vgnwp"]
+atlas = ExtResource("5_nrumq")
+region = Rect2(0, 336, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ptij2"]
+atlas = ExtResource("5_nrumq")
+region = Rect2(0, 352, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_rt4fk"]
+atlas = ExtResource("5_nrumq")
+region = Rect2(0, 368, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kowaw"]
+atlas = ExtResource("5_nrumq")
+region = Rect2(0, 384, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_rqgjd"]
+atlas = ExtResource("5_nrumq")
+region = Rect2(0, 400, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_m01vf"]
+atlas = ExtResource("5_nrumq")
+region = Rect2(0, 416, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_l32m3"]
+atlas = ExtResource("5_nrumq")
+region = Rect2(0, 432, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_24lfo"]
+atlas = ExtResource("5_nrumq")
+region = Rect2(0, 448, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_psolv"]
+atlas = ExtResource("5_nrumq")
+region = Rect2(0, 464, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_qaxil"]
+atlas = ExtResource("5_nrumq")
+region = Rect2(0, 480, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_q2eta"]
+atlas = ExtResource("5_nrumq")
+region = Rect2(0, 496, 16, 16)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_kyrih"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_kccm1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2p1xd")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2uewn")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vb8hj")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_tunro")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_r1xbi")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2d000")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hf7iv")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vtj1t")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_co2wg")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_7male")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fdc2y")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rsut0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vrq3l")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_dphks")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ei2tq")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_os3w0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_nnc61")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_16a0s")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vhkyh")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2uarb")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vgnwp")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ptij2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rt4fk")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_kowaw")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rqgjd")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_m01vf")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_l32m3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_24lfo")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_psolv")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_qaxil")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_q2eta")
+}],
+"loop": true,
+"name": &"default",
+"speed": 20.0
+}]
+
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_rj0cj"]
 size = Vector2(64.2519, 48)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_4wje3"]
+size = Vector2(40, 8.5)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_cgubl"]
 size = Vector2(40, 8.5)
@@ -813,7 +1049,7 @@ bones/1/name = "Body"
 bones/1/parent = 0
 bones/1/rest = Transform3D(-1, 0, 0, 0, -1, 0, 0, 0, 1, 9.31323e-10, 0, 1.12)
 bones/1/enabled = true
-bones/1/position = Vector3(0, -5.96046e-08, 1.05616)
+bones/1/position = Vector3(0, -5.96046e-08, 1.11932)
 bones/1/rotation = Quaternion(0, 0, 1, 0)
 bones/1/scale = Vector3(1, 1, 1)
 bones/2/name = "Chest"
@@ -848,35 +1084,35 @@ bones/6/name = "Eye_Left"
 bones/6/parent = 4
 bones/6/rest = Transform3D(-1, 9.93411e-07, 2.09808e-06, 2.09808e-06, -1.19209e-06, 1, 9.93414e-07, 1, 1.19209e-06, 0.35, 0.45, 0.18)
 bones/6/enabled = true
-bones/6/position = Vector3(0.35, 0.47, 0.18)
+bones/6/position = Vector3(0.35, 0.45, 0.18)
 bones/6/rotation = Quaternion(1.09301e-06, 0.707106, 0.707107, 3.9056e-07)
 bones/6/scale = Vector3(1, 1, 1)
 bones/7/name = "Eye_Right"
 bones/7/parent = 4
 bones/7/rest = Transform3D(-1, 9.93411e-07, 2.09808e-06, 2.09808e-06, -1.19209e-06, 1, 9.93414e-07, 1, 1.19209e-06, -0.35, 0.45, 0.18)
 bones/7/enabled = true
-bones/7/position = Vector3(-0.35, 0.47, 0.18)
+bones/7/position = Vector3(-0.349999, 0.45, 0.18)
 bones/7/rotation = Quaternion(1.09301e-06, 0.707106, 0.707107, 3.9056e-07)
 bones/7/scale = Vector3(1, 1, 1)
 bones/8/name = "EyeTracking"
 bones/8/parent = 3
 bones/8/rest = Transform3D(1, 0, -2.23638e-06, 2.91591e-13, 1, 1.30385e-07, 2.23638e-06, -1.30385e-07, 1, -9.31323e-10, 1.6, 0.05)
 bones/8/enabled = true
-bones/8/position = Vector3(1.27172e-08, 1.6, 1.65)
+bones/8/position = Vector3(9.65743e-09, 1.6, 0.05)
 bones/8/rotation = Quaternion(-6.51925e-08, -1.11819e-06, 7.28977e-14, 1)
 bones/8/scale = Vector3(1, 1, 1)
 bones/9/name = "EyeTracking_Left"
 bones/9/parent = 8
 bones/9/rest = Transform3D(1, 3.38813e-21, -6.6183e-08, 8.06894e-15, 1, 1.21919e-07, 6.6183e-08, -1.21919e-07, 1, -0.35, 5.02418e-08, 8.84659e-07)
 bones/9/enabled = true
-bones/9/position = Vector3(-0.349999, 1.27344e-07, 0.400001)
+bones/9/position = Vector3(-0.35, 1.41914e-07, 6.31008e-07)
 bones/9/rotation = Quaternion(-6.09593e-08, -3.30915e-08, 2.01723e-15, 1)
 bones/9/scale = Vector3(1, 1, 1)
 bones/10/name = "EyeTracking_Right"
 bones/10/parent = 8
 bones/10/rest = Transform3D(1, 1.35525e-20, -8.20676e-08, 1.00056e-14, 1, 1.21919e-07, 8.20676e-08, -1.21919e-07, 1, 0.35, 5.02418e-08, -6.80809e-07)
 bones/10/enabled = true
-bones/10/position = Vector3(0.350001, 1.27344e-07, 0.399999)
+bones/10/position = Vector3(0.35, 1.41914e-07, -9.32305e-07)
 bones/10/rotation = Quaternion(-6.09593e-08, -4.10338e-08, 2.50139e-15, 1)
 bones/10/scale = Vector3(1, 1, 1)
 bones/11/name = "IK-Leg_Front_Left"
@@ -1021,6 +1257,7 @@ bones/30/rotation = Quaternion(-0.707916, 4.58847e-06, -4.78924e-06, 0.706297)
 bones/30/scale = Vector3(1, 1, 1)
 
 [node name="Mob_Pig_001" type="MeshInstance3D" parent="SubViewportContainer/SubViewport/Pig/Bones_Pig/Skeleton3D"]
+cast_shadow = 0
 mesh = SubResource("ArrayMesh_tybb0")
 skin = SubResource("Skin_qwwsp")
 blend_shapes/Angry = 0.0
@@ -1105,6 +1342,13 @@ mouse_filter = 2
 color = Color(0, 0, 0, 0.509804)
 metadata/_edit_use_anchors_ = true
 
+[node name="FireAnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+visible = false
+position = Vector2(0, -14.13)
+scale = Vector2(4.61, 4.61)
+sprite_frames = SubResource("SpriteFrames_kyrih")
+autoplay = "default"
+
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2(2.38419e-07, -1)
 scale = Vector2(0.99608, 1)
@@ -1115,7 +1359,7 @@ position = Vector2(0, 23)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="UpArea"]
 position = Vector2(-52, -71)
-shape = SubResource("RectangleShape2D_cgubl")
+shape = SubResource("RectangleShape2D_4wje3")
 
 [node name="DownArea" type="Area2D" parent="."]
 position = Vector2(0, 46)

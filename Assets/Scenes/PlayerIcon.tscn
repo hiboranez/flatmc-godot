@@ -8,6 +8,7 @@ atlas = ExtResource("1_8ovch")
 region = Rect2(8, 8, 8, 8)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_8h7nd"]
+resource_local_to_scene = true
 atlas = ExtResource("1_8ovch")
 region = Rect2(40, 8, 8, 8)
 

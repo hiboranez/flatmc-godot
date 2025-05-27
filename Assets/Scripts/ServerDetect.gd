@@ -20,12 +20,14 @@ func init(got_server_name, got_ip, got_port):
 		disconnect_and_free()
 		return
 	server_list_vboxcontainer = get_node("/root/MutiMenu").server_list_vboxcontainer
-	multiplayer_tmp.set_root_path(get_path())
 	get_tree().set_multiplayer(multiplayer_tmp, "/root")
-	multiplayer.set_root_path("/root")
 	multiplayer.connected_to_server.connect(client_got_connected_to_server)
 	#print(server_name, " ", get_tree().get_multiplayer(get_path()).multiplayer_peer, StaticLoad.multiplayer.multiplayer_peer)
-	detect_server()
+	await detect_server()
+	var multi_menu = get_node("/root/MutiMenu")
+	if not multi_menu.server_detect_list.is_empty():
+		var server_detect_info = multi_menu.server_detect_list.pop_front()
+		server_detect_info[0].init(server_detect_info[1],server_detect_info[2],server_detect_info[3])
 	#connect_thread.start(detect_server)
 
 func detect_server():
@@ -46,6 +48,7 @@ func detect_server():
 		disconnect_and_free()
 		return false
 	
+	get_tree().set_multiplayer(multiplayer_tmp, "/root")
 	multiplayer.multiplayer_peer = multiplayer_peer
 	
 	while not is_server_connected:
@@ -64,9 +67,9 @@ func detect_server():
 			return false
 		connecting_timer += 0.001
 		await get_tree().create_timer(0.001).timeout
-	multiplayer_tmp.set_root_path("/root")
+
 	get_tree().set_multiplayer(multiplayer_tmp, "/root")
-	multiplayer.set_root_path("/root")
+
 	rpc_id(1, "request_for_server_state", multiplayer_peer.get_unique_id())
 	while not is_server_info_received:
 		if connecting_timer > 0.5 or is_server_version_conflict:

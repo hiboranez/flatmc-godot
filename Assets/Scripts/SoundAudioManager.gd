@@ -89,6 +89,28 @@ extends Node2D
 @onready var pig_say1 = load("res://Assets/Sounds/Pig/say1.mp3") as AudioStream
 @onready var pig_say2 = load("res://Assets/Sounds/Pig/say2.mp3") as AudioStream
 @onready var pig_say3 = load("res://Assets/Sounds/Pig/say3.mp3") as AudioStream
+@onready var chicken_hurt1 = load("res://Assets/Sounds/Chicken/hurt1.mp3") as AudioStream
+@onready var chicken_hurt2 = load("res://Assets/Sounds/Chicken/hurt2.mp3") as AudioStream
+@onready var chicken_plop = load("res://Assets/Sounds/Chicken/plop.mp3") as AudioStream
+@onready var chicken_say1 = load("res://Assets/Sounds/Chicken/say1.mp3") as AudioStream
+@onready var chicken_say2 = load("res://Assets/Sounds/Chicken/say2.mp3") as AudioStream
+@onready var chicken_say3 = load("res://Assets/Sounds/Chicken/say3.mp3") as AudioStream
+@onready var cow_hurt1_classic = load("res://Assets/Sounds/Cow/hurt1classic.ogg") as AudioStream
+@onready var cow_hurt2_classic = load("res://Assets/Sounds/Cow/hurt2classic.ogg") as AudioStream
+@onready var cow_hurt3_classic = load("res://Assets/Sounds/Cow/hurt3classic.ogg") as AudioStream
+@onready var cow_say1_classic = load("res://Assets/Sounds/Cow/say1classic.ogg") as AudioStream
+@onready var cow_say2_classic = load("res://Assets/Sounds/Cow/say2classic.ogg") as AudioStream
+@onready var cow_say3_classic = load("res://Assets/Sounds/Cow/say3classic.ogg") as AudioStream
+@onready var cow_say4_classic = load("res://Assets/Sounds/Cow/say4classic.ogg") as AudioStream
+@onready var sheep_say1_classic = load("res://Assets/Sounds/Sheep/say1classic.ogg") as AudioStream
+@onready var sheep_say2_classic = load("res://Assets/Sounds/Sheep/say2classic.ogg") as AudioStream
+@onready var sheep_say3_classic = load("res://Assets/Sounds/Sheep/say3classic.ogg") as AudioStream
+@onready var zombie_hurt1 = load("res://Assets/Sounds/Zombie/hurt1.mp3") as AudioStream
+@onready var zombie_hurt2 = load("res://Assets/Sounds/Zombie/hurt2.mp3") as AudioStream
+@onready var zombie_death = load("res://Assets/Sounds/Zombie/death.mp3") as AudioStream
+@onready var zombie_say1 = load("res://Assets/Sounds/Zombie/say1.mp3") as AudioStream
+@onready var zombie_say2 = load("res://Assets/Sounds/Zombie/say2.mp3") as AudioStream
+@onready var zombie_say3 = load("res://Assets/Sounds/Zombie/say3.mp3") as AudioStream
 
 var volume_db = 0
 var dig_cloth_sound_list = []
@@ -116,6 +138,15 @@ var hoe_still_sound_list = []
 var player_attack_sound_list = []
 var pig_death_sound_list = []
 var pig_say_sound_list = []
+var chicken_plop_sound_list = []
+var chicken_hurt_sound_list = []
+var chicken_say_sound_list = []
+var cow_hurt_sound_list = []
+var cow_say_sound_list = []
+var sheep_say_sound_list = []
+var zombie_hurt_sound_list = []
+var zombie_death_sound_list = []
+var zombie_say_sound_list = []
 
 func _ready() -> void:
 	dig_cloth_sound_list = [dig_cloth1, dig_cloth2, dig_cloth3, dig_cloth4]
@@ -145,6 +176,15 @@ func _ready() -> void:
 	player_attack_sound_list = [player_attack]
 	pig_death_sound_list = [pig_death]
 	pig_say_sound_list = [pig_say1, pig_say2, pig_say3]
+	chicken_plop_sound_list = [chicken_plop]
+	chicken_hurt_sound_list = [chicken_hurt1, chicken_hurt2]
+	chicken_say_sound_list = [chicken_say1, chicken_say2, chicken_say3]
+	cow_hurt_sound_list = [cow_hurt1_classic, cow_hurt2_classic, cow_hurt3_classic]
+	cow_say_sound_list = [cow_say1_classic, cow_say2_classic, cow_say3_classic, cow_say4_classic]
+	sheep_say_sound_list = [sheep_say1_classic, sheep_say2_classic, sheep_say3_classic]
+	zombie_hurt_sound_list = [zombie_hurt1, zombie_hurt2]
+	zombie_death_sound_list = [zombie_death]
+	zombie_say_sound_list = [zombie_say1, zombie_say2, zombie_say3]
 
 func play_audio_static(type, sub_type):
 	var audio_player = AudioStreamPlayer.new()
@@ -195,6 +235,28 @@ func play_random_audio_at_position(type, sub_type, sound_position: Vector2, pitc
 			sound_list = pig_death_sound_list
 		elif sub_type == "say":
 			sound_list = pig_say_sound_list
+	elif type == "cow":
+		if sub_type == "hurt":
+			sound_list = cow_hurt_sound_list
+		elif sub_type == "say":
+			sound_list = cow_say_sound_list
+	elif type == "sheep":
+		if sub_type == "say":
+			sound_list = sheep_say_sound_list
+	elif type == "chicken":
+		if sub_type == "hurt":
+			sound_list = chicken_hurt_sound_list
+		elif sub_type == "say":
+			sound_list = chicken_say_sound_list
+		elif sub_type == "plop":
+			sound_list = chicken_plop_sound_list
+	elif type == "zombie":
+		if sub_type == "say":
+			sound_list = zombie_say_sound_list
+		elif sub_type == "hurt":
+			sound_list = zombie_hurt_sound_list
+		elif sub_type == "death":
+			sound_list = zombie_death_sound_list
 	elif type == "item":
 		if sub_type == "hoe_still":
 			sound_list = hoe_still_sound_list

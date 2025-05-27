@@ -6,6 +6,7 @@ extends CharacterBody2D
 @onready var item_top_model = $SubViewportContainer/SubViewport/ItemTop
 @onready var collide_area = $CollideArea
 @onready var attract_area = $AttractArea
+@onready var fire_animated_sprite = $FireAnimatedSprite2D
 
 # 实体变量
 var uuid = UUID.v4()
@@ -14,6 +15,9 @@ var item_name = "AIR"
 var chunk_pos = Vector2i(0, 0)
 var health: int = 20
 var is_dead = false
+var is_on_fire = false
+var fire_lasting_timer: float = 0
+var fire_damage_timer: float = 4
 
 # 子类变量
 var expected_velocity = Vector2i(0, 0)
@@ -31,7 +35,9 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	# 通过接收的数据同步更新
 	move_and_slide()
-	
+	update_animation_by_data()
+	# 仅在服务端的本地更新
+	update_local_fire_damage_by_data()
 	# 本地更新
 	update_local_state_dict()
 	update_local_changed_state_dict()
@@ -40,8 +46,40 @@ func _process(delta: float) -> void:
 	update_local_no_collect_timer()
 	update_local_air_resistance()
 
+func update_local_fire_damage_by_data():
+	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
+		return
+	if fire_lasting_timer <= 0 and is_on_fire:
+		is_on_fire = false
+	if fire_lasting_timer > 0 and not is_on_fire:
+		is_on_fire = true
+		fire_damage_timer = 4
+	if fire_lasting_timer > 0:
+		fire_lasting_timer -= get_process_delta_time()
+	elif fire_lasting_timer < 0:
+		fire_lasting_timer = 0
+	if fire_lasting_timer <= 0:
+		return
+	if fire_damage_timer > 0:
+		fire_damage_timer -= get_process_delta_time()
+	elif fire_damage_timer <= 0:
+		destroy_entity([])
+		if StaticLoad.is_muti_mode:
+			StaticLoad.rpc_entity_func_by_uuid(get_uuid(), "destroy_entity", [], "others", true)
+
+func update_animation_by_data():
+	if is_on_fire and not fire_animated_sprite.visible:
+		fire_animated_sprite.visible = true
+		if not fire_animated_sprite.is_playing():
+			fire_animated_sprite.play()
+	if not is_on_fire and fire_animated_sprite.visible:
+		fire_animated_sprite.visible = false
+		if fire_animated_sprite.is_playing():
+			fire_animated_sprite.stop()
+
 func update_state_dict():
 	state_dict["position"] = position
+	state_dict["is_on_fire"] = is_on_fire
 
 func update_local_state_dict():
 	if not StaticLoad.is_muti_mode:
@@ -70,7 +108,7 @@ func apply_changed_state_dict(got_changed_state_dict):
 	for key in got_changed_state_dict:
 		if key == "position":
 			var tween = get_tree().create_tween()
-			tween.tween_property(self, "position", got_changed_state_dict[key], StaticLoad.spt)
+			tween.tween_property(self, "position", got_changed_state_dict[key], StaticLoad.DISPATCH_DELTA_TIME)
 		else:	
 			self.set(key, got_changed_state_dict[key])
 
@@ -169,6 +207,15 @@ func get_health():
 func get_is_dead():
 	return is_dead
 
+func get_is_on_fire():
+	return is_on_fire
+
+func get_fire_lasting_timer():
+	return fire_lasting_timer
+
+func get_fire_damage_timer():
+	return fire_damage_timer
+
 func refresh_model():
 	if StaticLoad.block_ids.has(item_name) and StaticLoad.get_item_model_type_by_name(item_name) >= 3:
 		item_model_type = "block"
@@ -231,6 +278,8 @@ func on_body_attract_entered(body: Node) -> void:
 		return
 	if body.entity_type != "player":
 		return
+	if body.get_is_dead():
+		return
 	attract_target = body
 
 func on_body_attract_exited(body: Node) -> void:
@@ -260,6 +309,8 @@ func on_body_collide_entered(body: Node) -> void:
 				if not StaticLoad.game.item_to_combine.has(body.get_uuid()):
 					StaticLoad.game.item_to_combine[uuid] = body.get_uuid()
 		elif body.entity_type == "player":
+			if body.get_is_dead():
+				return
 			if no_collect_timer > 0:
 				return
 			if body.if_get_item_left(item_name, item_amount, 0, 36) < item_amount:

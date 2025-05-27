@@ -14,6 +14,8 @@ extends Node
 @onready var lan_server_scene = load("res://Assets/Scenes/LanServer.tscn") as PackedScene
 @onready var server_list_vboxcontainer = $ColorRect/ScrollContainer/VBoxContainer
 
+var server_detect_list = []
+
 func _ready() -> void:
 	StaticLoad.is_lan_server = false
 	ServiceDiscovery.port = 4040
@@ -45,7 +47,10 @@ func detect_all_server():
 		var port = int(server_config.get_value("server", "port"))
 		var server_detect = StaticLoad.server_detect_scene.instantiate()
 		StaticLoad.server_detects.add_child(server_detect)
-		server_detect.init(splits[0], ip, port)
+		server_detect_list.append([server_detect, splits[0], ip, port])
+	if not server_detect_list.is_empty():
+		var server_detect_info = server_detect_list.pop_front()
+		server_detect_info[0].init(server_detect_info[1],server_detect_info[2],server_detect_info[3])
 	#thread.wait_to_finish()
 
 func update_server_list():

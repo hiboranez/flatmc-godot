@@ -25,9 +25,6 @@ tangential_accel_min = -2.23517e-06
 tangential_accel_max = -2.23517e-06
 scale_min = 2.0
 scale_max = 3.0
-collision_mode = 1
-collision_friction = 0.0
-collision_bounce = 0.0
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_jgsqp"]
 resource_local_to_scene = true

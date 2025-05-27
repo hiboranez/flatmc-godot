@@ -10,6 +10,7 @@ extends CharacterBody2D
 @onready var down_area_collision_shape = $DownArea/CollisionShape2D
 @onready var ground_area1_collision_shape = $GroundArea1/CollisionShape2D
 @onready var ground_area2_collision_shape = $GroundArea2/CollisionShape2D
+@onready var fire_animated_sprite = $FireAnimatedSprite2D
 
 # 实体变量
 var uuid = UUID.v4()
@@ -18,8 +19,13 @@ var entity_name: String = str(uuid)
 var chunk_pos = Vector2i(0, 0)
 var health: int = 20
 var is_dead = false
+var is_on_fire = false
+var fire_lasting_timer: float = 0
+var fire_damage_timer: float = 1
 
 # 子类变量
+var fire_damage_time: float = 1
+var max_health: int = 10
 var move_speed: float = 200
 var jump_velocity: float = -550
 var walk_period: float = 0.83
@@ -77,6 +83,7 @@ func _process(delta: float) -> void:
 	update_sound_by_data()
 	update_animation_by_data()
 	# 仅在服务端的本地更新
+	update_local_fire_damage_by_data()
 	update_local_fall_damage_by_data()
 	update_local_health_recover()
 	update_local_is_on_ladder()
@@ -88,6 +95,7 @@ func _process(delta: float) -> void:
 	update_local_changed_state_dict()
 	
 	update_last_velocity()
+	await get_tree().create_timer(1).timeout
 
 func init(args):
 	uuid = args[0]
@@ -159,15 +167,24 @@ func update_animation_by_data():
 		animation_tree_parameters["run"] = lerpf(animation_tree_parameters["run"], 0, StaticLoad.BLEND_SPEED*delta)
 		animation_tree_parameters["walk"] = lerpf(animation_tree_parameters["walk"], 0, StaticLoad.BLEND_SPEED*delta)
 	
+	if is_on_fire and not fire_animated_sprite.visible:
+		fire_animated_sprite.visible = true
+		if not fire_animated_sprite.is_playing():
+			fire_animated_sprite.play()
+	if not is_on_fire and fire_animated_sprite.visible:
+		fire_animated_sprite.visible = false
+		if fire_animated_sprite.is_playing():
+			fire_animated_sprite.stop()
+	
 	var detect_size = 40
 	if move_state == "run":
 		detect_size = 100
 	var half_detect_size = 30+(detect_size/2)
-	up_area_collision_shape.shape.size.x = detect_size
+	up_area_collision_shape.shape.size.x = 40
 	down_area_collision_shape.shape.size.x = detect_size
 	if turn_state > 0:
 		if up_area_collision_shape.position.x < 0:
-			up_area_collision_shape.position.x = half_detect_size
+			up_area_collision_shape.position.x = 50
 		if down_area_collision_shape.position.x < 0:
 			down_area_collision_shape.position.x = half_detect_size
 		if ground_area1_collision_shape.position.x < 0:
@@ -176,7 +193,7 @@ func update_animation_by_data():
 			ground_area2_collision_shape.position.x = 86
 	else:
 		if up_area_collision_shape.position.x > 0:
-			up_area_collision_shape.position.x = -half_detect_size
+			up_area_collision_shape.position.x = -50
 		if down_area_collision_shape.position.x > 0:
 			down_area_collision_shape.position.x = -half_detect_size
 		if ground_area1_collision_shape.position.x > 0:
@@ -195,6 +212,26 @@ func update_animation_by_data():
 			update_entity_face_rotation()
 	update_animation_tree()
 
+func update_local_fire_damage_by_data():
+	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
+		return
+	if fire_lasting_timer <= 0 and is_on_fire:
+		is_on_fire = false
+	if fire_lasting_timer > 0 and not is_on_fire:
+		is_on_fire = true
+		fire_damage_timer = fire_damage_time
+	if fire_lasting_timer > 0:
+		fire_lasting_timer -= get_process_delta_time()
+	elif fire_lasting_timer < 0:
+		fire_lasting_timer = 0
+	if fire_lasting_timer <= 0:
+		return
+	if fire_damage_timer > 0:
+		fire_damage_timer -= get_process_delta_time()
+	elif fire_damage_timer <= 0:
+		fire_damage_timer = fire_damage_time
+		get_damage([1, "null", health, "fire", "self"])
+
 func update_local_fall_damage_by_data():
 	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
 		return
@@ -203,19 +240,16 @@ func update_local_fall_damage_by_data():
 		if abs(current_velocity.y) < StaticLoad.FLOAT_DELTA or current_velocity.y < 0:
 			@warning_ignore("integer_division")
 			var damage = (int(last_velocity.y)-1000)/50
-			get_damage([damage, "down"])
-			
-			if StaticLoad.is_muti_mode:
-				StaticLoad.rpc_entity_func_by_uuid(uuid, "get_damage", [damage, "down"], "others", true)
+			get_damage([damage, "down", health, "fall", "ground"])
 
 func update_local_health_recover():
 	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
 		return
-	if health >= 20:
+	if health >= max_health:
 		return
 	if is_dead:
 		return
-	if health < 20:
+	if health < max_health:
 		health_recover_timer -= get_process_delta_time()
 	if health_recover_timer < -1.5:
 		health += 1
@@ -223,6 +257,8 @@ func update_local_health_recover():
 
 func update_local_velocity():
 	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
+		if velocity.length() > 0:
+			velocity = Vector2(0, 0)
 		return
 	velocity = GameCalculator.calculate_velocity_by_data(get_process_delta_time(), velocity, expected_velocity, move_speed, is_flying, is_on_ladder)
 	#var delta = get_process_delta_time()
@@ -389,7 +425,7 @@ func update_local_move_by_data():
 		if move_state != "idle":
 			move_state = "idle"
 			expected_velocity.x = 0
-		return
+		#return
 	elif current_block_pos[0] != target_pos[0]:
 		if current_block_pos[0] < target_pos[0] and face_state == -1:
 			face_state = 1
@@ -411,7 +447,7 @@ func update_local_move_by_data():
 					move_state = "walk"
 				if not is_dead and not is_flying and is_on_floor():
 					if velocity.y >= 0:
-						velocity.y += jump_velocity
+						add_velocity(Vector2(0, jump_velocity))
 			elif not is_ground_area1_colliding and is_ground_area2_colliding and not is_up_area_colliding and not is_top_area_colliding:
 				if panic_timer > 0:
 					move_state = "run"
@@ -419,7 +455,7 @@ func update_local_move_by_data():
 					move_state = "walk"
 				if not is_dead and not is_flying and is_on_floor():
 					if velocity.y >= 0:
-						velocity.y += jump_velocity
+						add_velocity(Vector2(0, jump_velocity))
 			else:
 				move_state = "idle"
 	if move_state != "idle" and is_down_area_colliding and not is_up_area_colliding and not is_top_area_colliding:
@@ -430,15 +466,15 @@ func update_local_move_by_data():
 			update_sound_by_data()
 			if not is_dead:
 				if velocity.y >= 0:
-					velocity.y += jump_velocity
+					add_velocity(Vector2(0, jump_velocity))
 		elif is_flying:
 			expected_velocity.y = jump_velocity * 0.7
-	elif current_block_pos[1] < target_pos[1] and not is_top_area_colliding and ladder_repeat_timer <= 0:
+	elif current_block_pos[1] > target_pos[1] and not is_top_area_colliding and ladder_repeat_timer <= 0:
 		if is_flying:
 			expected_velocity.y = jump_velocity * 0.7
 		elif is_on_ladder:
 			expected_velocity.y = -move_speed
-	elif current_block_pos[1] > target_pos[1] and not is_on_floor():
+	elif current_block_pos[1] < target_pos[1] and not is_on_floor():
 		if is_flying:
 			expected_velocity.y = -jump_velocity * 0.7
 		elif is_on_ladder:
@@ -446,7 +482,8 @@ func update_local_move_by_data():
 	elif not is_flying and is_on_ladder:
 		expected_velocity.y = 0
 		if is_top_area_colliding or ladder_repeat_timer <= 0 or is_on_floor():
-			move_state = "idle"
+			if current_block_pos[0] == target_pos[0]:
+				move_state = "idle"
 	
 	if is_on_ladder and ladder_repeat_timer <= 0 and current_block_pos[1] != target_pos[1]:
 		expected_velocity.x = 0
@@ -469,13 +506,21 @@ func update_local_move_by_data():
 		if not StaticLoad.get_is_untouchable_by_id(block_id_down):
 			velocity = Vector2(0, 0)
 
+func add_velocity(delta_velocity):
+	if delta_velocity.x != 0:
+		var e_x = (velocity.x/abs(velocity.x+1e-9))*pow(velocity.x, 2)+(delta_velocity.x/abs(delta_velocity.x))*pow(delta_velocity.x, 2)
+		velocity.x = (e_x/abs(e_x+1e-9))*sqrt(abs(e_x))
+	if delta_velocity.y != 0:
+		var e_y = (velocity.y/abs(velocity.y+1e-9))*pow(velocity.y, 2)+(delta_velocity.y/abs(delta_velocity.y))*pow(delta_velocity.y, 2)
+		velocity.y = (e_y/abs(e_y+1e-9))*sqrt(abs(e_y))
+
 func update_state_dict():
 	state_dict["face_state"] = face_state
 	state_dict["move_state"] = move_state
 	state_dict["is_flying"] = is_flying
 	state_dict["is_frozen"] = is_frozen
+	state_dict["is_on_fire"] = is_on_fire
 	state_dict["position"] = position
-	state_dict["velocity"] = velocity
 	state_dict["health"] = health
 
 func update_local_state_dict():
@@ -505,19 +550,11 @@ func set_changed_state_dict(got_changed_state_dict):
 
 func rectify_changed_state_dict():
 	var is_need_resend = false
-	#for key in changed_state_dict:	
-		#if key == "render_chunk":
-			#var render_chunk_tmp = changed_state_dict[key]
-			#if render_chunk_tmp > StaticLoad.RENDER_CHUNK_MAX:
-				#render_chunk_tmp = StaticLoad.RENDER_CHUNK_MAX
-			#if render_chunk_tmp < StaticLoad.RENDER_CHUNK_MIN:
-				#render_chunk_tmp = StaticLoad.RENDER_CHUNK_MIN
-			#changed_state_dict[key] = render_chunk_tmp
-			#is_need_resend = true
-		#elif key == "position":
-			#if position.distance_to(changed_state_dict[key]) > StaticLoad.POSITION_MAX_DIFFERENCE:
-				#changed_state_dict[key] = position
-				#is_need_resend = true
+	for key in changed_state_dict:	
+		if key == "position":
+			if position.distance_to(changed_state_dict[key]) > StaticLoad.POSITION_MAX_DIFFERENCE:
+				changed_state_dict[key] = position
+				is_need_resend = true
 	if is_need_resend:
 		StaticLoad.rpc_entity_func_by_uuid(uuid, "apply_changed_state_dict", changed_state_dict, "others", true)
 
@@ -527,7 +564,7 @@ func apply_changed_state_dict(got_changed_state_dict):
 			continue
 		if key == "position":
 			var tween = get_tree().create_tween()
-			tween.tween_property(self, "position", got_changed_state_dict[key], 0.001)
+			tween.tween_property(self, "position", got_changed_state_dict[key], StaticLoad.DISPATCH_DELTA_TIME)
 		else:
 			self.set(key, got_changed_state_dict[key])
 
@@ -552,14 +589,22 @@ func set_name_label_modulate(color):
 	name_label.modulate = color
 
 func get_damage(args):
+	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1:
+		var new_args = args.duplicate()
+		new_args[1] = "null"
+		StaticLoad.rpc_entity_func_by_uuid(uuid, "get_damage", new_args, "others", true)
+	var got_health = args[2]
+	health = got_health
 	if is_dead:
 		return
+	var reason = args[3]
+	var object = args[4]
 	var damage = args[0]
 	var side = args[1]
 	if side == "left":
-		velocity += Vector2(500, -400)
+		add_velocity(Vector2(500, -400))
 	elif side == "right":
-		velocity += Vector2(-500, -400)
+		add_velocity(Vector2(-500, -400))
 	if damage > 0:
 		health_recover_timer = StaticLoad.HEALTH_RECOVER_TIME
 	var final_damage = damage
@@ -578,7 +623,7 @@ func get_damage(args):
 	if health <= 0:
 		if hurt_tween != null:
 			hurt_tween.stop()
-		die()
+		die(reason, object)
 	else:
 		hurt_tween = get_tree().create_tween()
 		hurt_tween.tween_method(set_shader_blink_intensity, 0.6, 0, StaticLoad.HURT_TIME)
@@ -592,7 +637,7 @@ func stop_move():
 	move_state = "idle"
 	expected_velocity.x = 0
 
-func die():
+func die(reason, object):
 	is_dead = true
 	stop_move()
 	set_shader_blink_intensity(0.6)
@@ -603,16 +648,17 @@ func die():
 	tween2.tween_method(set_z_rotation, 0, 90, StaticLoad.DISSOLVE_TIME)
 	await get_tree().create_timer(StaticLoad.DISSOLVE_TIME*3).timeout
 	StaticLoad.game.summon_death_particle(position)
-	var droppped_item_list = StaticLoad.get_dropped_item_by_name("entity", "PIG", "others")
-	for droppped_item_name in droppped_item_list:
-		if droppped_item_name != "AIR" and droppped_item_list[droppped_item_name] > 0:
-			var summon_item_args = ["item", droppped_item_name, position+Vector2(0, 23), droppped_item_list[droppped_item_name], 0, 0, UUID.v4()]
-			if StaticLoad.is_muti_mode:
-				if multiplayer.get_unique_id() == 1:
+	if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1):
+		var droppped_item_list = StaticLoad.get_dropped_item_by_name("entity", "PIG", "others")
+		for droppped_item_name in droppped_item_list:
+			if droppped_item_name != "AIR" and droppped_item_list[droppped_item_name] > 0:
+				var summon_item_args = ["item", droppped_item_name, position+Vector2(0, 23), droppped_item_list[droppped_item_name], 0, 0, UUID.v4()]
+				if StaticLoad.is_muti_mode:
+					if multiplayer.get_unique_id() == 1:
+						StaticLoad.create_entity(summon_item_args)
+						#StaticLoad.rpc("create_entity", summon_item_args)
+				else:
 					StaticLoad.create_entity(summon_item_args)
-					StaticLoad.rpc("create_entity", summon_item_args)
-			else:
-				StaticLoad.create_entity(summon_item_args)
 	destroy_entity([])
 
 func set_entity_model_skin_by_texture(got_skin_texture):
@@ -654,7 +700,16 @@ func get_health():
 
 func get_is_dead():
 	return is_dead
-	
+
+func get_is_on_fire():
+	return is_on_fire
+
+func get_fire_lasting_timer():
+	return fire_lasting_timer
+
+func get_fire_damage_timer():
+	return fire_damage_timer
+
 func destroy_entity(args):
 	if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1):
 		if StaticLoad.game.loaded_chunks.has(str(chunk_pos[0])+"."+str(chunk_pos[1])):

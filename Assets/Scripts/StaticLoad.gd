@@ -15,6 +15,10 @@ extends Control
 @onready var server_detect_scene = load("res://Assets/Scenes/ServerDetect.tscn") as PackedScene
 @onready var item_scene = load("res://Assets/Scenes/Item.tscn") as PackedScene
 @onready var pig_scene = load("res://Assets/Scenes/Pig.tscn") as PackedScene
+@onready var cow_scene = load("res://Assets/Scenes/Cow.tscn") as PackedScene
+@onready var sheep_scene = load("res://Assets/Scenes/Sheep.tscn") as PackedScene
+@onready var chicken_scene = load("res://Assets/Scenes/Chicken.tscn") as PackedScene
+@onready var zombie_scene = load("res://Assets/Scenes/Zombie.tscn") as PackedScene
 @onready var animation:AnimationPlayer = $AnimationPlayer
 @onready var click_audio_player = $ClickAudioPlayer
 @onready var server_detects = $ServerDetects
@@ -84,6 +88,7 @@ const BLEND_SPEED = 15
 const ATTRACT_SPEED = 50
 const DEFAULT_NO_COLLECT_TIME = 2
 const DROP_ALL_TIME = 1.0
+const DISPATCH_DELTA_TIME = 0.005
 
 # 固定数据
 var default_skin_path = "res://Assets/Textures/Skins/Steve.png"
@@ -117,6 +122,8 @@ var colors = {
 	"violet": Color.VIOLET,
 	"pink": Color.PINK,
 	"gold": Color.GOLD,
+	"light_sky_blue": Color.LIGHT_SKY_BLUE,
+	"deep_sky_blue": Color.DEEP_SKY_BLUE,
 	"cornflower_blue": Color.CORNFLOWER_BLUE,
 	"chartreuse": Color.CHARTREUSE
 }
@@ -144,6 +151,7 @@ var block_types: Dictionary
 var item_model_types: Dictionary
 var dropped_items: Dictionary
 var entity_dropped_loots: Dictionary
+var undead_mob_list: Array
 var item_max_amounts: Dictionary
 var tools_efficiency: Dictionary
 var tools_type: Dictionary
@@ -221,6 +229,7 @@ func _ready() -> void:
 	item_model_types = game_dict["item_model_types"]
 	dropped_items = game_dict["dropped_items"]
 	entity_dropped_loots = game_dict["entity_dropped_loots"]
+	undead_mob_list = game_dict["undead_mob_list"]
 	item_max_amounts = game_dict["item_max_amounts"]
 	tools_efficiency = game_dict["tools_efficiency"]
 	tools_type = game_dict["tools_type"]
@@ -233,7 +242,11 @@ func _ready() -> void:
 		var splits = game_dict["moon_phase_dict"][key].split("-")
 		moon_phase_dict[int(key)] = Vector3(12+32*int(splits[0]), 12+32*int(splits[1]), float(splits[2]))
 	entity_scene_dict = {
-		"pig": pig_scene
+		"pig": pig_scene,
+		"cow": cow_scene,
+		"sheep": sheep_scene,
+		"chicken": chicken_scene,
+		"zombie": zombie_scene,
 	}
 	
 	for i in range(8):
@@ -1243,14 +1256,7 @@ func request_for_update_chunk(client_peer_id, is_init, x_chunk, y_chunk):
 		blocks = block_list[0]
 		no_reach_blocks = block_list[1]
 		back_blocks = block_list[2]
-		var chunk_entity_list = chunk_config.get_value("chunk", "entity_list")
-		if chunk_entity_list != null:
-			for uuid in chunk_entity_list:
-				var entity_info = chunk_config.get_value("entity", uuid)
-				if entity_info[0] == "item":
-					var item_info = ["item", entity_info[1], entity_info[3], entity_info[2], 0, 2, uuid]
-					create_entity(item_info)
-					rpc("create_entity", item_info)
+		game.create_chunk_entities(str(x_chunk)+"."+str(y_chunk), chunk_config)
 	else:
 		var mca = ConfigFile.new()
 		var worlds_path = "user://worlds"
@@ -1300,7 +1306,6 @@ func request_for_update_chunk(client_peer_id, is_init, x_chunk, y_chunk):
 					value_dict["entity_name"] = entity.get_entity_name()
 					value_dict["position"] = entity.position
 					value_dict["health"] = entity.get_health()
-					value_dict["type"] = "pig"
 					entities_to_transfer.append(value_dict)
 			
 	if not is_dedicated_server:
@@ -1335,6 +1340,11 @@ func reply_for_update_chunk(is_init, x_chunk, y_chunk, blocks_list, entities_to_
 			item.uuid = entity["uuid"]
 			item.name = entity["uuid"]
 			game.entities[item.get_uuid()] = item
+		elif undead_mob_list.has(entity["type"]):
+			var entity_instance = entity_scene_dict[entity["type"]].instantiate()
+			game.undead_mobs.add_child(entity_instance)
+			entity_instance.init([entity["uuid"], entity["entity_name"], entity["position"], entity["health"]])
+			game.entities[entity_instance.get_uuid()] = entity_instance
 		else:
 			var entity_instance = entity_scene_dict[entity["type"]].instantiate()
 			game.mobs.add_child(entity_instance)
@@ -1357,9 +1367,17 @@ func reply_for_update_chunk(is_init, x_chunk, y_chunk, blocks_list, entities_to_
 
 @rpc("authority", "call_remote", "reliable", 1)
 func create_entity(args):
+	if game == null:
+		return
+	if is_muti_mode and multiplayer.get_unique_id() == 1:
+		rpc("create_entity", args)
 	if args[0] == "item":
 		var droppped_item_name = args[1]
 		var pos = args[2]
+		var block_pos = game.tile_map_layer.local_to_map(pos)
+		var chunk_pos = game.get_chunk_position(block_pos)
+		if not game.loaded_chunks.has(str(chunk_pos[0])+"."+str(chunk_pos[1])):
+			return
 		var amount = args[3]
 		var x_velocity = args[4]
 		if StaticLoad.is_muti_mode and not multiplayer.get_unique_id() == 1:
@@ -1370,15 +1388,23 @@ func create_entity(args):
 		StaticLoad.game.items.add_child(item)
 		item.init([uuid, droppped_item_name, pos, amount, no_collect_time, x_velocity])
 		StaticLoad.game.entities[item.get_uuid()] = item
-	elif args[0] == "pig":
+	else:
 		var uuid = args[1]
 		var entity_name = args[2]
 		var pos = args[3]
+		var block_pos = game.tile_map_layer.local_to_map(pos)
+		var chunk_pos = game.get_chunk_position(block_pos)
+		if not game.loaded_chunks.has(str(chunk_pos[0])+"."+str(chunk_pos[1])):
+			return
 		var health = args[4]
-		var pig = pig_scene.instantiate()
-		StaticLoad.game.mobs.add_child(pig)
-		pig.init([uuid, entity_name, pos, health])
-		StaticLoad.game.entities[pig.get_uuid()] = pig
+		var entity_scene = entity_scene_dict[args[0]]
+		var entity = entity_scene.instantiate()
+		if undead_mob_list.has(args[0]):
+			StaticLoad.game.undead_mobs.add_child(entity)
+		else:
+			StaticLoad.game.mobs.add_child(entity)
+		entity.init([uuid, entity_name, pos, health])
+		StaticLoad.game.entities[entity.get_uuid()] = entity
 
 @rpc("authority", "call_remote", "reliable", 1)
 func set_block(args):
@@ -1452,7 +1478,10 @@ func request_for_player_info(client_peer_id, player_name):
 			is_flying = false
 		new_player.position = player_position
 		new_player.face_state = face_state
+		new_player.gamemode = gamemode
 		new_player.is_flying = is_flying
+		new_player.update_state_dict()
+		state_dict_tmp = new_player.state_dict.duplicate()
 		rpc_id(client_peer_id, "reply_for_player_info", player_position, face_state, is_flying, gamemode)
 		rpc_entity_func_by_uuid(new_player.get_uuid(), "init_remote", [client_peer_id, player_name, state_dict_tmp], [client_peer_id], true)
 	else:
@@ -1486,12 +1515,16 @@ func broadcast_player_join_game(got_name_tag):
 
 @rpc("any_peer", "call_remote", "reliable", 1)
 func request_for_world_info(client_peer_id, is_fresh):
-	rpc_id(client_peer_id, "reply_for_world_info", game.tick_timer, game.world_day, is_fresh)
+	rpc_id(client_peer_id, "reply_for_world_info", game.tick_timer, game.world_day, game.move_background.scroll_base_offset.x, is_fresh)
 
 @rpc("authority", "call_remote", "reliable", 1)
-func reply_for_world_info(got_tick_timer, got_world_day, is_fresh):
+func reply_for_world_info(got_tick_timer, got_world_day, got_cloud_offset, is_fresh):
+	update_game_node()
+	if game == null:
+		return
 	game.tick_timer = got_tick_timer
 	game.world_day = got_world_day
+	game.move_background.scroll_base_offset.x = got_cloud_offset
 	game.calculate_current_sky_light(true)
 	game.update_moon_phase()
 	if is_fresh:

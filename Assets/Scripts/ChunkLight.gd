@@ -197,6 +197,7 @@ func update_light_data():
 	var chunk_light_name = str(chunk_pos[0])+"."+str(chunk_pos[1])
 	if StaticLoad.game.loaded_chunk_packed_byte_arrays.has(chunk_light_name) and StaticLoad.game.chunk_sky_light_datas.has(chunk_light_name):
 		block_a_data = GameCalculator.spread_sky_light(block_a_data, StaticLoad.game.loaded_chunk_packed_byte_arrays[chunk_light_name], StaticLoad.game.chunk_sky_light_datas[chunk_light_name], StaticLoad.transparent_block_ids)
+		StaticLoad.game.chunk_sky_light_all_datas[chunk_light_name] = block_a_data.duplicate()
 	for y in range(16):
 		for x in range(16):
 			var block_id = StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.tile_map_layer.get_cell_atlas_coords(Vector2i(chunk_pos[0]*16+x, chunk_pos[1]*16+y)))

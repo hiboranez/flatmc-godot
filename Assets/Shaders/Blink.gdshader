@@ -14,7 +14,7 @@ void fragment() {
     vec4 color = texture(TEXTURE, UV);
 
     // 生成一个基于UV的随机值
-    float noise = random(floor(UV * 10.0)); // 使用UV坐标来控制噪声块的大小
+    float noise = random(floor(UV * 50.0)); // 使用UV坐标来控制噪声块的大小
 
     // 根据溶解强度和噪声值判断是否让该像素块消失
     float dissolve_factor = smoothstep(0.4, 0.6, -dissolve_intensity + noise);

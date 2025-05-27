@@ -77,6 +77,7 @@ extends Node2D
 @onready var inventory_player_model_item_in_hand = $GameUI/InventoryUI/Panel/InventoryPanel/Player/SubViewportContainer/SubViewport/PlayerModel/Root/Skeleton3D/Hand/Item
 @onready var items = $Items
 @onready var mobs = $Mobs
+@onready var undead_mobs = $UndeadMobs
 @onready var inventory_tabs = $GameUI/InventoryUI/Panel/Tabs
 @onready var blocks_infinite_container = $GameUI/InventoryUI/Panel/BlocksPanel/InfiniteScrollContainer/InfiniteContainer
 @onready var items_infinite_container = $GameUI/InventoryUI/Panel/ItemsPanel/InfiniteScrollContainer/InfiniteContainer
@@ -84,6 +85,7 @@ extends Node2D
 @onready var background_sky = $StaticBackground/Sky
 @onready var background_star = $StaticBackground/ParallaxLayer/Star
 @onready var background_cloud = $MoveBackground/ParallaxLayer/Cloud
+@onready var move_background = $MoveBackground
 @onready var mini_map_sky_back = $GameUI/MiniMap/SkyBack
 @onready var mini_map_star_back = $GameUI/MiniMap/SubViewportContainer/SubViewport/StaticBackground/ParallaxLayer/StarBack
 @onready var front_particles = $FrontParticles
@@ -118,6 +120,7 @@ var mini_map_chunk_lights = {}
 var chunk_lights = {}
 var chunk_light_datas = {}
 var chunk_sky_light_datas = {}
+var chunk_sky_light_all_datas = {}
 var item_to_combine = {}
 var refresh_to_process = []
 var refresh_to_process_double = []
@@ -258,6 +261,9 @@ func process_tick_cycle():
 		update_day_night_cycle()
 		update_nature_growth()
 		tick_timer += 1
+		if tick_timer % 1000 == 0:
+			if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1:
+				StaticLoad.rpc("reply_for_world_info", tick_timer, world_day, move_background.scroll_base_offset.x, true)
 		if tick_timer == 9000:
 			world_day += 1
 			update_moon_phase()	
@@ -581,7 +587,7 @@ func process_dispatch():
 	while(true):
 		if not StaticLoad.is_in_game:
 			break
-		await get_tree().process_frame
+		await get_tree().create_timer(StaticLoad.DISPATCH_DELTA_TIME).timeout
 		dispatch_all_entity_state_dict()
 		dispatch_set_block_state_dict()	
 
@@ -593,7 +599,7 @@ func process_set_block():
 		if set_block_list.is_empty():
 			continue
 		var success_set_block_dict_tmp = {}
-		var fail_set_block_list_tmp = []
+		#var fail_set_block_list_tmp = []
 		for set_block_info in set_block_list.duplicate():
 			var set_time = set_block_info[0]
 			var uuid = set_block_info[1]
@@ -604,22 +610,25 @@ func process_set_block():
 			var pos_string = str(set_block_pos[0])+"_"+str(set_block_pos[1])
 			if success_set_block_dict_tmp.has(pos_string):
 				if set_block_layer == success_set_block_dict_tmp[pos_string][4]:
-					if uuid == "destroy" or set_time < success_set_block_dict_tmp[pos_string][0]:
-						success_set_block_dict_tmp[pos_string][2] = set_block_id
-						success_set_block_dict_tmp[pos_string][3] = set_block_pos
-						success_set_block_dict_tmp[pos_string][4] = set_block_layer
-						fail_set_block_list_tmp.append(success_set_block_dict_tmp[pos_string])
-						success_set_block_dict_tmp[pos_string] = set_block_info
-					else:
-						set_block_info[2] = success_set_block_dict_tmp[pos_string][2]
-						set_block_info[3] = success_set_block_dict_tmp[pos_string][3]
-						set_block_info[4] = success_set_block_dict_tmp[pos_string][4]
-						fail_set_block_list_tmp.append(set_block_info)
+					success_set_block_dict_tmp[pos_string][2] = set_block_id
+					success_set_block_dict_tmp[pos_string][3] = set_block_pos
+					success_set_block_dict_tmp[pos_string][4] = set_block_layer
+					#if uuid == "destroy" or set_time < success_set_block_dict_tmp[pos_string][0]:
+						#success_set_block_dict_tmp[pos_string][2] = set_block_id
+						#success_set_block_dict_tmp[pos_string][3] = set_block_pos
+						#success_set_block_dict_tmp[pos_string][4] = set_block_layer
+						#fail_set_block_list_tmp.append(success_set_block_dict_tmp[pos_string])
+						#success_set_block_dict_tmp[pos_string] = set_block_info
+					#else:
+						#set_block_info[2] = success_set_block_dict_tmp[pos_string][2]
+						#set_block_info[3] = success_set_block_dict_tmp[pos_string][3]
+						#set_block_info[4] = success_set_block_dict_tmp[pos_string][4]
+						#fail_set_block_list_tmp.append(set_block_info)
 			else:
 				success_set_block_dict_tmp[pos_string] = set_block_info
 			set_block_list.erase(set_block_info)
 		success_set_block_dict.merge(success_set_block_dict_tmp, true)
-		fail_set_block_list.append_array(fail_set_block_list_tmp)
+		#fail_set_block_list.append_array(fail_set_block_list_tmp)
 		for pos_string in success_set_block_dict_tmp:
 			var set_time = success_set_block_dict_tmp[pos_string][0]
 			var uuid = success_set_block_dict_tmp[pos_string][1]
@@ -670,7 +679,7 @@ func process_set_block():
 					if StaticLoad.is_muti_mode:
 						if multiplayer.get_unique_id() == 1:
 							StaticLoad.create_entity(summon_item_args)
-							StaticLoad.rpc("create_entity", summon_item_args)
+							#StaticLoad.rpc("create_entity", summon_item_args)
 					else:
 						StaticLoad.create_entity(summon_item_args)
 			if set_block(set_block_pos, set_block_id, set_block_layer):
@@ -701,7 +710,7 @@ func process_set_block():
 							if StaticLoad.is_muti_mode:
 								if multiplayer.get_unique_id() == 1:
 									StaticLoad.create_entity(summon_item_args)
-									StaticLoad.rpc("create_entity", summon_item_args)
+									#StaticLoad.rpc("create_entity", summon_item_args)
 							else:
 								StaticLoad.create_entity(summon_item_args)
 					if StaticLoad.is_muti_mode:
@@ -792,22 +801,22 @@ func dispatch_set_block_state_dict():
 			StaticLoad.rpc_entity_func_by_uuid(uuid, "set_block", [set_block_id, set_block_pos, set_block_layer], except_player_id_list, false)
 		success_set_block_dict.erase(pos_string)
 	
-	for fail_info in fail_set_block_list:
-		var set_time = fail_info[0]
-		var uuid = fail_info[1]
-		var set_block_id = fail_info[2]
-		var set_block_pos = fail_info[3]
-		var set_block_layer = fail_info[4]
-		var is_to_sync = fail_info[5]
-		if uuid == "destroy":
-			fail_set_block_list.erase(fail_info)
-			continue
-		if entities[uuid].get_entity_type() == "player":
-			var player_tmp = entities[uuid]
-			var item_bar_names = player_tmp.item_bar_names
-			var item_bar_amounts = player_tmp.item_bar_amounts
-			StaticLoad.rpc_entity_func_by_uuid(uuid, "fail_set_block", [set_block_id, set_block_pos, set_block_layer, item_bar_names, item_bar_amounts], [player_tmp.player_peer_id], true)
-		fail_set_block_list.erase(fail_info)
+	#for fail_info in fail_set_block_list:
+		#var set_time = fail_info[0]
+		#var uuid = fail_info[1]
+		#var set_block_id = fail_info[2]
+		#var set_block_pos = fail_info[3]
+		#var set_block_layer = fail_info[4]
+		#var is_to_sync = fail_info[5]
+		#if uuid == "destroy":
+			#fail_set_block_list.erase(fail_info)
+			#continue
+		#if entities[uuid].get_entity_type() == "player":
+			#var player_tmp = entities[uuid]
+			#var item_bar_names = player_tmp.item_bar_names
+			#var item_bar_amounts = player_tmp.item_bar_amounts
+			#StaticLoad.rpc_entity_func_by_uuid(uuid, "fail_set_block", [set_block_id, set_block_pos, set_block_layer, item_bar_names, item_bar_amounts], [player_tmp.player_peer_id], true)
+		#fail_set_block_list.erase(fail_info)
 
 func process_drop_action():
 	var selected_item_grid_tmp = player.selected_item_grid
@@ -1019,7 +1028,7 @@ func _input(event: InputEvent) -> void:
 							player.create_entity(summon_entity_args)
 							StaticLoad.rpc_entity_func_by_uuid(player.get_uuid(), "create_entity", summon_entity_args, "others", true)
 						else:
-							StaticLoad.rpc_entity_func_by_uuid(player.get_uuid(), "create_entity", summon_entity_args, [1], false)
+							StaticLoad.rpc_entity_func_by_uuid(player.get_uuid(), "create_entity", summon_entity_args, [1, multiplayer.get_unique_id()], false)
 					else:
 						player.create_entity(summon_entity_args)
 					player.is_punching = true

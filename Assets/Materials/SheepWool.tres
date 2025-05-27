@@ -1,0 +1,11 @@
+[gd_resource type="StandardMaterial3D" load_steps=2 format=3 uid="uid://drqk55f32s807"]
+
+[ext_resource type="Texture2D" uid="uid://e2xefdl7b7ti" path="res://Assets/ResourcePacks/official_old/Entites/sheep.png" id="1_wgnho"]
+
+[resource]
+resource_local_to_scene = true
+resource_name = "Sheep Wool"
+cull_mode = 2
+shading_mode = 0
+albedo_texture = ExtResource("1_wgnho")
+texture_filter = 2

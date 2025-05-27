@@ -1808,6 +1808,8 @@ tile_set = ExtResource("3_fa3r6")
 
 [node name="Mobs" type="Node2D" parent="."]
 
+[node name="UndeadMobs" type="Node2D" parent="."]
+
 [node name="Players" type="Node2D" parent="."]
 
 [node name="FrontParticles" type="Node2D" parent="."]
