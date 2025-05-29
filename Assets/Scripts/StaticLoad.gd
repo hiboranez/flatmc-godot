@@ -154,6 +154,7 @@ var item_model_types: Dictionary
 var dropped_items: Dictionary
 var entity_dropped_loots: Dictionary
 var undead_mob_list: Array
+var common_mob_list: Array
 var item_max_amounts: Dictionary
 var tools_efficiency: Dictionary
 var tools_type: Dictionary
@@ -232,6 +233,7 @@ func _ready() -> void:
 	dropped_items = game_dict["dropped_items"]
 	entity_dropped_loots = game_dict["entity_dropped_loots"]
 	undead_mob_list = game_dict["undead_mob_list"]
+	common_mob_list = game_dict["common_mob_list"]
 	item_max_amounts = game_dict["item_max_amounts"]
 	tools_efficiency = game_dict["tools_efficiency"]
 	tools_type = game_dict["tools_type"]

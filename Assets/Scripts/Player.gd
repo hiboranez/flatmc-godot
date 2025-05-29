@@ -55,7 +55,7 @@ var last_velocity = Vector2(0, 0)
 var selected_block_pos = Vector2i(0, 0)
 var destroying_block_pos = Vector2i(0, 0)
 var shoot_timer: float = 0
-var last_shoot_timer: float = 0
+var last_shoot_stage: int = -1
 var destroy_timer: float = 0
 var attack_timer: float = 1
 var attacking_decline_timer: float = 0
@@ -486,6 +486,7 @@ func update_shoot_timer():
 		shoot_timer += get_process_delta_time()
 	elif shoot_timer != 0:
 		shoot_timer = 0
+		last_shoot_stage = -1
 	
 func update_local_fall_damage_by_data():
 	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != player_peer_id:
@@ -741,30 +742,26 @@ func set_item_in_hand(got_item_name):
 func update_local_item_in_hand():
 	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != player_peer_id:
 		return
-	var in_hand_item_name_tmp = item_bar_names[selected_item_grid]
-	if in_hand_item_name_tmp.contains("BOW"):
-		if last_shoot_timer != shoot_timer:
-			if shoot_timer == 0:
-				set_item_in_hand("BOW")
-				in_hand_item_name = "BOW"
-			else:
-				if shoot_timer > 2:
-					shoot_timer = 2
-				var stage = int(shoot_timer/0.666)-1
-				if stage < 0:
-					stage = 0
-				if stage >= 3:
-					stage = 2
-				set_item_in_hand("BOW_PULLING_"+str(stage))
-				in_hand_item_name = "BOW_PULLING_"+str(stage)
-	if in_hand_item_name_tmp == in_hand_item_name:
+	var real_in_hand_item_name = item_bar_names[selected_item_grid]
+	if real_in_hand_item_name.contains("BOW"):
+		if shoot_timer > 2:
+			shoot_timer = 2
+		var stage = int(shoot_timer/0.666)
+		if stage < 0:
+			stage = 0
+		if stage >= 3:
+			stage = 2
+		if last_shoot_stage != stage and shoot_timer > 0:
+			set_item_in_hand("BOW_PULLING_"+str(stage))
+			in_hand_item_name = "BOW_PULLING_"+str(stage)
+			last_shoot_stage = stage
+	if real_in_hand_item_name == in_hand_item_name or (real_in_hand_item_name.contains("BOW") and shoot_timer > 0):
 		return
-	if not in_hand_item_name.contains("BOW_PULLING"):
-		in_hand_item_name = in_hand_item_name_tmp
 	attacking_decline_timer = 0
 	attacking_list.clear()
 	attack_animation.stop()
 	attack_animation.visible = false
+	in_hand_item_name = real_in_hand_item_name
 	set_item_in_hand(in_hand_item_name)
 
 func update_state_dict():
@@ -1200,6 +1197,8 @@ func get_death_messgae(reason, object):
 	var text = ""
 	if reason == "fall":
 		text = player_name+tr("DEATH_FALL")
+	if reason == "fire":
+		text = player_name+tr("DEATH_FIRE")
 	elif reason == "player_attack":
 		text = player_name+tr("DEATH_PLAYER_KILL_1")+object+tr("DEATH_PLAYER_KILL_2")
 	elif reason == "zombie_attack":
@@ -1435,6 +1434,12 @@ func if_get_item_left(got_item_name: String, amount: int, search_begin: int, sea
 func shoot_arrow():
 	if not in_hand_item_name.contains("BOW"):
 		return
+	if gamemode != "creative" and not item_bar_names.has("ARROW"):
+		return
+	if gamemode != "creative":
+		clear_item("ARROW", 1)
+		wear_and_update_in_hand_tool(1, false)
+		StaticLoad.game.append_process_refresh("refresh_item_grid")
 	var stage = int(shoot_timer/0.667)
 	if stage >= 3:
 		stage = 2
@@ -1443,7 +1448,7 @@ func shoot_arrow():
 	shoot_speed = lerp(Vector2(0, 0), shoot_speed, shoot_timer/2)
 	var lift_dist = lerp(-30, -55, shoot_timer/2)
 	var arrow_uuid = UUID.v4()
-	var arrow_args = [arrow_uuid, str(arrow_uuid), position+Vector2(face_state*30,lift_dist), shoot_speed, shoot_speed, "player", uuid, player_name, false]
+	var arrow_args = [arrow_uuid, str(arrow_uuid), position+Vector2(face_state*30,lift_dist), shoot_speed, shoot_speed, "player", uuid, player_name, true]
 	StaticLoad.game.sound_audio_manager.play_random_audio_at_position("random", "bow_shoot", position, 1)
 	if StaticLoad.is_muti_mode:
 		if multiplayer.get_unique_id() == 1:
@@ -1502,6 +1507,9 @@ func stop_move():
 	expected_velocity.x = 0
 
 func respawn(is_animation = true):
+	if is_on_fire:
+		is_on_fire = false
+		fire_lasting_timer = 0
 	if die_rotation_tween != null:
 		die_rotation_tween.stop()
 	if die_name_tween != null:

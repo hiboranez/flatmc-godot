@@ -2,6 +2,8 @@ extends TextureRect
 
 @export var slot_function: String
 
+@onready var white_color_rect = $WhiteColorRect
+
 var item_name
 var item_amount
 var mouse_stay_timer = StaticLoad.INVENTORY_NAME_SHOW_STAY_TIME
@@ -80,6 +82,8 @@ func update_progress_bar(got_item_name, got_item_amount):
 		$ProgressBar.visible = false
 
 func _on_mouse_entered() -> void:
+	if StaticLoad.game.mouse_in_inventory_grid != self:
+		white_color_rect.visible = true
 	StaticLoad.game.mouse_in_inventory_grid = self
 	if item_name == "AIR":
 		return
@@ -87,6 +91,8 @@ func _on_mouse_entered() -> void:
 	set_process(true)
 
 func _on_mouse_exited() -> void:
+	if StaticLoad.game.mouse_in_inventory_grid == self:
+		white_color_rect.visible = false
 	StaticLoad.game.mouse_in_inventory_grid = null
 	set_process(false)
 	mouse_stay_timer = StaticLoad.INVENTORY_NAME_SHOW_STAY_TIME

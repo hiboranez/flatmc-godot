@@ -9,7 +9,7 @@
 		"bgm_volume": 50,
 		"sound_volume": 50,
 		"block_selection_box": "show_when_changing",
-		"full_screen": "on",
+		"full_screen": "off",
 		"auto_jump": "on",
 		"particle_effect": "on",
 		"v_sync": "on",

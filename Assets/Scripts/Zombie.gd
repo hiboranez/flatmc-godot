@@ -90,7 +90,6 @@ func _process(delta: float) -> void:
 	update_animation_by_data()
 	# 仅在服务端的本地更新
 	update_attack_timer()
-	update_local_fire_damage_by_data()
 	update_local_fall_damage_by_data()
 	update_local_health_recover()
 	update_local_is_on_ladder()
@@ -100,6 +99,7 @@ func _process(delta: float) -> void:
 	update_local_move_by_data()
 	update_local_state_dict()
 	update_local_changed_state_dict()
+	update_local_fire_damage_by_data()
 	
 	update_last_velocity()
 	await get_tree().create_timer(1).timeout
@@ -237,17 +237,31 @@ func update_attack_timer():
 func update_local_fire_damage_by_data():
 	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
 		return
-	var chunk_block_pos = StaticLoad.game.tile_map_layer.local_to_map(position) - chunk_pos*16
+	var chunk_pos_tmp = StaticLoad.game.get_chunk_position(StaticLoad.game.tile_map_layer.local_to_map(position))
+	var chunk_block_pos = StaticLoad.game.tile_map_layer.local_to_map(position) - chunk_pos_tmp*16
 	if chunk_block_pos[0] > 15:
 		chunk_block_pos[0] = 15
 	if chunk_block_pos[1] > 15:
 		chunk_block_pos[1] = 15
-	if not StaticLoad.game.chunk_sky_light_all_datas.has(str(chunk_pos[0])+"."+str(chunk_pos[1])):
+	if not StaticLoad.game.chunk_sky_light_all_datas.has(str(chunk_pos_tmp[0])+"."+str(chunk_pos_tmp[1])):
 		return
-	var chunk_sky_light = StaticLoad.game.chunk_sky_light_all_datas[str(chunk_pos[0])+"."+str(chunk_pos[1])]
+	var chunk_sky_light = StaticLoad.game.chunk_sky_light_all_datas[str(chunk_pos_tmp[0])+"."+str(chunk_pos_tmp[1])]
 	var self_sky_light = chunk_sky_light[chunk_block_pos[1]*16+chunk_block_pos[0]]
 	if self_sky_light == 255:
 		fire_lasting_timer = 8
+	var next_block_pos = StaticLoad.game.tile_map_layer.local_to_map(position+Vector2(face_state*50, 0))
+	var next_chunk_pos = StaticLoad.game.get_chunk_position(next_block_pos)
+	if StaticLoad.game.chunk_sky_light_all_datas.has(str(next_chunk_pos[0])+"."+str(next_chunk_pos[1])):
+		var next_chunk_block_pos = next_block_pos - next_chunk_pos*16
+		if next_chunk_block_pos[0] > 15:
+			next_chunk_block_pos[0] = 15
+		if next_chunk_block_pos[1] > 15:
+			next_chunk_block_pos[1] = 15
+		var next_chunk_sky_light = StaticLoad.game.chunk_sky_light_all_datas[str(next_chunk_pos[0])+"."+str(next_chunk_pos[1])]
+		var target_sky_light = next_chunk_sky_light[next_chunk_block_pos[1]*16+next_chunk_block_pos[0]]
+		if target_sky_light == 255 and self_sky_light < 255:
+			move_state = "idle"
+			expected_velocity.x = 0
 	if fire_lasting_timer <= 0 and is_on_fire:
 		is_on_fire = false
 	if fire_lasting_timer > 0 and not is_on_fire:
@@ -381,6 +395,9 @@ func attack():
 			return
 		target_entity.rpc_damage([3, side, target_entity.get_health(), "zombie_attack", uuid], true)
 	target_entity.get_damage([3, side, target_entity.get_health(), "zombie_attack", uuid])
+	if is_on_fire and not target_entity.get_is_on_fire():
+		target_entity.is_on_fire = true
+		target_entity.fire_lasting_timer = 8
 	is_attacking = true
 	attack_timer = 0.5
 
@@ -520,6 +537,9 @@ func update_local_move_by_data():
 					move_state = "walk"
 			elif is_top_area_colliding:
 				move_state = "idle"
+			elif not is_dead and not is_flying and is_on_floor():
+				if velocity.y >= 0 and is_down_area_colliding and not is_up_area_colliding:
+					add_velocity(Vector2(0, jump_velocity))
 		else:
 			if is_down_area_colliding and not is_up_area_colliding and not is_top_area_colliding:
 				if panic_timer > 0:

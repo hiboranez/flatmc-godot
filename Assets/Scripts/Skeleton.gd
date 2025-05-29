@@ -34,6 +34,7 @@ var move_speed: float = 200
 var jump_velocity: float = -550
 var walk_period: float = 0.83
 var run_period: float = 0.42
+var arrow_shoot_speed = Vector2(1800, -300)
 var refresh_target_timer: float = 5
 var refresh_target_entity_timer: float = 1
 var panic_timer: float = 0
@@ -45,9 +46,13 @@ var last_velocity = Vector2(0, 0)
 var target_pos = Vector2i(0, 0)
 var target_entity = null
 var expected_velocity = Vector2i(0, 0)
+var shoot_max_timer: float = 3
+var shoot_timer: float = 0
+var last_shoot_stage: int = -1
 var say_timer: float = 8
 var attack_timer: float = 0
 var step_sound_timer: float = 0
+var real_in_hand_item_name = "BOW"
 var in_hand_item_name = "BOW"
 var move_state = "idle"
 var face_state: int = -1
@@ -94,8 +99,9 @@ func _process(delta: float) -> void:
 	update_sound_by_data()
 	update_animation_by_data()
 	# 仅在服务端的本地更新
+	update_shoot_arrow()
+	update_local_item_in_hand()
 	update_attack_timer()
-	update_local_fire_damage_by_data()
 	update_local_fall_damage_by_data()
 	update_local_health_recover()
 	update_local_is_on_ladder()
@@ -105,6 +111,7 @@ func _process(delta: float) -> void:
 	update_local_move_by_data()
 	update_local_state_dict()
 	update_local_changed_state_dict()
+	update_local_fire_damage_by_data()
 	
 	update_last_velocity()
 	await get_tree().create_timer(1).timeout
@@ -161,10 +168,38 @@ func update_sound_by_data():
 	if step_sound_timer > 0:
 		step_sound_timer -= delta
 
+func update_shoot_arrow():
+	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
+		return
+	if target_entity == null:
+		if is_pulling:
+			is_pulling = false
+			in_hand_item_name = "BOW"
+			set_item_in_hand("BOW")
+			shoot_timer = 0
+			last_shoot_stage = -1
+		return
+	elif not is_pulling:
+		is_pulling = true
+	if shoot_timer < shoot_max_timer:
+		if is_pulling:
+			shoot_timer += get_process_delta_time()
+		elif shoot_timer != 0:
+			shoot_timer = 0
+			last_shoot_stage = -1
+	elif is_pulling and not is_dead:
+		is_pulling = false
+		if shoot_timer > 0:
+			in_hand_item_name = "BOW"
+			set_item_in_hand("BOW")
+			shoot_arrow()
+			shoot_timer = 0
+			last_shoot_stage = -1
+
 func update_animation_tree():
 	animation_tree["parameters/Run/blend_amount"] = animation_tree_parameters["run"]
 	animation_tree["parameters/Walk/blend_amount"] = animation_tree_parameters["walk"]
-	animation_tree["parameters/Pull/blend_amount"] = animation_tree_parameters["pull"]
+	animation_tree["parameters/Pull/blend_amount"] = animation_tree_parameters["pull"]*(1+(shoot_timer+0.0001)/20)
 
 func update_animation_by_data():
 	var delta = get_process_delta_time()
@@ -251,17 +286,31 @@ func update_attack_timer():
 func update_local_fire_damage_by_data():
 	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
 		return
-	var chunk_block_pos = StaticLoad.game.tile_map_layer.local_to_map(position) - chunk_pos*16
+	var chunk_pos_tmp = StaticLoad.game.get_chunk_position(StaticLoad.game.tile_map_layer.local_to_map(position))
+	var chunk_block_pos = StaticLoad.game.tile_map_layer.local_to_map(position) - chunk_pos_tmp*16
 	if chunk_block_pos[0] > 15:
 		chunk_block_pos[0] = 15
 	if chunk_block_pos[1] > 15:
 		chunk_block_pos[1] = 15
-	if not StaticLoad.game.chunk_sky_light_all_datas.has(str(chunk_pos[0])+"."+str(chunk_pos[1])):
+	if not StaticLoad.game.chunk_sky_light_all_datas.has(str(chunk_pos_tmp[0])+"."+str(chunk_pos_tmp[1])):
 		return
-	var chunk_sky_light = StaticLoad.game.chunk_sky_light_all_datas[str(chunk_pos[0])+"."+str(chunk_pos[1])]
+	var chunk_sky_light = StaticLoad.game.chunk_sky_light_all_datas[str(chunk_pos_tmp[0])+"."+str(chunk_pos_tmp[1])]
 	var self_sky_light = chunk_sky_light[chunk_block_pos[1]*16+chunk_block_pos[0]]
 	if self_sky_light == 255:
 		fire_lasting_timer = 8
+	var next_block_pos = StaticLoad.game.tile_map_layer.local_to_map(position+Vector2(face_state*50, 0))
+	var next_chunk_pos = StaticLoad.game.get_chunk_position(next_block_pos)
+	if StaticLoad.game.chunk_sky_light_all_datas.has(str(next_chunk_pos[0])+"."+str(next_chunk_pos[1])):
+		var next_chunk_block_pos = next_block_pos - next_chunk_pos*16
+		if next_chunk_block_pos[0] > 15:
+			next_chunk_block_pos[0] = 15
+		if next_chunk_block_pos[1] > 15:
+			next_chunk_block_pos[1] = 15
+		var next_chunk_sky_light = StaticLoad.game.chunk_sky_light_all_datas[str(next_chunk_pos[0])+"."+str(next_chunk_pos[1])]
+		var target_sky_light = next_chunk_sky_light[next_chunk_block_pos[1]*16+next_chunk_block_pos[0]]
+		if target_sky_light == 255 and self_sky_light < 255:
+			move_state = "idle"
+			expected_velocity.x = 0
 	if fire_lasting_timer <= 0 and is_on_fire:
 		is_on_fire = false
 	if fire_lasting_timer > 0 and not is_on_fire:
@@ -400,13 +449,22 @@ func attack():
 
 func update_target_pos():
 	if target_entity != null:
-		target_pos = StaticLoad.game.tile_map_layer.local_to_map(target_entity.position)
-		if not is_dead and position.distance_to(target_entity.position) < 50:
-			if attack_timer <= 0:
-				if target_entity.get_entity_type() == "player" and target_entity.gamemode != "creative":
-					attack()
-				else:
-					attack()
+		if move_state == "idle":
+			if target_entity.position.x < position.x and face_state > 0:
+				face_state = -1
+			elif target_entity.position.x > position.x and face_state < 0:
+				face_state = 1
+		var safe_distance = 500
+		if position.x < target_entity.position.x:
+			safe_distance = -500
+		var world_target_pos = target_entity.position+Vector2(safe_distance, 0)
+		target_pos = StaticLoad.game.tile_map_layer.local_to_map(world_target_pos)
+		#if not is_dead and position.distance_to(world_target_pos) < 50:
+			#if attack_timer <= 0:
+				#if target_entity.get_entity_type() == "player" and target_entity.gamemode != "creative":
+					#attack()
+				#else:
+					#attack()
 	else:
 		var rng = RandomNumberGenerator.new()
 		var num1 = rng.randf()-0.5
@@ -534,6 +592,9 @@ func update_local_move_by_data():
 					move_state = "walk"
 			elif is_top_area_colliding:
 				move_state = "idle"
+			elif not is_dead and not is_flying and is_on_floor():
+				if velocity.y >= 0 and is_down_area_colliding and not is_up_area_colliding:
+					add_velocity(Vector2(0, jump_velocity))
 		else:
 			if is_down_area_colliding and not is_up_area_colliding and not is_top_area_colliding:
 				if panic_timer > 0:
@@ -723,6 +784,59 @@ func stop_move():
 	panic_timer = 0
 	move_state = "idle"
 	expected_velocity.x = 0
+
+func update_local_item_in_hand():
+	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
+		return
+	var in_hand_item_name_tmp = in_hand_item_name
+	if real_in_hand_item_name.contains("BOW"):
+		if shoot_timer > 5:
+			shoot_timer = 5
+		var stage = int(shoot_timer)
+		if stage < 0:
+			stage = 0
+		if stage >= 3:
+			stage = 2
+		if last_shoot_stage != stage and shoot_timer > 0:
+			set_item_in_hand("BOW_PULLING_"+str(stage))
+			in_hand_item_name = "BOW_PULLING_"+str(stage)
+			last_shoot_stage = stage
+	if in_hand_item_name_tmp == in_hand_item_name or (real_in_hand_item_name.contains("BOW") and shoot_timer > 0):
+		return
+	in_hand_item_name = real_in_hand_item_name
+	set_item_in_hand(in_hand_item_name)
+
+func shoot_arrow():
+	if target_entity.position.x < position.x and face_state > 0:
+		face_state = -1
+	elif target_entity.position.x > position.x and face_state < 0:
+		face_state = 1
+	var stage = int(shoot_timer)
+	if stage >= 3:
+		stage = 2
+	var shoot_speed = arrow_shoot_speed
+	shoot_speed[0] *= face_state
+	shoot_speed = lerp(Vector2(0, 0), shoot_speed, shoot_timer/shoot_max_timer)
+	var lift_dist = lerp(-30, -55, shoot_timer/shoot_max_timer)
+	var arrow_uuid = UUID.v4()
+	var arrow_args = [arrow_uuid, str(arrow_uuid), position+Vector2(face_state*30,lift_dist), shoot_speed, shoot_speed, entity_type, uuid, entity_name, false]
+	StaticLoad.game.sound_audio_manager.play_random_audio_at_position("random", "bow_shoot", position, 1)
+	if StaticLoad.is_muti_mode:
+		if multiplayer.get_unique_id() == 1:
+			summon_arrow(arrow_args)
+			StaticLoad.rpc_entity_func_by_uuid(uuid, "summon_arrow", arrow_args, "others", true)
+		else:
+			StaticLoad.rpc_entity_func_by_uuid(uuid, "summon_arrow", arrow_args, [1], false)
+	else:
+		summon_arrow(arrow_args)
+
+func summon_arrow(args):
+	if StaticLoad.is_muti_mode and not multiplayer.get_unique_id() == 1:
+		args[3] = Vector2(0, 0)
+	var arrow = StaticLoad.arrow_scene.instantiate()
+	StaticLoad.game.arrows.add_child(arrow)
+	arrow.init(args)
+	StaticLoad.game.entities[arrow.get_uuid()] = arrow
 
 func die(reason, object):
 	is_dead = true

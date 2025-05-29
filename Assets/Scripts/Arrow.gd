@@ -22,8 +22,10 @@ var current_velocity = velocity
 var shooter_type = "null"
 var shooter_uuid = "null"
 var shooter_name = "null"
+var is_entity_hit = false
 var is_undead_damage = true
 var is_block_attached = false
+var disappear_timer: float = 60.0
 var expected_velocity = Vector2i(0, 0)
 var state_dict = {}
 var last_state_dict = {}
@@ -37,6 +39,7 @@ func _process(delta: float) -> void:
 	move_and_slide()
 	update_animation_by_data()
 	# 仅在服务端的本地更新
+	update_local_disappear_timer()
 	update_current_velocity()
 	update_local_fire_damage_by_data()
 	# 本地更新
@@ -58,8 +61,9 @@ func init(args):
 	name = str(uuid)
 	chunk_pos = StaticLoad.game.get_chunk_position(StaticLoad.game.tile_map_layer.local_to_map(position))
 	if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1):
-		StaticLoad.game.loaded_chunks[str(chunk_pos[0])+"."+str(chunk_pos[1])].entity_list.append(uuid)
-		StaticLoad.game.loaded_chunks[str(chunk_pos[0])+"."+str(chunk_pos[1])].is_to_save = true
+		if StaticLoad.game.loaded_chunks.has(str(chunk_pos[0])+"."+str(chunk_pos[1])):
+			StaticLoad.game.loaded_chunks[str(chunk_pos[0])+"."+str(chunk_pos[1])].entity_list.append(uuid)
+			StaticLoad.game.loaded_chunks[str(chunk_pos[0])+"."+str(chunk_pos[1])].is_to_save = true
 	else:
 		StaticLoad.rpc_id(1, "request_for_mark_revised_chunk", chunk_pos)
 
@@ -71,6 +75,18 @@ func update_current_velocity():
 	if velocity.x != 0:
 		current_velocity = velocity
 
+func update_local_disappear_timer():
+	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
+		return
+	if shooter_type == "player":
+		return
+	if disappear_timer > 0:
+		disappear_timer -= get_process_delta_time()
+	else:
+		if StaticLoad.is_muti_mode:
+			StaticLoad.rpc_entity_func_by_uuid(get_uuid(), "destroy_entity", [], "others", true)
+		destroy_entity([])
+	
 func update_local_fire_damage_by_data():
 	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
 		return
@@ -88,9 +104,10 @@ func update_local_fire_damage_by_data():
 	if fire_damage_timer > 0:
 		fire_damage_timer -= get_process_delta_time()
 	elif fire_damage_timer <= 0:
-		destroy_entity([])
 		if StaticLoad.is_muti_mode:
 			StaticLoad.rpc_entity_func_by_uuid(get_uuid(), "destroy_entity", [], "others", true)
+		destroy_entity([])
+		
 
 func update_animation_by_data():
 	if current_velocity.length() > 0:
@@ -201,6 +218,8 @@ func destroy_entity(args):
 func _on_collide_area_body_entered(body: Node2D) -> void:
 	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
 		return
+	if is_entity_hit:
+		return
 	if body.name == "TileMapLayer":
 		StaticLoad.game.sound_audio_manager.play_random_audio_at_position("random", "bow_hit", position, 1)
 		is_block_attached = true
@@ -211,16 +230,16 @@ func _on_collide_area_body_entered(body: Node2D) -> void:
 		return
 	if body.get_uuid() == uuid or body.get_entity_type() == "item" or body.get_entity_type() == "arrow":
 		return
-	if body.get_entity_type() == "player" and is_block_attached:
+	if body.get_entity_type() == "player" and is_block_attached and shooter_type == "player":
 		if body.if_get_item_left("ARROW", 1, 0, 36) == 0:
 			body.get_item(["ARROW", 1, 0, 36, true])
 			if StaticLoad.is_muti_mode:
 				StaticLoad.rpc_entity_func_by_uuid(body.get_uuid(), "get_item", ["ARROW", 1, 0, 36, true], "others", true)
 			if StaticLoad.game.entities.find_key(self):
 				StaticLoad.game.entities.erase(self)
-			destroy_entity([])
 			if StaticLoad.is_muti_mode:
 				StaticLoad.rpc_entity_func_by_uuid(get_uuid(), "destroy_entity", [], "others", true)
+			destroy_entity([])
 			return
 	if body.get_entity_type() == "player" and body.gamemode == "creative":
 		velocity = Vector2(0, 0)
@@ -229,16 +248,23 @@ func _on_collide_area_body_entered(body: Node2D) -> void:
 		return
 	if is_block_attached or is_frozen:
 		return
+	if not is_undead_damage and StaticLoad.undead_mob_list.has(body.get_entity_type()):
+		return
 	var side = "left"
 	if current_velocity.x < 0:
 		side = "right"
 	var damage = int(abs(current_velocity.length()) / 300)
+	if shooter_type != "player":
+		damage /= 3.0
 	if damage <= 0:
 		damage = 1
 		return
 	if body.get_entity_type() == "player":
 		body.rpc_damage([damage, side, body.get_health(), "arrow_attack", shooter_type+"."+shooter_uuid+"."+shooter_name], true)
 	body.get_damage([damage, side, body.get_health(), "arrow_attack", shooter_type+"."+shooter_uuid+"."+shooter_name])
+	if is_on_fire and not body.get_is_on_fire():
+		body.is_on_fire = true
+		body.fire_lasting_timer = 8
 	if shooter_type == "player":
 		var player_tmp = StaticLoad.game.entities[shooter_uuid]
 		if player_tmp != null:
@@ -246,10 +272,10 @@ func _on_collide_area_body_entered(body: Node2D) -> void:
 				player_tmp.play_successful_hit_audio([])
 			else:
 				StaticLoad.rpc_entity_func_by_uuid(shooter_uuid, "play_successful_hit_audio", [], [player_tmp.player_peer_id], true)
-	StaticLoad.game.sound_audio_manager.play_random_audio_at_position("random", "successful_hit", position, 1)
-	destroy_entity([])
+	is_entity_hit = true
 	if StaticLoad.is_muti_mode:
 		StaticLoad.rpc_entity_func_by_uuid(get_uuid(), "destroy_entity", [], "others", true)
+	destroy_entity([])
 
 func _on_collide_area_body_exited(body: Node2D) -> void:
 	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:

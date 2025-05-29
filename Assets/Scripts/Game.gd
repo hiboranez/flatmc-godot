@@ -110,6 +110,7 @@ var tick_cycle_thread = Thread.new()
 var dispatch_thread = Thread.new()
 var set_block_thread = Thread.new()
 var nearby_thread = Thread.new()
+var entity_spawn_thread = Thread.new()
 var success_set_block_dict = {}
 var fail_set_block_list = []
 var player_icons = {}
@@ -1344,6 +1345,23 @@ func check_place_block_state(block_pos, block_id, selected_layer):
 			return false
 		if player_pos - Vector2i(0, 1) == block_pos:
 			return false
+	var mouse_in_world_pos = tile_map_layer.get_local_mouse_position()
+	var mouse_to_block_pos = tile_map_layer.local_to_map(mouse_in_world_pos)
+	var mouse_chunk_pos = get_chunk_position(mouse_to_block_pos)
+	if loaded_chunks.has(str(mouse_chunk_pos[0])+"."+str(mouse_chunk_pos[1])):
+		var chunk_entity_list = loaded_chunks[str(mouse_chunk_pos[0])+"."+str(mouse_chunk_pos[1])].entity_list
+		for uuid in chunk_entity_list:
+			var entity = entities[uuid]
+			if entity.get_entity_type() == "player":
+				continue
+			if entity == null:
+				continue
+			var entity_pos = tile_map_layer.local_to_map(entity.position)
+			if entity_pos == block_pos:
+				return false
+			if ["zombie", "skeleton", "cow", "sheep"].has(entity.get_entity_type()):
+				if entity_pos - Vector2i(0, 1) == block_pos:
+					return false
 	return true
 
 @warning_ignore("unused_parameter")
@@ -1436,6 +1454,7 @@ func process_mouse_action():
 					player.set_item_in_hand("BOW")
 					player.shoot_arrow()
 					player.shoot_timer = 0
+					player.last_shoot_stage = -1
 		if Input.is_mouse_button_pressed(1) and not Input.is_mouse_button_pressed(2):
 			if StaticLoad.tools_type.has(player.in_hand_item_name) and StaticLoad.tools_type[player.in_hand_item_name].has("sword"):
 				if player.attack_timer <= 0:
@@ -1450,7 +1469,10 @@ func process_mouse_action():
 			if player.in_hand_item_name.contains("SPAWN_EGG"):
 				pass
 			elif player.in_hand_item_name.contains("BOW"):
-				player.is_pulling = true
+				if player.gamemode != "creative" and not player.item_bar_names.has("ARROW"):
+					pass
+				elif player.item_bar_names[player.selected_item_grid].contains("BOW"):
+					player.is_pulling = true
 			elif player.gamemode == "creative":
 				player.place_block(mouse_to_block_pos)
 			else:
@@ -1700,6 +1722,7 @@ func init_game_as_dedicated_server():
 	dispatch_thread.start(process_dispatch)
 	light_thread.start(process_light)
 	set_block_thread.start(process_set_block)
+	entity_spawn_thread.start(process_entity_spawn)
 	#nearby_thread.start(process_nearby)
 
 func init_game_as_single():
@@ -1814,6 +1837,7 @@ func init_game_as_single():
 	set_block_thread.start(process_set_block)
 	light_thread.start(process_light)
 	refresh_thread.start(process_refresh)
+	entity_spawn_thread.start(process_entity_spawn)
 	#nearby_thread.start(process_nearby)
 
 func create_chunk_entities(chunk_name, chunk_config):
@@ -1830,6 +1854,8 @@ func create_chunk_entities(chunk_name, chunk_config):
 		if entity_info[0] == "item":
 			StaticLoad.create_entity(["item", entity_info[1], entity_info[3], entity_info[2], 0, 2, uuid])
 		elif entity_info[0] == "arrow":
+			if entity_info[5] != "player":
+				continue
 			StaticLoad.create_entity([entity_info[0], uuid, entity_info[1], entity_info[2], entity_info[3], entity_info[4], entity_info[5], entity_info[6], entity_info[7], entity_info[8]])
 		else:
 			StaticLoad.create_entity([entity_info[0], uuid, entity_info[1], entity_info[2], entity_info[3]])
@@ -1917,11 +1943,97 @@ func create_player(peer_id = 1):
 	players.move_child(player,-1)
 	entities[player_instance.get_uuid()] = player_instance
 
+func process_entity_spawn():
+	while(true):
+		if not StaticLoad.is_in_game:
+			break
+		if get_tree() == null:
+			return
+		await get_tree().create_timer(10).timeout
+		for chunk_name in loaded_chunks.duplicate():
+			if not loaded_chunks.has(chunk_name):
+				continue
+			var splits = chunk_name.split(".")
+			var is_spawned = false
+			var undead_count: int = 0
+			if current_sky_light <= 223:
+				for uuid in loaded_chunks[chunk_name].entity_list:
+					if StaticLoad.undead_mob_list.has(entities[uuid].get_entity_type()):
+						undead_count += 1
+			for y in range(16):
+				for x in range(16):
+					var block_pos = Vector2i(int(splits[0])*16,int(splits[1])*16)+Vector2i(x, y)
+					var block_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(block_pos))
+					if StaticLoad.get_is_transparent_by_id(block_id) or block_id == 0:
+						continue
+					var up_block_pos = Vector2i(int(splits[0])*16,int(splits[1])*16)+Vector2i(x, y-1)
+					var up_chunk_pos = get_chunk_position(up_block_pos)
+					if loaded_chunks.has(str(up_chunk_pos[0])+"."+str(up_chunk_pos[1])):
+						var up_block_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(up_block_pos))
+						if up_block_id != 0:
+							continue
+					var top_block_pos = Vector2i(int(splits[0])*16,int(splits[1])*16)+Vector2i(x, y-2)
+					var top_chunk_pos = get_chunk_position(top_block_pos)
+					if loaded_chunks.has(str(top_chunk_pos[0])+"."+str(top_chunk_pos[1])):
+						var top_block_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(top_block_pos))
+						if top_block_id != 0:
+							continue
+					if not chunk_light_datas.has(chunk_name):
+						continue
+					var chunk_light_tmp = chunk_light_datas[chunk_name]
+					var self_light = chunk_light_tmp[y*16+x]
+					if undead_count <= 2 and current_sky_light <= 80 and self_light <= 80:
+						var rng = RandomNumberGenerator.new()
+						var num = rng.randf()
+						if num < 0.9:
+							continue
+						var undead_mob_list_tmp = StaticLoad.undead_mob_list.duplicate()
+						undead_mob_list_tmp.shuffle()
+						var entity_type = undead_mob_list_tmp[0]
+						var uuid = UUID.v4()
+						var summon_entity_args = [entity_type, uuid, str(uuid) ,tile_map_layer.map_to_local(up_block_pos), "default"]
+						StaticLoad.create_entity(summon_entity_args)
+						is_spawned = true
+						break
+					elif self_light >= 112:
+						if loaded_chunks[chunk_name].entity_list.size() >= 2:
+							continue
+						var rng = RandomNumberGenerator.new()
+						var num = rng.randf()
+						if num < 0.99:
+							continue
+						var common_mob_list_tmp = StaticLoad.common_mob_list.duplicate()
+						common_mob_list_tmp.shuffle()
+						var entity_type = common_mob_list_tmp[0]
+						var uuid = UUID.v4()
+						var summon_entity_args = [entity_type, uuid, str(uuid) ,tile_map_layer.map_to_local(up_block_pos), "default"]
+						StaticLoad.create_entity(summon_entity_args)
+						is_spawned = true
+						break
+				if get_tree() == null:
+					return
+				await get_tree().process_frame
+				if is_spawned:
+					break
+			if is_spawned:
+				var rng = RandomNumberGenerator.new()
+				var num = rng.randf()
+				if get_tree() == null:
+					return
+				await get_tree().create_timer(num*5).timeout
+
 func refresh_item_grid(sort):
 	if player == null:
 		return
 	var item_name = player.item_bar_names[sort]
 	var item_amount = player.item_bar_amounts[sort]
+	if sort == player.selected_item_grid and player.in_hand_item_name.contains("BOW"):
+		if not item_name.contains("BOW") and player.is_pulling:
+			player.is_pulling = false
+			player.shoot_timer = 0
+			player.last_shoot_stage = -1
+			player.in_hand_item_name = item_name
+			player.set_item_in_hand(item_name)
 	if item_name == "AIR":
 		item_grids[sort].get_node("ItemIcon").visible = false
 		item_grids[sort].get_node("ProgressBar").visible = false
@@ -2845,6 +2957,8 @@ func save_chunk(chunk_pos: Vector2i):
 			var entity_info = ["item", entity.item_name, entity.item_amount, entity.position]
 			mca.set_value("entity", uuid, entity_info)
 		elif entity.get_entity_type() == "arrow":
+			if entity.shooter_type != "player":
+				continue
 			var entity_info = ["arrow", entity.entity_name, entity.position, entity.velocity, entity.current_velocity, entity.shooter_type, entity.shooter_uuid, entity.shooter_name, entity.is_undead_damage]
 			mca.set_value("entity", uuid, entity_info)
 		else:
@@ -2884,6 +2998,13 @@ func select_item_grid(grid_name) -> void:
 	player.selected_item_grid = sort
 	item_grids[sort].get_node("SelectBar").visible = true
 	var select_item_name = player.item_bar_names[sort]
+	if player.in_hand_item_name.contains("BOW"):
+		if not select_item_name.contains("BOW") and player.is_pulling:
+			player.is_pulling = false
+			player.shoot_timer = 0
+			player.last_shoot_stage = -1
+			player.in_hand_item_name = select_item_name
+			player.set_item_in_hand(select_item_name)
 	if StaticLoad.tools_type.has(select_item_name) and StaticLoad.tools_type[select_item_name].has("sword"):
 		block_selection_ui.visible = false
 	else:

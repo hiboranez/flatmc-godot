@@ -267,6 +267,7 @@ CHICKEN_SPAWN_EGG;鸡刷怪蛋;chicken spawn egg
 ZOMBIE_SPAWN_EGG;僵尸刷怪蛋;zombie spawn egg
 SKELETON_SPAWN_EGG;骷髅刷怪蛋;skelecton spawn egg
 DEATH_FALL; 落地过猛; hit the ground too hard
+DEATH_FIRE; 浴火焚身; went up in flames
 DEATH_PLAYER_KILL_1; 被 ; was slain by 
 DEATH_PLAYER_KILL_2; 杀死了; 
 DEATH_PLAYER_ARROW_KILL_1; 被 ; was shot by 

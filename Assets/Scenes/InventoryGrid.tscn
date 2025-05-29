@@ -18,6 +18,21 @@ mouse_filter = 0
 texture = ExtResource("1_okcax")
 script = ExtResource("2_kedk6")
 
+[node name="WhiteColorRect" type="ColorRect" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 4.0
+offset_top = 4.0
+offset_right = -4.0
+offset_bottom = -4.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 1, 1, 0.392157)
+
 [node name="BackIcon" type="TextureRect" parent="."]
 visible = false
 layout_mode = 1
@@ -68,6 +83,7 @@ offset_right = -10.0
 offset_bottom = -9.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 theme_override_fonts/font = ExtResource("4_ntyvc")
 theme_override_font_sizes/font_size = 30
 theme_override_styles/background = SubResource("StyleBoxFlat_cjbd7")
