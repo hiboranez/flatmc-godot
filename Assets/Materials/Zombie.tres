@@ -8,4 +8,4 @@ resource_name = "Skinzomnb.001"
 cull_mode = 2
 shading_mode = 0
 albedo_texture = ExtResource("1_uynxe")
-texture_filter = 2
+texture_filter = 0

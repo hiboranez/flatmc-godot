@@ -1115,10 +1115,10 @@ animations = [{
 }]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_4wje3"]
-size = Vector2(40, 8.5)
+size = Vector2(20, 8.5)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_cgubl"]
-size = Vector2(40, 8.5)
+size = Vector2(20, 8.5)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_dh1ow"]
 size = Vector2(0.01, 160)
@@ -1260,7 +1260,7 @@ bones/14/name = "Torso"
 bones/14/parent = 4
 bones/14/rest = Transform3D(1, 0, 2.38419e-07, 0, 1, 0, -2.38419e-07, 0, 1, 0, 0.7, 0)
 bones/14/enabled = true
-bones/14/position = Vector3(0, 0.7, 0)
+bones/14/position = Vector3(0, 0.622091, 0)
 bones/14/rotation = Quaternion(0, 1.19209e-07, 0, 1)
 bones/14/scale = Vector3(1, 1, 1)
 bones/15/name = "LeftArm.Shoulder"
@@ -1316,7 +1316,7 @@ bones/22/name = "LeftArm.IK"
 bones/22/parent = 15
 bones/22/rest = Transform3D(1, 0, -8.74228e-08, 0, -1, 0, -8.74228e-08, 0, -1, 0.3, -1, -0.2)
 bones/22/enabled = true
-bones/22/position = Vector3(0.3, -0.00917888, 0.832433)
+bones/22/position = Vector3(0.3, -0.00917888, 0.832434)
 bones/22/rotation = Quaternion(1, 0, -4.37114e-08, 0)
 bones/22/scale = Vector3(1, 1, 1)
 bones/23/name = "RightArm.Shoulder"
@@ -1372,7 +1372,7 @@ bones/30/name = "RightArm.IK"
 bones/30/parent = 23
 bones/30/rest = Transform3D(1, 0, -8.74228e-08, 0, -1, 0, -8.74228e-08, 0, -1, -0.3, -1, -0.2)
 bones/30/enabled = true
-bones/30/position = Vector3(-0.3, -0.00917888, 0.832433)
+bones/30/position = Vector3(-0.3, -0.00917888, 0.832434)
 bones/30/rotation = Quaternion(1, 0, -4.37114e-08, 0)
 bones/30/scale = Vector3(1, 1, 1)
 bones/31/name = "Head.001"
@@ -1804,28 +1804,28 @@ autoplay = "default"
 position = Vector2(0, 23)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="UpArea"]
-position = Vector2(-33, -71)
+position = Vector2(-23, -71)
 shape = SubResource("RectangleShape2D_4wje3")
 
 [node name="DownArea" type="Area2D" parent="."]
 position = Vector2(0, 46)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="DownArea"]
-position = Vector2(-32.5, -63.25)
+position = Vector2(-22.5, -63.25)
 shape = SubResource("RectangleShape2D_cgubl")
 
 [node name="GroundArea1" type="Area2D" parent="."]
 collision_mask = 5
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="GroundArea1"]
-position = Vector2(-14, 103)
+position = Vector2(0, 103)
 shape = SubResource("RectangleShape2D_dh1ow")
 
 [node name="GroundArea2" type="Area2D" parent="."]
 collision_mask = 5
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="GroundArea2"]
-position = Vector2(-64, 103)
+position = Vector2(-45, 103)
 shape = SubResource("RectangleShape2D_hgh6k")
 
 [node name="TopArea" type="Area2D" parent="."]

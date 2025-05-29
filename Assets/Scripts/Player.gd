@@ -7,7 +7,7 @@ extends CharacterBody2D
 @onready var player_model = $SubViewportContainer/SubViewport/PlayerModel
 @onready var camera = $Camera2D
 @onready var name_label = $Sprite2D/NameLable
-@onready var item_in_hand = $SubViewportContainer/SubViewport/PlayerModel/Root/Skeleton3D/Hand/Item
+@onready var item_in_hand = $SubViewportContainer/SubViewport/PlayerModel/Root/Skeleton3D/Hand/ItemInHand
 @onready var sight_line = $SightLine2D
 @onready var up_area_collision_shape = $UpArea/CollisionShape2D
 @onready var down_area_collision_shape = $DownArea/CollisionShape2D
@@ -23,14 +23,17 @@ var uuid = UUID.v4()
 var entity_type = "player"
 var player_name: String
 var chunk_pos = Vector2i(0, 0)
+var last_pos = position
 var expected_velocity = Vector2(0, 0)
 var health: int = 20
 var is_dead = false
+var is_frozen = false
 var is_on_fire = false
 var fire_lasting_timer: float = 0
 var fire_damage_timer: float = 1
 
 # 子类变量
+var pull_amplify_factor: float = 1
 var fire_damage_time: float = 1
 var max_health: int = 20
 var move_speed: float = 200
@@ -38,7 +41,8 @@ var jump_velocity: float = -550
 var walk_period: float = 0.83
 var run_period: float = 0.42
 var dropped_item_speed: float = 1000
-var dropped_item_no_collect_time: float = 2
+var arrow_shoot_speed = Vector2(2000, -1000)
+var dropped_item_no_collect_time: float = 1
 var render_chunk: int = 1
 var player_peer_id: int
 signal up_area_colliding_false
@@ -50,6 +54,8 @@ var current_velocity = velocity
 var last_velocity = Vector2(0, 0)
 var selected_block_pos = Vector2i(0, 0)
 var destroying_block_pos = Vector2i(0, 0)
+var shoot_timer: float = 0
+var last_shoot_timer: float = 0
 var destroy_timer: float = 0
 var attack_timer: float = 1
 var attacking_decline_timer: float = 0
@@ -67,6 +73,7 @@ var mouse_item_amount = 0
 var hurt_tween
 var die_rotation_tween
 var die_name_tween
+var is_pulling = false
 var is_jumping = false
 var is_sneaking = false
 var is_auto_jump = false
@@ -76,7 +83,6 @@ var is_down_pressed = false
 var last_is_down_pressed = false
 var is_other = false
 var is_pause = false
-var is_frozen = false
 var is_in_water = false
 var is_flying = false
 var is_punching = false
@@ -89,6 +95,7 @@ var animation_tree_parameters = {
 	"walk": 0,
 	"run": 0,
 	"sneak": 0,
+	"pull": 0,
 }
 var only_server_change_state_list = [
 	"health", "attack_timer", 
@@ -129,6 +136,7 @@ func _process(delta: float) -> void:
 	update_local_health_recover()
 	update_local_attack_timer()
 	# 本地更新
+	update_shoot_timer()
 	update_local_fall_damage_by_data()
 	update_local_velocity()
 	update_local_gravity()
@@ -289,15 +297,16 @@ func update_sound_by_data():
 				elif move_state == "run":
 					step_sound_timer = run_period
 					StaticLoad.game.sound_audio_manager.play_random_audio_at_position("step", StaticLoad.get_step_type_by_name(StaticLoad.get_block_name_by_id(block_id)), position, 1)
-	elif step_sound_timer > 0 and not is_sneaking:
+	elif step_sound_timer > 0 and not is_sneaking and not is_pulling:
 		step_sound_timer = 0
-	if step_sound_timer > 0 and not is_sneaking:
+	if step_sound_timer > 0 and not is_sneaking and not is_pulling:
 		step_sound_timer -= get_process_delta_time()
 
 func update_animation_tree():
 	animation_tree["parameters/Run/blend_amount"] = animation_tree_parameters["run"]
 	animation_tree["parameters/Walk/blend_amount"] = animation_tree_parameters["walk"]
 	animation_tree["parameters/Sneak/blend_amount"] = animation_tree_parameters["sneak"]
+	animation_tree["parameters/Pull/blend_amount"] = animation_tree_parameters["pull"]*(1+(shoot_timer+0.0001)/6)*pull_amplify_factor
 
 func update_animation_by_data():
 	var delta = get_process_delta_time()
@@ -313,6 +322,11 @@ func update_animation_by_data():
 		sneak_timer = 0
 	
 	if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == player_peer_id):
+		if not StaticLoad.game.is_chat and not StaticLoad.game.is_inventory and not StaticLoad.game.is_pause and not StaticLoad.game.is_map and is_pulling:
+			if move_state == "run":
+				move_state = "walk"
+	
+	if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == player_peer_id):
 		if not StaticLoad.game.is_chat and not StaticLoad.game.is_inventory and not StaticLoad.game.is_pause and not StaticLoad.game.is_map and Input.is_action_pressed("shift") and not is_sneaking:
 			is_sneaking = true
 			if move_state == "run":
@@ -320,7 +334,7 @@ func update_animation_by_data():
 		elif not Input.is_action_pressed("shift") and is_sneaking:
 			is_sneaking = false
 		
-	if move_state == "run" and not is_sneaking:
+	if move_state == "run" and not is_sneaking and not is_pulling:
 		animation_tree_parameters["run"] = lerpf(animation_tree_parameters["run"], 1, StaticLoad.BLEND_SPEED*delta)
 		animation_tree_parameters["walk"] = lerpf(animation_tree_parameters["walk"], 0, StaticLoad.BLEND_SPEED*delta)
 	elif move_state == "walk":
@@ -334,6 +348,12 @@ func update_animation_by_data():
 		animation_tree_parameters["sneak"] = lerpf(animation_tree_parameters["sneak"], 1.2, StaticLoad.BLEND_SPEED*delta*2)
 	else:
 		animation_tree_parameters["sneak"] = lerpf(animation_tree_parameters["sneak"], 0, StaticLoad.BLEND_SPEED*delta*2)
+	
+	if is_pulling:
+		animation_tree_parameters["pull"] = lerpf(animation_tree_parameters["pull"], 1, StaticLoad.BLEND_SPEED*delta*2)
+	else:
+		animation_tree_parameters["pull"] = lerpf(animation_tree_parameters["pull"], 0, StaticLoad.BLEND_SPEED*delta*2)
+	
 	var name_invisible_value = sneak_timer-0.5
 	if name_invisible_value < 0:
 		name_invisible_value = 0
@@ -351,7 +371,7 @@ func update_animation_by_data():
 	var detect_size = 60
 	if move_state == "run":
 		detect_size = 120
-	if is_sneaking:
+	if is_sneaking or is_pulling:
 		detect_size = 28
 	var half_detect_size = detect_size/2
 	up_area_collision_shape.shape.size.x = 60
@@ -459,6 +479,14 @@ func update_local_fire_damage_by_data():
 		rpc_damage([1, "null", health, "fire", "self"], true)
 		get_damage([1, "null", health, "fire", "self"])
 
+func update_shoot_timer():
+	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != player_peer_id:
+		return
+	if is_pulling:
+		shoot_timer += get_process_delta_time()
+	elif shoot_timer != 0:
+		shoot_timer = 0
+	
 func update_local_fall_damage_by_data():
 	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != player_peer_id:
 		return
@@ -673,21 +701,26 @@ func update_local_move_by_data():
 			expected_velocity.y = 0
 	last_is_down_pressed = is_down_pressed
 	
+	if is_sneaking:
+		pull_amplify_factor = 1.3
+	else:
+		pull_amplify_factor = 1
+	
 	if move_state == "run":
 		if is_in_water:
 			expected_velocity.x = face_state * move_speed
 		else:
 			expected_velocity.x = face_state * move_speed * 2
 	elif move_state == "walk":
-		var sneaking_factor = 1
-		if is_sneaking:
-			sneaking_factor = 0.3
+		var current_move_rate = 1
+		if is_sneaking or is_pulling:
+			current_move_rate = 0.3
 		if is_sneaking and not is_ground_area_colliding and is_on_floor():
 			expected_velocity.x = 0
 		elif is_in_water:
-			expected_velocity.x = face_state * move_speed * 0.5 * sneaking_factor
+			expected_velocity.x = face_state * move_speed * 0.5 * current_move_rate
 		else:
-			expected_velocity.x = face_state * move_speed * sneaking_factor
+			expected_velocity.x = face_state * move_speed * current_move_rate
 	elif move_state == "idle":
 		expected_velocity.x = 0
 	
@@ -701,116 +734,33 @@ func update_local_move_by_data():
 			velocity = Vector2(0, 0)
 
 func set_item_in_hand(got_item_name):
-	if StaticLoad.get_item_model_type_by_name(got_item_name) == 0:
-		item_in_hand.get_node("Item").visible = false
-		item_in_hand.get_node("ItemTop").visible = false
-		item_in_hand.get_node("Tool").visible = false
-		item_in_hand.get_node("Block").visible = false
-		if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id()==player_peer_id):
-			StaticLoad.game.inventory_player_model_item_in_hand.get_node("Item").visible = false
-			StaticLoad.game.inventory_player_model_item_in_hand.get_node("ItemTop").visible = false
-			StaticLoad.game.inventory_player_model_item_in_hand.get_node("Tool").visible = false
-			StaticLoad.game.inventory_player_model_item_in_hand.get_node("Block").visible = false
-	elif StaticLoad.get_item_model_type_by_name(got_item_name) == 1:
-		if got_item_name.contains("SPAWN_EGG"):
-			var item_mesh = item_in_hand.get_node("Item/Mesh")
-			var inventory_player_model_item_mesh = StaticLoad.game.inventory_player_model_item_in_hand.get_node("Item/Mesh")
-			var item_material = load("res://Assets/Materials/ItemModel.tres").duplicate(true)
-			var item_texture = load("res://Assets/ResourcePacks/"+StaticLoad.game.resource_pack+"/Items/spawn_egg.png")
-			item_material.albedo_texture = item_texture
-			item_mesh.mesh.surface_set_material(0, item_material)
-			if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id()==player_peer_id):
-				inventory_player_model_item_mesh.mesh.surface_set_material(0, item_material)
-			var item_top_mesh = item_in_hand.get_node("ItemTop/Mesh")
-			var inventory_player_model_item_top_mesh = StaticLoad.game.inventory_player_model_item_in_hand.get_node("ItemTop/Mesh")
-			var item_top_material = load("res://Assets/Materials/ItemModel.tres").duplicate(true)
-			var item_top_texture = load("res://Assets/ResourcePacks/"+StaticLoad.game.resource_pack+"/Items/spawn_egg_overlay.png")
-			item_top_material.albedo_texture = item_top_texture
-			item_top_mesh.mesh.surface_set_material(0, item_top_material)
-			if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id()==player_peer_id):
-				inventory_player_model_item_top_mesh.mesh.surface_set_material(0, item_top_material)
-			if StaticLoad.spawn_egg_colors.has(got_item_name):
-				var color_info = StaticLoad.spawn_egg_colors[got_item_name]
-				item_material.albedo_color = Color.html(color_info[0])
-				item_top_material.albedo_color = Color.html(color_info[1])
-			item_in_hand.get_node("Item").visible = true
-			item_in_hand.get_node("ItemTop").visible = true
-			item_in_hand.get_node("Tool").visible = false
-			item_in_hand.get_node("Block").visible = false
-			if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id()==player_peer_id):
-				StaticLoad.game.inventory_player_model_item_in_hand.get_node("Item").visible = true
-				StaticLoad.game.inventory_player_model_item_in_hand.get_node("ItemTop").visible = true
-				StaticLoad.game.inventory_player_model_item_in_hand.get_node("Tool").visible = false
-				StaticLoad.game.inventory_player_model_item_in_hand.get_node("Block").visible = false
-		else:
-			var item_mesh = item_in_hand.get_node("Item/Mesh")
-			var inventory_player_model_item_mesh = StaticLoad.game.inventory_player_model_item_in_hand.get_node("Item/Mesh")
-			var item_material = load("res://Assets/Materials/ItemModel.tres").duplicate(true)
-			var item_texture = load("res://Assets/ResourcePacks/"+StaticLoad.game.resource_pack+"/Items/"+got_item_name.to_lower()+".png")
-			if item_texture == null:
-				item_texture = load("res://Assets/ResourcePacks/"+StaticLoad.game.resource_pack+"/Items/missing_texture.png")
-			item_material.albedo_texture = item_texture
-			item_mesh.mesh.surface_set_material(0, item_material)
-			if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id()==player_peer_id):
-				inventory_player_model_item_mesh.mesh.surface_set_material(0, item_material)
-			item_in_hand.get_node("Item").visible = true
-			item_in_hand.get_node("ItemTop").visible = false
-			item_in_hand.get_node("Tool").visible = false
-			item_in_hand.get_node("Block").visible = false
-			if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id()==player_peer_id):
-				StaticLoad.game.inventory_player_model_item_in_hand.get_node("Item").visible = true
-				StaticLoad.game.inventory_player_model_item_in_hand.get_node("ItemTop").visible = false
-				StaticLoad.game.inventory_player_model_item_in_hand.get_node("Tool").visible = false
-				StaticLoad.game.inventory_player_model_item_in_hand.get_node("Block").visible = false
-	elif StaticLoad.get_item_model_type_by_name(got_item_name) == 2:
-		var tool_mesh = item_in_hand.get_node("Tool/Mesh")
-		var inventory_player_model_tool_mesh = StaticLoad.game.inventory_player_model_item_in_hand.get_node("Tool/Mesh")
-		var tool_material = load("res://Assets/Materials/ToolModel.tres").duplicate(true)
-		var tool_texture = load("res://Assets/ResourcePacks/"+StaticLoad.game.resource_pack+"/Items/"+got_item_name.to_lower()+".png")
-		if tool_texture == null:
-			tool_texture = load("res://Assets/ResourcePacks/"+StaticLoad.game.resource_pack+"/Items/missing_texture.png")
-		tool_material.albedo_texture = tool_texture
-		tool_mesh.mesh.surface_set_material(0, tool_material)
-		if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id()==player_peer_id):
-			inventory_player_model_tool_mesh.mesh.surface_set_material(0, tool_material)
-		item_in_hand.get_node("Item").visible = false
-		item_in_hand.get_node("ItemTop").visible = false
-		item_in_hand.get_node("Tool").visible = true
-		item_in_hand.get_node("Block").visible = false
-		if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id()==player_peer_id):
-			StaticLoad.game.inventory_player_model_item_in_hand.get_node("Item").visible = false
-			StaticLoad.game.inventory_player_model_item_in_hand.get_node("ItemTop").visible = false
-			StaticLoad.game.inventory_player_model_item_in_hand.get_node("Tool").visible = true
-			StaticLoad.game.inventory_player_model_item_in_hand.get_node("Block").visible = false
-	elif StaticLoad.get_item_model_type_by_name(got_item_name) == 3:
-		var block_mesh = item_in_hand.get_node("Block/Mesh")
-		var inventory_player_model_block_mesh = StaticLoad.game.inventory_player_model_item_in_hand.get_node("Block/Mesh")
-		var block_material = load("res://Assets/Materials/BlockModel.tres").duplicate(true)
-		block_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		var block_texture = load("res://Assets/ResourcePacks/"+StaticLoad.game.resource_pack+"/ModelBlocks/"+got_item_name.to_lower()+".png")
-		if block_texture == null:
-			block_texture = load("res://Assets/ResourcePacks/"+StaticLoad.game.resource_pack+"/ModelBlocks/missing_texture.png")
-		block_material.albedo_texture = block_texture
-		block_mesh.mesh.surface_set_material(0, block_material)
-		if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id()==player_peer_id):
-			inventory_player_model_block_mesh.mesh.surface_set_material(0, block_material)
-		item_in_hand.get_node("Item").visible = false
-		item_in_hand.get_node("ItemTop").visible = false
-		item_in_hand.get_node("Tool").visible = false
-		item_in_hand.get_node("Block").visible = true
-		if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id()==player_peer_id):
-			StaticLoad.game.inventory_player_model_item_in_hand.get_node("Item").visible = false
-			StaticLoad.game.inventory_player_model_item_in_hand.get_node("ItemTop").visible = false
-			StaticLoad.game.inventory_player_model_item_in_hand.get_node("Tool").visible = false
-			StaticLoad.game.inventory_player_model_item_in_hand.get_node("Block").visible = true
+	var is_update_player_inventory = not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id()==player_peer_id)
+	item_in_hand.set_item_in_hand(got_item_name, is_update_player_inventory)
+
 
 func update_local_item_in_hand():
-	if StaticLoad.is_muti_mode and not multiplayer.get_unique_id() == player_peer_id:
+	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != player_peer_id:
 		return
 	var in_hand_item_name_tmp = item_bar_names[selected_item_grid]
+	if in_hand_item_name_tmp.contains("BOW"):
+		if last_shoot_timer != shoot_timer:
+			if shoot_timer == 0:
+				set_item_in_hand("BOW")
+				in_hand_item_name = "BOW"
+			else:
+				if shoot_timer > 2:
+					shoot_timer = 2
+				var stage = int(shoot_timer/0.666)-1
+				if stage < 0:
+					stage = 0
+				if stage >= 3:
+					stage = 2
+				set_item_in_hand("BOW_PULLING_"+str(stage))
+				in_hand_item_name = "BOW_PULLING_"+str(stage)
 	if in_hand_item_name_tmp == in_hand_item_name:
 		return
-	in_hand_item_name = in_hand_item_name_tmp
+	if not in_hand_item_name.contains("BOW_PULLING"):
+		in_hand_item_name = in_hand_item_name_tmp
 	attacking_decline_timer = 0
 	attacking_list.clear()
 	attack_animation.stop()
@@ -820,6 +770,7 @@ func update_local_item_in_hand():
 func update_state_dict():
 	state_dict["face_state"] = face_state
 	state_dict["move_state"] = move_state
+	state_dict["is_pulling"] = is_pulling
 	state_dict["is_sneaking"] = is_sneaking
 	state_dict["is_flying"] = is_flying
 	state_dict["is_frozen"] = is_frozen
@@ -829,6 +780,8 @@ func update_state_dict():
 	state_dict["selected_block_pos"] = selected_block_pos
 	state_dict["destroy_timer"] = destroy_timer
 	state_dict["attack_timer"] = attack_timer
+	state_dict["shoot_timer"] = shoot_timer
+	state_dict["pull_amplify_factor"] = pull_amplify_factor
 	state_dict["attacking_damage"] = attacking_damage
 	state_dict["attacking_decline_timer"] = attacking_decline_timer
 	state_dict["sword_breaking_timer"] = sword_breaking_timer
@@ -1251,6 +1204,12 @@ func get_death_messgae(reason, object):
 		text = player_name+tr("DEATH_PLAYER_KILL_1")+object+tr("DEATH_PLAYER_KILL_2")
 	elif reason == "zombie_attack":
 		text = player_name+tr("DEATH_ZOMBIE_KILL")
+	elif reason == "arrow_attack":
+		var splits = object.split(".")
+		if splits[0] == "player":
+			text = player_name+tr("DEATH_PLAYER_ARROW_KILL_1")+splits[2]+tr("DEATH_PLAYER_ARROW_KILL_2")
+		elif splits[0] == "skeleton":
+			text = player_name+tr("DEATH_SKELETON_ARROW_KILL")
 	return text
 
 func display_death_message(args):
@@ -1473,6 +1432,36 @@ func if_get_item_left(got_item_name: String, amount: int, search_begin: int, sea
 					#amount_left -= StaticLoad.get_max_amount_by_name(name)
 	#return amount_left
 
+func shoot_arrow():
+	if not in_hand_item_name.contains("BOW"):
+		return
+	var stage = int(shoot_timer/0.667)
+	if stage >= 3:
+		stage = 2
+	var shoot_speed = arrow_shoot_speed
+	shoot_speed[0] *= face_state
+	shoot_speed = lerp(Vector2(0, 0), shoot_speed, shoot_timer/2)
+	var lift_dist = lerp(-30, -55, shoot_timer/2)
+	var arrow_uuid = UUID.v4()
+	var arrow_args = [arrow_uuid, str(arrow_uuid), position+Vector2(face_state*30,lift_dist), shoot_speed, shoot_speed, "player", uuid, player_name, false]
+	StaticLoad.game.sound_audio_manager.play_random_audio_at_position("random", "bow_shoot", position, 1)
+	if StaticLoad.is_muti_mode:
+		if multiplayer.get_unique_id() == 1:
+			summon_arrow(arrow_args)
+			StaticLoad.rpc_entity_func_by_uuid(uuid, "summon_arrow", arrow_args, "others", true)
+		else:
+			StaticLoad.rpc_entity_func_by_uuid(uuid, "summon_arrow", arrow_args, [1], false)
+	else:
+		summon_arrow(arrow_args)
+
+func summon_arrow(args):
+	if StaticLoad.is_muti_mode and not multiplayer.get_unique_id() == 1:
+		args[3] = Vector2(0, 0)
+	var arrow = StaticLoad.arrow_scene.instantiate()
+	StaticLoad.game.arrows.add_child(arrow)
+	arrow.init(args)
+	StaticLoad.game.entities[arrow.get_uuid()] = arrow
+
 func drop_item(item_name, item_amount):
 	if item_name == "AIR":
 		return
@@ -1561,7 +1550,7 @@ func attack():
 					continue
 				if body.get_uuid() == null:
 					continue
-				if body.get_uuid() == uuid or body.get_entity_type() == "item":
+				if body.get_uuid() == uuid or body.get_entity_type() == "item" or body.get_entity_type() == "arrow":
 					continue
 				if body.get_entity_type() == "player" and body.gamemode == "creative":
 					continue
@@ -1580,6 +1569,11 @@ func attack():
 
 func set_name_label_modulate(color):
 	name_label.modulate = color
+
+func play_successful_hit_audio(args):
+	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != player_peer_id:
+		return
+	StaticLoad.game.sound_audio_manager.play_random_audio_at_position("random", "successful_hit", position, 1)
 
 func leave_server_and_destroy():
 	var tween1 = get_tree().create_tween()
@@ -1672,14 +1666,6 @@ func set_shader_dissolve_intensity(value):
 func set_shader_transparent_intensity(value):
 	player_sprite.material.set_shader_parameter("transparent_intensity", value)
 
-func freeze():
-	velocity.y = 0
-	is_frozen = true
-
-func unfreeze():
-	velocity.y = 0
-	is_frozen = false
-
 func get_uuid():
 	return uuid
 
@@ -1692,11 +1678,25 @@ func get_entity_name():
 func get_chunk_pos():
 	return chunk_pos
 
+func get_last_pos():
+	return last_pos
+
 func get_health():
 	return health
 
 func get_is_dead():
 	return is_dead
+
+func get_is_frozen():
+	return is_frozen
+
+func freeze():
+	velocity = Vector2(0, 0)
+	is_frozen = true
+
+func unfreeze():
+	velocity = Vector2(0, 0)
+	is_frozen = false
 
 func get_is_on_fire():
 	return is_on_fire
@@ -1746,7 +1746,7 @@ func _on_attack_area_body_entered(body: Node2D) -> void:
 				return
 			if body.get_uuid() == null:
 				return
-			if body.get_uuid() == uuid or body.get_entity_type() == "item":
+			if body.get_uuid() == uuid or body.get_entity_type() == "item" or body.get_entity_type() == "arrow":
 				return
 			if body.get_entity_type() == "player" and body.gamemode == "creative":
 				return
@@ -1770,7 +1770,7 @@ func _on_attack_area_body_entered(body: Node2D) -> void:
 					return
 				if body.get_uuid() == null:
 					return
-				if body.get_uuid() == uuid or body.get_entity_type() == "item":
+				if body.get_uuid() == uuid or body.get_entity_type() == "item" or body.get_entity_type() == "arrow":
 					return
 				if body.get_entity_type() == "player" and body.gamemode == "creative":
 					return

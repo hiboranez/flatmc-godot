@@ -17,8 +17,10 @@ var uuid = UUID.v4()
 var entity_type = "zombie"
 var entity_name: String = str(uuid)
 var chunk_pos = Vector2i(0, 0)
+var last_pos = position
 var health: int = 20
 var is_dead = false
+var is_frozen = false
 var is_on_fire = false
 var fire_lasting_timer: float = 0
 var fire_damage_timer: float = 1
@@ -27,7 +29,7 @@ var fire_damage_timer: float = 1
 var max_target_entity_distance: float = 1000
 var fire_damage_time: float = 1
 var max_health: int = 10
-var move_speed: float = 200
+var move_speed: float = 100
 var jump_velocity: float = -550
 var walk_period: float = 0.83
 var run_period: float = 0.42
@@ -49,7 +51,6 @@ var move_state = "idle"
 var face_state: int = -1
 var turn_state: float = 0
 var is_pause = false
-var is_frozen = false
 var is_in_water = false
 var is_flying = false
 var is_up_area_colliding = false
@@ -189,30 +190,30 @@ func update_animation_by_data():
 			changed_state_dict["is_attacking"] = true
 		is_attacking = false
 	
-	var detect_size = 40
+	var detect_size = 20
 	if move_state == "run":
-		detect_size = 100
+		detect_size = 40
 	var half_detect_size = 13+(detect_size/2)
 	up_area_collision_shape.shape.size.x = 40
 	down_area_collision_shape.shape.size.x = detect_size
 	if turn_state > 0:
 		if up_area_collision_shape.position.x < 0:
-			up_area_collision_shape.position.x = 33
+			up_area_collision_shape.position.x = 23
 		if down_area_collision_shape.position.x < 0:
 			down_area_collision_shape.position.x = half_detect_size
 		if ground_area1_collision_shape.position.x < 0:
-			ground_area1_collision_shape.position.x = 17
+			ground_area1_collision_shape.position.x = 0
 		if ground_area2_collision_shape.position.x < 0:
-			ground_area2_collision_shape.position.x = 67
+			ground_area2_collision_shape.position.x = 45
 	else:
 		if up_area_collision_shape.position.x > 0:
-			up_area_collision_shape.position.x = -33
+			up_area_collision_shape.position.x = -23
 		if down_area_collision_shape.position.x > 0:
 			down_area_collision_shape.position.x = -half_detect_size
 		if ground_area1_collision_shape.position.x > 0:
-			ground_area1_collision_shape.position.x = -17
+			ground_area1_collision_shape.position.x = 0
 		if ground_area2_collision_shape.position.x > 0:
-			ground_area2_collision_shape.position.x = -67
+			ground_area2_collision_shape.position.x = -45
 	
 	if abs(turn_state-face_state) > 0.01:
 		update_entity_face_rotation()
@@ -746,11 +747,11 @@ func set_shader_transparent_intensity(value):
 	entity_sprite.material.set_shader_parameter("transparent_intensity", value)
 
 func freeze():
-	velocity.y = 0
+	velocity = Vector2(0, 0)
 	is_frozen = true
 
 func unfreeze():
-	velocity.y = 0
+	velocity = Vector2(0, 0)
 	is_frozen = false
 
 func get_uuid():
@@ -764,6 +765,9 @@ func get_entity_name():
 
 func get_chunk_pos():
 	return chunk_pos
+
+func get_last_pos():
+	return last_pos
 
 func get_health():
 	return health

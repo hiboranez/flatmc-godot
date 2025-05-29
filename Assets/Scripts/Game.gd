@@ -76,6 +76,7 @@ extends Node2D
 @onready var inventory_player_model_mesh = $GameUI/InventoryUI/Panel/InventoryPanel/Player/SubViewportContainer/SubViewport/PlayerModel/Root/Skeleton3D/Mesh
 @onready var inventory_player_model_item_in_hand = $GameUI/InventoryUI/Panel/InventoryPanel/Player/SubViewportContainer/SubViewport/PlayerModel/Root/Skeleton3D/Hand/Item
 @onready var items = $Items
+@onready var arrows = $Arrows
 @onready var mobs = $Mobs
 @onready var undead_mobs = $UndeadMobs
 @onready var inventory_tabs = $GameUI/InventoryUI/Panel/Tabs
@@ -99,6 +100,7 @@ extends Node2D
 @onready var moon_path_texture = $StaticBackground/Path2D/MoonPath/TextureRect
 @onready var sun_path_texture = $StaticBackground/Path2D/SunPath/TextureRect
 
+var frozen_entity_dict = {}
 var destroy_light_names = {}
 var mouse_in_inventory_grid = null
 var light_thread = Thread.new()
@@ -333,7 +335,7 @@ func calculate_current_sky_light(is_init):
 	if sky_light < 48:
 		sky_light = 48
 	if sky_light != current_sky_light:
-		if sky_light % 16 == 0 or is_init:
+		if sky_light % 16 == 0 or sky_light == 255 or is_init:
 			current_sky_light = sky_light
 			refresh_all_light()
 	
@@ -769,17 +771,27 @@ func process_entity_save():
 			continue
 		if entity.get_entity_type() == "player":
 			continue
+		if frozen_entity_dict.has(uuid):
+			continue
 		var current_chunk_pos = get_chunk_position(tile_map_layer.local_to_map(entity.position))
 		var last_chunk_pos = entity.get_chunk_pos()
 		if current_chunk_pos != last_chunk_pos:
-			if loaded_chunks.has(str(last_chunk_pos[0])+"."+str(last_chunk_pos[1])):
-				loaded_chunks[str(last_chunk_pos[0])+"."+str(last_chunk_pos[1])].entity_list.erase(entity.get_uuid())
-				loaded_chunks[str(last_chunk_pos[0])+"."+str(last_chunk_pos[1])].is_to_save = true
 			if loaded_chunks.has(str(current_chunk_pos[0])+"."+str(current_chunk_pos[1])):
 				loaded_chunks[str(current_chunk_pos[0])+"."+str(current_chunk_pos[1])].entity_list.append(entity.get_uuid())
 				loaded_chunks[str(current_chunk_pos[0])+"."+str(current_chunk_pos[1])].is_to_save = true
-			entity.chunk_pos = current_chunk_pos
-
+				if loaded_chunks.has(str(last_chunk_pos[0])+"."+str(last_chunk_pos[1])):
+					loaded_chunks[str(last_chunk_pos[0])+"."+str(last_chunk_pos[1])].entity_list.erase(entity.get_uuid())
+					loaded_chunks[str(last_chunk_pos[0])+"."+str(last_chunk_pos[1])].is_to_save = true
+				entity.chunk_pos = current_chunk_pos
+			else:
+				entity.position = entity.last_pos
+				entity.freeze()
+				if not frozen_entity_dict.has(str(current_chunk_pos[0])+"."+str(current_chunk_pos[1])):
+					frozen_entity_dict[str(current_chunk_pos[0])+"."+str(current_chunk_pos[1])] = []
+				frozen_entity_dict[str(current_chunk_pos[0])+"."+str(current_chunk_pos[1])].append(entity.get_uuid())
+		else:
+			entity.last_pos = entity.position
+			
 func dispatch_set_block_state_dict():
 	if not StaticLoad.is_muti_mode:
 		return
@@ -856,8 +868,8 @@ func process_light():
 			continue
 		else:
 			for chunk_light_name in chunk_light_to_process_tmp:
-				if not chunk_sky_light_datas.has(chunk_light_name):
-					continue
+				#if not chunk_sky_light_datas.has(chunk_light_name):
+					#continue
 				var splits = chunk_light_name.split(".")
 				if not chunk_sky_light_datas.has(splits[0]+"."+str(int(splits[1])-1)):
 					var sky_light: PackedByteArray
@@ -1010,7 +1022,11 @@ func _input(event: InputEvent) -> void:
 		if event.button_index == 2 and event.pressed and not Input.is_mouse_button_pressed(1):
 			if player.in_hand_item_name.contains("SPAWN_EGG"):
 				var is_can_spawn = true
-				var mouse_in_world_pos = tile_map_layer.get_local_mouse_position()
+				var mouse_in_world_pos
+				if player.gamemode != "creative":
+					mouse_in_world_pos = get_restricted_block_selection_pos()
+				else:
+					mouse_in_world_pos = tile_map_layer.get_local_mouse_position()
 				var mouse_to_block_pos = tile_map_layer.local_to_map(mouse_in_world_pos)
 				if player.gamemode != "creative" and not player.check_attached_block(mouse_to_block_pos, tile_map_layer):
 					is_can_spawn = false
@@ -1412,6 +1428,14 @@ func process_mouse_action():
 	var mouse_in_world_pos = tile_map_layer.get_local_mouse_position()
 	var mouse_to_block_pos = tile_map_layer.local_to_map(mouse_in_world_pos)
 	if not is_map and not is_pause and not is_chat and not is_inventory:
+		if not Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
+			if player.is_pulling:
+				player.is_pulling = false
+				if player.shoot_timer > 0:
+					player.in_hand_item_name = "BOW"
+					player.set_item_in_hand("BOW")
+					player.shoot_arrow()
+					player.shoot_timer = 0
 		if Input.is_mouse_button_pressed(1) and not Input.is_mouse_button_pressed(2):
 			if StaticLoad.tools_type.has(player.in_hand_item_name) and StaticLoad.tools_type[player.in_hand_item_name].has("sword"):
 				if player.attack_timer <= 0:
@@ -1425,6 +1449,8 @@ func process_mouse_action():
 		elif Input.is_mouse_button_pressed(2) and not Input.is_mouse_button_pressed(1):
 			if player.in_hand_item_name.contains("SPAWN_EGG"):
 				pass
+			elif player.in_hand_item_name.contains("BOW"):
+				player.is_pulling = true
 			elif player.gamemode == "creative":
 				player.place_block(mouse_to_block_pos)
 			else:
@@ -1672,6 +1698,7 @@ func init_game_as_dedicated_server():
 	item_thread.start(process_item)
 	tick_cycle_thread.start(process_tick_cycle)
 	dispatch_thread.start(process_dispatch)
+	light_thread.start(process_light)
 	set_block_thread.start(process_set_block)
 	#nearby_thread.start(process_nearby)
 
@@ -1802,6 +1829,8 @@ func create_chunk_entities(chunk_name, chunk_config):
 			continue
 		if entity_info[0] == "item":
 			StaticLoad.create_entity(["item", entity_info[1], entity_info[3], entity_info[2], 0, 2, uuid])
+		elif entity_info[0] == "arrow":
+			StaticLoad.create_entity([entity_info[0], uuid, entity_info[1], entity_info[2], entity_info[3], entity_info[4], entity_info[5], entity_info[6], entity_info[7], entity_info[8]])
 		else:
 			StaticLoad.create_entity([entity_info[0], uuid, entity_info[1], entity_info[2], entity_info[3]])
 
@@ -2051,6 +2080,8 @@ func init_infinite_container():
 			continue
 		if item == "MISSING_TEXTURE":
 			continue
+		if item.contains("BOW") and item != "BOW":
+			continue
 		if StaticLoad.block_ids.has(item):
 			continue
 		var inventory_grid = inventory_grid_scene.instantiate()
@@ -2295,6 +2326,13 @@ func set_chunk(pos: Vector2i, blocks_list) -> void:
 		loaded_chunk_packed_byte_arrays[str(pos[0])+"."+str(pos[1])] = chunk_packed_byte_array
 	if blocks_list[0].is_empty():
 		return
+	if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1):
+		if frozen_entity_dict.has(str(pos[0])+"."+str(pos[1])):
+			for uuid in frozen_entity_dict[str(pos[0])+"."+str(pos[1])].duplicate():
+				frozen_entity_dict[str(pos[0])+"."+str(pos[1])].erase(uuid)
+				if entities[uuid] == null:
+					continue
+				entities[uuid].unfreeze()
 	for x in range(0, 16):
 		for y in range(0, 16):
 			set_block(Vector2i(pos[0] * 16 + x, pos[1] * 16 + y), blocks_list[0][y][x], "solid", true)
@@ -2805,6 +2843,9 @@ func save_chunk(chunk_pos: Vector2i):
 			continue
 		if entity.get_entity_type() == "item":
 			var entity_info = ["item", entity.item_name, entity.item_amount, entity.position]
+			mca.set_value("entity", uuid, entity_info)
+		elif entity.get_entity_type() == "arrow":
+			var entity_info = ["arrow", entity.entity_name, entity.position, entity.velocity, entity.current_velocity, entity.shooter_type, entity.shooter_uuid, entity.shooter_name, entity.is_undead_damage]
 			mca.set_value("entity", uuid, entity_info)
 		else:
 			var entity_info = [entity.get_entity_type(), entity.get_entity_name(), entity.position, entity.get_health()]

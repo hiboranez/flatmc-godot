@@ -111,6 +111,20 @@ extends Node2D
 @onready var zombie_say1 = load("res://Assets/Sounds/Zombie/say1.mp3") as AudioStream
 @onready var zombie_say2 = load("res://Assets/Sounds/Zombie/say2.mp3") as AudioStream
 @onready var zombie_say3 = load("res://Assets/Sounds/Zombie/say3.mp3") as AudioStream
+@onready var skeleton_hurt1 = load("res://Assets/Sounds/Skeleton/hurt1.ogg") as AudioStream
+@onready var skeleton_hurt2 = load("res://Assets/Sounds/Skeleton/hurt2.ogg") as AudioStream
+@onready var skeleton_hurt3 = load("res://Assets/Sounds/Skeleton/hurt3.ogg") as AudioStream
+@onready var skeleton_hurt4 = load("res://Assets/Sounds/Skeleton/hurt4.ogg") as AudioStream
+@onready var skeleton_death = load("res://Assets/Sounds/Skeleton/death.ogg") as AudioStream
+@onready var skeleton_say1 = load("res://Assets/Sounds/Skeleton/say1.ogg") as AudioStream
+@onready var skeleton_say2 = load("res://Assets/Sounds/Skeleton/say2.ogg") as AudioStream
+@onready var skeleton_say3 = load("res://Assets/Sounds/Skeleton/say3.ogg") as AudioStream
+@onready var bow_shoot = load("res://Assets/Sounds/Random/bow.mp3") as AudioStream
+@onready var bow_hit1 = load("res://Assets/Sounds/Random/bowhit1.mp3") as AudioStream
+@onready var bow_hit2 = load("res://Assets/Sounds/Random/bowhit2.mp3") as AudioStream
+@onready var bow_hit3 = load("res://Assets/Sounds/Random/bowhit3.mp3") as AudioStream
+@onready var bow_hit4 = load("res://Assets/Sounds/Random/bowhit4.mp3") as AudioStream
+@onready var successful_hit = load("res://Assets/Sounds/Random/successful_hit.mp3") as AudioStream
 
 var volume_db = 0
 var dig_cloth_sound_list = []
@@ -147,6 +161,12 @@ var sheep_say_sound_list = []
 var zombie_hurt_sound_list = []
 var zombie_death_sound_list = []
 var zombie_say_sound_list = []
+var skeleton_hurt_sound_list = []
+var skeleton_death_sound_list = []
+var skeleton_say_sound_list = []
+var bow_shoot_sound_list = []
+var bow_hit_sound_list = []
+var successful_hit_sound_list = []
 
 func _ready() -> void:
 	dig_cloth_sound_list = [dig_cloth1, dig_cloth2, dig_cloth3, dig_cloth4]
@@ -185,6 +205,12 @@ func _ready() -> void:
 	zombie_hurt_sound_list = [zombie_hurt1, zombie_hurt2]
 	zombie_death_sound_list = [zombie_death]
 	zombie_say_sound_list = [zombie_say1, zombie_say2, zombie_say3]
+	skeleton_hurt_sound_list = [skeleton_hurt1, skeleton_hurt2, skeleton_hurt3, skeleton_hurt4]
+	skeleton_death_sound_list = [skeleton_death]
+	skeleton_say_sound_list = [skeleton_say1, skeleton_say2, skeleton_say3]
+	bow_shoot_sound_list = [bow_shoot]
+	bow_hit_sound_list = [bow_hit1, bow_hit2, bow_hit3, bow_hit4]
+	successful_hit_sound_list = [successful_hit]
 
 func play_audio_static(type, sub_type):
 	var audio_player = AudioStreamPlayer.new()
@@ -257,12 +283,25 @@ func play_random_audio_at_position(type, sub_type, sound_position: Vector2, pitc
 			sound_list = zombie_hurt_sound_list
 		elif sub_type == "death":
 			sound_list = zombie_death_sound_list
+	elif type == "skeleton":
+		if sub_type == "say":
+			sound_list = skeleton_say_sound_list
+		elif sub_type == "hurt":
+			sound_list = skeleton_hurt_sound_list
+		elif sub_type == "death":
+			sound_list = skeleton_death_sound_list
 	elif type == "item":
 		if sub_type == "hoe_still":
 			sound_list = hoe_still_sound_list
 	elif type == "random":
 		if sub_type == "tool_break":
 			sound_list = tool_break_sound_list
+		if sub_type == "bow_shoot":
+			sound_list = bow_shoot_sound_list
+		if sub_type == "bow_hit":
+			sound_list = bow_hit_sound_list
+		if sub_type == "successful_hit":
+			sound_list = successful_hit_sound_list
 	elif type == "step":
 		if sub_type == "cloth":
 			sound_list = step_cloth_sound_list

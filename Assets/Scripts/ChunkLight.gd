@@ -328,6 +328,11 @@ func update_texture(update_neighbour_state):
 	StaticLoad.game.update_mini_map_chunk_light(chunk_pos, light_image)
 	var chunk_light_name = str(chunk_pos[0])+"."+str(chunk_pos[1])
 	if StaticLoad.game.loaded_chunk_packed_byte_arrays.has(chunk_light_name):
+		if not StaticLoad.game.chunk_sky_light_datas.has(chunk_light_name):
+			var sky_light: PackedByteArray
+			sky_light.resize(16)
+			sky_light.fill(StaticLoad.game.current_sky_light)
+			StaticLoad.game.chunk_sky_light_datas[chunk_light_name] = sky_light
 		var next_chunk_sky_light_datas = GameCalculator.get_final_sky_light_data(StaticLoad.game.loaded_chunk_packed_byte_arrays[chunk_light_name], StaticLoad.game.chunk_sky_light_datas[chunk_light_name], StaticLoad.transparent_block_ids)
 		var is_should_update_next_chunk_light = false
 		if StaticLoad.game.chunk_sky_light_datas.has(str(chunk_pos[0])+"."+str(chunk_pos[1]+1)):

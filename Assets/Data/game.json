@@ -183,6 +183,7 @@
 		"COAL": 1,
 		"GLOWSTONE_DUST": 1,
 		"FLINT": 1,
+		"BONE": 1,
 		"IRON_INGOT": 1,
 		"GOLD_INGOT": 1,
 		"DIAMOND": 1,
@@ -211,6 +212,11 @@
 		"IRON_HOE": 2,
 		"GOLD_HOE": 2,
 		"DIAMOND_HOE": 2,
+		"BOW": 2,
+		"ARROW": 1,
+		"BOW_PULLING_0": 2,
+		"BOW_PULLING_1": 2,
+		"BOW_PULLING_2": 2,
 		"PIG_SPAWN_EGG": 1,
 		"COW_SPAWN_EGG": 1,
 		"SHEEP_SPAWN_EGG": 1,
@@ -234,6 +240,7 @@
 		"SHEEP": {"others":{"WOOL_WHITE":["0:0.1","1:0.9","2:1.0"]}},
 		"CHICKEN": {"others":{"CHICKEN_RAW":["0:0.1","1:0.9","2:1.0"],"FEATHER":["0:0.1","1:0.9","2:1.0"]}},
 		"ZOMBIE": {"others":{"ROTTEN_FLESH":["0:0.1","1:0.9","2:1.0"]}},
+		"SKELETON": {"others":{"BONE":["0:0.1","1:0.9","2:1.0"]}},
 	},
 	
 	"undead_mob_list" : [
@@ -313,7 +320,8 @@
 		"STONE_HOE": 131,
 		"IRON_HOE": 250,
 		"GOLD_HOE": 32,
-		"DIAMOND_HOE": 1561
+		"DIAMOND_HOE": 1561,
+		"BOW": 385
 	},
 	
 	"tools_efficiency" : {
@@ -369,7 +377,8 @@
 		"STONE_HOE": {"hoe" : 2},
 		"IRON_HOE": {"hoe" : 3},
 		"GOLD_HOE": {"hoe" : 1},
-		"DIAMOND_HOE": {"hoe" : 3}
+		"DIAMOND_HOE": {"hoe" : 3},
+		"BOW": {"bow" : 1}
 	},
 	
 	"special_block_destroy_time" : {

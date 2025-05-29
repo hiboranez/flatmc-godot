@@ -1,6 +1,7 @@
-[gd_scene load_steps=10 format=4 uid="uid://dx77wbim6mom7"]
+[gd_scene load_steps=11 format=4 uid="uid://dx77wbim6mom7"]
 
 [ext_resource type="Texture2D" uid="uid://ca0fg15x86lrk" path="res://Assets/ResourcePacks/official_old/ModelBlocks/missing_texture.png" id="1_1jrlc"]
+[ext_resource type="Script" path="res://Assets/Scripts/ItemInHand.gd" id="1_leyrq"]
 [ext_resource type="ArrayMesh" uid="uid://hncgg8lyf8ke" path="res://Assets/Meshs/ItemMesh.tres" id="1_sicmm"]
 [ext_resource type="ArrayMesh" uid="uid://b4me2jvrj54xr" path="res://Assets/Meshs/ToolMesh.tres" id="2_d705i"]
 [ext_resource type="Material" uid="uid://chhq6mpw7v267" path="res://Assets/Materials/ItemModel.tres" id="2_rtab3"]
@@ -79,7 +80,8 @@ _surfaces = [{
 blend_shape_mode = 0
 shadow_mesh = SubResource("ArrayMesh_d0paj")
 
-[node name="Item" type="Node3D"]
+[node name="ItemInHand" type="Node3D"]
+script = ExtResource("1_leyrq")
 
 [node name="Item" type="Node3D" parent="."]
 transform = Transform3D(1.06066, 0, -1.06066, 0, 1.5, 0, 1.06066, 0, 1.06066, 0, 0, 0)
@@ -105,6 +107,15 @@ visible = false
 
 [node name="Mesh" type="MeshInstance3D" parent="Tool"]
 transform = Transform3D(4.37114e-08, -1, -8.74228e-08, -1, -4.37114e-08, 0, -3.82137e-15, 8.74228e-08, -1, 0.075, 0, 0.211648)
+mesh = ExtResource("2_d705i")
+skeleton = NodePath("")
+
+[node name="Bow" type="Node3D" parent="."]
+transform = Transform3D(-2.12132, 1.5, -1.5, 1.85452e-07, -2.12132, -2.12132, -2.12132, -1.5, 1.5, -1.97582, 1.877, -0.11882)
+visible = false
+
+[node name="Mesh" type="MeshInstance3D" parent="Bow"]
+transform = Transform3D(5.96046e-08, -1, -8.9407e-08, -1, -1.78814e-07, 0, -8.9407e-08, -1.78814e-07, -1, -0.413726, 0.87536, -0.536171)
 mesh = ExtResource("2_d705i")
 skeleton = NodePath("")
 

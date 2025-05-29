@@ -14,11 +14,13 @@ extends Control
 @onready var player_icon_scene = load("res://Assets/Scenes/PlayerIcon.tscn") as PackedScene
 @onready var server_detect_scene = load("res://Assets/Scenes/ServerDetect.tscn") as PackedScene
 @onready var item_scene = load("res://Assets/Scenes/Item.tscn") as PackedScene
+@onready var arrow_scene = load("res://Assets/Scenes/Arrow.tscn") as PackedScene
 @onready var pig_scene = load("res://Assets/Scenes/Pig.tscn") as PackedScene
 @onready var cow_scene = load("res://Assets/Scenes/Cow.tscn") as PackedScene
 @onready var sheep_scene = load("res://Assets/Scenes/Sheep.tscn") as PackedScene
 @onready var chicken_scene = load("res://Assets/Scenes/Chicken.tscn") as PackedScene
 @onready var zombie_scene = load("res://Assets/Scenes/Zombie.tscn") as PackedScene
+@onready var skeleton_scene = load("res://Assets/Scenes/Skeleton.tscn") as PackedScene
 @onready var animation:AnimationPlayer = $AnimationPlayer
 @onready var click_audio_player = $ClickAudioPlayer
 @onready var server_detects = $ServerDetects
@@ -247,6 +249,8 @@ func _ready() -> void:
 		"sheep": sheep_scene,
 		"chicken": chicken_scene,
 		"zombie": zombie_scene,
+		"skeleton": skeleton_scene,
+		"arrow": arrow_scene,
 	}
 	
 	for i in range(8):
@@ -349,6 +353,8 @@ func get_mca_value(got_chunk_pos):
 	var blocks = chunk_config.get_value("chunk", "blocks", [])
 	var no_reach_blocks = chunk_config.get_value("chunk", "no_reach_blocks", [])
 	var back_blocks = chunk_config.get_value("chunk", "back_blocks", [])
+	var chunk_block_list = [blocks, no_reach_blocks, back_blocks]
+	
 	var chunk_dirt_list = chunk_config.get_value("chunk", "dirt_list", [])
 	var chunk_grass_block_list = chunk_config.get_value("chunk", "grass_block_list", [])
 	var chunk_seed_list = chunk_config.get_value("chunk", "seed_list", [])
@@ -356,6 +362,16 @@ func get_mca_value(got_chunk_pos):
 	var chunk_leaves_list = chunk_config.get_value("chunk", "leaves_list", [])
 	var chunk_farm_land_list = chunk_config.get_value("chunk", "farm_land_list", [])
 	var chunk_sugar_cane_list = chunk_config.get_value("chunk", "sugar_cane_list", [])
+	var chunk_info_dict = {
+		"chunk_dirt_list": chunk_dirt_list,
+		"chunk_grass_block_list": chunk_grass_block_list,
+		"chunk_seed_list": chunk_seed_list,
+		"chunk_sapling_list": chunk_sapling_list,
+		"chunk_leaves_list": chunk_leaves_list,
+		"chunk_farm_land_list": chunk_farm_land_list,
+		"chunk_sugar_cane_list": chunk_sugar_cane_list
+	}
+	
 	game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)] = Chunk.new()
 	game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)].is_to_save = false
 	game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)].dirt_list = chunk_dirt_list
@@ -366,7 +382,7 @@ func get_mca_value(got_chunk_pos):
 	game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)].farm_land_list = chunk_farm_land_list
 	game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)].sugar_cane_list = chunk_sugar_cane_list
 	game.loaded_chunks_timer[str(x_chunk)+"."+str(y_chunk)] = StaticLoad.CHUNK_FREE_TIME
-	return [true, chunk_config, [blocks, no_reach_blocks, back_blocks]]
+	return [true, chunk_config, chunk_block_list, chunk_info_dict]
 
 func compare_version(version_1: String, version_2: String):
 	var splits_1
@@ -1299,6 +1315,14 @@ func request_for_update_chunk(client_peer_id, is_init, x_chunk, y_chunk):
 					item["item_name"] = entity.item_name
 					item["item_amount"] = entity.item_amount
 					entities_to_transfer.append(item)
+				elif entity.entity_type == "arrow":
+					var arrow = {}
+					arrow["type"] = "arrow"
+					arrow["uuid"] = entity.get_uuid()
+					arrow["position"] = entity.position
+					arrow["entity_name"] = entity.get_entity_name()
+					arrow["current_velocity"] = entity.current_velocity
+					entities_to_transfer.append(arrow)
 				else:
 					var value_dict = {}
 					value_dict["type"] = entity.entity_type
@@ -1340,6 +1364,13 @@ func reply_for_update_chunk(is_init, x_chunk, y_chunk, blocks_list, entities_to_
 			item.uuid = entity["uuid"]
 			item.name = entity["uuid"]
 			game.entities[item.get_uuid()] = item
+		elif entity["type"] == "arrow":
+			var arrow = arrow_scene.instantiate()
+			game.arrows.add_child(arrow)
+			arrow.init([UUID.v4(), entity["entity_name"], entity["position"], Vector2(0, 0), entity["current_velocity"], "null", "null", "null", false])
+			arrow.uuid = entity["uuid"]
+			arrow.name = entity["uuid"]
+			game.entities[arrow.get_uuid()] = arrow
 		elif undead_mob_list.has(entity["type"]):
 			var entity_instance = entity_scene_dict[entity["type"]].instantiate()
 			game.undead_mobs.add_child(entity_instance)
@@ -1388,6 +1419,29 @@ func create_entity(args):
 		StaticLoad.game.items.add_child(item)
 		item.init([uuid, droppped_item_name, pos, amount, no_collect_time, x_velocity])
 		StaticLoad.game.entities[item.get_uuid()] = item
+	elif args[0] == "arrow":
+		var uuid = args[1]
+		var entity_name = args[2]
+		var pos = args[3]
+		var velocity = args[4]
+		var current_velocity = args[5]
+		var shooter_type = args[6]
+		var shooter_uuid = args[7]
+		var shooter_name = args[8]
+		var is_undead_damage = bool(args[9])
+		var block_pos = game.tile_map_layer.local_to_map(pos)
+		var chunk_pos = game.get_chunk_position(block_pos)
+		if not game.loaded_chunks.has(str(chunk_pos[0])+"."+str(chunk_pos[1])):
+			return
+		var health = args[4]
+		var entity_scene = entity_scene_dict[args[0]]
+		var entity = entity_scene.instantiate()
+		if undead_mob_list.has(args[0]):
+			StaticLoad.game.undead_mobs.add_child(entity)
+		else:
+			StaticLoad.game.mobs.add_child(entity)
+		entity.init([uuid, entity_name, pos, velocity, current_velocity, shooter_type, shooter_uuid, shooter_name, is_undead_damage])
+		StaticLoad.game.entities[entity.get_uuid()] = entity
 	else:
 		var uuid = args[1]
 		var entity_name = args[2]

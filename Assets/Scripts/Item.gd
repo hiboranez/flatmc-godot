@@ -13,8 +13,10 @@ var uuid = UUID.v4()
 var entity_type = "item"
 var item_name = "AIR"
 var chunk_pos = Vector2i(0, 0)
+var last_pos = position
 var health: int = 20
 var is_dead = false
+var is_frozen = false
 var is_on_fire = false
 var fire_lasting_timer: float = 0
 var fire_damage_timer: float = 4
@@ -160,6 +162,8 @@ func update_local_attraction():
 func update_local_gravity():
 	if StaticLoad.is_muti_mode and multiplayer.get_unique_id()!=1:
 		return
+	if is_frozen:
+		return
 	if not is_on_floor():
 		velocity += get_gravity() * get_process_delta_time()
 
@@ -201,11 +205,25 @@ func get_entity_name():
 func get_chunk_pos():
 	return chunk_pos
 
+func get_last_pos():
+	return last_pos
+
 func get_health():
 	return health
 
 func get_is_dead():
 	return is_dead
+
+func get_is_frozen():
+	return is_frozen
+
+func freeze():
+	velocity = Vector2(0, 0)
+	is_frozen = true
+
+func unfreeze():
+	velocity = Vector2(0, 0)
+	is_frozen = false
 
 func get_is_on_fire():
 	return is_on_fire

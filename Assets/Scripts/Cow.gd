@@ -17,8 +17,10 @@ var uuid = UUID.v4()
 var entity_type = "cow"
 var entity_name: String = str(uuid)
 var chunk_pos = Vector2i(0, 0)
+var last_pos = position
 var health: int = 20
 var is_dead = false
+var is_frozen = false
 var is_on_fire = false
 var fire_lasting_timer: float = 0
 var fire_damage_timer: float = 1
@@ -45,7 +47,6 @@ var move_state = "idle"
 var face_state: int = -1
 var turn_state: float = 0
 var is_pause = false
-var is_frozen = false
 var is_in_water = false
 var is_flying = false
 var is_up_area_colliding = false
@@ -675,14 +676,6 @@ func set_shader_dissolve_intensity(value):
 func set_shader_transparent_intensity(value):
 	entity_sprite.material.set_shader_parameter("transparent_intensity", value)
 
-func freeze():
-	velocity.y = 0
-	is_frozen = true
-
-func unfreeze():
-	velocity.y = 0
-	is_frozen = false
-
 func get_uuid():
 	return uuid
 
@@ -695,11 +688,25 @@ func get_entity_name():
 func get_chunk_pos():
 	return chunk_pos
 
+func get_last_pos():
+	return last_pos
+
 func get_health():
 	return health
 
 func get_is_dead():
 	return is_dead
+
+func get_is_frozen():
+	return is_frozen
+
+func freeze():
+	velocity = Vector2(0, 0)
+	is_frozen = true
+
+func unfreeze():
+	velocity = Vector2(0, 0)
+	is_frozen = false
 
 func get_is_on_fire():
 	return is_on_fire

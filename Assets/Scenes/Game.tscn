@@ -1806,6 +1806,8 @@ tile_set = ExtResource("3_fa3r6")
 
 [node name="Items" type="Node2D" parent="."]
 
+[node name="Arrows" type="Node2D" parent="."]
+
 [node name="Mobs" type="Node2D" parent="."]
 
 [node name="UndeadMobs" type="Node2D" parent="."]
@@ -2940,6 +2942,7 @@ grow_horizontal = 2
 theme_override_fonts/font = ExtResource("4_nsj5b")
 theme_override_font_sizes/font_size = 50
 text = "test"
+horizontal_alignment = 1
 
 [node name="AttackIcon" type="Control" parent="GameUI/ItemBarPanel"]
 layout_mode = 1

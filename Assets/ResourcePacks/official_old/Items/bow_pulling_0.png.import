@@ -2,19 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dy12kcwewki33"
-path="res://.godot/imported/Zombie_ef.png-ecfb09178a8372ac63a53a1acc6f85c5.ctex"
+uid="uid://desr3ifj1e1n0"
+path="res://.godot/imported/bow_pulling_0.png-7d1fa21f992eee86cfd82eb1e13feae6.ctex"
 metadata={
 "vram_texture": false
-}
-generator_parameters={
-"md5": "c3365aeb59af8ef83b9d01c1532571fd"
 }
 
 [deps]
 
-source_file="res://Assets/Models/Zombie_ef.png"
-dest_files=["res://.godot/imported/Zombie_ef.png-ecfb09178a8372ac63a53a1acc6f85c5.ctex"]
+source_file="res://Assets/ResourcePacks/official_old/Items/bow_pulling_0.png"
+dest_files=["res://.godot/imported/bow_pulling_0.png-7d1fa21f992eee86cfd82eb1e13feae6.ctex"]
 
 [params]
 
@@ -24,7 +21,7 @@ compress/lossy_quality=0.7
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=true
+mipmaps/generate=false
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""
