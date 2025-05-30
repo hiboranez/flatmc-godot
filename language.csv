@@ -135,13 +135,18 @@ USAGE;用法;usage
 UNKNOWN_COMMAND;未知的指令;unknown command
 TELEPORT_INFO_1;已将 ;teleported 
 TELEPORT_INFO_2; 传送至 ; to 
+CRAFTING;合成;crafting
 INVENTORY;物品栏;inventory
 AIR;空气;air
 BEDROCK;基岩;bedrock
 BOOK;书;book
 BOOKSHELF;书架;bookshelf
-BRICK;砖块;brick
+BRICKS;红砖块;bricks
+BRICK;红砖;brick
+CLAY_BALL;黏土球;clay ball
 COAL_ORE;煤矿石;coal ore
+GUNPOWDER;火药;gunpowder
+STRING;线;string
 COBBLESTONE;圆石;cobblestone
 COBBLESTONE_MOSSY;苔石;mossy cobblestone
 CRAFTING_TABLE;工作台;crafting table
@@ -267,6 +272,7 @@ CHICKEN_SPAWN_EGG;鸡刷怪蛋;chicken spawn egg
 ZOMBIE_SPAWN_EGG;僵尸刷怪蛋;zombie spawn egg
 SKELETON_SPAWN_EGG;骷髅刷怪蛋;skelecton spawn egg
 DEATH_FALL; 落地过猛; hit the ground too hard
+DEATH_STARVE; 饿死了; starved to death
 DEATH_FIRE; 浴火焚身; went up in flames
 DEATH_PLAYER_KILL_1; 被 ; was slain by 
 DEATH_PLAYER_KILL_2; 杀死了; 

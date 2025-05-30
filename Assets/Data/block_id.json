@@ -50,7 +50,7 @@
 		"AIR": 0,
 		"BEDROCK": 1,
 		"BOOKSHELF": 2,
-		"BRICK": 3,
+		"BRICKS": 3,
 		"COAL_ORE": 4,
 		"COBBLESTONE": 5,
 		"COBBLESTONE_MOSSY": 6,

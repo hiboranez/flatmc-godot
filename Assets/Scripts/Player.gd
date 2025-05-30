@@ -33,6 +33,9 @@ var fire_lasting_timer: float = 0
 var fire_damage_timer: float = 1
 
 # 子类变量
+var hunger_max_time: float = 90
+var hunger_timer: float = 0
+var hunger: int = 20
 var pull_amplify_factor: float = 1
 var fire_damage_time: float = 1
 var max_health: int = 20
@@ -63,6 +66,8 @@ var attacking_damage: int = 0
 var selected_item_grid: int = 0
 var last_in_hand_item_name = "AIR"
 var step_sound_timer: float = 0
+var last_eat_stage: int = -1
+var eat_timer: float = 0
 var sneak_timer: float = 0
 var move_state = "idle"
 var face_state: int = -1
@@ -86,6 +91,7 @@ var is_pause = false
 var is_in_water = false
 var is_flying = false
 var is_punching = false
+var is_eating = false
 var is_up_area_colliding = false
 var is_down_area_colliding = false
 var is_top_area_colliding = false
@@ -96,9 +102,10 @@ var animation_tree_parameters = {
 	"run": 0,
 	"sneak": 0,
 	"pull": 0,
+	"eat": 0,
 }
 var only_server_change_state_list = [
-	"health", "attack_timer", 
+	"health", "hunger", "attack_timer",
 	"attacking_decline_timer", "sword_breaking_timer",
 	"attacking_damage", "is_frozen", "is_on_fire"
 ]
@@ -106,6 +113,7 @@ var trigger_change_state_list = [
 	"is_punching", "set_block_list", "breaking_tool",
 	"is_jumping", "farm_list", "inventory"
 ]
+var effect_dict = StaticLoad.default_effect_dict
 var state_dict = {}
 var last_state_dict = {}
 var changed_state_dict = {}
@@ -132,10 +140,13 @@ func _process(delta: float) -> void:
 	update_sound_by_data()
 	update_animation_by_data()
 	# 仅在服务端的本地更新
+	update_local_effect()
 	update_local_fire_damage_by_data()
+	update_local_hunger()
 	update_local_health_recover()
 	update_local_attack_timer()
 	# 本地更新
+	update_local_eat()
 	update_shoot_timer()
 	update_local_fall_damage_by_data()
 	update_local_velocity()
@@ -205,6 +216,8 @@ func init_local(peer_id):
 				is_flying = player_config.get_value("player", "is_flying", StaticLoad.DEFAULT_PLAYER_IS_FLYING)
 				gamemode = player_config.get_value("player", "gamemode", StaticLoad.DEFAULT_PLAYER_GAMEMODE)
 				health = player_config.get_value("player", "health", StaticLoad.DEFAULT_PLAYER_HEALTH)
+				hunger = player_config.get_value("player", "hunger", StaticLoad.DEFAULT_PLAYER_HUNGER)
+				effect_dict = player_config.get_value("player", "effect_dict", StaticLoad.default_effect_dict)
 				item_bar_names = player_config.get_value("player", "item_bar_names", item_bar_names)
 				item_bar_amounts = player_config.get_value("player", "item_bar_amounts", item_bar_amounts)
 		inventory_dict = calculate_inventory_dict([item_bar_names, item_bar_amounts, mouse_item_name, mouse_item_amount])
@@ -212,6 +225,7 @@ func init_local(peer_id):
 			is_flying = false
 		if self.gamemode == "creative":
 			StaticLoad.game.health_bar.visible = false
+			StaticLoad.game.hunger_bar.visible = false
 		update_player_face_rotation()
 		StaticLoad.game.update_new_chunk(true)
 	
@@ -264,6 +278,13 @@ func update_local_is_on_ladder():
 		is_on_ladder = false
 
 func update_sound_by_data():
+	if is_eating and animation_tree_parameters["eat"] > 0.9:
+		if StaticLoad.food_dict.has(in_hand_item_name):
+			var eat_stage = int(eat_timer/0.24)
+			if last_eat_stage != eat_stage:
+				last_eat_stage = eat_stage
+				StaticLoad.game.summon_destroy_particle(position-Vector2(0,16), "item", in_hand_item_name)
+				StaticLoad.game.sound_audio_manager.play_random_audio_at_position("random", "eat", position, 1)
 	if abs(current_velocity.y) < StaticLoad.FLOAT_DELTA and last_velocity.y > 1100:
 		if last_velocity.y > 1300:
 			StaticLoad.game.sound_audio_manager.play_random_audio_at_position("damage", "fallbig", position, 1)
@@ -297,15 +318,16 @@ func update_sound_by_data():
 				elif move_state == "run":
 					step_sound_timer = run_period
 					StaticLoad.game.sound_audio_manager.play_random_audio_at_position("step", StaticLoad.get_step_type_by_name(StaticLoad.get_block_name_by_id(block_id)), position, 1)
-	elif step_sound_timer > 0 and not is_sneaking and not is_pulling:
+	elif step_sound_timer > 0 and not is_sneaking and not is_pulling and not is_eating:
 		step_sound_timer = 0
-	if step_sound_timer > 0 and not is_sneaking and not is_pulling:
+	if step_sound_timer > 0 and not is_sneaking and not is_pulling and not is_eating:
 		step_sound_timer -= get_process_delta_time()
 
 func update_animation_tree():
 	animation_tree["parameters/Run/blend_amount"] = animation_tree_parameters["run"]
 	animation_tree["parameters/Walk/blend_amount"] = animation_tree_parameters["walk"]
 	animation_tree["parameters/Sneak/blend_amount"] = animation_tree_parameters["sneak"]
+	animation_tree["parameters/Eat/blend_amount"] = animation_tree_parameters["eat"]
 	animation_tree["parameters/Pull/blend_amount"] = animation_tree_parameters["pull"]*(1+(shoot_timer+0.0001)/6)*pull_amplify_factor
 
 func update_animation_by_data():
@@ -322,19 +344,19 @@ func update_animation_by_data():
 		sneak_timer = 0
 	
 	if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == player_peer_id):
-		if not StaticLoad.game.is_chat and not StaticLoad.game.is_inventory and not StaticLoad.game.is_pause and not StaticLoad.game.is_map and is_pulling:
+		if not StaticLoad.game.is_chat and not StaticLoad.game.is_inventory and not StaticLoad.game.is_crafting and not StaticLoad.game.is_pause and not StaticLoad.game.is_map and (is_pulling or is_eating):
 			if move_state == "run":
 				move_state = "walk"
 	
 	if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == player_peer_id):
-		if not StaticLoad.game.is_chat and not StaticLoad.game.is_inventory and not StaticLoad.game.is_pause and not StaticLoad.game.is_map and Input.is_action_pressed("shift") and not is_sneaking:
+		if not StaticLoad.game.is_chat and not StaticLoad.game.is_inventory and not StaticLoad.game.is_crafting and not StaticLoad.game.is_pause and not StaticLoad.game.is_map and Input.is_action_pressed("shift") and not is_sneaking:
 			is_sneaking = true
 			if move_state == "run":
 				move_state = "walk"
 		elif not Input.is_action_pressed("shift") and is_sneaking:
 			is_sneaking = false
 		
-	if move_state == "run" and not is_sneaking and not is_pulling:
+	if move_state == "run" and not is_sneaking and not is_pulling and not is_eating:
 		animation_tree_parameters["run"] = lerpf(animation_tree_parameters["run"], 1, StaticLoad.BLEND_SPEED*delta)
 		animation_tree_parameters["walk"] = lerpf(animation_tree_parameters["walk"], 0, StaticLoad.BLEND_SPEED*delta)
 	elif move_state == "walk":
@@ -354,6 +376,11 @@ func update_animation_by_data():
 	else:
 		animation_tree_parameters["pull"] = lerpf(animation_tree_parameters["pull"], 0, StaticLoad.BLEND_SPEED*delta*2)
 	
+	if is_eating:
+		animation_tree_parameters["eat"] = lerpf(animation_tree_parameters["eat"], 1, StaticLoad.BLEND_SPEED*delta*2)
+	else:
+		animation_tree_parameters["eat"] = lerpf(animation_tree_parameters["eat"], 0, StaticLoad.BLEND_SPEED*delta*2)
+	
 	var name_invisible_value = sneak_timer-0.5
 	if name_invisible_value < 0:
 		name_invisible_value = 0
@@ -371,7 +398,7 @@ func update_animation_by_data():
 	var detect_size = 60
 	if move_state == "run":
 		detect_size = 120
-	if is_sneaking or is_pulling:
+	if is_sneaking or is_pulling or is_eating:
 		detect_size = 28
 	var half_detect_size = detect_size/2
 	up_area_collision_shape.shape.size.x = 60
@@ -458,6 +485,25 @@ func add_velocity(delta_velocity):
 		var e_y = (velocity.y/abs(velocity.y+1e-9))*pow(velocity.y, 2)+(delta_velocity.y/abs(delta_velocity.y))*pow(delta_velocity.y, 2)
 		velocity.y = (e_y/abs(e_y+1e-9))*sqrt(abs(e_y))
 
+func set_effect_dict(args):
+	var got_effect_dict = args[0]
+	for effect in got_effect_dict:
+		effect_dict[effect] = got_effect_dict[effect]
+
+func update_local_effect():
+	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
+		return
+	var changed_effect_dict = {}
+	for effect in effect_dict:
+		if effect_dict[effect] > 0:
+			effect_dict[effect] -= get_process_delta_time()
+			changed_effect_dict[effect] = effect_dict[effect]
+		elif effect_dict[effect] < 0:
+			effect_dict[effect] = 0
+			changed_effect_dict[effect] = effect_dict[effect]
+	if StaticLoad.is_muti_mode:
+		StaticLoad.rpc_entity_func_by_uuid(uuid, "set_effect_dict", [changed_effect_dict], "others", true)
+
 func update_local_fire_damage_by_data():
 	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
 		return
@@ -509,6 +555,8 @@ func update_local_health_recover():
 	if is_dead:
 		return
 	if gamemode == "creative":
+		return
+	if hunger < 16:
 		return
 	if health < 20:
 		health_recover_timer -= get_process_delta_time()
@@ -714,7 +762,7 @@ func update_local_move_by_data():
 			expected_velocity.x = face_state * move_speed * 2
 	elif move_state == "walk":
 		var current_move_rate = 1
-		if is_sneaking or is_pulling:
+		if is_sneaking or is_pulling or is_eating:
 			current_move_rate = 0.3
 		if is_sneaking and not is_ground_area_colliding and is_on_floor():
 			expected_velocity.x = 0
@@ -769,12 +817,14 @@ func update_state_dict():
 	state_dict["move_state"] = move_state
 	state_dict["is_pulling"] = is_pulling
 	state_dict["is_sneaking"] = is_sneaking
+	state_dict["is_eating"] = is_eating
 	state_dict["is_flying"] = is_flying
 	state_dict["is_frozen"] = is_frozen
 	state_dict["is_on_fire"] = is_on_fire
 	state_dict["render_chunk"] = render_chunk
 	state_dict["gamemode"] = gamemode
 	state_dict["selected_block_pos"] = selected_block_pos
+	state_dict["eat_timer"] = eat_timer
 	state_dict["destroy_timer"] = destroy_timer
 	state_dict["attack_timer"] = attack_timer
 	state_dict["shoot_timer"] = shoot_timer
@@ -788,6 +838,7 @@ func update_state_dict():
 	state_dict["selected_item_grid"] = selected_item_grid
 	state_dict["in_hand_item_name"] = in_hand_item_name
 	state_dict["health"] = health
+	state_dict["hunger"] = hunger
 	state_dict["current_set_layer"] = current_set_layer
 
 func update_local_state_dict():
@@ -876,11 +927,33 @@ func apply_changed_state_dict(got_changed_state_dict):
 				var is_correct = true
 				for item_name_tmp in inventory_dict_tmp:
 					if not inventory_dict.has(item_name_tmp):
-						is_correct = false
-						break
-					if inventory_dict[item_name_tmp] < inventory_dict_tmp[item_name_tmp]:
-						is_correct = false
-						break
+						if StaticLoad.crafting_recipe_dict.has(item_name_tmp) or inventory_dict[item_name_tmp] < inventory_dict_tmp[item_name_tmp]:
+							var recipe_list = StaticLoad.crafting_recipe_dict[item_name_tmp]
+							var is_can_final_craft = true
+							for recipe in recipe_list:
+								var is_can_craft = true
+								var material_dict = {}
+								for i in range(1, recipe.size()):
+									if not material_dict.has(recipe[i]):
+										material_dict[recipe[i]] = 1
+									else:
+										material_dict[recipe[i]] += 1
+								for material_needed in material_dict:
+									if not inventory_dict.has(material_needed):
+										is_can_craft = false
+										break
+									elif inventory_dict[material_needed] < material_dict[material_needed]:
+										is_can_craft = false
+										break
+								if is_can_craft:
+									is_can_final_craft = is_can_craft
+							if not is_can_final_craft:
+								is_correct = false
+								break
+						else:
+							is_correct = false
+							break
+
 				if is_correct or gamemode == "creative":
 					item_bar_names = got_changed_state_dict[key][0]
 					item_bar_amounts = got_changed_state_dict[key][1]
@@ -1143,6 +1216,47 @@ func place_block(block_pos):
 			return true
 	return false
 
+func eat_food(args):
+	var got_food_name = args[0]
+	if not StaticLoad.food_dict.has(got_food_name):
+		return
+	var food_info = StaticLoad.food_dict[got_food_name]
+	var new_hunger = hunger + int(food_info["food"])
+	if food_info.has("effect"):
+		for effect in food_info["effect"]:
+			var splits = effect.split("-")
+			var rng = RandomNumberGenerator.new()
+			var num = rng.randf()
+			if num <= float(splits[1]):
+				effect_dict[splits[0]] = float(splits[2])
+	if new_hunger > 20:
+		new_hunger = 20
+	if new_hunger == 20:
+		is_eating = false
+	hunger = new_hunger
+	eat_timer = 0
+	StaticLoad.game.sound_audio_manager.play_random_audio_at_position("random", "burp", position, 1)
+
+func update_local_eat():
+	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != player_peer_id:
+		return
+	if is_eating and animation_tree_parameters["eat"] > 0.9 and StaticLoad.food_dict.has(in_hand_item_name):
+		if eat_timer < 1.5:
+			eat_timer += get_process_delta_time()
+		else:
+			eat_food([in_hand_item_name])
+			item_bar_amounts[selected_item_grid] -= 1
+			if item_bar_amounts[selected_item_grid] <= 0:
+				item_bar_names[selected_item_grid] = "AIR"
+				item_bar_amounts[selected_item_grid] = 0
+			if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == player_peer_id):
+				StaticLoad.game.refresh_item_grid(selected_item_grid)
+			if StaticLoad.is_muti_mode:
+				if multiplayer.get_unique_id() == 1:
+					StaticLoad.rpc_entity_func_by_uuid(uuid, "eat_food", [in_hand_item_name], "others", true)
+				else:
+					StaticLoad.rpc_entity_func_by_uuid(uuid, "eat_food", [in_hand_item_name], [player_peer_id], false)
+
 func wear_inventory_amount(args):
 	var sort = args[0]
 	var damage = args[1]
@@ -1197,6 +1311,8 @@ func get_death_messgae(reason, object):
 	var text = ""
 	if reason == "fall":
 		text = player_name+tr("DEATH_FALL")
+	if reason == "starve":
+		text = player_name+tr("DEATH_STARVE")
 	if reason == "fire":
 		text = player_name+tr("DEATH_FIRE")
 	elif reason == "player_attack":
@@ -1240,6 +1356,9 @@ func player_die(reason, object):
 	if StaticLoad.game.is_inventory:
 		StaticLoad.game.inventory_ui.visible = false
 		StaticLoad.game.is_inventory = false
+	if StaticLoad.game.is_crafting:
+		StaticLoad.game.crafting_ui.visible = false
+		StaticLoad.game.is_crafting = false
 	if StaticLoad.game.is_chat:
 		StaticLoad.game.chat_message_out.visible = true
 		StaticLoad.game.chat_panel.visible = false
@@ -1324,12 +1443,12 @@ func send_command(command: String):
 				gamemode = gamemode_tmp
 				StaticLoad.game.broadcast_to_person(player_name, player_name+tr("GAMEMODE_SET_TO")+tr(gamemode.to_upper()+"_MODE"), "chartreuse")
 				if not is_other:
-					StaticLoad.game.update_health_bar()
+					StaticLoad.game.update_health_hunger_bar()
 			elif StaticLoad.get_is_valid_gamemode(splits[1]):
 				gamemode = splits[1]
 				StaticLoad.game.broadcast_to_person(player_name, player_name+tr("GAMEMODE_SET_TO")+tr(gamemode.to_upper()+"_MODE"), "chartreuse")
 				if not is_other:
-					StaticLoad.game.update_health_bar()
+					StaticLoad.game.update_health_hunger_bar()
 			else:
 				StaticLoad.game.broadcast_to_person(player_name, splits[1]+tr("NOT_VALID_MODE_OR_NUM"), "pink")
 		else:
@@ -1402,6 +1521,8 @@ func get_item(args):
 	if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and player_peer_id == multiplayer.get_unique_id()):
 		if StaticLoad.game.is_inventory:
 			StaticLoad.game.append_process_refresh("refresh_inventory")
+		if StaticLoad.game.is_crafting:
+			StaticLoad.game.append_process_refresh("refresh_crafting_inventory")
 		if list[0] < amount and item_bar_names[selected_item_grid] != "AIR" and list[1]:
 			StaticLoad.game.append_process_refresh("refresh_item_name_label")
 		if list[0] < amount:
@@ -1438,6 +1559,7 @@ func shoot_arrow():
 		return
 	if gamemode != "creative":
 		clear_item("ARROW", 1)
+		hunger_timer += 10
 		wear_and_update_in_hand_tool(1, false)
 		StaticLoad.game.append_process_refresh("refresh_item_grid")
 	var stage = int(shoot_timer/0.667)
@@ -1532,6 +1654,10 @@ func respawn(is_animation = true):
 			break
 		await get_tree().process_frame
 	health = 20
+	hunger = 20
+	hunger_timer = 0
+	for effect in effect_dict:
+		effect_dict[effect] = 0
 	is_dead = false
 	if is_animation:
 		var tween1 = get_tree().create_tween()
@@ -1543,6 +1669,7 @@ func respawn(is_animation = true):
 func check_wear_sword():
 	if attacking_list.size() == 1:
 		if gamemode != "creative":
+			hunger_timer += 10
 			wear_and_update_in_hand_tool(1, true)
 
 func attack():
@@ -1619,6 +1746,7 @@ func init_remote(got_data):
 	if player_peer_id == multiplayer.get_unique_id():
 		if self.gamemode == "creative":
 			StaticLoad.game.health_bar.visible = false
+			StaticLoad.game.hunger_bar.visible = false
 	StaticLoad.player_peer_dict[player_peer_id] = StaticLoad.game.players.get_node(str(player_peer_id))
 	StaticLoad.game.update_new_chunk(true)
 	StaticLoad.game.update_game_details()
@@ -1658,6 +1786,36 @@ func set_player_model_skin_by_texture(got_skin_texture):
 		StaticLoad.game.player_icons[player_name].get_node("UpSkin").texture.atlas = got_skin_texture
 	if not StaticLoad.is_muti_mode or player_peer_id == multiplayer.get_unique_id():
 		StaticLoad.game.inventory_player_model_mesh.mesh.surface_set_material(0, player_material)
+
+func update_local_hunger():
+	if StaticLoad.is_muti_mode and not multiplayer.get_unique_id() == 1:
+		return
+	if gamemode == "creative":
+		return
+	var hungry_amplify_factor: float = 1
+	if effect_dict["hungry"] > 0:
+		hungry_amplify_factor = 3
+	var amplify_factor: float = 1
+	if move_state == "walk":
+		amplify_factor = 2.0
+	elif move_state == "run":
+		amplify_factor = 6.0
+	if hunger <= 0:
+		if hunger_timer < 2:
+			hunger_timer += get_process_delta_time()
+		else:
+			rpc_damage([2, "down", health, "starve", "ground"], false)
+			get_damage([2, "down", health, "starve", "ground"])
+			hunger_timer = 0
+	else:
+		if hunger_timer < hunger_max_time:
+			hunger_timer += get_process_delta_time() * amplify_factor * hungry_amplify_factor
+		else:
+			hunger_timer = 0
+			if hunger > 0:
+				hunger -= 1
+				if hunger <= 6 and move_state == "run":
+					move_state = "walk"
 
 func change_skin(got_skin_texture_buffer):
 	if not typeof(got_skin_texture_buffer) == TYPE_PACKED_BYTE_ARRAY:

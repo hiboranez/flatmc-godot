@@ -28,6 +28,7 @@ extends Node2D
 @onready var move_center_button_fly = load("res://Assets/Textures/GUI/move_center_button_fly.tres") as AtlasTexture
 #@onready var player_other_scene = load("res://Assets/Scenes/PlayerOther.tscn") as PackedScene
 @onready var health_bar = $GameUI/ItemBarPanel/HealthBar
+@onready var hunger_bar = $GameUI/ItemBarPanel/HungerBar
 @onready var player
 @onready var touch_time_counters = $TouchTimeCounters
 @onready var item_grids = $GameUI/ItemBarPanel/ItemBar.get_children()
@@ -72,6 +73,8 @@ extends Node2D
 @onready var lights = $Lights
 @onready var inventory_back_grids = $GameUI/InventoryUI/Panel/InventoryPanel/Inventory/InventoryBackContainer
 @onready var inventory_show_grids = $GameUI/InventoryUI/Panel/InventoryShowContainer
+@onready var crafting_inventory_back_grids = $GameUI/CraftingUI/Panel/InventoryPanel/Inventory/InventoryBackContainer
+@onready var crafting_inventory_show_grids = $GameUI/CraftingUI/Panel/InventoryShowContainer
 @onready var inventory_player_model = $GameUI/InventoryUI/Panel/InventoryPanel/Player/SubViewportContainer/SubViewport/PlayerModel
 @onready var inventory_player_model_mesh = $GameUI/InventoryUI/Panel/InventoryPanel/Player/SubViewportContainer/SubViewport/PlayerModel/Root/Skeleton3D/Mesh
 @onready var inventory_player_model_item_in_hand = $GameUI/InventoryUI/Panel/InventoryPanel/Player/SubViewportContainer/SubViewport/PlayerModel/Root/Skeleton3D/Hand/Item
@@ -99,6 +102,11 @@ extends Node2D
 @onready var sun_path = $StaticBackground/Path2D/SunPath
 @onready var moon_path_texture = $StaticBackground/Path2D/MoonPath/TextureRect
 @onready var sun_path_texture = $StaticBackground/Path2D/SunPath/TextureRect
+@onready var inventory_craft_grid = $GameUI/InventoryUI/Panel/InventoryPanel/Crafting/GridContainer
+@onready var inventory_craft_result_grid = $GameUI/InventoryUI/Panel/InventoryPanel/Crafting/CraftResult
+@onready var table_craft_grid = $GameUI/CraftingUI/Panel/InventoryPanel/Crafting/GridContainer
+@onready var table_craft_result_grid = $GameUI/CraftingUI/Panel/InventoryPanel/Crafting/CraftResult
+@onready var crafting_ui = $GameUI/CraftingUI
 
 var frozen_entity_dict = {}
 var destroy_light_names = {}
@@ -140,6 +148,7 @@ var is_online_info: bool = false
 var is_input_frozen: bool = false
 var is_map: bool = false
 var is_inventory: bool = false
+var is_crafting: bool = false
 var is_pause: bool = false
 var is_chat: bool = false
 var is_player_info_updated: bool = false
@@ -846,11 +855,13 @@ func process_drop_action():
 		sound_audio_manager.play_audio_static("player", "pop")
 		drop_timer = 0
 
-func update_health_bar():
+func update_health_hunger_bar():
 	if player.gamemode == "creative":
 		health_bar.visible = false
+		hunger_bar.visible = false
 	elif player.gamemode == "survival":
 		health_bar.visible = true
+		hunger_bar.visible = true
 	if player.is_flying:
 		player.is_flying = false
 	
@@ -916,6 +927,9 @@ func process_refresh():
 					refresh_to_process.erase(key)
 				elif key == "refresh_inventory":
 					refresh_inventory()
+					refresh_to_process.erase(key)
+				elif key == "refresh_crafting_inventory":
+					refresh_crafting_inventory()
 					refresh_to_process.erase(key)
 				elif key == "refresh_item_name_label":
 					var item_name = player.item_bar_names[player.selected_item_grid]
@@ -1008,6 +1022,225 @@ func open_online_info_ui():
 		else:
 			StaticLoad.rpc_id(1, "request_for_ping", multiplayer.get_unique_id(), peer_id)
 
+func decline_table_crafting_material():
+	for y in range(3):
+		for x in range(3):
+			var craft_grid = table_craft_grid.get_node("Craft"+str(y*3+x))
+			craft_grid.item_amount -= 1
+			if craft_grid.item_amount <= 0:
+				craft_grid.item_name = "AIR"
+			craft_grid.update_progress_bar(craft_grid.item_name, craft_grid.item_amount)
+			craft_grid.init_inventory_grid(craft_grid.item_name, craft_grid.item_amount)
+			
+func refresh_table_crafting_result():
+	var is_final_found = false
+	for item in StaticLoad.crafting_recipe_dict:
+		var recipe_list = StaticLoad.crafting_recipe_dict[item]
+		for recipe in recipe_list:
+			var is_found = false
+			var splits = recipe[0].split("-")
+			var location_list := []
+			if splits[0] == "0":
+				location_list = [Vector2i(0, 0)]
+			elif splits[0] == "1":
+				location_list = [Vector2i(0, 0), Vector2i(0, 1)]
+			elif splits[0] == "2":
+				location_list = [Vector2i(0, 0), Vector2i(1, 0)]
+			elif splits[0] == "3":
+				location_list = [Vector2i(0, 0), Vector2i(0, 1), Vector2i(0, 2)]
+			elif splits[0] == "4":
+				location_list = [Vector2i(0, 0), Vector2i(1, 0), Vector2i(2, 0)]
+			elif splits[0] == "5":
+				location_list = [Vector2i(0, 0), Vector2i(0, 1), Vector2i(1, 0), Vector2i(1, 1)]
+			elif splits[0] == "6":
+				location_list = [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1), Vector2i(1, 1), Vector2i(0, 2), Vector2i(1, 2)]
+			elif splits[0] == "7":
+				location_list = [Vector2i(0, 0), Vector2i(1, 0), Vector2i(2, 0), Vector2i(0, 1), Vector2i(1, 1), Vector2i(2, 1)]
+			elif splits[0] == "8":
+				location_list = [Vector2i(0, 0), Vector2i(1, 0), Vector2i(2, 0), Vector2i(0, 1), Vector2i(1, 1), Vector2i(2, 1), Vector2i(0, 2), Vector2i(1, 2), Vector2i(2, 2)]
+			if location_list.is_empty():
+				continue
+			for y in range(3):
+				for x in range(3):
+					var is_recipe_matched = true
+					for location_index in range(location_list.size()):
+						var location = location_list[location_index]
+						if location[0]+x >= 3:
+							is_recipe_matched = false
+							break
+						if location[1]+y >= 3:
+							is_recipe_matched = false
+							break
+						var item_name = table_craft_grid.get_node("Craft"+str((y+location[1])*3+(x+location[0]))).item_name
+						if item_name != recipe[location_index+1]:
+							is_recipe_matched = false
+							break
+					if is_recipe_matched:
+						var is_recipe_disrupt = false
+						for y_other in range(3):
+							for x_other in range(3):
+								var is_repeated = false
+								for location_tmp in location_list:
+									if location_tmp[0]+x >= 3:
+										continue
+									if location_tmp[1]+y >= 3:
+										continue
+									if x_other == location_tmp[0]+x and y_other == location_tmp[1]+y:
+										is_repeated = true
+										break
+								if is_repeated:
+									continue
+								var item_name_tmp = table_craft_grid.get_node("Craft"+str(y_other*3+x_other)).item_name
+								if item_name_tmp != "AIR":
+									is_recipe_disrupt = true
+									break
+							if is_recipe_disrupt:
+								break
+						if not is_recipe_disrupt:
+							is_found = true
+							break
+					if is_found:
+						break
+				if is_found:
+					break
+			if is_found:
+				var target_amount = int(splits[1])
+				if StaticLoad.get_is_durable_by_name(item):
+					target_amount = StaticLoad.get_max_amount_by_name(item)
+				table_craft_result_grid.init_inventory_grid(item, target_amount)
+				is_final_found = true
+				break
+	if not is_final_found:
+		table_craft_result_grid.init_inventory_grid("AIR", 0)
+
+func decline_inventory_crafting_material():
+	for y in range(2):
+		for x in range(2):
+			var craft_grid = inventory_craft_grid.get_node("Craft"+str(y*3+x))
+			craft_grid.item_amount -= 1
+			if craft_grid.item_amount <= 0:
+				craft_grid.item_name = "AIR"
+			craft_grid.update_progress_bar(craft_grid.item_name, craft_grid.item_amount)
+			craft_grid.init_inventory_grid(craft_grid.item_name, craft_grid.item_amount)
+			
+func refresh_inventory_crafting_result():
+	var is_final_found = false
+	for item in StaticLoad.crafting_recipe_dict:
+		var recipe_list = StaticLoad.crafting_recipe_dict[item]
+		for recipe in recipe_list:
+			var is_found = false
+			var splits = recipe[0].split("-")
+			var location_list := []
+			if splits[0] == "0":
+				location_list = [Vector2i(0, 0)]
+			elif splits[0] == "1":
+				location_list = [Vector2i(0, 0), Vector2i(0, 1)]
+			elif splits[0] == "2":
+				location_list = [Vector2i(0, 0), Vector2i(1, 0)]
+			#elif splits[0] == "3":
+				#location_list = [Vector2i(0, 0), Vector2i(0, 1), Vector2i(0, 2)]
+			#elif splits[0] == "4":
+				#location_list = [Vector2i(0, 0), Vector2i(1, 0), Vector2i(2, 0)]
+			elif splits[0] == "5":
+				location_list = [Vector2i(0, 0), Vector2i(0, 1), Vector2i(1, 0), Vector2i(1, 1)]
+			#elif splits[0] == "6":
+				#location_list = [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1), Vector2i(1, 1), Vector2i(0, 2), Vector2i(1, 2)]
+			#elif splits[0] == "7":
+				#location_list = [Vector2i(0, 0), Vector2i(1, 0), Vector2i(2, 0), Vector2i(0, 1), Vector2i(1, 1), Vector2i(2, 1)]
+			#elif splits[0] == "8":
+				#location_list = [Vector2i(0, 0), Vector2i(1, 0), Vector2i(2, 0), Vector2i(0, 1), Vector2i(1, 1), Vector2i(2, 1), Vector2i(0, 2), Vector2i(1, 2), Vector2i(2, 2)]
+			if location_list.is_empty():
+				continue
+			for y in range(2):
+				for x in range(2):
+					var is_recipe_matched = true
+					for location_index in range(location_list.size()):
+						var location = location_list[location_index]
+						if location[0]+x >= 2:
+							is_recipe_matched = false
+							break
+						if location[1]+y >= 2:
+							is_recipe_matched = false
+							break
+						var item_name = inventory_craft_grid.get_node("Craft"+str((y+location[1])*3+(x+location[0]))).item_name
+						if item_name != recipe[location_index+1]:
+							is_recipe_matched = false
+							break
+					if is_recipe_matched:
+						var is_recipe_disrupt = false
+						for y_other in range(2):
+							for x_other in range(2):
+								var is_repeated = false
+								for location_tmp in location_list:
+									if location_tmp[0]+x >= 2:
+										continue
+									if location_tmp[1]+y >= 2:
+										continue
+									if x_other == location_tmp[0]+x and y_other == location_tmp[1]+y:
+										is_repeated = true
+										break
+								if is_repeated:
+									continue
+								var item_name_tmp = inventory_craft_grid.get_node("Craft"+str(y_other*3+x_other)).item_name
+								if item_name_tmp != "AIR":
+									is_recipe_disrupt = true
+									break
+							if is_recipe_disrupt:
+								break
+						if not is_recipe_disrupt:
+							is_found = true
+							break
+					if is_found:
+						break
+				if is_found:
+					break
+			if is_found:
+				var target_amount = int(splits[1])
+				if StaticLoad.get_is_durable_by_name(item):
+					target_amount = StaticLoad.get_max_amount_by_name(item)
+				inventory_craft_result_grid.init_inventory_grid(item, target_amount)
+				is_final_found = true
+				break
+	if not is_final_found:
+		inventory_craft_result_grid.init_inventory_grid("AIR", 0)
+
+#func refresh_inventory_crafting_result():
+	#var is_final_found = false
+	#for item in StaticLoad.crafting_recipe_dict:
+		#var recipe_list = StaticLoad.crafting_recipe_dict[item]
+		#for recipe in recipe_list:
+			#var is_found = false
+			#var splits = recipe[0].split("-")
+			#if splits[0] == "0":
+				#for y in range(2):
+					#for x in range(2):
+						#var item_name_0 = inventory_craft_grid.get_node("Craft"+str(y*3+x)).item_name
+						#if item_name_0 == recipe[1]:
+							#var is_recipe_disrupt = false
+							#for y_other in range(2):
+								#for x_other in range(2):
+									#if y_other == y and x_other == x:
+										#continue
+									#var item_name_tmp = inventory_craft_grid.get_node("Craft"+str(y_other*3+x_other)).item_name
+									#if item_name_tmp != "AIR":
+										#is_recipe_disrupt = true
+										#break
+								#if is_recipe_disrupt:
+									#break
+							#if not is_recipe_disrupt:
+								#is_found = true
+								#break
+						#if is_found:
+							#break
+					#if is_found:
+						#break
+				#if is_found:
+					#inventory_craft_result_grid.init_inventory_grid(item, int(splits[1]))
+					#is_final_found = true
+					#break
+	#if not is_final_found:
+		#inventory_craft_result_grid.init_inventory_grid("AIR", 0)
+
 func screenshot():
 	await RenderingServer.frame_post_draw
 	var image = get_viewport().get_texture().get_image()
@@ -1021,18 +1254,25 @@ func _input(event: InputEvent) -> void:
 	
 	if event is InputEventMouseButton:
 		if event.button_index == 2 and event.pressed and not Input.is_mouse_button_pressed(1):
-			if player.in_hand_item_name.contains("SPAWN_EGG"):
+			var mouse_in_world_pos
+			if player.gamemode != "creative":
+				mouse_in_world_pos = get_restricted_block_selection_pos()
+			else:
+				mouse_in_world_pos = tile_map_layer.get_local_mouse_position()
+			var mouse_to_block_pos = tile_map_layer.local_to_map(mouse_in_world_pos)
+			var original_block_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(mouse_to_block_pos))
+			if StaticLoad.get_block_name_by_id(original_block_id) == "CRAFTING_TABLE":
+				if not is_crafting and not is_map and not is_pause and not is_chat and not is_inventory:
+					refresh_crafting_inventory()
+					crafting_ui.visible = true
+					is_input_frozen = true
+					is_crafting = true
+			elif player.in_hand_item_name.contains("SPAWN_EGG") and not is_map and not is_pause and not is_chat and not is_inventory and not is_crafting:
 				var is_can_spawn = true
-				var mouse_in_world_pos
-				if player.gamemode != "creative":
-					mouse_in_world_pos = get_restricted_block_selection_pos()
-				else:
-					mouse_in_world_pos = tile_map_layer.get_local_mouse_position()
-				var mouse_to_block_pos = tile_map_layer.local_to_map(mouse_in_world_pos)
 				if player.gamemode != "creative" and not player.check_attached_block(mouse_to_block_pos, tile_map_layer):
 					is_can_spawn = false
 				else:
-					var original_block_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(mouse_to_block_pos))
+					original_block_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(mouse_to_block_pos))
 					if original_block_id != 0 and not StaticLoad.get_is_transparent_by_id(original_block_id):
 						is_can_spawn = false
 				if is_can_spawn:
@@ -1079,6 +1319,12 @@ func _input(event: InputEvent) -> void:
 			player.stop_move()
 			is_map = false
 			is_input_frozen = false
+		elif is_crafting:
+			crafting_ui.visible = false
+			is_input_frozen = false
+			is_crafting = false
+			mouse_in_inventory_grid = null
+			player.stop_move()
 		elif is_inventory:
 			inventory_ui.visible = false
 			is_input_frozen = false
@@ -1109,6 +1355,13 @@ func _input(event: InputEvent) -> void:
 			player.stop_move()
 			is_map = false
 			is_input_frozen = false
+		elif is_crafting:
+			crafting_ui.visible = false
+			is_input_frozen = false
+			is_crafting = false
+			mouse_in_inventory_grid = null
+			move_input_list.clear()
+			player.stop_move()
 		elif is_inventory:
 			inventory_ui.visible = false
 			is_input_frozen = false
@@ -1129,7 +1382,7 @@ func _input(event: InputEvent) -> void:
 	if Input.is_action_just_pressed("open_map"):
 		if player.is_dead:
 			pass
-		elif is_pause or is_chat or is_inventory:
+		elif is_pause or is_chat or is_inventory or is_crafting:
 			pass
 		elif is_map:
 			mini_map.set_anchors_preset(Control.PRESET_TOP_RIGHT)
@@ -1154,51 +1407,51 @@ func _input(event: InputEvent) -> void:
 			is_map = true
 			is_input_frozen = true
 	
-	if mouse_in_inventory_grid != null and mouse_in_inventory_grid.name.contains("InfiniteGrid") and is_inventory and player != null and player.gamemode == "creative":
+	if mouse_in_inventory_grid != null and mouse_in_inventory_grid.name.contains("InfiniteGrid") and (is_inventory or is_crafting) and player != null and player.gamemode == "creative":
 		if Input.is_action_just_pressed("select_item_grid_1"):
 			player.item_bar_names[0] = mouse_in_inventory_grid.item_name
 			player.item_bar_amounts[0] = StaticLoad.get_max_amount_by_name(mouse_in_inventory_grid.item_name)
-			refresh_single_inventory_grid(0)
+			refresh_single_inventory_grid(0, "inventory")
 			refresh_item_grid(0)
 		if Input.is_action_just_pressed("select_item_grid_2"):
 			player.item_bar_names[1] = mouse_in_inventory_grid.item_name
 			player.item_bar_amounts[1] = StaticLoad.get_max_amount_by_name(mouse_in_inventory_grid.item_name)
-			refresh_single_inventory_grid(1)
+			refresh_single_inventory_grid(1, "inventory")
 			refresh_item_grid(1)
 		if Input.is_action_just_pressed("select_item_grid_3"):
 			player.item_bar_names[2] = mouse_in_inventory_grid.item_name
 			player.item_bar_amounts[2] = StaticLoad.get_max_amount_by_name(mouse_in_inventory_grid.item_name)
-			refresh_single_inventory_grid(2)
+			refresh_single_inventory_grid(2, "inventory")
 			refresh_item_grid(2)
 		if Input.is_action_just_pressed("select_item_grid_4"):
 			player.item_bar_names[3] = mouse_in_inventory_grid.item_name
 			player.item_bar_amounts[3] = StaticLoad.get_max_amount_by_name(mouse_in_inventory_grid.item_name)
-			refresh_single_inventory_grid(3)
+			refresh_single_inventory_grid(3, "inventory")
 			refresh_item_grid(3)
 		if Input.is_action_just_pressed("select_item_grid_5"):
 			player.item_bar_names[4] = mouse_in_inventory_grid.item_name
 			player.item_bar_amounts[4] = StaticLoad.get_max_amount_by_name(mouse_in_inventory_grid.item_name)
-			refresh_single_inventory_grid(4)
+			refresh_single_inventory_grid(4, "inventory")
 			refresh_item_grid(4)
 		if Input.is_action_just_pressed("select_item_grid_6"):
 			player.item_bar_names[5] = mouse_in_inventory_grid.item_name
 			player.item_bar_amounts[5] = StaticLoad.get_max_amount_by_name(mouse_in_inventory_grid.item_name)
-			refresh_single_inventory_grid(5)
+			refresh_single_inventory_grid(5, "inventory")
 			refresh_item_grid(5)
 		if Input.is_action_just_pressed("select_item_grid_7"):
 			player.item_bar_names[6] = mouse_in_inventory_grid.item_name
 			player.item_bar_amounts[6] = StaticLoad.get_max_amount_by_name(mouse_in_inventory_grid.item_name)
-			refresh_single_inventory_grid(6)
+			refresh_single_inventory_grid(6, "inventory")
 			refresh_item_grid(6)
 		if Input.is_action_just_pressed("select_item_grid_8"):
 			player.item_bar_names[7] = mouse_in_inventory_grid.item_name
 			player.item_bar_amounts[7] = StaticLoad.get_max_amount_by_name(mouse_in_inventory_grid.item_name)
-			refresh_single_inventory_grid(7)
+			refresh_single_inventory_grid(7, "inventory")
 			refresh_item_grid(7)
 		if Input.is_action_just_pressed("select_item_grid_9"):
 			player.item_bar_names[8] = mouse_in_inventory_grid.item_name
 			player.item_bar_amounts[8] = StaticLoad.get_max_amount_by_name(mouse_in_inventory_grid.item_name)
-			refresh_single_inventory_grid(8)
+			refresh_single_inventory_grid(8, "inventory")
 			refresh_item_grid(8)
 	
 	if is_input_frozen:
@@ -1445,7 +1698,7 @@ func process_mouse_action():
 		return
 	var mouse_in_world_pos = tile_map_layer.get_local_mouse_position()
 	var mouse_to_block_pos = tile_map_layer.local_to_map(mouse_in_world_pos)
-	if not is_map and not is_pause and not is_chat and not is_inventory:
+	if not is_map and not is_pause and not is_chat and not is_inventory and not is_crafting:
 		if not Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
 			if player.is_pulling:
 				player.is_pulling = false
@@ -1455,6 +1708,10 @@ func process_mouse_action():
 					player.shoot_arrow()
 					player.shoot_timer = 0
 					player.last_shoot_stage = -1
+			elif player.is_eating:
+				player.is_eating = false
+				player.last_eat_stage = -1
+				player.eat_timer = 0
 		if Input.is_mouse_button_pressed(1) and not Input.is_mouse_button_pressed(2):
 			if StaticLoad.tools_type.has(player.in_hand_item_name) and StaticLoad.tools_type[player.in_hand_item_name].has("sword"):
 				if player.attack_timer <= 0:
@@ -1468,6 +1725,9 @@ func process_mouse_action():
 		elif Input.is_mouse_button_pressed(2) and not Input.is_mouse_button_pressed(1):
 			if player.in_hand_item_name.contains("SPAWN_EGG"):
 				pass
+			elif StaticLoad.food_dict.has(player.in_hand_item_name):
+				if not player.is_eating and player.gamemode != "creative" and player.hunger < 20:
+					player.is_eating = true
 			elif player.in_hand_item_name.contains("BOW"):
 				if player.gamemode != "creative" and not player.item_bar_names.has("ARROW"):
 					pass
@@ -1958,6 +2218,8 @@ func process_entity_spawn():
 			var undead_count: int = 0
 			if current_sky_light <= 223:
 				for uuid in loaded_chunks[chunk_name].entity_list:
+					if entities[uuid] == null:
+						continue
 					if StaticLoad.undead_mob_list.has(entities[uuid].get_entity_type()):
 						undead_count += 1
 			for y in range(16):
@@ -1996,7 +2258,7 @@ func process_entity_spawn():
 						is_spawned = true
 						break
 					elif self_light >= 112:
-						if loaded_chunks[chunk_name].entity_list.size() >= 2:
+						if loaded_chunks[chunk_name].entity_list.size() >= 1:
 							continue
 						var rng = RandomNumberGenerator.new()
 						var num = rng.randf()
@@ -2137,7 +2399,7 @@ func update_local_player_data():
 		move_input_list.push_back("left")
 		var current_time = Time.get_ticks_msec() / 1000.0
 		if current_time - last_left_time < StaticLoad.DOUBLE_CLICK_THRESHOLD:
-			if not player.is_sneaking:
+			if not player.is_sneaking and player.hunger > 6:
 				player.move_state = "run"
 			else:
 				player.move_state = "walk"
@@ -2153,7 +2415,7 @@ func update_local_player_data():
 		move_input_list.push_back("right")
 		var current_time = Time.get_ticks_msec() / 1000.0
 		if current_time - last_right_time < StaticLoad.DOUBLE_CLICK_THRESHOLD:
-			if not player.is_sneaking:
+			if not player.is_sneaking and player.hunger > 6:
 				player.move_state = "run"
 			else:
 				player.move_state = "walk"
@@ -2875,35 +3137,30 @@ func save_world():
 	level.save_encrypted_pass(StaticLoad.world_path+"/level.dat", StaticLoad.CONFIG_PASSWORD)
 
 func save_player(peer_id = 0):
+	var player_tmp
+	var player_config = ConfigFile.new()
 	if peer_id == 0:
 		for id in StaticLoad.player_peer_dict:
-			var player_tmp = StaticLoad.player_peer_dict[id]
+			player_tmp = StaticLoad.player_peer_dict[id]
 			if player_tmp.is_dead:
 				player_tmp.respawn(false)
-			var player_config = ConfigFile.new()
+			
 			if player_tmp.gamemode != "creative":
 				player_tmp.is_flying = false
-			player_config.set_value("player", "position", player_tmp.position)
-			player_config.set_value("player", "face_state", player_tmp.face_state)
-			player_config.set_value("player", "is_flying", player_tmp.is_flying)
-			player_config.set_value("player", "gamemode", player_tmp.gamemode)
-			player_config.set_value("player", "health", player_tmp.health)
-			player_config.set_value("player", "item_bar_names", player_tmp.item_bar_names)
-			player_config.set_value("player", "item_bar_amounts", player_tmp.item_bar_amounts)
-			player_config.save_encrypted_pass(StaticLoad.player_path+"/"+player_tmp.player_name.to_lower()+".dat", StaticLoad.CONFIG_PASSWORD)
 	else:
-		var player_tmp = StaticLoad.player_peer_dict[peer_id]
-		var player_config = ConfigFile.new()
+		player_tmp = StaticLoad.player_peer_dict[peer_id]
 		if player_tmp.gamemode != "creative":
 			player_tmp.is_flying = false
-		player_config.set_value("player", "position", player_tmp.position)
-		player_config.set_value("player", "face_state", player_tmp.face_state)
-		player_config.set_value("player", "is_flying", player_tmp.is_flying)
-		player_config.set_value("player", "gamemode", player_tmp.gamemode)
-		player_config.set_value("player", "health", player_tmp.health)
-		player_config.set_value("player", "item_bar_names", player_tmp.item_bar_names)
-		player_config.set_value("player", "item_bar_amounts", player_tmp.item_bar_amounts)
-		player_config.save_encrypted_pass(StaticLoad.player_path+"/"+player_tmp.player_name.to_lower()+".dat", StaticLoad.CONFIG_PASSWORD)
+	player_config.set_value("player", "position", player_tmp.position)
+	player_config.set_value("player", "face_state", player_tmp.face_state)
+	player_config.set_value("player", "is_flying", player_tmp.is_flying)
+	player_config.set_value("player", "gamemode", player_tmp.gamemode)
+	player_config.set_value("player", "health", player_tmp.health)
+	player_config.set_value("player", "hunger", player_tmp.hunger)
+	player_config.set_value("player", "effect_dict", player_tmp.effect_dict)
+	player_config.set_value("player", "item_bar_names", player_tmp.item_bar_names)
+	player_config.set_value("player", "item_bar_amounts", player_tmp.item_bar_amounts)
+	player_config.save_encrypted_pass(StaticLoad.player_path+"/"+player_tmp.player_name.to_lower()+".dat", StaticLoad.CONFIG_PASSWORD)
 
 func save_chunk(chunk_pos: Vector2i):
 	var mca = ConfigFile.new()
@@ -2982,7 +3239,7 @@ func save_chunk(chunk_pos: Vector2i):
 
 func select_item_grid(grid_name) -> void:
 	if str(grid_name) == "More":
-		if is_inventory:
+		if is_inventory or is_crafting:
 			return
 		StaticLoad.click_audio_player.play()
 		inventory_ui.visible = true
@@ -2995,6 +3252,11 @@ func select_item_grid(grid_name) -> void:
 		@warning_ignore("confusable_local_declaration")
 		item_grids[i].get_node("SelectBar").visible = false
 	var sort = int(str(grid_name))-1
+	if player.selected_item_grid != sort:
+		if player.is_eating:
+			player.is_eating = false
+			player.eat_timer = 0
+			player.last_eat_stage = -1
 	player.selected_item_grid = sort
 	item_grids[sort].get_node("SelectBar").visible = true
 	var select_item_name = player.item_bar_names[sort]
@@ -3014,24 +3276,36 @@ func select_item_grid(grid_name) -> void:
 	item_name_label.text = player.item_bar_names[sort]
 	item_name_timer = StaticLoad.ITEM_NAME_SHOW_TIME
 
-func refresh_single_inventory_grid(sort):
+func refresh_single_inventory_grid(sort, type):
+	var inventory_show_grids_tmp
+	var inventory_back_grids_tmp
+	if type == "inventory":
+		inventory_show_grids_tmp = inventory_show_grids
+		inventory_back_grids_tmp = inventory_back_grids
+	elif type == "crafting":
+		inventory_show_grids_tmp = crafting_inventory_show_grids
+		inventory_back_grids_tmp = crafting_inventory_back_grids
 	if sort >= 0 and sort < 9:
 		var item_name = player.item_bar_names[sort]
 		var item_amount = player.item_bar_amounts[sort]
 		@warning_ignore("shadowed_variable")
-		var inventory_grid = inventory_show_grids.get_node("InventoryGrid"+str(sort))
+		var inventory_grid = inventory_show_grids_tmp.get_node("InventoryGrid"+str(sort))
 		inventory_grid.init_inventory_grid(item_name, item_amount)
 	elif sort >= 9:
 		var item_name = player.item_bar_names[sort]
 		var item_amount = player.item_bar_amounts[sort]
 		@warning_ignore("shadowed_variable")
-		var inventory_grid = inventory_back_grids.get_node("InventoryGrid"+str(sort))
+		var inventory_grid = inventory_back_grids_tmp.get_node("InventoryGrid"+str(sort))
 		inventory_grid.init_inventory_grid(item_name, item_amount)
 
 func refresh_inventory():
 	for i in range(0, 36):
-		refresh_single_inventory_grid(i)
-		
+		refresh_single_inventory_grid(i, "inventory")
+
+func refresh_crafting_inventory():
+	for i in range(0, 36):
+		refresh_single_inventory_grid(i, "crafting")
+
 func init_inventory():
 	refresh_inventory()
 	for i in range(9):
@@ -3045,6 +3319,13 @@ func touch_button(button_name):
 		await get_tree().create_timer(0.01).timeout
 		inventory_ui.visible = false
 		is_inventory = false
+		is_input_frozen = false
+		move_input_list.clear()
+		player.stop_move()
+	if button_name == "CraftingCloseButton":
+		await get_tree().create_timer(0.01).timeout
+		crafting_ui.visible = false
+		is_crafting = false
 		is_input_frozen = false
 		move_input_list.clear()
 		player.stop_move()
@@ -3399,11 +3680,52 @@ func _on_inventory_ui_dark_mask_gui_input(event: InputEvent) -> void:
 			player.mouse_item_amount = 0
 
 func _on_inventory_ui_hidden() -> void:
+	var is_to_pop = false
 	if player.mouse_item_amount > 0:
-		sound_audio_manager.play_audio_static("player", "pop")
 		player.drop_item(player.mouse_item_name, player.mouse_item_amount)
 		player.mouse_item_name = "AIR"
 		player.mouse_item_amount = 0
+		is_to_pop = true
+	var pop_item_dict = {}
+	for y in range(2):
+		for x in range(2):
+			var craft_grid = inventory_craft_grid.get_node("Craft"+str(y*3+x))
+			if craft_grid.item_name == "AIR":
+				continue
+			if not pop_item_dict.has(craft_grid.item_name):
+				pop_item_dict[craft_grid.item_name] = craft_grid.item_amount
+			else:
+				pop_item_dict[craft_grid.item_name] += craft_grid.item_amount
+			craft_grid.init_inventory_grid("AIR", 0)
+			is_to_pop = true
+	for item in pop_item_dict:
+		player.drop_item(item, pop_item_dict[item])
+	if is_to_pop:
+		sound_audio_manager.play_audio_static("player", "pop")
+
+func _on_crafting_ui_hidden() -> void:
+	var is_to_pop = false
+	if player.mouse_item_amount > 0:
+		player.drop_item(player.mouse_item_name, player.mouse_item_amount)
+		player.mouse_item_name = "AIR"
+		player.mouse_item_amount = 0
+		is_to_pop = true
+	var pop_item_dict = {}
+	for y in range(3):
+		for x in range(3):
+			var craft_grid = table_craft_grid.get_node("Craft"+str(y*3+x))
+			if craft_grid.item_name == "AIR":
+				continue
+			if not pop_item_dict.has(craft_grid.item_name):
+				pop_item_dict[craft_grid.item_name] = craft_grid.item_amount
+			else:
+				pop_item_dict[craft_grid.item_name] += craft_grid.item_amount
+			craft_grid.init_inventory_grid("AIR", 0)
+			is_to_pop = true
+	for item in pop_item_dict:
+		player.drop_item(item, pop_item_dict[item])
+	if is_to_pop:
+		sound_audio_manager.play_audio_static("player", "pop")
 
 func _on_inventory_ui_visibility_changed() -> void:
 	if player.gamemode != "creative":

@@ -11,7 +11,7 @@
 		"block_selection_box": "show_when_changing",
 		"full_screen": "off",
 		"auto_jump": "on",
-		"particle_effect": "on",
+		"particle_effect": "off",
 		"v_sync": "on",
 		"mini_map": "on",
 		"mini_map_zoom": 50,

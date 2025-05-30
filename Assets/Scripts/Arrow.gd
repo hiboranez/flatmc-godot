@@ -215,15 +215,20 @@ func destroy_entity(args):
 			StaticLoad.game.loaded_chunks[str(chunk_pos[0])+"."+str(chunk_pos[1])].entity_list.erase(uuid)
 	queue_free()
 
+func hit_block(args):
+	StaticLoad.game.sound_audio_manager.play_random_audio_at_position("random", "bow_hit", position, 1)
+	is_block_attached = true
+	velocity = Vector2(0, 0)
+
 func _on_collide_area_body_entered(body: Node2D) -> void:
 	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
 		return
 	if is_entity_hit:
 		return
 	if body.name == "TileMapLayer":
-		StaticLoad.game.sound_audio_manager.play_random_audio_at_position("random", "bow_hit", position, 1)
-		is_block_attached = true
-		velocity = Vector2(0, 0)
+		hit_block([])
+		if StaticLoad.is_muti_mode:
+			StaticLoad.rpc_entity_func_by_uuid(uuid, hit_block, [], "others", true)
 	if not body.has_method("get_uuid"):
 		return
 	if body.get_uuid() == null:

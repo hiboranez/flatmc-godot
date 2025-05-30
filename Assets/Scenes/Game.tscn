@@ -1,4 +1,4 @@
-[gd_scene load_steps=124 format=4 uid="uid://2hv5eany3vpf"]
+[gd_scene load_steps=131 format=4 uid="uid://2hv5eany3vpf"]
 
 [ext_resource type="Script" path="res://Assets/Scripts/Game.gd" id="1_ctu8j"]
 [ext_resource type="Script" path="res://Assets/Scripts/BgmAudioPlayer.gd" id="2_gyse0"]
@@ -47,8 +47,15 @@
 [ext_resource type="Texture2D" uid="uid://4xb0w6so7sy1" path="res://Assets/Textures/GUI/item_bar_left.png" id="21_mtss6"]
 [ext_resource type="Texture2D" uid="uid://cs3fok1sy1875" path="res://Assets/Textures/GUI/hotbar_attack_indicator_background.png" id="24_rsqfj"]
 [ext_resource type="Shader" path="res://Assets/Shaders/VProgress.gdshader" id="25_q208f"]
+[ext_resource type="Script" path="res://Assets/Scripts/HungerBar.gd" id="26_75dcn"]
 [ext_resource type="Texture2D" uid="uid://dk0idgw4v2ve2" path="res://Assets/Textures/GUI/item_bar_right.png" id="26_anhwf"]
+[ext_resource type="Texture2D" uid="uid://bvpnht645lbjk" path="res://Assets/Textures/GUI/empty_hunger.png" id="26_e6e2y"]
 [ext_resource type="Texture2D" uid="uid://2bluohf2j7v0" path="res://Assets/Textures/GUI/hotbar_attack_indicator_progress.png" id="26_ivk6m"]
+[ext_resource type="Texture2D" uid="uid://vutqtrlf4jep" path="res://Assets/Textures/GUI/empty_hunger.tres" id="27_7tl52"]
+[ext_resource type="Texture2D" uid="uid://0bdl2cih0wwr" path="res://Assets/Textures/GUI/half_hunger.png" id="27_hg5mj"]
+[ext_resource type="Texture2D" uid="uid://cw4hajmw2amfp" path="res://Assets/Textures/GUI/half_hunger.tres" id="28_3yyn6"]
+[ext_resource type="Texture2D" uid="uid://brqtbd5fcst4m" path="res://Assets/Textures/GUI/full_hunger.png" id="28_ws6tm"]
+[ext_resource type="Texture2D" uid="uid://jb117pr4fbf" path="res://Assets/Textures/GUI/full_hunger.tres" id="29_ik3dr"]
 [ext_resource type="PackedScene" uid="uid://dx77wbim6mom7" path="res://Assets/Scenes/ItemInHand.tscn" id="30_shd7e"]
 [ext_resource type="Theme" uid="uid://do1xfdxltcv20" path="res://Assets/Themes/gui_theme.tres" id="31_nincb"]
 [ext_resource type="Texture2D" uid="uid://5usjvr6nn8e1" path="res://Assets/Textures/GUI/tab_panel_right.png" id="35_p3vs0"]
@@ -2560,9 +2567,9 @@ layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -25.0
+offset_left = -576.0
 offset_top = 8.0
-offset_right = 25.0
+offset_right = -40.0
 offset_bottom = 58.0
 grow_horizontal = 2
 columns = 10
@@ -2926,6 +2933,409 @@ offset_bottom = 19.0
 grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("19_olvt3")
+expand_mode = 1
+
+[node name="HungerBar" type="GridContainer" parent="GameUI/ItemBarPanel"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = 40.0
+offset_top = 8.0
+offset_right = 576.0
+offset_bottom = 58.0
+grow_horizontal = 2
+columns = 10
+script = ExtResource("26_75dcn")
+
+[node name="EmptyHunger1" type="TextureRect" parent="GameUI/ItemBarPanel/HungerBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+texture = ExtResource("27_7tl52")
+expand_mode = 5
+
+[node name="HalfHunger" type="TextureRect" parent="GameUI/ItemBarPanel/HungerBar/EmptyHunger1"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -15.325
+offset_top = -19.425
+offset_right = 19.705
+offset_bottom = 18.575
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("28_3yyn6")
+expand_mode = 1
+
+[node name="FullHunger" type="TextureRect" parent="GameUI/ItemBarPanel/HungerBar/EmptyHunger1"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -19.83
+offset_top = -19.0
+offset_right = 19.84
+offset_bottom = 19.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("29_ik3dr")
+expand_mode = 1
+
+[node name="EmptyHunger2" type="TextureRect" parent="GameUI/ItemBarPanel/HungerBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+texture = ExtResource("26_e6e2y")
+expand_mode = 5
+
+[node name="HalfHunger" type="TextureRect" parent="GameUI/ItemBarPanel/HungerBar/EmptyHunger2"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -15.325
+offset_top = -19.425
+offset_right = 19.705
+offset_bottom = 18.575
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("27_hg5mj")
+expand_mode = 1
+
+[node name="FullHunger" type="TextureRect" parent="GameUI/ItemBarPanel/HungerBar/EmptyHunger2"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -19.83
+offset_top = -19.0
+offset_right = 19.84
+offset_bottom = 19.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("28_ws6tm")
+expand_mode = 1
+
+[node name="EmptyHunger3" type="TextureRect" parent="GameUI/ItemBarPanel/HungerBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+texture = ExtResource("26_e6e2y")
+expand_mode = 5
+
+[node name="HalfHunger" type="TextureRect" parent="GameUI/ItemBarPanel/HungerBar/EmptyHunger3"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -15.325
+offset_top = -19.425
+offset_right = 19.705
+offset_bottom = 18.575
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("27_hg5mj")
+expand_mode = 1
+
+[node name="FullHunger" type="TextureRect" parent="GameUI/ItemBarPanel/HungerBar/EmptyHunger3"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -19.83
+offset_top = -19.0
+offset_right = 19.84
+offset_bottom = 19.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("28_ws6tm")
+expand_mode = 1
+
+[node name="EmptyHunger4" type="TextureRect" parent="GameUI/ItemBarPanel/HungerBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+texture = ExtResource("26_e6e2y")
+expand_mode = 5
+
+[node name="HalfHunger" type="TextureRect" parent="GameUI/ItemBarPanel/HungerBar/EmptyHunger4"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -15.325
+offset_top = -19.425
+offset_right = 19.705
+offset_bottom = 18.575
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("27_hg5mj")
+expand_mode = 1
+
+[node name="FullHunger" type="TextureRect" parent="GameUI/ItemBarPanel/HungerBar/EmptyHunger4"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -19.83
+offset_top = -19.0
+offset_right = 19.84
+offset_bottom = 19.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("28_ws6tm")
+expand_mode = 1
+
+[node name="EmptyHunger5" type="TextureRect" parent="GameUI/ItemBarPanel/HungerBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+texture = ExtResource("26_e6e2y")
+expand_mode = 5
+
+[node name="HalfHunger" type="TextureRect" parent="GameUI/ItemBarPanel/HungerBar/EmptyHunger5"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -15.325
+offset_top = -19.425
+offset_right = 19.705
+offset_bottom = 18.575
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("27_hg5mj")
+expand_mode = 1
+
+[node name="FullHunger" type="TextureRect" parent="GameUI/ItemBarPanel/HungerBar/EmptyHunger5"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -19.83
+offset_top = -19.0
+offset_right = 19.84
+offset_bottom = 19.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("28_ws6tm")
+expand_mode = 1
+
+[node name="EmptyHunger6" type="TextureRect" parent="GameUI/ItemBarPanel/HungerBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+texture = ExtResource("26_e6e2y")
+expand_mode = 5
+
+[node name="HalfHunger" type="TextureRect" parent="GameUI/ItemBarPanel/HungerBar/EmptyHunger6"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -15.325
+offset_top = -19.425
+offset_right = 19.705
+offset_bottom = 18.575
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("27_hg5mj")
+expand_mode = 1
+
+[node name="FullHunger" type="TextureRect" parent="GameUI/ItemBarPanel/HungerBar/EmptyHunger6"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -19.83
+offset_top = -19.0
+offset_right = 19.84
+offset_bottom = 19.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("28_ws6tm")
+expand_mode = 1
+
+[node name="EmptyHunger7" type="TextureRect" parent="GameUI/ItemBarPanel/HungerBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+texture = ExtResource("26_e6e2y")
+expand_mode = 5
+
+[node name="HalfHunger" type="TextureRect" parent="GameUI/ItemBarPanel/HungerBar/EmptyHunger7"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -15.325
+offset_top = -19.425
+offset_right = 19.705
+offset_bottom = 18.575
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("27_hg5mj")
+expand_mode = 1
+
+[node name="FullHunger" type="TextureRect" parent="GameUI/ItemBarPanel/HungerBar/EmptyHunger7"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -19.83
+offset_top = -19.0
+offset_right = 19.84
+offset_bottom = 19.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("28_ws6tm")
+expand_mode = 1
+
+[node name="EmptyHunger8" type="TextureRect" parent="GameUI/ItemBarPanel/HungerBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+texture = ExtResource("26_e6e2y")
+expand_mode = 5
+
+[node name="HalfHunger" type="TextureRect" parent="GameUI/ItemBarPanel/HungerBar/EmptyHunger8"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -15.325
+offset_top = -19.425
+offset_right = 19.705
+offset_bottom = 18.575
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("27_hg5mj")
+expand_mode = 1
+
+[node name="FullHunger" type="TextureRect" parent="GameUI/ItemBarPanel/HungerBar/EmptyHunger8"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -19.83
+offset_top = -19.0
+offset_right = 19.84
+offset_bottom = 19.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("28_ws6tm")
+expand_mode = 1
+
+[node name="EmptyHunger9" type="TextureRect" parent="GameUI/ItemBarPanel/HungerBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+texture = ExtResource("26_e6e2y")
+expand_mode = 5
+
+[node name="HalfHunger" type="TextureRect" parent="GameUI/ItemBarPanel/HungerBar/EmptyHunger9"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -15.325
+offset_top = -19.425
+offset_right = 19.705
+offset_bottom = 18.575
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("27_hg5mj")
+expand_mode = 1
+
+[node name="FullHunger" type="TextureRect" parent="GameUI/ItemBarPanel/HungerBar/EmptyHunger9"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -19.83
+offset_top = -19.0
+offset_right = 19.84
+offset_bottom = 19.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("28_ws6tm")
+expand_mode = 1
+
+[node name="EmptyHunger10" type="TextureRect" parent="GameUI/ItemBarPanel/HungerBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+texture = ExtResource("26_e6e2y")
+expand_mode = 5
+
+[node name="HalfHunger" type="TextureRect" parent="GameUI/ItemBarPanel/HungerBar/EmptyHunger10"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -15.325
+offset_top = -19.425
+offset_right = 19.705
+offset_bottom = 18.575
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("27_hg5mj")
+expand_mode = 1
+
+[node name="FullHunger" type="TextureRect" parent="GameUI/ItemBarPanel/HungerBar/EmptyHunger10"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -19.83
+offset_top = -19.0
+offset_right = 19.84
+offset_bottom = 19.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("28_ws6tm")
 expand_mode = 1
 
 [node name="ItemNameLabel" type="Label" parent="GameUI/ItemBarPanel"]
@@ -3859,6 +4269,7 @@ offset_right = 524.0
 offset_bottom = 507.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 0
 texture = ExtResource("18_1usby")
 
 [node name="InventoryPanel" type="TextureRect" parent="GameUI/InventoryUI/Panel"]
@@ -3889,7 +4300,7 @@ offset_left = 842.0
 offset_top = 221.0
 offset_right = 942.0
 offset_bottom = 321.0
-slot_function = "craft_result"
+slot_function = "inventory_craft_result"
 
 [node name="ArrowPanel" type="TextureRect" parent="GameUI/InventoryUI/Panel/InventoryPanel/Crafting"]
 layout_mode = 0
@@ -3911,19 +4322,19 @@ columns = 2
 
 [node name="Craft3" parent="GameUI/InventoryUI/Panel/InventoryPanel/Crafting/GridContainer" instance=ExtResource("16_bad8v")]
 layout_mode = 2
-slot_function = "craft_3"
+slot_function = "inventory_craft_3"
 
 [node name="Craft4" parent="GameUI/InventoryUI/Panel/InventoryPanel/Crafting/GridContainer" instance=ExtResource("16_bad8v")]
 layout_mode = 2
-slot_function = "craft_4"
+slot_function = "inventory_craft_4"
 
 [node name="Craft0" parent="GameUI/InventoryUI/Panel/InventoryPanel/Crafting/GridContainer" instance=ExtResource("16_bad8v")]
 layout_mode = 2
-slot_function = "craft_0"
+slot_function = "inventory_craft_0"
 
 [node name="Craft1" parent="GameUI/InventoryUI/Panel/InventoryPanel/Crafting/GridContainer" instance=ExtResource("16_bad8v")]
 layout_mode = 2
-slot_function = "craft_1"
+slot_function = "inventory_craft_1"
 
 [node name="Player" type="ColorRect" parent="GameUI/InventoryUI/Panel/InventoryPanel"]
 layout_mode = 0
@@ -4553,6 +4964,348 @@ offset_bottom = 50.0
 grow_horizontal = 2
 grow_vertical = 2
 slot_function = "delete"
+
+[node name="CraftingUI" type="ColorRect" parent="GameUI"]
+visible = false
+z_index = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_force_pass_scroll_events = false
+color = Color(0, 0, 0, 0.705882)
+
+[node name="Panel" type="TextureRect" parent="GameUI/CraftingUI"]
+z_index = 1
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -524.0
+offset_top = -518.0
+offset_right = 524.0
+offset_bottom = 507.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+texture = ExtResource("18_1usby")
+
+[node name="InventoryPanel" type="TextureRect" parent="GameUI/CraftingUI/Panel"]
+z_index = 1
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -524.0
+offset_top = -512.5
+offset_right = 524.0
+offset_bottom = 512.5
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("18_1usby")
+
+[node name="Crafting" type="Control" parent="GameUI/CraftingUI/Panel/InventoryPanel"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -20.0
+offset_right = 20.0
+offset_bottom = 40.0
+grow_horizontal = 2
+
+[node name="TitleLable" type="Label" parent="GameUI/CraftingUI/Panel/InventoryPanel/Crafting"]
+light_mask = 4
+z_index = 2
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -352.0
+offset_top = 58.0
+offset_right = 80.0
+offset_bottom = 129.0
+grow_horizontal = 2
+size_flags_horizontal = 6
+size_flags_vertical = 0
+localize_numeral_system = false
+mouse_filter = 1
+theme_override_colors/font_color = Color(0.215686, 0.215686, 0.215686, 1)
+theme_override_fonts/font = ExtResource("4_nsj5b")
+theme_override_font_sizes/font_size = 45
+theme_override_styles/normal = SubResource("StyleBoxEmpty_eci0f")
+text = "CRAFTING"
+vertical_alignment = 1
+
+[node name="InventoryLable" type="Label" parent="GameUI/CraftingUI/Panel/InventoryPanel/Crafting"]
+light_mask = 4
+z_index = 2
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -448.0
+offset_top = 458.0
+offset_right = 448.0
+offset_bottom = 529.0
+grow_horizontal = 2
+size_flags_horizontal = 6
+size_flags_vertical = 0
+localize_numeral_system = false
+mouse_filter = 1
+theme_override_colors/font_color = Color(0.215686, 0.215686, 0.215686, 1)
+theme_override_fonts/font = ExtResource("4_nsj5b")
+theme_override_font_sizes/font_size = 45
+theme_override_styles/normal = SubResource("StyleBoxEmpty_eci0f")
+text = "INVENTORY"
+vertical_alignment = 1
+
+[node name="CraftResult" parent="GameUI/CraftingUI/Panel/InventoryPanel/Crafting" instance=ExtResource("16_bad8v")]
+layout_mode = 0
+offset_left = 268.0
+offset_top = 226.0
+offset_right = 368.0
+offset_bottom = 326.0
+slot_function = "table_craft_result"
+
+[node name="ArrowPanel" type="TextureRect" parent="GameUI/CraftingUI/Panel/InventoryPanel/Crafting"]
+layout_mode = 0
+offset_left = 36.0
+offset_top = 218.0
+offset_right = 202.0
+offset_bottom = 335.0
+texture = ExtResource("17_1hju8")
+
+[node name="GridContainer" type="GridContainer" parent="GameUI/CraftingUI/Panel/InventoryPanel/Crafting"]
+layout_mode = 0
+offset_left = -332.0
+offset_top = 130.0
+offset_right = -32.0
+offset_bottom = 430.0
+theme_override_constants/h_separation = 0
+theme_override_constants/v_separation = 0
+columns = 3
+
+[node name="Craft6" parent="GameUI/CraftingUI/Panel/InventoryPanel/Crafting/GridContainer" instance=ExtResource("16_bad8v")]
+layout_mode = 2
+slot_function = "table_craft_6"
+
+[node name="Craft7" parent="GameUI/CraftingUI/Panel/InventoryPanel/Crafting/GridContainer" instance=ExtResource("16_bad8v")]
+layout_mode = 2
+slot_function = "table_craft_7"
+
+[node name="Craft8" parent="GameUI/CraftingUI/Panel/InventoryPanel/Crafting/GridContainer" instance=ExtResource("16_bad8v")]
+layout_mode = 2
+slot_function = "table_craft_8"
+
+[node name="Craft3" parent="GameUI/CraftingUI/Panel/InventoryPanel/Crafting/GridContainer" instance=ExtResource("16_bad8v")]
+layout_mode = 2
+slot_function = "table_craft_3"
+
+[node name="Craft4" parent="GameUI/CraftingUI/Panel/InventoryPanel/Crafting/GridContainer" instance=ExtResource("16_bad8v")]
+layout_mode = 2
+slot_function = "table_craft_4"
+
+[node name="Craft5" parent="GameUI/CraftingUI/Panel/InventoryPanel/Crafting/GridContainer" instance=ExtResource("16_bad8v")]
+layout_mode = 2
+slot_function = "table_craft_5"
+
+[node name="Craft0" parent="GameUI/CraftingUI/Panel/InventoryPanel/Crafting/GridContainer" instance=ExtResource("16_bad8v")]
+layout_mode = 2
+slot_function = "table_craft_0"
+
+[node name="Craft1" parent="GameUI/CraftingUI/Panel/InventoryPanel/Crafting/GridContainer" instance=ExtResource("16_bad8v")]
+layout_mode = 2
+slot_function = "table_craft_1"
+
+[node name="Craft2" parent="GameUI/CraftingUI/Panel/InventoryPanel/Crafting/GridContainer" instance=ExtResource("16_bad8v")]
+layout_mode = 2
+slot_function = "table_craft_2"
+
+[node name="Inventory" type="Control" parent="GameUI/CraftingUI/Panel/InventoryPanel"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -20.0
+offset_top = -348.88
+offset_right = 20.0
+offset_bottom = -308.88
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="InventoryBackContainer" type="FlowContainer" parent="GameUI/CraftingUI/Panel/InventoryPanel/Inventory"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -450.0
+offset_top = -166.0
+offset_right = 450.0
+offset_bottom = 134.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/h_separation = 0
+theme_override_constants/v_separation = 0
+
+[node name="InventoryGrid9" parent="GameUI/CraftingUI/Panel/InventoryPanel/Inventory/InventoryBackContainer" instance=ExtResource("16_bad8v")]
+layout_mode = 2
+
+[node name="InventoryGrid10" parent="GameUI/CraftingUI/Panel/InventoryPanel/Inventory/InventoryBackContainer" instance=ExtResource("16_bad8v")]
+layout_mode = 2
+
+[node name="InventoryGrid11" parent="GameUI/CraftingUI/Panel/InventoryPanel/Inventory/InventoryBackContainer" instance=ExtResource("16_bad8v")]
+layout_mode = 2
+
+[node name="InventoryGrid12" parent="GameUI/CraftingUI/Panel/InventoryPanel/Inventory/InventoryBackContainer" instance=ExtResource("16_bad8v")]
+layout_mode = 2
+
+[node name="InventoryGrid13" parent="GameUI/CraftingUI/Panel/InventoryPanel/Inventory/InventoryBackContainer" instance=ExtResource("16_bad8v")]
+layout_mode = 2
+
+[node name="InventoryGrid14" parent="GameUI/CraftingUI/Panel/InventoryPanel/Inventory/InventoryBackContainer" instance=ExtResource("16_bad8v")]
+layout_mode = 2
+
+[node name="InventoryGrid15" parent="GameUI/CraftingUI/Panel/InventoryPanel/Inventory/InventoryBackContainer" instance=ExtResource("16_bad8v")]
+layout_mode = 2
+
+[node name="InventoryGrid16" parent="GameUI/CraftingUI/Panel/InventoryPanel/Inventory/InventoryBackContainer" instance=ExtResource("16_bad8v")]
+layout_mode = 2
+
+[node name="InventoryGrid17" parent="GameUI/CraftingUI/Panel/InventoryPanel/Inventory/InventoryBackContainer" instance=ExtResource("16_bad8v")]
+layout_mode = 2
+
+[node name="InventoryGrid18" parent="GameUI/CraftingUI/Panel/InventoryPanel/Inventory/InventoryBackContainer" instance=ExtResource("16_bad8v")]
+layout_mode = 2
+
+[node name="InventoryGrid19" parent="GameUI/CraftingUI/Panel/InventoryPanel/Inventory/InventoryBackContainer" instance=ExtResource("16_bad8v")]
+layout_mode = 2
+
+[node name="InventoryGrid20" parent="GameUI/CraftingUI/Panel/InventoryPanel/Inventory/InventoryBackContainer" instance=ExtResource("16_bad8v")]
+layout_mode = 2
+
+[node name="InventoryGrid21" parent="GameUI/CraftingUI/Panel/InventoryPanel/Inventory/InventoryBackContainer" instance=ExtResource("16_bad8v")]
+layout_mode = 2
+
+[node name="InventoryGrid22" parent="GameUI/CraftingUI/Panel/InventoryPanel/Inventory/InventoryBackContainer" instance=ExtResource("16_bad8v")]
+layout_mode = 2
+
+[node name="InventoryGrid23" parent="GameUI/CraftingUI/Panel/InventoryPanel/Inventory/InventoryBackContainer" instance=ExtResource("16_bad8v")]
+layout_mode = 2
+
+[node name="InventoryGrid24" parent="GameUI/CraftingUI/Panel/InventoryPanel/Inventory/InventoryBackContainer" instance=ExtResource("16_bad8v")]
+layout_mode = 2
+
+[node name="InventoryGrid25" parent="GameUI/CraftingUI/Panel/InventoryPanel/Inventory/InventoryBackContainer" instance=ExtResource("16_bad8v")]
+layout_mode = 2
+
+[node name="InventoryGrid26" parent="GameUI/CraftingUI/Panel/InventoryPanel/Inventory/InventoryBackContainer" instance=ExtResource("16_bad8v")]
+layout_mode = 2
+
+[node name="InventoryGrid27" parent="GameUI/CraftingUI/Panel/InventoryPanel/Inventory/InventoryBackContainer" instance=ExtResource("16_bad8v")]
+layout_mode = 2
+
+[node name="InventoryGrid28" parent="GameUI/CraftingUI/Panel/InventoryPanel/Inventory/InventoryBackContainer" instance=ExtResource("16_bad8v")]
+layout_mode = 2
+
+[node name="InventoryGrid29" parent="GameUI/CraftingUI/Panel/InventoryPanel/Inventory/InventoryBackContainer" instance=ExtResource("16_bad8v")]
+layout_mode = 2
+
+[node name="InventoryGrid30" parent="GameUI/CraftingUI/Panel/InventoryPanel/Inventory/InventoryBackContainer" instance=ExtResource("16_bad8v")]
+layout_mode = 2
+
+[node name="InventoryGrid31" parent="GameUI/CraftingUI/Panel/InventoryPanel/Inventory/InventoryBackContainer" instance=ExtResource("16_bad8v")]
+layout_mode = 2
+
+[node name="InventoryGrid32" parent="GameUI/CraftingUI/Panel/InventoryPanel/Inventory/InventoryBackContainer" instance=ExtResource("16_bad8v")]
+layout_mode = 2
+
+[node name="InventoryGrid33" parent="GameUI/CraftingUI/Panel/InventoryPanel/Inventory/InventoryBackContainer" instance=ExtResource("16_bad8v")]
+layout_mode = 2
+
+[node name="InventoryGrid34" parent="GameUI/CraftingUI/Panel/InventoryPanel/Inventory/InventoryBackContainer" instance=ExtResource("16_bad8v")]
+layout_mode = 2
+
+[node name="InventoryGrid35" parent="GameUI/CraftingUI/Panel/InventoryPanel/Inventory/InventoryBackContainer" instance=ExtResource("16_bad8v")]
+layout_mode = 2
+
+[node name="InventoryShowContainer" type="FlowContainer" parent="GameUI/CraftingUI/Panel"]
+z_index = 1
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -450.0
+offset_top = -164.88
+offset_right = 450.0
+offset_bottom = -64.88
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/h_separation = 0
+theme_override_constants/v_separation = 0
+
+[node name="InventoryGrid0" parent="GameUI/CraftingUI/Panel/InventoryShowContainer" instance=ExtResource("16_bad8v")]
+layout_mode = 2
+
+[node name="InventoryGrid1" parent="GameUI/CraftingUI/Panel/InventoryShowContainer" instance=ExtResource("16_bad8v")]
+layout_mode = 2
+
+[node name="InventoryGrid2" parent="GameUI/CraftingUI/Panel/InventoryShowContainer" instance=ExtResource("16_bad8v")]
+layout_mode = 2
+
+[node name="InventoryGrid3" parent="GameUI/CraftingUI/Panel/InventoryShowContainer" instance=ExtResource("16_bad8v")]
+layout_mode = 2
+
+[node name="InventoryGrid4" parent="GameUI/CraftingUI/Panel/InventoryShowContainer" instance=ExtResource("16_bad8v")]
+layout_mode = 2
+
+[node name="InventoryGrid5" parent="GameUI/CraftingUI/Panel/InventoryShowContainer" instance=ExtResource("16_bad8v")]
+layout_mode = 2
+
+[node name="InventoryGrid6" parent="GameUI/CraftingUI/Panel/InventoryShowContainer" instance=ExtResource("16_bad8v")]
+layout_mode = 2
+
+[node name="InventoryGrid7" parent="GameUI/CraftingUI/Panel/InventoryShowContainer" instance=ExtResource("16_bad8v")]
+layout_mode = 2
+
+[node name="InventoryGrid8" parent="GameUI/CraftingUI/Panel/InventoryShowContainer" instance=ExtResource("16_bad8v")]
+layout_mode = 2
+
+[node name="CraftingCloseButton" type="TextureRect" parent="GameUI/CraftingUI/Panel"]
+z_index = 1
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -56.0
+offset_top = -17.0
+offset_right = 15.0
+offset_bottom = 54.0
+grow_horizontal = 0
+focus_mode = 2
+mouse_filter = 0
+texture = ExtResource("15_tbxis")
+expand_mode = 1
+script = ExtResource("16_3a6pi")
+
+[node name="CraftingCloseButton" type="TouchScreenButton" parent="GameUI/CraftingUI/Panel/CraftingCloseButton"]
+z_index = 1
+position = Vector2(62.5, 62.5)
+shape = SubResource("RectangleShape2D_vm4jx")
+shape_visible = false
+passby_press = true
+visibility_mode = 1
 
 [node name="PauseUI" type="CanvasLayer" parent="."]
 visible = false
@@ -5484,6 +6237,10 @@ visible = false
 [connection signal="visibility_changed" from="GameUI/InventoryUI" to="." method="_on_inventory_ui_visibility_changed"]
 [connection signal="focus_entered" from="GameUI/InventoryUI/Panel/InventoryCloseButton" to="GameUI/InventoryUI/Panel/InventoryCloseButton" method="_touch_button_focus_entered"]
 [connection signal="pressed" from="GameUI/InventoryUI/Panel/InventoryCloseButton/InventoryCloseButton" to="GameUI/InventoryUI/Panel/InventoryCloseButton" method="_touch_button_focus_entered"]
+[connection signal="gui_input" from="GameUI/CraftingUI" to="." method="_on_inventory_ui_dark_mask_gui_input"]
+[connection signal="hidden" from="GameUI/CraftingUI" to="." method="_on_crafting_ui_hidden"]
+[connection signal="focus_entered" from="GameUI/CraftingUI/Panel/CraftingCloseButton" to="GameUI/CraftingUI/Panel/CraftingCloseButton" method="_touch_button_focus_entered"]
+[connection signal="pressed" from="GameUI/CraftingUI/Panel/CraftingCloseButton/CraftingCloseButton" to="GameUI/CraftingUI/Panel/CraftingCloseButton" method="_touch_button_focus_entered"]
 [connection signal="pressed" from="PauseUI/FlowContainer/Button1" to="." method="_on_pause_button_1_pressed"]
 [connection signal="pressed" from="PauseUI/FlowContainer/Button2" to="." method="_on_pause_button_2_pressed"]
 [connection signal="pressed" from="PauseUI/FlowContainer/Button3" to="." method="_on_pause_button_3_pressed"]

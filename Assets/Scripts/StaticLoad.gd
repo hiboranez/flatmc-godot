@@ -3,6 +3,8 @@ extends Control
 # 预加载数据
 @onready var empty_heart_texture = load("res://Assets/Textures/GUI/empty_heart.png") as Texture2D
 @onready var flash_heart_texture = load("res://Assets/Textures/GUI/flash_heart.png") as Texture2D
+@onready var empty_hunger_texture = load("res://Assets/Textures/GUI/empty_hunger.png") as Texture2D
+@onready var flash_hunger_texture = load("res://Assets/Textures/GUI/flash_hunger.png") as Texture2D
 @onready var stop_bgm = load("res://Assets//Sounds//Music//MoogCity2.mp3") as AudioStream
 @onready var menu_bgm = load("res://Assets//Sounds//Music//WetHands.mp3") as AudioStream
 @onready var notice_scene = load("res://Assets/Scenes/Notice.tscn") as PackedScene
@@ -49,6 +51,7 @@ const HURT_COLOR = Color(1, 0.392, 0.392, 1)
 const DEFAULT_COLOR = Color(1, 1, 1, 1)
 const UI_FLASH_TIME = 0.2
 const DEFAULT_PLAYER_HEALTH = 20
+const DEFAULT_PLAYER_HUNGER = 20
 const FLOAT_DELTA: float = 0.01
 const ITEM_NAME_SHOW_TIME: float = 2
 const ITEM_NAME_DISAPPEAR_TIME: float = 0.2
@@ -98,6 +101,9 @@ var screenshot_path = "user://screenshots"
 var server_log_path = "user://server_logs"
 var server_path = "user://servers"
 var default_resource_pack = "official_old"
+var default_effect_dict = {
+	"hungry": 0
+}
 var world_type_dictionary = {
 	0: "default",
 	1: "flat"
@@ -160,11 +166,13 @@ var tools_efficiency: Dictionary
 var tools_type: Dictionary
 var spawn_egg_colors: Dictionary
 var special_block_destroy_time: Dictionary
+var crafting_recipe_dict: Dictionary
 var commands: Dictionary
 var clinging_block_dict: Dictionary
 var special_place_dict: Dictionary
 var entity_scene_dict: Dictionary
 var moon_phase_dict: Dictionary
+var food_dict: Dictionary
 
 # 待更新数据
 var multiplayer_peer = ENetMultiplayerPeer.new()
@@ -217,6 +225,8 @@ func _ready() -> void:
 		"item_model_types" : "int",
 		"item_max_amounts" : "int"
 	}
+	var recipe_dict = load_json_file("res://Assets/Data/recipe.json", {})
+	crafting_recipe_dict = recipe_dict["crafting_recipe_dict"]
 	var game_dict = load_json_file("res://Assets/Data/game.json", game_data_type_dict)
 	default_item_bar_names = game_dict["default_item_bar_names"]
 	default_item_bar_amounts = game_dict["default_item_bar_amounts"]
@@ -237,6 +247,7 @@ func _ready() -> void:
 	item_max_amounts = game_dict["item_max_amounts"]
 	tools_efficiency = game_dict["tools_efficiency"]
 	tools_type = game_dict["tools_type"]
+	food_dict = game_dict["food_dict"]
 	spawn_egg_colors = game_dict["spawn_egg_colors"]
 	special_block_destroy_time = game_dict["special_block_destroy_time"]
 	commands = game_dict["commands"]
@@ -1530,28 +1541,37 @@ func request_for_player_info(client_peer_id, player_name):
 		var face_state = player_config.get_value("player", "face_state", DEFAULT_PLAYER_FACE_STATE)
 		var is_flying = player_config.get_value("player", "is_flying", DEFAULT_PLAYER_IS_FLYING)
 		gamemode = player_config.get_value("player", "gamemode", DEFAULT_PLAYER_GAMEMODE)
+		var health = player_config.get_value("player", "health", DEFAULT_PLAYER_HEALTH)
+		var hunger = player_config.get_value("player", "hunger", DEFAULT_PLAYER_HUNGER)
+		var effect_dict = player_config.get_value("player", "effect_dict", default_effect_dict)
 		if gamemode != "creative":
 			is_flying = false
 		new_player.position = player_position
 		new_player.face_state = face_state
 		new_player.gamemode = gamemode
 		new_player.is_flying = is_flying
+		new_player.health = health
+		new_player.hunger = hunger
+		new_player.effect_dict = effect_dict
 		new_player.update_state_dict()
 		state_dict_tmp = new_player.state_dict.duplicate()
-		rpc_id(client_peer_id, "reply_for_player_info", player_position, face_state, is_flying, gamemode)
+		rpc_id(client_peer_id, "reply_for_player_info", player_position, face_state, is_flying, gamemode, health, hunger, effect_dict)
 		rpc_entity_func_by_uuid(new_player.get_uuid(), "init_remote", [client_peer_id, player_name, state_dict_tmp], [client_peer_id], true)
 	else:
-		rpc_id(client_peer_id, "reply_for_player_info", DEFAULT_PLAYER_SPAWN_POS, DEFAULT_PLAYER_FACE_STATE, DEFAULT_PLAYER_IS_FLYING, DEFAULT_PLAYER_GAMEMODE)
+		rpc_id(client_peer_id, "reply_for_player_info", DEFAULT_PLAYER_SPAWN_POS, DEFAULT_PLAYER_FACE_STATE, DEFAULT_PLAYER_IS_FLYING, DEFAULT_PLAYER_GAMEMODE, DEFAULT_PLAYER_HEALTH, DEFAULT_PLAYER_HUNGER, default_effect_dict)
 		rpc_entity_func_by_uuid(new_player.get_uuid(), "init_remote", [client_peer_id, player_name, state_dict_tmp], [client_peer_id], true)
 	call_entity_func(new_player.get_uuid(), "init_remote", [client_peer_id, player_name, state_dict_tmp])
 	rpc("broadcast_player_join_game", player_name)
 
 @rpc("authority", "call_remote", "reliable", 1)
-func reply_for_player_info(player_position, face_state, is_flying, gamemode):
+func reply_for_player_info(player_position, face_state, is_flying, gamemode, health, hunger, effect_dict):
 	game.player.position = player_position
 	game.player.face_state = face_state
 	game.player.is_flying = is_flying
 	game.player.gamemode = gamemode
+	game.player.health = health
+	game.player.hunger = hunger
+	game.player.effect_dict = effect_dict
 	if game.player.gamemode != "creative":
 		game.player.is_flying = false
 	if game.player.is_flying:
@@ -1700,6 +1720,8 @@ func process_request_for_entity_func_by_uuid(uuid, rpc_func_name, args, to_send_
 @rpc("authority", "call_remote", "reliable", 1)
 func reply_for_entity_func_by_uuid(uuid, rpc_func_name, args):
 	#print(multiplayer.get_unique_id()," ",uuid," ", rpc_func_name," ", args)
+	if rpc_func_name == null:
+		return
 	if rpc_func_name == "init_remote":
 		for player_tmp in game.players.get_children():
 			if player_tmp.name == str(args[0]):

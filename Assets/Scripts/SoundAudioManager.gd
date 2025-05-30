@@ -125,6 +125,10 @@ extends Node2D
 @onready var bow_hit3 = load("res://Assets/Sounds/Random/bowhit3.mp3") as AudioStream
 @onready var bow_hit4 = load("res://Assets/Sounds/Random/bowhit4.mp3") as AudioStream
 @onready var successful_hit = load("res://Assets/Sounds/Random/successful_hit.mp3") as AudioStream
+@onready var eat1 = load("res://Assets/Sounds/Random/eat1.mp3") as AudioStream
+@onready var eat2 = load("res://Assets/Sounds/Random/eat2.mp3") as AudioStream
+@onready var eat3 = load("res://Assets/Sounds/Random/eat3.mp3") as AudioStream
+@onready var burp = load("res://Assets/Sounds/Random/burp.mp3") as AudioStream
 
 var volume_db = 0
 var dig_cloth_sound_list = []
@@ -167,6 +171,8 @@ var skeleton_say_sound_list = []
 var bow_shoot_sound_list = []
 var bow_hit_sound_list = []
 var successful_hit_sound_list = []
+var eat_sound_list = []
+var burp_sound_list = []
 
 func _ready() -> void:
 	dig_cloth_sound_list = [dig_cloth1, dig_cloth2, dig_cloth3, dig_cloth4]
@@ -211,6 +217,8 @@ func _ready() -> void:
 	bow_shoot_sound_list = [bow_shoot]
 	bow_hit_sound_list = [bow_hit1, bow_hit2, bow_hit3, bow_hit4]
 	successful_hit_sound_list = [successful_hit]
+	eat_sound_list = [eat1, eat2, eat3]
+	burp_sound_list = [burp]
 
 func play_audio_static(type, sub_type):
 	var audio_player = AudioStreamPlayer.new()
@@ -294,6 +302,10 @@ func play_random_audio_at_position(type, sub_type, sound_position: Vector2, pitc
 		if sub_type == "hoe_still":
 			sound_list = hoe_still_sound_list
 	elif type == "random":
+		if sub_type == "burp":
+			sound_list = burp_sound_list
+		if sub_type == "eat":
+			sound_list = eat_sound_list
 		if sub_type == "tool_break":
 			sound_list = tool_break_sound_list
 		if sub_type == "bow_shoot":

@@ -4,8 +4,8 @@ extends TextureRect
 
 @onready var white_color_rect = $WhiteColorRect
 
-var item_name
-var item_amount
+var item_name = "AIR"
+var item_amount = 0
 var mouse_stay_timer = StaticLoad.INVENTORY_NAME_SHOW_STAY_TIME
 
 func _ready() -> void:
@@ -102,7 +102,7 @@ func _on_mouse_exited() -> void:
 	StaticLoad.game.mouse_item_name_label.queue_free()
 
 func _on_gui_input(event: InputEvent) -> void:
-	if slot_function.contains("armor") or slot_function.contains("craft"):
+	if slot_function.contains("armor"):
 		return
 	if not (event is InputEventMouseButton or event is InputEventScreenTouch):
 		return
@@ -120,7 +120,7 @@ func _on_gui_input(event: InputEvent) -> void:
 			if Input.is_action_pressed("shift"):
 				if item_name != "AIR":
 					var sort = int(name.replace("InventoryGrid", ""))
-					if StaticLoad.game.inventory_back_grids.is_visible_in_tree():
+					if StaticLoad.game.inventory_back_grids.is_visible_in_tree() or StaticLoad.game.crafting_inventory_back_grids.is_visible_in_tree():
 						if sort < 9:
 							item_amount = player.get_item([item_name, item_amount, 9, 36, false])
 							if item_amount == 0:
@@ -262,6 +262,158 @@ func _on_gui_input(event: InputEvent) -> void:
 					player.mouse_item_amount = StaticLoad.get_max_amount_by_name(item_name)
 					if not (player.mouse_item_name == "AIR" and item_name == "AIR"):
 						is_operated = true
+	elif slot_function.contains("craft") and not slot_function.contains("craft_result"):
+		if event.button_index == 1:
+			if Input.is_action_pressed("shift"):
+				if item_name != "AIR":
+					if item_amount > player.if_get_item_left(item_name, item_amount, 0, 9):
+						item_amount = player.get_item([item_name, item_amount, 0, 36, false])
+					else:
+						item_amount = player.get_item([item_name, item_amount, 9, 36, false])
+						if item_amount > 0:
+							item_amount = player.get_item([item_name, item_amount, 0, 9, false])
+					if item_amount == 0:
+						item_name = "AIR"
+					update_progress_bar(item_name, item_amount)
+					init_inventory_grid(item_name, item_amount)
+					StaticLoad.game.append_process_refresh("refresh_item_grid")
+					if slot_function.contains("inventory"):
+						StaticLoad.game.append_process_refresh("refresh_inventory")
+						StaticLoad.game.refresh_inventory_crafting_result()
+					elif slot_function.contains("table"):
+						StaticLoad.game.append_process_refresh("refresh_crafting_inventory")
+						StaticLoad.game.refresh_table_crafting_result()
+			else:
+				if mouse_item_name_tmp != item_name or StaticLoad.get_is_durable_by_name(item_name):
+					player.mouse_item_name = item_name
+					player.mouse_item_amount = item_amount
+					init_inventory_grid(mouse_item_name_tmp, mouse_item_amount_tmp)
+					update_progress_bar(item_name, item_amount)
+					if slot_function.contains("inventory"):
+						StaticLoad.game.refresh_inventory_crafting_result()
+					elif slot_function.contains("table"):
+						StaticLoad.game.refresh_table_crafting_result()
+					if StaticLoad.game.mouse_item_name_label != null:
+						StaticLoad.game.mouse_item_name_label.stop_following()
+						StaticLoad.game.mouse_item_name_label.queue_free()
+						if item_name != "AIR":
+							StaticLoad.game.mouse_item_name_label = StaticLoad.mouse_item_name_label_scene.instantiate()
+							StaticLoad.game.game_ui.add_child(StaticLoad.game.mouse_item_name_label)
+							StaticLoad.game.mouse_item_name_label.text = tr(item_name)
+							StaticLoad.game.mouse_item_name_label.start_following()
+				else:
+					if item_amount + mouse_item_amount_tmp <= StaticLoad.get_max_amount_by_name(item_name):
+						item_amount += mouse_item_amount_tmp
+						player.mouse_item_name = "AIR"
+						player.mouse_item_amount = 0
+						update_progress_bar(item_name, item_amount)
+					else:
+						player.mouse_item_amount = mouse_item_amount_tmp+item_amount-StaticLoad.get_max_amount_by_name(item_name)
+						item_amount = StaticLoad.get_max_amount_by_name(item_name)
+						update_progress_bar(item_name, item_amount)
+					init_inventory_grid(item_name, item_amount)
+					if slot_function.contains("inventory"):
+						StaticLoad.game.refresh_inventory_crafting_result()
+					elif slot_function.contains("table"):
+						StaticLoad.game.refresh_table_crafting_result()
+		elif event.button_index == 2:
+			if mouse_item_amount_tmp == 0 and item_amount >= 2 and not StaticLoad.get_is_durable_by_name(item_name):
+				player.mouse_item_name = item_name
+				player.mouse_item_amount = item_amount/2
+				item_amount -= player.mouse_item_amount
+				update_progress_bar(item_name, item_amount)
+				init_inventory_grid(item_name, item_amount)
+				if slot_function.contains("inventory"):
+					StaticLoad.game.refresh_inventory_crafting_result()
+				elif slot_function.contains("table"):
+					StaticLoad.game.refresh_table_crafting_result()
+			elif mouse_item_name_tmp == item_name and not StaticLoad.get_is_durable_by_name(item_name):
+				if item_amount < StaticLoad.get_max_amount_by_name(item_name):
+					player.mouse_item_amount -= 1
+					item_amount += 1
+					if player.mouse_item_amount == 0:
+						player.mouse_item_name = "AIR"
+					update_progress_bar(item_name, item_amount)
+					init_inventory_grid(item_name, item_amount)
+					if slot_function.contains("inventory"):
+						StaticLoad.game.refresh_inventory_crafting_result()
+					elif slot_function.contains("table"):
+						StaticLoad.game.refresh_table_crafting_result()
+			elif item_name == "AIR" and not StaticLoad.get_is_durable_by_name(player.mouse_item_name):
+				item_name = player.mouse_item_name
+				player.mouse_item_amount -= 1
+				item_amount += 1
+				if player.mouse_item_amount == 0:
+					player.mouse_item_name = "AIR"
+				update_progress_bar(item_name, item_amount)
+				init_inventory_grid(item_name, item_amount)
+				if slot_function.contains("inventory"):
+					StaticLoad.game.refresh_inventory_crafting_result()
+				elif slot_function.contains("table"):
+					StaticLoad.game.refresh_table_crafting_result()
+			elif StaticLoad.get_is_durable_by_name(item_name):
+				player.mouse_item_name = item_name
+				player.mouse_item_amount = item_amount
+				init_inventory_grid(mouse_item_name_tmp, mouse_item_amount_tmp)
+				update_progress_bar(item_name, item_amount)
+				if slot_function.contains("inventory"):
+					StaticLoad.game.refresh_inventory_crafting_result()
+				elif slot_function.contains("table"):
+					StaticLoad.game.refresh_table_crafting_result()
+				if StaticLoad.game.mouse_item_name_label != null:
+					StaticLoad.game.mouse_item_name_label.stop_following()
+					StaticLoad.game.mouse_item_name_label.queue_free()
+					if item_name != "AIR":
+						StaticLoad.game.mouse_item_name_label = StaticLoad.mouse_item_name_label_scene.instantiate()
+						StaticLoad.game.game_ui.add_child(StaticLoad.game.mouse_item_name_label)
+						StaticLoad.game.mouse_item_name_label.text = tr(item_name)
+						StaticLoad.game.mouse_item_name_label.start_following()
+		elif event.button_index == 3 and player.gamemode == "creative":
+			if mouse_item_amount_tmp == 0 and item_name != "AIR":
+				if StaticLoad.get_is_durable_by_name(item_name):
+					player.mouse_item_name = item_name
+					player.mouse_item_amount = item_amount
+				else:
+					player.mouse_item_name = item_name
+					player.mouse_item_amount = StaticLoad.get_max_amount_by_name(item_name)
+	elif slot_function.contains("craft_result"):
+		if event.button_index == 1 or event.button_index == 2 or event.button_index == 3:
+			if Input.is_action_pressed("shift"):
+				if item_name != "AIR":
+					if player.if_get_item_left(item_name, item_amount, 0, 36) == 0:
+						item_amount = player.get_item([item_name, item_amount, 0, 36, false])
+						if item_amount > 0:
+							item_amount = player.get_item([item_name, item_amount, 0, 9, false])
+						if item_amount == 0:
+							item_name = "AIR"
+						StaticLoad.game.append_process_refresh("refresh_item_grid")
+						if slot_function.contains("inventory"):
+							StaticLoad.game.decline_inventory_crafting_material()
+							StaticLoad.game.refresh_inventory_crafting_result()
+							StaticLoad.game.append_process_refresh("refresh_inventory")
+						elif slot_function.contains("table"):
+							StaticLoad.game.decline_table_crafting_material()
+							StaticLoad.game.refresh_table_crafting_result()
+							StaticLoad.game.append_process_refresh("refresh_crafting_inventory")
+			else:
+				if mouse_item_name_tmp != item_name or StaticLoad.get_is_durable_by_name(item_name):
+					if player.mouse_item_name == "AIR":
+						player.mouse_item_name = item_name
+						player.mouse_item_amount = item_amount
+						if slot_function.contains("inventory"):
+							StaticLoad.game.decline_inventory_crafting_material()
+							StaticLoad.game.refresh_inventory_crafting_result()
+						elif slot_function.contains("table"):
+							StaticLoad.game.decline_table_crafting_material()
+							StaticLoad.game.refresh_table_crafting_result()
+						if StaticLoad.game.mouse_item_name_label != null:
+							StaticLoad.game.mouse_item_name_label.stop_following()
+							StaticLoad.game.mouse_item_name_label.queue_free()
+							if item_name != "AIR":
+								StaticLoad.game.mouse_item_name_label = StaticLoad.mouse_item_name_label_scene.instantiate()
+								StaticLoad.game.game_ui.add_child(StaticLoad.game.mouse_item_name_label)
+								StaticLoad.game.mouse_item_name_label.text = tr(item_name)
+								StaticLoad.game.mouse_item_name_label.start_following()
 	elif name.contains("InfiniteGrid") and player.gamemode == "creative":
 		if event.button_index == 1:
 			if Input.is_action_pressed("shift"):
