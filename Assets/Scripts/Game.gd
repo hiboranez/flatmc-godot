@@ -1902,15 +1902,14 @@ func process_mouse_action():
 			destroy_light_names.erase(player.player_peer_id)
 			old_destroy_light.queue_free()
 	
-	if is_mouse_motion_updated:
-		if mouse_to_block_pos != tile_map_layer.local_to_map(last_mouse_in_world_pos):
+	if is_mouse_motion_updated and player.gamemode != "creative":
+		var mouse_to_in_world_pos_tmp = get_restricted_block_selection_pos()
+		if tile_map_layer.local_to_map(mouse_to_in_world_pos_tmp) != tile_map_layer.local_to_map(last_mouse_in_world_pos):
 			player.destroy_timer = 0
 			if destroy_light_names.has(player.player_peer_id):
-				var old_destroy_light = destroy_light_names[player.player_peer_id]
-				destroy_light_names.erase(player.player_peer_id)
-				old_destroy_light.queue_free()
+				destroy_light_names[player.player_peer_id].set_texture(null)
 		is_mouse_motion_updated = false
-	last_mouse_in_world_pos = mouse_in_world_pos
+		last_mouse_in_world_pos = mouse_to_in_world_pos_tmp
 
 func update_resource_pack():
 	tile_map_layer.tile_set = load("res://Assets/TileSets/"+str(resource_pack)+".tres") as TileSet
@@ -1998,22 +1997,27 @@ func update_destroy_ui():
 		elif not destroy_light_names.has(peer_id) or destroy_sort != destroy_light_names[peer_id].sort:
 			if destroy_light_names.has(peer_id):
 				if destroy_light_names[peer_id].sort != destroy_sort:
-					var old_destroy_light = destroy_light_names[peer_id]
-					destroy_light_names.erase(peer_id)
-					old_destroy_light.queue_free()
-					var destroy_light = destory_light_scene.instantiate()
-					destroy_light_names[peer_id] = destroy_light
-					lights.add_child(destroy_light)
-					destroy_light.init_light(str(peer_id), player_selected_block_pos, destroy_sort)
+					destroy_light_names[peer_id].set_texture(StaticLoad.destroy_light_textures[destroy_sort])
+					#var old_destroy_light = destroy_light_names[peer_id]
+					#destroy_light_names.erase(peer_id)
+					#old_destroy_light.queue_free()
+					#var destroy_light = destory_light_scene.instantiate()
+					#destroy_light_names[peer_id] = destroy_light
+					#lights.add_child(destroy_light)
+					#destroy_light.init_light(str(peer_id), player_selected_block_pos, destroy_sort)
 			else:
-				if destroy_light_names.has(peer_id):
-					var old_destroy_light = destroy_light_names[peer_id]
-					destroy_light_names.erase(peer_id)
-					old_destroy_light.queue_free()
 				var destroy_light = destory_light_scene.instantiate()
-				destroy_light_names[peer_id] = destroy_light
+				destroy_light.init_light(str(peer_id), player_selected_block_pos, 0)
 				lights.add_child(destroy_light)
-				destroy_light.init_light(str(peer_id), player_selected_block_pos, destroy_sort)
+				destroy_light_names[peer_id] = destroy_light
+				#if destroy_light_names.has(peer_id):
+					#var old_destroy_light = destroy_light_names[peer_id]
+					#destroy_light_names.erase(peer_id)
+					#old_destroy_light.queue_free()
+				#var destroy_light = destory_light_scene.instantiate()
+				#destroy_light_names[peer_id] = destroy_light
+				#lights.add_child(destroy_light)
+				#destroy_light.init_light(str(peer_id), player_selected_block_pos, destroy_sort)
 
 func init_light():
 	for chunk_light_name in chunk_lights:

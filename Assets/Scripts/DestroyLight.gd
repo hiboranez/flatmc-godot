@@ -8,5 +8,6 @@ func init_light(new_light_name, new_block_pos, new_sort):
 	sort = new_sort
 	name = new_light_name
 	position = block_pos * 50
-	texture = StaticLoad.destroy_light_textures[sort]
+	if sort > 0:
+		texture = StaticLoad.destroy_light_textures[sort]
 	enabled = true
