@@ -56,6 +56,7 @@ var is_ground_area2_colliding = false
 var is_top_area_colliding = false
 var last_is_on_ladder = false
 var is_on_ladder = false
+var is_moving_to_target = false
 var hurt_tween
 var animation_tree_parameters = {
 	"walk": 0,
@@ -344,6 +345,7 @@ func update_target_pos():
 	var num1 = rng.randf()-0.5
 	var num2 = rng.randf()-0.5
 	target_pos = StaticLoad.game.tile_map_layer.local_to_map(position)+Vector2i(int(num1*20),int(num2*20))
+	is_moving_to_target = true
 
 func update_local_refresh_target_timer():
 	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
@@ -422,10 +424,12 @@ func update_local_move_by_data():
 	if is_dead:
 		return
 	var current_block_pos = StaticLoad.game.tile_map_layer.local_to_map(position)
-	if current_block_pos[0] == target_pos[0]:
+	if current_block_pos[0] == target_pos[0] or not is_moving_to_target:
 		if move_state != "idle":
 			move_state = "idle"
 			expected_velocity.x = 0
+			if is_moving_to_target:
+				is_moving_to_target = false
 		#return
 	elif current_block_pos[0] != target_pos[0]:
 		if current_block_pos[0] < target_pos[0] and face_state == -1:

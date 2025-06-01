@@ -768,6 +768,24 @@ func load_json_file(file_path, data_type_dict):
 	else:
 		print("文件未找到")
 
+func calculate_sight_is_blocked(pos1, pos2):
+	var tile_map_layer_tmp = game.tile_map_layer
+	var relative_to_pos1 = pos2 - pos1
+	var stride = 5
+	var length = relative_to_pos1.length()
+	var freq = stride / length
+	var cycle_num = int(1 / freq)
+	var orthogonal_relative_to_pos1 = relative_to_pos1.orthogonal().normalized()*5
+	for i in range(cycle_num):
+		var pos_tmp1 = pos1.lerp(pos2, i*freq)
+		var pos_tmp2 = pos_tmp1+orthogonal_relative_to_pos1
+		var pos_tmp3 = pos_tmp1-orthogonal_relative_to_pos1
+		for pos_tmp in [pos_tmp1, pos_tmp2, pos_tmp3]:
+			var block_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer_tmp.get_cell_atlas_coords(tile_map_layer_tmp.local_to_map(pos_tmp)))
+			if block_id != 0 and not StaticLoad.get_is_untouchable_by_id(block_id):
+				return true
+	return false
+
 func get_time_string(is_return_day: bool = true):
 	var time_str = Time.get_datetime_string_from_system().split("T")
 	var day = time_str[0].replace("-","/")

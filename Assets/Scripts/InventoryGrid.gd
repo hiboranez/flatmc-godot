@@ -41,25 +41,43 @@ func _process(delta: float) -> void:
 			StaticLoad.game.mouse_item_name_label.start_following()
 		set_process(false)
 
-func init_inventory_grid(init_item_name, init_item_amount):
-	item_name = init_item_name
-	item_amount = init_item_amount
-	if item_amount <= 0:
-		item_name = "AIR"
-		item_amount = 0
-	if init_item_name == "AIR":
-		$ItemIcon.visible = false
-		$Amount.visible = false
-		$Amount.text = ""
-		update_progress_bar(item_name, item_amount)
-	else:
-		$ItemIcon.init_icon(item_name.to_lower())
-		$ItemIcon.visible = true
-		update_progress_bar(item_name, item_amount)
+func init_inventory_grid(init_item_name, init_item_amount, is_force=true):
+	if not is_force:
+		item_amount = init_item_amount
 		if item_amount <= 1:
 			$Amount.text = ""
 		else:
 			$Amount.text = str(item_amount)
+		if item_name != init_item_name:
+			item_name = init_item_name
+			if item_name == "AIR":
+				$ItemIcon.visible = false
+				$Amount.visible = false
+				$Amount.text = ""
+				update_progress_bar(item_name, item_amount)
+			else:
+				$ItemIcon.init_icon(item_name.to_lower())
+				$ItemIcon.visible = true
+				update_progress_bar(item_name, item_amount)
+	else:
+		item_name = init_item_name
+		item_amount = init_item_amount
+		if item_amount <= 0:
+			item_name = "AIR"
+			item_amount = 0
+		if item_name == "AIR":
+			$ItemIcon.visible = false
+			$Amount.visible = false
+			$Amount.text = ""
+			update_progress_bar(item_name, item_amount)
+		else:
+			$ItemIcon.init_icon(item_name.to_lower())
+			$ItemIcon.visible = true
+			update_progress_bar(item_name, item_amount)
+			if item_amount <= 1:
+				$Amount.text = ""
+			else:
+				$Amount.text = str(item_amount)
 
 func update_progress_bar(got_item_name, got_item_amount):
 	if StaticLoad.get_is_durable_by_name(got_item_name):
@@ -91,6 +109,7 @@ func _on_mouse_entered() -> void:
 			if StaticLoad.game.drag_inventory_grid_item_name != "null":
 				if not StaticLoad.game.drag_inventory_grid_dict.has(name):
 					StaticLoad.game.drag_inventory_grid_dict[name] = self
+					StaticLoad.game.drag_inventory_last_grid_name = name
 					StaticLoad.game.update_drag_inventory_grid("null")
 		elif item_name == StaticLoad.game.drag_inventory_grid_item_name:
 			if StaticLoad.game.drag_inventory_grid_dict.has(name):
@@ -101,6 +120,7 @@ func _on_mouse_entered() -> void:
 			else:
 				if not StaticLoad.game.drag_inventory_grid_dict.has(name):
 					StaticLoad.game.drag_inventory_grid_dict[name] = self
+					StaticLoad.game.drag_inventory_last_grid_name = name
 					StaticLoad.game.update_drag_inventory_grid("null")
 	if StaticLoad.game.drag_inventory_grid_state == "null" and not StaticLoad.game.drag_inventory_grid_dict.is_empty():
 		StaticLoad.game.drag_inventory_grid_dict.clear()
@@ -121,6 +141,7 @@ func _on_mouse_exited() -> void:
 				StaticLoad.game.drag_inventory_grid_amount_dict.clear()
 				StaticLoad.game.drag_inventory_grid_dict.clear()
 				StaticLoad.game.drag_inventory_grid_dict[name] = self
+				StaticLoad.game.drag_inventory_last_grid_name = name
 				StaticLoad.game.update_drag_inventory_grid("null")
 				white_color_rect.visible = true
 	if StaticLoad.game.drag_inventory_grid_state == "null" or not StaticLoad.game.drag_inventory_grid_dict.has(name):
@@ -198,16 +219,19 @@ func _on_gui_input(event: InputEvent) -> void:
 						StaticLoad.game.append_process_refresh("refresh_crafting_inventory")
 		if event.pressed:
 			if name.contains("InventoryGrid") or (slot_function.contains("craft") and not slot_function.contains("craft_result")):
-				var player_mouse_item_name = StaticLoad.game.player.mouse_item_name
-				if player_mouse_item_name != "AIR" and StaticLoad.game.drag_inventory_grid_state == "null" and (item_name == "AIR" or item_name == player_mouse_item_name):
-					if event.button_index == 1:
-						StaticLoad.game.drag_inventory_grid_state = "left"
-					elif event.button_index == 2:
-						StaticLoad.game.drag_inventory_grid_state = "right"
-					elif StaticLoad.game.player.gamemode == "creative" and event.button_index == 3:
-						StaticLoad.game.drag_inventory_grid_state = "middle"
-			return
-		if not event.pressed:
+				if event.button_index == 1 and Input.is_action_pressed("shift"):
+					pass
+				else:
+					var player_mouse_item_name = StaticLoad.game.player.mouse_item_name
+					if player_mouse_item_name != "AIR" and StaticLoad.game.drag_inventory_grid_state == "null" and (item_name == "AIR" or item_name == player_mouse_item_name):
+						if event.button_index == 1:
+							StaticLoad.game.drag_inventory_grid_state = "left"
+						elif event.button_index == 2:
+							StaticLoad.game.drag_inventory_grid_state = "right"
+						elif StaticLoad.game.player.gamemode == "creative" and event.button_index == 3:
+							StaticLoad.game.drag_inventory_grid_state = "middle"
+					return
+		else:
 			if StaticLoad.game.ui_freeze_timer > 0:
 				return
 			if StaticLoad.game.drag_inventory_grid_dict.has(name):
@@ -233,6 +257,7 @@ func _on_gui_input(event: InputEvent) -> void:
 							player.item_bar_amounts[sort] = item_amount
 							StaticLoad.game.append_process_refresh("refresh_inventory")
 							update_progress_bar(item_name, item_amount)
+							init_inventory_grid(item_name, item_amount)
 							StaticLoad.game.refresh_item_grid(sort)
 							if not (player.mouse_item_name == "AIR" and item_name == "AIR"):
 								is_operated = true
@@ -245,6 +270,7 @@ func _on_gui_input(event: InputEvent) -> void:
 							StaticLoad.game.append_process_refresh("refresh_inventory")
 							StaticLoad.game.append_process_refresh("refresh_item_grid")
 							update_progress_bar(item_name, item_amount)
+							init_inventory_grid(item_name, item_amount)
 							is_operated = true
 					elif player.gamemode == "creative":
 						player.item_bar_names[sort] = "AIR"

@@ -26,7 +26,9 @@ var fire_lasting_timer: float = 0
 var fire_damage_timer: float = 1
 
 # 子类变量
-var max_target_entity_distance: float = 1000
+var hatred_timer: float = 0
+var update_hatred_timer: float = 1
+var max_target_entity_distance: float = 1200
 var fire_damage_time: float = 1
 var max_health: int = 10
 var move_speed: float = 100
@@ -60,6 +62,7 @@ var is_ground_area2_colliding = false
 var is_top_area_colliding = false
 var last_is_on_ladder = false
 var is_on_ladder = false
+var is_moving_to_target = false
 var is_attacking = false
 var hurt_tween
 var animation_tree_parameters = {
@@ -89,6 +92,7 @@ func _process(delta: float) -> void:
 	update_sound_by_data()
 	update_animation_by_data()
 	# 仅在服务端的本地更新
+	update_local_hatred()
 	update_attack_timer()
 	update_local_fall_damage_by_data()
 	update_local_health_recover()
@@ -225,6 +229,18 @@ func update_animation_by_data():
 			turn_state = face_state
 			update_entity_face_rotation()
 	update_animation_tree()
+
+func update_local_hatred():
+	if update_hatred_timer > 0:
+		update_hatred_timer -= get_process_delta_time()
+	elif update_hatred_timer <= 0:
+		update_hatred_timer = 1
+		if hatred_timer > 0 and target_entity != null:
+			if StaticLoad.calculate_sight_is_blocked(position, target_entity.position):
+				hatred_timer -= 1
+		elif hatred_timer < 0:
+			hatred_timer = 0
+			target_entity = null
 
 func update_attack_timer():
 	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
@@ -415,6 +431,7 @@ func update_target_pos():
 		var num1 = rng.randf()-0.5
 		var num2 = rng.randf()-0.5
 		target_pos = StaticLoad.game.tile_map_layer.local_to_map(position)+Vector2i(int(num1*20),int(num2*20))
+	is_moving_to_target = true
 
 func update_local_refresh_target_timer():
 	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
@@ -440,12 +457,15 @@ func update_local_refresh_target_timer():
 					target_entity = null
 				continue
 			if position.distance_to(player_tmp.position) < max_target_entity_distance:
-				player_can_trace_list.append(player_tmp)
+				if not StaticLoad.calculate_sight_is_blocked(position, player_tmp.position):
+					player_can_trace_list.append(player_tmp)
 		if target_entity == null and not player_can_trace_list.is_empty():
 			player_can_trace_list.shuffle()
 			target_entity = player_can_trace_list[0]
+			hatred_timer = 4
 		if target_entity != null and player_can_trace_list.is_empty():
-			target_entity = null
+			if target_entity.get_is_dead() or hatred_timer <= 0:
+				target_entity = null
 		refresh_target_entity_timer = 1
 	else:
 		refresh_target_entity_timer -= get_process_delta_time()
@@ -519,10 +539,12 @@ func update_local_move_by_data():
 	if is_dead:
 		return
 	var current_block_pos = StaticLoad.game.tile_map_layer.local_to_map(position)
-	if current_block_pos[0] == target_pos[0]:
+	if current_block_pos[0] == target_pos[0] or (not is_moving_to_target and target_entity == null):
 		if move_state != "idle":
 			move_state = "idle"
 			expected_velocity.x = 0
+			if is_moving_to_target:
+				is_moving_to_target = false
 		#return
 	elif current_block_pos[0] != target_pos[0]:
 		if current_block_pos[0] < target_pos[0] and face_state == -1:

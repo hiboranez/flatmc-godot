@@ -1,6 +1,5 @@
 extends PointLight2D
 
-var old_chunk_light = null
 var chunk_pos: Vector2i
 #var block_r_data: PackedByteArray
 #var block_g_data: PackedByteArray
@@ -11,20 +10,19 @@ var block_a_data: PackedByteArray
 #var b_data: PackedByteArray
 #var a_data: PackedByteArray
 var light_data: PackedByteArray
+var texture_tmp
 
 func init(update_neighbour_state):
 	position = Vector2i(chunk_pos[0]*800, chunk_pos[1]*800)
 	update_light_data()
 	update_texture(update_neighbour_state)
 	StaticLoad.game.chunk_lights[str(chunk_pos[0])+"."+str(chunk_pos[1])] = self
-	if old_chunk_light != null:
-		old_chunk_light.enabled = false
-		old_chunk_light.queue_free()
-	StaticLoad.game.chunk_light_updated_signal.emit()
+	enabled = true
 
 func update_texture_from_image(light_image):
 	position = Vector2i(chunk_pos[0]*800, chunk_pos[1]*800)
-	texture = ImageTexture.create_from_image(light_image)
+	texture_tmp = self.texture
+	set_texture(ImageTexture.create_from_image(light_image))
 	enabled = true
 
 func destroy():
@@ -177,13 +175,10 @@ func update_chunk_light(chunk_pos_tmp, update_neighbour_state):
 	if get_tree() == null:
 		return
 	await get_tree().process_frame
-	var chunk_light = StaticLoad.game.chunk_light_scene.instantiate()
-	if StaticLoad.game.chunk_lights.has(chunk_light_name):
-		chunk_light.old_chunk_light = StaticLoad.game.chunk_lights[chunk_light_name]
-	chunk_light.chunk_pos = Vector2i(chunk_pos_tmp[0], chunk_pos_tmp[1])
-	StaticLoad.game.lights.add_child(chunk_light)
-	chunk_light.name = chunk_light_name.replace(".", "_")
-	chunk_light.init(update_neighbour_state)
+	
+	var chunk_light = StaticLoad.game.chunk_lights[chunk_light_name]
+	chunk_light.update_light_data()
+	chunk_light.update_texture(update_neighbour_state)
 
 func update_light_data():
 	#block_r_data.resize(16*16)
@@ -323,8 +318,9 @@ func update_texture(update_neighbour_state):
 			#light_data.append(b_data[i*800+j])
 			#light_data.append(a_data[i*800+j])
 	var light_image = Image.create_from_data(16, 16, false, Image.FORMAT_L8, light_data)
-	texture = ImageTexture.create_from_image(light_image)
-	enabled = true
+	var image_texture = ImageTexture.create_from_image(light_image)
+	texture_tmp = self.texture
+	set_texture(image_texture)
 	StaticLoad.game.update_mini_map_chunk_light(chunk_pos, light_image)
 	var chunk_light_name = str(chunk_pos[0])+"."+str(chunk_pos[1])
 	if StaticLoad.game.loaded_chunk_packed_byte_arrays.has(chunk_light_name):

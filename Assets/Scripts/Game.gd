@@ -119,12 +119,12 @@ var dispatch_thread = Thread.new()
 var set_block_thread = Thread.new()
 var nearby_thread = Thread.new()
 var entity_spawn_thread = Thread.new()
+var remove_chunks_thread = Thread.new()
 var success_set_block_dict = {}
 var fail_set_block_list = []
 var player_icons = {}
 var mouse_item_name_label
 var touch_list = []
-signal chunk_light_updated_signal
 var world_info_dictionary = {}
 var entities = {}
 var mini_map_chunk_lights = {}
@@ -179,6 +179,7 @@ var set_block_list = []
 var dragging_total_amount = 0
 var drag_inventory_grid_state = "null"
 var drag_inventory_grid_item_name = "null"
+var drag_inventory_last_grid_name = "null"
 var drag_inventory_grid_dict = {}
 var drag_inventory_grid_amount_dict = {}
 var current_sky_light: int = 255
@@ -254,7 +255,7 @@ func _process(delta: float) -> void:
 	
 	# 服务器和本地均更新
 	update_local_player_nearby_chunk()
-	remove_outdated_chunks()
+	#remove_outdated_chunks()
 	
 	if StaticLoad.is_dedicated_server:
 		return
@@ -764,9 +765,7 @@ func process_set_block():
 										entity.summon_item(summon_item_args)
 							entity.destroy_timer = 0
 							if destroy_light_names.has(entity.player_peer_id):
-								var old_destroy_light = destroy_light_names[entity.player_peer_id]
-								destroy_light_names.erase(entity.player_peer_id)
-								old_destroy_light.queue_free()
+								destroy_light_names[player.player_peer_id].set_texture(null)
 						elif set_block_id != 0:
 							if entity.gamemode != "creative":
 								if entity.in_hand_item_name.contains("HOE"):
@@ -912,12 +911,11 @@ func process_light():
 					if not chunk_lights.has(chunk_light_name):
 						continue
 					chunk_lights[chunk_light_name].update_chunk_light(Vector2i(int(splits[0]), int(splits[1])), chunk_light_to_process_tmp[chunk_light_name])
-					await chunk_light_updated_signal
 				if get_tree() == null:
 					return
 				await get_tree().process_frame
 				chunk_light_to_process.erase(chunk_light_name)
-				#break
+				break
 
 func process_refresh():
 	while(true):
@@ -1329,7 +1327,8 @@ func update_drag_inventory_grid(rollback_index):
 				total_remain += remain
 				drag_inventory_grid_amount_dict[grid_name] = drag_amount - remain
 				new_amount = max_amount
-			grid.init_inventory_grid(drag_inventory_grid_item_name, new_amount)
+			if grid.item_amount != new_amount:
+				grid.init_inventory_grid(drag_inventory_grid_item_name, new_amount, false)
 			if grid.name.contains("InventoryGrid"):
 				var sort = int(grid.name.replace("InventoryGrid", ""))
 				if not is_refresh_item_grid and sort < 9:
@@ -1358,8 +1357,8 @@ func update_drag_inventory_grid(rollback_index):
 			if grid.item_amount >= max_amount:
 				continue
 			var new_amount = grid.item_amount+1
+			grid.init_inventory_grid(drag_inventory_grid_item_name, new_amount, false)
 			drag_inventory_grid_amount_dict[grid_name] = 1
-			grid.init_inventory_grid(drag_inventory_grid_item_name, new_amount)
 			if grid.name.contains("InventoryGrid"):
 				var sort = int(grid.name.replace("InventoryGrid", ""))
 				if not is_refresh_item_grid and sort < 9:
@@ -1381,7 +1380,8 @@ func update_drag_inventory_grid(rollback_index):
 	elif drag_inventory_grid_state == "middle" and player.gamemode == "creative":
 		for grid_name in drag_inventory_grid_dict:
 			var grid = drag_inventory_grid_dict[grid_name]
-			grid.init_inventory_grid(drag_inventory_grid_item_name, max_amount)
+			if drag_inventory_last_grid_name == grid_name:
+				grid.init_inventory_grid(drag_inventory_grid_item_name, max_amount)
 			if grid.name.contains("InventoryGrid"):
 				var sort = int(grid.name.replace("InventoryGrid", ""))
 				if not is_refresh_item_grid and sort < 9:
@@ -1407,6 +1407,7 @@ func _input(event: InputEvent) -> void:
 			if not event.pressed and drag_inventory_grid_state != "null":
 				drag_inventory_grid_state = "null"
 				drag_inventory_grid_item_name = "null"
+				drag_inventory_last_grid_name = "null"
 				for grid_name in drag_inventory_grid_dict:
 					drag_inventory_grid_dict[grid_name].white_color_rect.visible = false
 		if event.button_index == 2 and event.pressed and not Input.is_mouse_button_pressed(1):
@@ -1898,9 +1899,7 @@ func process_mouse_action():
 	if not StaticLoad.is_on_mobile_platform and not Input.is_mouse_button_pressed(1):
 		player.destroy_timer = 0
 		if destroy_light_names.has(player.player_peer_id):
-			var old_destroy_light = destroy_light_names[player.player_peer_id]
-			destroy_light_names.erase(player.player_peer_id)
-			old_destroy_light.queue_free()
+			destroy_light_names[player.player_peer_id].set_texture(null)
 	
 	if is_mouse_motion_updated and player.gamemode != "creative":
 		var mouse_to_in_world_pos_tmp = get_restricted_block_selection_pos()
@@ -1953,9 +1952,7 @@ func update_destroy_ui():
 		var destroy_timer_tmp = player_tmp.destroy_timer
 		if destroy_timer_tmp <= 0:
 			if destroy_light_names.has(peer_id):
-				var old_destroy_light = destroy_light_names[peer_id]
-				destroy_light_names.erase(peer_id)
-				old_destroy_light.queue_free()
+				destroy_light_names[peer_id].set_texture(null)
 			continue
 		if destroy_timer_tmp <= 0.01:
 			if player_tmp.face_state < 0 and tile_map_layer.local_to_map(player_tmp.position).x < player_selected_block_pos.x:
@@ -1973,9 +1970,8 @@ func update_destroy_ui():
 			player_tmp.destroying_block_pos = player_selected_block_pos
 			player_tmp.destroy_timer = 0
 			if destroy_light_names.has(peer_id):
-				var old_destroy_light = destroy_light_names[peer_id]
-				destroy_light_names.erase(peer_id)
-				old_destroy_light.queue_free()
+				destroy_light_names[peer_id].update_block_pos(player_selected_block_pos)
+				destroy_light_names[peer_id].set_texture(null)
 			continue
 		var destroy_sort = int((destroy_timer_tmp/destroy_total_time)*8)+1
 		#if player_tmp.destroy_timer != destroy_timer_tmp:
@@ -1997,6 +1993,7 @@ func update_destroy_ui():
 		elif not destroy_light_names.has(peer_id) or destroy_sort != destroy_light_names[peer_id].sort:
 			if destroy_light_names.has(peer_id):
 				if destroy_light_names[peer_id].sort != destroy_sort:
+					destroy_light_names[peer_id].update_block_pos(player_selected_block_pos)
 					destroy_light_names[peer_id].set_texture(StaticLoad.destroy_light_textures[destroy_sort])
 					#var old_destroy_light = destroy_light_names[peer_id]
 					#destroy_light_names.erase(peer_id)
@@ -2034,16 +2031,15 @@ func init_light():
 
 func update_mini_map_chunk_light(chunk_pos, image):
 	var chunk_light_name = str(chunk_pos[0])+"."+str(chunk_pos[1])
-	if mini_map_chunk_lights.has(chunk_light_name):
-		mini_map_chunk_lights[chunk_light_name].queue_free()
-		mini_map_chunk_lights.erase(chunk_light_name)
-	var chunk_light = chunk_light_scene.instantiate()
-	mini_map_lights.add_child(chunk_light)
-	chunk_light.name = chunk_light_name.replace(".", "_")
-	chunk_light.chunk_pos = chunk_pos
-	chunk_light.update_texture_from_image(image)
-	mini_map_chunk_lights[chunk_light_name] = chunk_light
-
+	if not mini_map_chunk_lights.has(chunk_light_name):
+		var chunk_light = chunk_light_scene.instantiate()
+		mini_map_lights.add_child(chunk_light)
+		chunk_light.name = chunk_light_name.replace(".", "_")
+		chunk_light.chunk_pos = chunk_pos
+		chunk_light.update_texture_from_image(image)
+		mini_map_chunk_lights[chunk_light_name] = chunk_light
+	mini_map_chunk_lights[chunk_light_name].update_texture_from_image(image)
+	
 func grab_item(block_pos):
 	var block_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(block_pos))
 	if block_id == 0:
@@ -2077,41 +2073,51 @@ func grab_item(block_pos):
 			item_name_label.text = item_name
 			item_name_timer = StaticLoad.ITEM_NAME_SHOW_TIME
 	
-func remove_outdated_chunks():
-	is_chunk_modifing = true
-	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
-		var player_block_pos = tile_map_layer.local_to_map(player.position)
-		var chunk_pos_tmp = get_chunk_position(player_block_pos)
-		var x_player_chunk = chunk_pos_tmp[0]
-		var y_player_chunk = chunk_pos_tmp[1]
-		for x in range(x_player_chunk-player.render_chunk, x_player_chunk+player.render_chunk+1):
-			for y in range(y_player_chunk-player.render_chunk, y_player_chunk+player.render_chunk+1):	
-				if loaded_chunks.has(str(x)+"."+str(y)):
-					loaded_chunks_timer[str(x)+"."+str(y)] = StaticLoad.CHUNK_FREE_TIME
-	else:
-		for player_tmp in players.get_children():
-			var player_block_pos = tile_map_layer.local_to_map(player_tmp.position)
+func process_remove_outdated_chunks():
+	while(true):
+		if get_tree() == null:
+			return
+		await get_tree().process_frame
+		is_chunk_modifing = true
+		if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
+			var player_block_pos = tile_map_layer.local_to_map(player.position)
 			var chunk_pos_tmp = get_chunk_position(player_block_pos)
 			var x_player_chunk = chunk_pos_tmp[0]
 			var y_player_chunk = chunk_pos_tmp[1]
-			for x in range(x_player_chunk-player_tmp.render_chunk, x_player_chunk+player_tmp.render_chunk+1):
-				for y in range(y_player_chunk-player_tmp.render_chunk, y_player_chunk+player_tmp.render_chunk+1):	
+			for x in range(x_player_chunk-player.render_chunk, x_player_chunk+player.render_chunk+1):
+				for y in range(y_player_chunk-player.render_chunk, y_player_chunk+player.render_chunk+1):	
 					if loaded_chunks.has(str(x)+"."+str(y)):
 						loaded_chunks_timer[str(x)+"."+str(y)] = StaticLoad.CHUNK_FREE_TIME
-	var to_removed_timers = []
-	for key in loaded_chunks_timer.keys():
-		loaded_chunks_timer[key] -= get_process_delta_time()
-		if loaded_chunks_timer[key] <= 0:
-			to_removed_timers.push_back(key)
-	for timer in to_removed_timers:
-		var splits = timer.split(".")
-		var chunk_pos = Vector2i(int(splits[0]), int(splits[1]))
-		if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1):
-			save_chunk(chunk_pos)
-		free_chunk(chunk_pos)
-		loaded_chunks.erase(timer)
-		loaded_chunks_timer.erase(timer)
-	is_chunk_modifing = false
+		else:
+			for player_tmp in players.get_children():
+				var player_block_pos = tile_map_layer.local_to_map(player_tmp.position)
+				var chunk_pos_tmp = get_chunk_position(player_block_pos)
+				var x_player_chunk = chunk_pos_tmp[0]
+				var y_player_chunk = chunk_pos_tmp[1]
+				for x in range(x_player_chunk-player_tmp.render_chunk, x_player_chunk+player_tmp.render_chunk+1):
+					for y in range(y_player_chunk-player_tmp.render_chunk, y_player_chunk+player_tmp.render_chunk+1):	
+						if loaded_chunks.has(str(x)+"."+str(y)):
+							loaded_chunks_timer[str(x)+"."+str(y)] = StaticLoad.CHUNK_FREE_TIME
+		var to_removed_timers = []
+		for key in loaded_chunks_timer.keys():
+			loaded_chunks_timer[key] -= get_process_delta_time()
+			if loaded_chunks_timer[key] <= 0:
+				to_removed_timers.push_back(key)
+		for timer in to_removed_timers:
+			for i in range(30):
+				if get_tree() == null:
+					return
+				await get_tree().process_frame
+				for key in loaded_chunks_timer.keys():
+					loaded_chunks_timer[key] -= get_process_delta_time()
+			var splits = timer.split(".")
+			var chunk_pos = Vector2i(int(splits[0]), int(splits[1]))
+			if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1):
+				save_chunk(chunk_pos)
+			free_chunk(chunk_pos)
+			loaded_chunks.erase(timer)
+			loaded_chunks_timer.erase(timer)
+		is_chunk_modifing = false
 
 func camera_screen_pos_to_local_pos(camera, pos):
 	var inv_canv_tfm: Transform2D = camera.get_canvas_transform().affine_inverse()
@@ -2144,6 +2150,7 @@ func init_game_as_dedicated_server():
 	light_thread.start(process_light)
 	set_block_thread.start(process_set_block)
 	entity_spawn_thread.start(process_entity_spawn)
+	remove_chunks_thread.start(process_remove_outdated_chunks)
 	#nearby_thread.start(process_nearby)
 
 func init_game_as_single():
@@ -2259,27 +2266,8 @@ func init_game_as_single():
 	light_thread.start(process_light)
 	refresh_thread.start(process_refresh)
 	entity_spawn_thread.start(process_entity_spawn)
+	remove_chunks_thread.start(process_remove_outdated_chunks)
 	#nearby_thread.start(process_nearby)
-
-func create_chunk_entities(chunk_name, chunk_config):
-	var chunk_entity_list = chunk_config.get_value("chunk", "entity_list", "null")
-	if chunk_entity_list is String and chunk_entity_list == "null":
-		return
-	for uuid in chunk_entity_list:
-		var entity_info = chunk_config.get_value("entity", uuid)
-		if entity_info == null:
-			if not loaded_chunks.has(chunk_name):
-				loaded_chunks[chunk_name] = StaticLoad.Chunk.new()
-			loaded_chunks[chunk_name].is_to_save = true
-			continue
-		if entity_info[0] == "item":
-			StaticLoad.create_entity(["item", entity_info[1], entity_info[3], entity_info[2], 0, 2, uuid])
-		elif entity_info[0] == "arrow":
-			if entity_info[5] != "player":
-				continue
-			StaticLoad.create_entity([entity_info[0], uuid, entity_info[1], entity_info[2], entity_info[3], entity_info[4], entity_info[5], entity_info[6], entity_info[7], entity_info[8]])
-		else:
-			StaticLoad.create_entity([entity_info[0], uuid, entity_info[1], entity_info[2], entity_info[3]])
 
 func init_game_as_client():
 	StaticLoad.select_world = "new world"
@@ -2340,6 +2328,27 @@ func init_game_as_client():
 	tick_cycle_thread.start(process_tick_cycle)
 	dispatch_thread.start(process_dispatch)
 	refresh_thread.start(process_refresh)
+	remove_chunks_thread.start(process_remove_outdated_chunks)
+
+func create_chunk_entities(chunk_name, chunk_config):
+	var chunk_entity_list = chunk_config.get_value("chunk", "entity_list", "null")
+	if chunk_entity_list is String and chunk_entity_list == "null":
+		return
+	for uuid in chunk_entity_list:
+		var entity_info = chunk_config.get_value("entity", uuid)
+		if entity_info == null:
+			if not loaded_chunks.has(chunk_name):
+				loaded_chunks[chunk_name] = StaticLoad.Chunk.new()
+			loaded_chunks[chunk_name].is_to_save = true
+			continue
+		if entity_info[0] == "item":
+			StaticLoad.create_entity(["item", entity_info[1], entity_info[3], entity_info[2], 0, 2, uuid])
+		elif entity_info[0] == "arrow":
+			if entity_info[5] != "player":
+				continue
+			StaticLoad.create_entity([entity_info[0], uuid, entity_info[1], entity_info[2], entity_info[3], entity_info[4], entity_info[5], entity_info[6], entity_info[7], entity_info[8]])
+		else:
+			StaticLoad.create_entity([entity_info[0], uuid, entity_info[1], entity_info[2], entity_info[3]])
 
 func create_player(peer_id = 1):
 	var player_instance = player_scene.instantiate()
@@ -2370,11 +2379,17 @@ func process_entity_spawn():
 			break
 		if get_tree() == null:
 			return
-		await get_tree().create_timer(10).timeout
+		await get_tree().create_timer(30).timeout
 		for chunk_name in loaded_chunks.duplicate():
 			if not loaded_chunks.has(chunk_name):
 				continue
 			var splits = chunk_name.split(".")
+			var is_player_nearby = false
+			for player_tmp in players.get_children():
+				if get_chunk_position(tile_map_layer.local_to_map(player_tmp.position)) == Vector2i(int(splits[0]), int(splits[1])):
+					is_player_nearby = true
+			if is_player_nearby:
+				continue
 			var is_spawned = false
 			var undead_count: int = 0
 			if current_sky_light <= 223:
@@ -2405,7 +2420,7 @@ func process_entity_spawn():
 						continue
 					var chunk_light_tmp = chunk_light_datas[chunk_name]
 					var self_light = chunk_light_tmp[y*16+x]
-					if undead_count <= 2 and current_sky_light <= 80 and self_light <= 80:
+					if undead_count <= 1 and current_sky_light <= 80 and self_light <= 80:
 						var rng = RandomNumberGenerator.new()
 						var num = rng.randf()
 						if num < 0.9:
@@ -2417,6 +2432,7 @@ func process_entity_spawn():
 						var summon_entity_args = [entity_type, uuid, str(uuid) ,tile_map_layer.map_to_local(up_block_pos), "default"]
 						StaticLoad.create_entity(summon_entity_args)
 						is_spawned = true
+						#print(chunk_name, " undead ", undead_count)
 						break
 					elif self_light >= 112:
 						if loaded_chunks[chunk_name].entity_list.size() >= 1:
@@ -2431,6 +2447,7 @@ func process_entity_spawn():
 						var uuid = UUID.v4()
 						var summon_entity_args = [entity_type, uuid, str(uuid) ,tile_map_layer.map_to_local(up_block_pos), "default"]
 						StaticLoad.create_entity(summon_entity_args)
+						#print(chunk_name, " entity_list ", loaded_chunks[chunk_name].entity_list.size())
 						is_spawned = true
 						break
 				if get_tree() == null:
@@ -2443,13 +2460,16 @@ func process_entity_spawn():
 				var num = rng.randf()
 				if get_tree() == null:
 					return
-				await get_tree().create_timer(num*5).timeout
+				await get_tree().create_timer(num*30).timeout
 
 func refresh_item_grid(sort):
 	if player == null:
 		return
 	var item_name = player.item_bar_names[sort]
 	var item_amount = player.item_bar_amounts[sort]
+	var item_grid_tmp = item_grids[sort]
+	if item_grid_tmp.item_name == item_name and item_grid_tmp.item_amount == item_amount:
+		return
 	if sort == player.selected_item_grid and player.in_hand_item_name.contains("BOW"):
 		if not item_name.contains("BOW") and player.is_pulling:
 			player.is_pulling = false
@@ -2458,22 +2478,26 @@ func refresh_item_grid(sort):
 			player.in_hand_item_name = item_name
 			player.set_item_in_hand(item_name)
 	if item_name == "AIR":
-		item_grids[sort].get_node("ItemIcon").visible = false
-		item_grids[sort].get_node("ProgressBar").visible = false
-		item_grids[sort].get_node("Amount").visible = false
-		item_grids[sort].get_node("Amount").text = ""
+		item_grid_tmp.item_name = "AIR"
+		item_grid_tmp.item_amount = 0
+		item_grid_tmp.get_node("ItemIcon").visible = false
+		item_grid_tmp.get_node("ProgressBar").visible = false
+		item_grid_tmp.get_node("Amount").visible = false
+		item_grid_tmp.get_node("Amount").text = ""
 		if sort == player.selected_item_grid and not block_selection_ui.visible:
 			block_selection_ui.visible = true
 	else:
+		item_grid_tmp.item_name = item_name
+		item_grid_tmp.item_amount = item_amount
 		if sort == player.selected_item_grid and item_name.contains("SWORD"):
 			if block_selection_ui.visible:
 				block_selection_ui.visible = false
-		item_grids[sort].get_node("ItemIcon").init_icon(player.item_bar_names[sort].to_lower())
-		item_grids[sort].get_node("ItemIcon").visible = true
+		item_grid_tmp.get_node("ItemIcon").init_icon(player.item_bar_names[sort].to_lower())
+		item_grid_tmp.get_node("ItemIcon").visible = true
 		if StaticLoad.get_is_durable_by_name(item_name):
-			item_grids[sort].get_node("Amount").visible = false
-			item_grids[sort].get_node("Amount").text = ""
-			var progress_bar = item_grids[sort].get_node("ProgressBar")
+			item_grid_tmp.get_node("Amount").visible = false
+			item_grid_tmp.get_node("Amount").text = ""
+			var progress_bar = item_grid_tmp.get_node("ProgressBar")
 			progress_bar.max_value = StaticLoad.get_max_amount_by_name(item_name)
 			progress_bar.value = item_amount
 			var percentage =  item_amount / float(StaticLoad.get_max_amount_by_name(item_name))
@@ -2487,13 +2511,13 @@ func refresh_item_grid(sort):
 			progress_bar.add_theme_stylebox_override("fill", stylebox)
 			progress_bar.visible = true
 		else:
-			item_grids[sort].get_node("ProgressBar").visible = false
+			item_grid_tmp.get_node("ProgressBar").visible = false
 			if item_amount <= 1:
-				item_grids[sort].get_node("Amount").visible = false
-				item_grids[sort].get_node("Amount").text = ""
+				item_grid_tmp.get_node("Amount").visible = false
+				item_grid_tmp.get_node("Amount").text = ""
 			else:
-				item_grids[sort].get_node("Amount").text = str(item_amount)
-				item_grids[sort].get_node("Amount").visible = true
+				item_grid_tmp.get_node("Amount").text = str(item_amount)
+				item_grid_tmp.get_node("Amount").visible = true
 
 func rectify_emulate_mouse_from_touch():
 	if is_input_frozen:
@@ -2811,21 +2835,21 @@ func update_new_chunk(is_pre_load: bool):
 							loaded_chunks[str(x)+"."+str(y)].is_to_save = false
 							loaded_chunks_timer[str(x)+"."+str(y)] = StaticLoad.CHUNK_FREE_TIME
 							database_chunks.push_back(str(x)+"."+str(y))
-						if not StaticLoad.is_dedicated_server:
-							if not chunk_lights.has(str(x)+"."+str(y-1)):
-								var sky_light: PackedByteArray
-								sky_light.resize(16)
-								sky_light.fill(current_sky_light)
-								chunk_sky_light_datas[str(x)+"."+str(y)] = sky_light
-							if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1):
-								if chunk_lights.has(str(x)+"."+str(y)):
-									chunk_light_to_process[str(x)+"."+str(y)] = "null"
-								else:
-									chunk_light_to_process[str(x)+"."+str(y)] = "create"
+						if not chunk_lights.has(str(x)+"."+str(y-1)):
+							var sky_light: PackedByteArray
+							sky_light.resize(16)
+							sky_light.fill(current_sky_light)
+							chunk_sky_light_datas[str(x)+"."+str(y)] = sky_light
+						if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1):
+							if chunk_lights.has(str(x)+"."+str(y)):
+								chunk_light_to_process[str(x)+"."+str(y)] = "null"
+							else:
+								chunk_light_to_process[str(x)+"."+str(y)] = "create"
 					for i in range(30):
 						if get_tree() == null:
-							break
+							return
 						await get_tree().process_frame
+					#await get_tree().process_frame
 		player_last_chunk = Vector2i(x_player_chunk, y_player_chunk)
 
 func free_chunk(pos: Vector2i) -> void:
@@ -3451,13 +3475,15 @@ func refresh_single_inventory_grid(sort, type):
 		var item_amount = player.item_bar_amounts[sort]
 		@warning_ignore("shadowed_variable")
 		var inventory_grid = inventory_show_grids_tmp.get_node("InventoryGrid"+str(sort))
-		inventory_grid.init_inventory_grid(item_name, item_amount)
+		if inventory_grid.item_name != item_name or inventory_grid.item_amount != item_amount:
+			inventory_grid.init_inventory_grid(item_name, item_amount)
 	elif sort >= 9:
 		var item_name = player.item_bar_names[sort]
 		var item_amount = player.item_bar_amounts[sort]
 		@warning_ignore("shadowed_variable")
 		var inventory_grid = inventory_back_grids_tmp.get_node("InventoryGrid"+str(sort))
-		inventory_grid.init_inventory_grid(item_name, item_amount)
+		if inventory_grid.item_name != item_name or inventory_grid.item_amount != item_amount:
+			inventory_grid.init_inventory_grid(item_name, item_amount)
 
 func refresh_inventory():
 	for i in range(0, 36):
