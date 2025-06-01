@@ -1456,6 +1456,10 @@ func send_command(command: String):
 	else:
 		StaticLoad.game.broadcast_to_person(player_name, tr("UNKNOWN_COMMAND"), "pink")
 
+func if_clear_item_amount(item_name: String, amount: int):
+	var list = GameCalculator.clear_item(item_name, amount, PackedStringArray(item_bar_names), PackedInt32Array(item_bar_amounts))
+	return list[0]
+
 # 清除玩家物品，返回实际清除个数
 func clear_item(item_name: String, amount: int) -> int:
 	var list = GameCalculator.clear_item(item_name, amount, PackedStringArray(item_bar_names), PackedInt32Array(item_bar_amounts))

@@ -137,6 +137,8 @@ var refresh_to_process = []
 var refresh_to_process_double = []
 var chunk_light_to_process = {}
 var chunk_light_to_process_double = {}
+var ui_freeze_timer: float = 0
+var drag_press_timer: float = 0
 var block_selection_timer: float = 0
 var block_selection_box
 var mini_map_on
@@ -174,6 +176,11 @@ var resource_pack = StaticLoad.default_resource_pack
 var tick_timer: int = 9000
 var world_day: int = 0
 var set_block_list = []
+var dragging_total_amount = 0
+var drag_inventory_grid_state = "null"
+var drag_inventory_grid_item_name = "null"
+var drag_inventory_grid_dict = {}
+var drag_inventory_grid_amount_dict = {}
 var current_sky_light: int = 255
 var nearby_update_dict = {}
 var nearby_update_double_dict = {}
@@ -253,6 +260,7 @@ func _process(delta: float) -> void:
 		return
 	
 	# 本地更新
+	update_ui_freeze_timer()
 	update_die_no_press_timer()
 	update_hotbar_attack_indicator()
 	update_inventroy_player_model()
@@ -371,6 +379,12 @@ func update_hotbar_attack_indicator():
 		attack_indicator_progress.material.set_shader_parameter("progress", max((0.5-player.attack_timer)*2, 0))
 	else:
 		attack_indicator_progress.material.set_shader_parameter("progress", 1-player.attack_timer)
+
+func update_ui_freeze_timer():
+	if ui_freeze_timer > 0:
+		ui_freeze_timer -= get_process_delta_time()
+	elif ui_freeze_timer < 0:
+		ui_freeze_timer = 0
 
 func update_die_no_press_timer():
 	if die_no_press_timer > 0:
@@ -1022,11 +1036,11 @@ func open_online_info_ui():
 		else:
 			StaticLoad.rpc_id(1, "request_for_ping", multiplayer.get_unique_id(), peer_id)
 
-func decline_table_crafting_material():
+func decline_table_crafting_material(decline_amount):
 	for y in range(3):
 		for x in range(3):
 			var craft_grid = table_craft_grid.get_node("Craft"+str(y*3+x))
-			craft_grid.item_amount -= 1
+			craft_grid.item_amount -= decline_amount
 			if craft_grid.item_amount <= 0:
 				craft_grid.item_name = "AIR"
 			craft_grid.update_progress_bar(craft_grid.item_name, craft_grid.item_amount)
@@ -1113,11 +1127,11 @@ func refresh_table_crafting_result():
 	if not is_final_found:
 		table_craft_result_grid.init_inventory_grid("AIR", 0)
 
-func decline_inventory_crafting_material():
+func decline_inventory_crafting_material(decline_amount):
 	for y in range(2):
 		for x in range(2):
 			var craft_grid = inventory_craft_grid.get_node("Craft"+str(y*3+x))
-			craft_grid.item_amount -= 1
+			craft_grid.item_amount -= decline_amount
 			if craft_grid.item_amount <= 0:
 				craft_grid.item_name = "AIR"
 			craft_grid.update_progress_bar(craft_grid.item_name, craft_grid.item_amount)
@@ -1248,11 +1262,153 @@ func screenshot():
 	var save_path = StaticLoad.screenshot_path+"/"+screenshot_name+".png"
 	image.save_png(save_path)
 	broadcast_to_person(player.player_name, tr("SCREENSHOT_SAVED")+screenshot_name+".png")
-	
+
+func get_max_craft_amount(type):
+	if type == "inventory":
+		var min_amount = 1e9
+		for index in ["0", "1", "3", "4"]:
+			var craft_grid = inventory_craft_grid.get_node("Craft"+index)
+			if craft_grid.item_name == "AIR":
+				continue
+			if min_amount > craft_grid.item_amount:
+				min_amount = craft_grid.item_amount
+		if min_amount == 1e9:
+			min_amount = 0
+		return min_amount
+	elif type == "table":
+		var min_amount = 1e9
+		for index in range(9):
+			var craft_grid = table_craft_grid.get_node("Craft"+str(index))
+			if craft_grid.item_name == "AIR":
+				continue
+			if min_amount > craft_grid.item_amount:
+				min_amount = craft_grid.item_amount
+		if min_amount == 1e9:
+			min_amount = 0
+		return min_amount
+	return 0
+
+func update_drag_inventory_grid(rollback_index):
+	var is_refresh_item_grid = false
+	var update_craft_result = "null"
+	var max_amount = StaticLoad.get_max_amount_by_name(drag_inventory_grid_item_name)
+	if drag_inventory_grid_state != "middle":
+		for grid_name in drag_inventory_grid_amount_dict:
+			var grid = drag_inventory_grid_dict[grid_name]
+			grid.item_amount -= drag_inventory_grid_amount_dict[grid_name]
+	if rollback_index is int:
+		var drag_size_tmp = drag_inventory_grid_dict.size()
+		for i in range(rollback_index+1, drag_size_tmp):
+			var pop_grid = drag_inventory_grid_dict.pop_back()
+			if pop_grid.item_amount == 0:
+				pop_grid.item_name = "AIR"
+			pop_grid.init_inventory_grid(pop_grid.item_name, pop_grid.item_amount)
+			if pop_grid.name.contains("InventoryGrid"):
+				var sort = int(pop_grid.name.replace("InventoryGrid", ""))
+				player.item_bar_names[sort] = pop_grid.item_name
+				player.item_bar_amounts[sort] = pop_grid.item_amount
+			pop_grid.white_color_rect.visible = false
+	drag_inventory_grid_amount_dict.clear()
+	var drag_size = drag_inventory_grid_dict.size()
+	var total_remain: int = 0
+	if drag_inventory_grid_state == "left":
+		var average = int(dragging_total_amount / drag_size)
+		var remainder = dragging_total_amount % drag_size
+		for grid_name in drag_inventory_grid_dict:
+			var drag_amount = average
+			if remainder > 0:
+				drag_amount += 1
+				remainder -= 1
+			if drag_amount <= 0:
+				break
+			var grid = drag_inventory_grid_dict[grid_name]
+			drag_inventory_grid_amount_dict[grid_name] = drag_amount
+			var new_amount = grid.item_amount + drag_amount
+			if new_amount > max_amount:
+				var remain = new_amount - max_amount
+				total_remain += remain
+				drag_inventory_grid_amount_dict[grid_name] = drag_amount - remain
+				new_amount = max_amount
+			grid.init_inventory_grid(drag_inventory_grid_item_name, new_amount)
+			if grid.name.contains("InventoryGrid"):
+				var sort = int(grid.name.replace("InventoryGrid", ""))
+				if not is_refresh_item_grid and sort < 9:
+					is_refresh_item_grid = true
+				player.item_bar_names[sort] = drag_inventory_grid_item_name
+				player.item_bar_amounts[sort] = new_amount
+			if grid.slot_function.contains("craft") and not grid.slot_function.contains("craft_result"):
+				if grid.slot_function.contains("inventory"):
+					update_craft_result = "inventory"
+				elif grid.slot_function.contains("table"):
+					update_craft_result = "table"
+		if total_remain > 0:
+			player.mouse_item_amount = total_remain
+		else:
+			player.mouse_item_amount = 0
+		if player.mouse_item_amount == 0:
+			player.mouse_item_name = "AIR"
+		elif player.mouse_item_name == "AIR":
+			player.mouse_item_name = drag_inventory_grid_item_name
+	elif drag_inventory_grid_state == "right":
+		var dragging_amount = dragging_total_amount
+		for grid_name in drag_inventory_grid_dict:
+			if dragging_amount <= 0:
+				break
+			var grid = drag_inventory_grid_dict[grid_name]
+			if grid.item_amount >= max_amount:
+				continue
+			var new_amount = grid.item_amount+1
+			drag_inventory_grid_amount_dict[grid_name] = 1
+			grid.init_inventory_grid(drag_inventory_grid_item_name, new_amount)
+			if grid.name.contains("InventoryGrid"):
+				var sort = int(grid.name.replace("InventoryGrid", ""))
+				if not is_refresh_item_grid and sort < 9:
+					is_refresh_item_grid = true
+				player.item_bar_names[sort] = drag_inventory_grid_item_name
+				player.item_bar_amounts[sort] = new_amount
+			if grid.slot_function.contains("craft") and not grid.slot_function.contains("craft_result"):
+				if grid.slot_function.contains("inventory"):
+					update_craft_result = "inventory"
+				elif grid.slot_function.contains("table"):
+					update_craft_result = "table"
+			dragging_amount -= 1
+		if dragging_amount > 0:
+			player.mouse_item_name = drag_inventory_grid_item_name
+			player.mouse_item_amount = dragging_amount
+		else:
+			player.mouse_item_name = "AIR"
+			player.mouse_item_amount = 0
+	elif drag_inventory_grid_state == "middle" and player.gamemode == "creative":
+		for grid_name in drag_inventory_grid_dict:
+			var grid = drag_inventory_grid_dict[grid_name]
+			grid.init_inventory_grid(drag_inventory_grid_item_name, max_amount)
+			if grid.name.contains("InventoryGrid"):
+				var sort = int(grid.name.replace("InventoryGrid", ""))
+				if not is_refresh_item_grid and sort < 9:
+					is_refresh_item_grid = true
+				player.item_bar_names[sort] = drag_inventory_grid_item_name
+				player.item_bar_amounts[sort] = max_amount
+			if grid.slot_function.contains("craft") and not grid.slot_function.contains("craft_result"):
+				if grid.slot_function.contains("inventory"):
+					update_craft_result = "inventory"
+				elif grid.slot_function.contains("table"):
+					update_craft_result = "table"
+	if is_refresh_item_grid:
+		StaticLoad.game.append_process_refresh("refresh_item_grid")
+	if update_craft_result == "inventory":
+		refresh_inventory_crafting_result()
+	elif update_craft_result == "table":
+		refresh_table_crafting_result()
+
 @warning_ignore("unused_parameter")
 func _input(event: InputEvent) -> void:
-	
 	if event is InputEventMouseButton:
+		if (event.button_index == 1 and drag_inventory_grid_state == "left") or (event.button_index == 2 and drag_inventory_grid_state == "right") or (event.button_index == 3 and drag_inventory_grid_state == "middle"):
+			if not event.pressed and drag_inventory_grid_state != "null":
+				drag_inventory_grid_state = "null"
+				drag_inventory_grid_item_name = "null"
+				for grid_name in drag_inventory_grid_dict:
+					drag_inventory_grid_dict[grid_name].white_color_rect.visible = false
 		if event.button_index == 2 and event.pressed and not Input.is_mouse_button_pressed(1):
 			var mouse_in_world_pos
 			if player.gamemode != "creative":
@@ -1264,6 +1420,7 @@ func _input(event: InputEvent) -> void:
 			if StaticLoad.get_block_name_by_id(original_block_id) == "CRAFTING_TABLE":
 				if not is_crafting and not is_map and not is_pause and not is_chat and not is_inventory:
 					refresh_crafting_inventory()
+					ui_freeze_timer = 0.3
 					crafting_ui.visible = true
 					is_input_frozen = true
 					is_crafting = true
@@ -3702,6 +3859,7 @@ func _on_inventory_ui_hidden() -> void:
 		player.drop_item(item, pop_item_dict[item])
 	if is_to_pop:
 		sound_audio_manager.play_audio_static("player", "pop")
+	refresh_inventory_crafting_result()
 
 func _on_crafting_ui_hidden() -> void:
 	var is_to_pop = false
@@ -3726,6 +3884,7 @@ func _on_crafting_ui_hidden() -> void:
 		player.drop_item(item, pop_item_dict[item])
 	if is_to_pop:
 		sound_audio_manager.play_audio_static("player", "pop")
+	refresh_table_crafting_result()
 
 func _on_inventory_ui_visibility_changed() -> void:
 	if player.gamemode != "creative":
