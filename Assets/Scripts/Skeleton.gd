@@ -178,7 +178,7 @@ func update_local_hatred():
 	elif update_hatred_timer <= 0:
 		update_hatred_timer = 1
 		if hatred_timer > 0 and target_entity != null:
-			if StaticLoad.calculate_sight_is_blocked(position-Vector2(0, 60), target_entity.position-Vector2(0, 60)):
+			if StaticLoad.calculate_sight_is_blocked(position-Vector2(0, 82), target_entity.position-Vector2(0, 82)):
 				hatred_timer -= 1
 		elif hatred_timer < 0:
 			hatred_timer = 0
@@ -512,7 +512,7 @@ func update_local_refresh_target_timer():
 					target_entity = null
 				continue
 			if position.distance_to(player_tmp.position) < max_target_entity_distance:
-				if not StaticLoad.calculate_sight_is_blocked(position-Vector2(0, 60), player_tmp.position-Vector2(0, 60)):
+				if not StaticLoad.calculate_sight_is_blocked(position-Vector2(0, 82), player_tmp.position-Vector2(0, 82)):
 					player_can_trace_list.append(player_tmp)
 		if target_entity == null and not player_can_trace_list.is_empty():
 			player_can_trace_list.shuffle()
@@ -564,7 +564,7 @@ func update_local_gravity():
 	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
 		return
 	if StaticLoad.is_muti_mode:
-		var entity_block_pos = StaticLoad.game.tile_map_layer.local_to_map(position-Vector2(0,24))
+		var entity_block_pos = StaticLoad.game.tile_map_layer.local_to_map(position-Vector2(0,2))
 		var chunk_pos_tmp = StaticLoad.game.get_chunk_position(entity_block_pos)
 		if not StaticLoad.game.loaded_chunks.has(str(chunk_pos_tmp[0])+"."+str(chunk_pos_tmp[1])):
 			if not is_pause:
@@ -683,6 +683,8 @@ func update_local_move_by_data():
 		var block_id_down = StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.tile_map_layer.get_cell_atlas_coords(entity_block_pos))
 		if not StaticLoad.get_is_untouchable_by_id(block_id_down):
 			velocity = Vector2(0, 0)
+			last_velocity = Vector2(0, 0)
+			current_velocity = Vector2(0, 0)
 
 func add_velocity(delta_velocity):
 	if delta_velocity.x != 0:
@@ -839,7 +841,7 @@ func shoot_arrow():
 	var shoot_speed = arrow_shoot_speed
 	shoot_speed[0] *= face_state
 	shoot_speed = lerp(Vector2(0, 0), shoot_speed, shoot_timer/shoot_max_timer)
-	var lift_dist = lerp(-30, -55, shoot_timer/shoot_max_timer)
+	var lift_dist = lerp(-52, -77, shoot_timer/shoot_max_timer)
 	var arrow_uuid = UUID.v4()
 	var arrow_args = [arrow_uuid, str(arrow_uuid), position+Vector2(face_state*30,lift_dist), shoot_speed, shoot_speed, entity_type, uuid, entity_name, false]
 	StaticLoad.game.sound_audio_manager.play_random_audio_at_position("random", "bow_shoot", position, 1)
@@ -875,7 +877,7 @@ func die(reason, object):
 		var droppped_item_list = StaticLoad.get_dropped_item_by_name("entity", "SKELETON", "others")
 		for droppped_item_name in droppped_item_list:
 			if droppped_item_name != "AIR" and droppped_item_list[droppped_item_name] > 0:
-				var summon_item_args = ["item", droppped_item_name, position+Vector2(0, 23), droppped_item_list[droppped_item_name], 0, 0, UUID.v4()]
+				var summon_item_args = ["item", droppped_item_name, position-Vector2(0, 1), droppped_item_list[droppped_item_name], 0, 0, UUID.v4()]
 				if StaticLoad.is_muti_mode:
 					if multiplayer.get_unique_id() == 1:
 						StaticLoad.create_entity(summon_item_args)

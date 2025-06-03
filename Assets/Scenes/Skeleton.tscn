@@ -1223,8 +1223,9 @@ script = ExtResource("1_fuo7w")
 
 [node name="SubViewportContainer" type="SubViewportContainer" parent="."]
 modulate = Color(1, 1, 1, 0)
+offset_top = -22.122
 offset_right = 1024.0
-offset_bottom = 1024.0
+offset_bottom = 1001.88
 scale = Vector2(0.194021, 0.194021)
 mouse_filter = 2
 
@@ -1288,7 +1289,7 @@ bones/6/name = "Hip"
 bones/6/parent = 5
 bones/6/rest = Transform3D(1, 0, 1.42109e-14, 0, 1, 0, -1.42109e-14, 0, 1, 3.5984e-08, 5.96046e-08, -0.15108)
 bones/6/enabled = true
-bones/6/position = Vector3(3.60202e-08, -0.00612835, -0.15108)
+bones/6/position = Vector3(3.60202e-08, -0.0198541, -0.15108)
 bones/6/rotation = Quaternion(0, 7.10543e-15, 0, 1)
 bones/6/scale = Vector3(1, 1, 1)
 bones/7/name = "Spine.1"
@@ -1408,56 +1409,56 @@ bones/23/parent = 12
 bones/23/rest = Transform3D(0.999996, -0.00200003, -0.00199993, -0.00200003, -0.999998, 4.03934e-06, -0.00199993, -3.94111e-08, -0.999998, -0.31848, 0.314369, 0.15108)
 bones/23/enabled = true
 bones/23/position = Vector3(-0.31848, 0.314369, 0.15108)
-bones/23/rotation = Quaternion(0.998333, -0.000879717, -2.44542e-06, -0.0577085)
+bones/23/rotation = Quaternion(0.993774, -0.00075891, -4.04636e-06, -0.111414)
 bones/23/scale = Vector3(1, 1, 1)
 bones/24/name = "Arm-Lower.R"
 bones/24/parent = 23
 bones/24/rest = Transform3D(0.999996, 0.00200003, 0.00200013, -0.00200003, 0.999998, 5.67088e-08, -0.00200013, -4.05704e-06, 0.999998, 9.09495e-09, 0.378096, 8.54016e-10)
 bones/24/enabled = true
 bones/24/position = Vector3(9.09495e-09, 0.378096, 8.54016e-10)
-bones/24/rotation = Quaternion(-0.116476, 0.00110974, -0.000876726, 0.993192)
+bones/24/rotation = Quaternion(-0.223846, 0.00119854, -0.00075078, 0.974624)
 bones/24/scale = Vector3(1, 1, 1)
 bones/25/name = "Arm-Upper.L"
 bones/25/parent = 12
 bones/25/rest = Transform3D(0.999992, 0.00283177, 0.00283165, 0.00283176, -0.999996, 8.05804e-06, 0.00283166, -3.94198e-08, -0.999996, 0.308081, 0.314272, 0.15108)
 bones/25/enabled = true
 bones/25/position = Vector3(0.308081, 0.314272, 0.15108)
-bones/25/rotation = Quaternion(0.998332, 0.000821677, -8.34492e-05, -0.0577247)
+bones/25/rotation = Quaternion(0.993771, 0.00063834, -6.01454e-05, -0.111438)
 bones/25/scale = Vector3(1, 1, 1)
 bones/26/name = "Arm-Lower.L"
 bones/26/parent = 25
 bones/26/rest = Transform3D(0.999992, -0.00283176, -0.00283137, 0.00283178, 0.999996, 5.79289e-08, 0.00283136, -8.07574e-06, 0.999996, -9.87347e-09, 0.378, 4.86398e-09)
 bones/26/enabled = true
 bones/26/position = Vector3(-9.87347e-09, 0.378, 4.86398e-09)
-bones/26/rotation = Quaternion(-0.116493, -0.00157099, 0.00124133, 0.99319)
+bones/26/rotation = Quaternion(-0.223864, -0.00169672, 0.00106303, 0.974618)
 bones/26/scale = Vector3(1, 1, 1)
 bones/27/name = "Leg-Upper.L"
 bones/27/parent = 6
 bones/27/rest = Transform3D(1, -6.63854e-05, -0.000404079, -6.73818e-05, -0.999997, -0.00246632, -0.000403914, 0.00246635, -0.999997, 0.153886, -0.00103617, 0.15108)
 bones/27/enabled = true
 bones/27/position = Vector3(0.153886, -0.00103617, 0.15108)
-bones/27/rotation = Quaternion(0.998191, -3.41135e-06, -7.24473e-06, 0.0601279)
+bones/27/rotation = Quaternion(0.99363, 2.4583e-05, -5.49148e-06, 0.112695)
 bones/27/scale = Vector3(1, 1, 1)
 bones/28/name = "Leg-Lower.L"
 bones/28/parent = 27
 bones/28/rest = Transform3D(0.000495434, 0.000136249, 1, 0.0049846, 0.999988, -0.000138717, -0.999987, 0.00498467, 0.000494778, 1.02173e-08, 0.377998, 5.52973e-10)
 bones/28/enabled = true
 bones/28/position = Vector3(1.02173e-08, 0.377998, 5.52973e-10)
-bones/28/rotation = Quaternion(0.0858174, 0.701703, 0.0857625, 0.702063)
+bones/28/rotation = Quaternion(0.160066, 0.688572, 0.16005, 0.688935)
 bones/28/scale = Vector3(1, 1, 1)
 bones/29/name = "Leg-Upper.R"
 bones/29/parent = 6
 bones/29/rest = Transform3D(-0.00225317, 3.00967e-05, -0.999997, -0.00153236, -0.999999, -2.66442e-05, -0.999996, 0.0015323, 0.00225317, -0.161106, -0.00103617, 0.15108)
 bones/29/enabled = true
 bones/29/position = Vector3(-0.161106, -0.00103617, 0.15108)
-bones/29/rotation = Quaternion(-0.705709, 0.044565, 0.705703, -0.0444088)
+bones/29/rotation = Quaternion(-0.702487, 0.0808913, 0.702479, -0.0805737)
 bones/29/scale = Vector3(1, 1, 1)
 bones/30/name = "Leg-Lower.R"
 bones/30/parent = 29
 bones/30/rest = Transform3D(-0.00223434, 0.004611, 0.999987, -9.01055e-08, 0.99999, -0.00461101, -0.999998, -1.03922e-05, -0.00223422, -1.30967e-09, 0.378263, -9.3687e-09)
 bones/30/enabled = true
 bones/30/position = Vector3(-1.30967e-09, 0.378263, -9.3687e-09)
-bones/30/rotation = Quaternion(0.0896492, 0.702171, -0.0898498, 0.700604)
+bones/30/rotation = Quaternion(0.161948, 0.689037, -0.16231, 0.6875)
 bones/30/scale = Vector3(1, 1, 1)
 bones/31/name = "Chest"
 bones/31/parent = 5
@@ -1518,7 +1519,7 @@ blend_shapes/Eyes = 1.0
 blend_shapes/Sad = 0.0
 
 [node name="BoneAttachment3D" type="BoneAttachment3D" parent="SubViewportContainer/SubViewport/Skeleton/Skeleton-Bones/Skeleton3D"]
-transform = Transform3D(0.999998, -0.000248479, 0.00209617, 2.23081e-08, -0.993046, -0.117726, 0.00211085, 0.117725, -0.993044, -0.319144, 0.372562, 0.103607)
+transform = Transform3D(0.999998, -0.000501419, 0.00215875, -5.82077e-09, -0.97407, -0.226248, 0.00221622, 0.226247, -0.974068, -0.319051, 0.365704, 0.0634468)
 bone_name = "Arm-Lower.R"
 bone_idx = 24
 
@@ -1549,7 +1550,7 @@ size = 7.93265
 light_mask = 2
 visibility_layer = 513
 material = SubResource("ShaderMaterial_scabt")
-position = Vector2(0, -50.55)
+position = Vector2(0, -72.672)
 scale = Vector2(0.194, 0.194)
 texture = SubResource("ViewportTexture_c583f")
 
@@ -1597,32 +1598,33 @@ color = Color(0, 0, 0, 0.509804)
 metadata/_edit_use_anchors_ = true
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(-9.53674e-07, -26)
+position = Vector2(-9.53674e-07, -48.122)
 scale = Vector2(0.99608, 1)
 shape = SubResource("RectangleShape2D_rj0cj")
 
 [node name="FireAnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 visible = false
-position = Vector2(0, 2.13)
+position = Vector2(0, -20)
 scale = Vector2(2.625, 2.625)
 sprite_frames = SubResource("SpriteFrames_twagb")
 autoplay = "default"
 
 [node name="UpArea" type="Area2D" parent="."]
-position = Vector2(0, 23)
+position = Vector2(0, 0.878006)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="UpArea"]
 position = Vector2(-23, -71)
 shape = SubResource("RectangleShape2D_4wje3")
 
 [node name="DownArea" type="Area2D" parent="."]
-position = Vector2(0, 46)
+position = Vector2(0, 23.878)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="DownArea"]
 position = Vector2(-22.5, -63.25)
 shape = SubResource("RectangleShape2D_cgubl")
 
 [node name="GroundArea1" type="Area2D" parent="."]
+position = Vector2(0, -22.122)
 collision_mask = 5
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="GroundArea1"]
@@ -1630,6 +1632,7 @@ position = Vector2(-14, 103)
 shape = SubResource("RectangleShape2D_dh1ow")
 
 [node name="GroundArea2" type="Area2D" parent="."]
+position = Vector2(0, -22.122)
 collision_mask = 5
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="GroundArea2"]
@@ -1637,14 +1640,14 @@ position = Vector2(-59, 103)
 shape = SubResource("RectangleShape2D_hgh6k")
 
 [node name="TopArea" type="Area2D" parent="."]
-position = Vector2(0, 23)
+position = Vector2(0, 0.878006)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="TopArea"]
 position = Vector2(0, -120)
 shape = SubResource("RectangleShape2D_stvrv")
 
 [node name="CollideArea" type="Area2D" parent="."]
-position = Vector2(0, 23)
+position = Vector2(0, 0.878006)
 collision_mask = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="CollideArea"]

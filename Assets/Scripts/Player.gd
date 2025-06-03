@@ -33,6 +33,7 @@ var fire_lasting_timer: float = 0
 var fire_damage_timer: float = 1
 
 # 子类变量
+var punch_timer: float = 0
 var hunger_max_time: float = 90
 var hunger_timer: float = 0
 var hunger: int = 20
@@ -146,6 +147,8 @@ func _process(delta: float) -> void:
 	update_local_health_recover()
 	update_local_attack_timer()
 	# 本地更新
+	update_local_punch_timer()
+	update_is_in_loaded_chunk()
 	update_local_eat()
 	update_shoot_timer()
 	update_local_fall_damage_by_data()
@@ -283,7 +286,7 @@ func update_sound_by_data():
 			var eat_stage = int(eat_timer/0.24)
 			if last_eat_stage != eat_stage:
 				last_eat_stage = eat_stage
-				StaticLoad.game.summon_destroy_particle(position-Vector2(0,16), "item", in_hand_item_name)
+				StaticLoad.game.summon_destroy_particle(position-Vector2(0,38), "item", in_hand_item_name)
 				StaticLoad.game.sound_audio_manager.play_random_audio_at_position("random", "eat", position, 1)
 	if abs(current_velocity.y) < StaticLoad.FLOAT_DELTA and last_velocity.y > 1100:
 		if last_velocity.y > 1300:
@@ -292,7 +295,7 @@ func update_sound_by_data():
 			StaticLoad.game.sound_audio_manager.play_random_audio_at_position("damage", "fallsmall", position, 1)
 	if breaking_tool != "null":
 		StaticLoad.game.sound_audio_manager.play_random_audio_at_position("random", "tool_break", position, 1)
-		StaticLoad.game.summon_destroy_particle(position-Vector2(0,16), "item", breaking_tool)
+		StaticLoad.game.summon_destroy_particle(position-Vector2(0,38), "item", breaking_tool)
 		attack_timer = 0
 		if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1:
 			if breaking_tool.contains("SWORD"):
@@ -476,6 +479,18 @@ func update_animation_by_data():
 					#if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == player_peer_id:
 						#changed_state_dict["is_jumping"] = true
 		is_jumping = false
+
+func punch(entity):
+	var side = "left"
+	if entity.position.x < position.x:
+		side = "right"
+	if entity.get_entity_type() == "player":
+		entity.rpc_damage([1, side, entity.get_health(), "player_attack", player_name], true)
+	entity.get_damage([1, side, entity.get_health(), "player_attack", player_name])
+	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == player_peer_id:
+		changed_state_dict["is_punching"] = true
+	is_punching = true
+	punch_timer = 1
 
 func add_velocity(delta_velocity):
 	if delta_velocity.x != 0:
@@ -685,7 +700,7 @@ func update_local_gravity():
 			#velocity += get_gravity() * get_process_delta_time()
 		return
 	if StaticLoad.is_muti_mode:
-		var player_block_pos = StaticLoad.game.tile_map_layer.local_to_map(position-Vector2(0,24))
+		var player_block_pos = StaticLoad.game.tile_map_layer.local_to_map(position-Vector2(0,2))
 		var chunk_pos_tmp = StaticLoad.game.get_chunk_position(player_block_pos)
 		if not StaticLoad.game.loaded_chunks.has(str(chunk_pos_tmp[0])+"."+str(chunk_pos_tmp[1])):
 			if not is_pause:
@@ -776,7 +791,7 @@ func update_local_move_by_data():
 	if velocity.length() > StaticLoad.FLOAT_DELTA:
 		var player_block_pos = StaticLoad.game.tile_map_layer.local_to_map(position)
 		var block_id_down = StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.tile_map_layer.get_cell_atlas_coords(player_block_pos))
-		var block_id_up = StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.tile_map_layer.get_cell_atlas_coords(player_block_pos-Vector2i(0,1)))
+		var block_id_up = StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.tile_map_layer.get_cell_atlas_coords(player_block_pos-Vector2i(0,50)))
 		if not StaticLoad.get_is_untouchable_by_id(block_id_down):
 			velocity = Vector2(0, 0)
 		if not StaticLoad.get_is_untouchable_by_id(block_id_up):
@@ -1237,6 +1252,31 @@ func eat_food(args):
 	eat_timer = 0
 	StaticLoad.game.sound_audio_manager.play_random_audio_at_position("random", "burp", position, 1)
 
+func update_local_punch_timer():
+	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != player_peer_id:
+		return
+	if punch_timer > 0:
+		punch_timer -= get_process_delta_time()
+	elif punch_timer < 0:
+		punch_timer = 0
+
+func update_is_in_loaded_chunk():
+	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != player_peer_id:
+		return
+	var current_chunk_pos = StaticLoad.game.get_chunk_position(StaticLoad.game.tile_map_layer.local_to_map(position))
+	var last_chunk_pos = chunk_pos
+	if current_chunk_pos != last_chunk_pos:
+		var current_chunk_name = str(current_chunk_pos[0])+"."+str(current_chunk_pos[1])
+		var last_chunk_name = str(last_chunk_pos[0])+"."+str(last_chunk_pos[1])
+		var loaded_chunks = StaticLoad.game.loaded_chunks
+		if loaded_chunks.has(current_chunk_name) and loaded_chunks[current_chunk_name].is_loaded:
+			if is_frozen:
+				unfreeze()
+		else:
+			if not is_frozen:
+				freeze()
+		chunk_pos = current_chunk_pos
+
 func update_local_eat():
 	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != player_peer_id:
 		return
@@ -1272,7 +1312,7 @@ func wear_inventory_amount(args):
 
 func server_breaking_tool(got_breaking_tool):
 	StaticLoad.game.sound_audio_manager.play_random_audio_at_position("random", "tool_break", position, 1)
-	StaticLoad.game.summon_destroy_particle(position-Vector2(0,16), "item", got_breaking_tool)
+	StaticLoad.game.summon_destroy_particle(position-Vector2(0,38), "item", got_breaking_tool)
 	attack_timer = 0
 	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1:
 		if breaking_tool.contains("SWORD"):
@@ -1416,7 +1456,8 @@ func send_command(command: String):
 				freeze()
 				position = Vector2i(x*50+25, -y*50+50-24)
 				var in_chunk_pos = StaticLoad.game.get_chunk_position(StaticLoad.game.tile_map_layer.local_to_map(position))
-				while(not StaticLoad.game.loaded_chunks.has(str(in_chunk_pos[0])+"."+str(in_chunk_pos[1]))):
+				var in_chunk_name = str(in_chunk_pos[0])+"."+str(in_chunk_pos[1])
+				while(not StaticLoad.game.loaded_chunks.has(in_chunk_name) or not StaticLoad.game.loaded_chunks[in_chunk_name].is_loaded):
 					await get_tree().process_frame
 				unfreeze()
 				var tween4 = get_tree().create_tween()
@@ -1572,7 +1613,7 @@ func shoot_arrow():
 	var shoot_speed = arrow_shoot_speed
 	shoot_speed[0] *= face_state
 	shoot_speed = lerp(Vector2(0, 0), shoot_speed, shoot_timer/2)
-	var lift_dist = lerp(-30, -55, shoot_timer/2)
+	var lift_dist = lerp(-52, -77, shoot_timer/2)
 	var arrow_uuid = UUID.v4()
 	var arrow_args = [arrow_uuid, str(arrow_uuid), position+Vector2(face_state*30,lift_dist), shoot_speed, shoot_speed, "player", uuid, player_name, true]
 	StaticLoad.game.sound_audio_manager.play_random_audio_at_position("random", "bow_shoot", position, 1)
@@ -1597,7 +1638,7 @@ func drop_item(item_name, item_amount):
 	if item_name == "AIR":
 		return
 	var x_velocity = face_state*dropped_item_speed
-	var summon_item_args = [item_name, position-Vector2(0,30), item_amount, x_velocity, dropped_item_no_collect_time, UUID.v4()]
+	var summon_item_args = [item_name, position-Vector2(0,52), item_amount, x_velocity, dropped_item_no_collect_time, UUID.v4()]
 	if StaticLoad.is_muti_mode:
 		if multiplayer.get_unique_id() == 1:
 			summon_item(summon_item_args)

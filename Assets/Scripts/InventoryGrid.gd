@@ -218,6 +218,8 @@ func _on_gui_input(event: InputEvent) -> void:
 					elif StaticLoad.game.is_crafting:
 						StaticLoad.game.append_process_refresh("refresh_crafting_inventory")
 		if event.pressed:
+			if name.contains("InfiniteGrid"):
+				return
 			if name.contains("InventoryGrid") or (slot_function.contains("craft") and not slot_function.contains("craft_result")):
 				if event.button_index == 1 and Input.is_action_pressed("shift"):
 					pass

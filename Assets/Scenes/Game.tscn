@@ -1,4 +1,4 @@
-[gd_scene load_steps=131 format=4 uid="uid://2hv5eany3vpf"]
+[gd_scene load_steps=135 format=4 uid="uid://2hv5eany3vpf"]
 
 [ext_resource type="Script" path="res://Assets/Scripts/Game.gd" id="1_ctu8j"]
 [ext_resource type="Script" path="res://Assets/Scripts/BgmAudioPlayer.gd" id="2_gyse0"]
@@ -1765,6 +1765,18 @@ content_margin_left = 30.0
 content_margin_left = 30.0
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_8ilgk"]
+content_margin_left = 30.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_chpwj"]
+content_margin_left = 30.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ytc8h"]
+content_margin_left = 30.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ox8v8"]
+content_margin_left = 30.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_uvv8k"]
 content_margin_left = 30.0
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_wh11l"]
@@ -5850,6 +5862,50 @@ popup/item_1/text = "OFF"
 popup/item_1/id = 1
 
 [node name="TextureRect" type="TextureRect" parent="Options/ColorRect/ScrollContainer/VBoxContainer/AutoJump/OptionButton"]
+z_index = -1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("31_nincb")
+texture = ExtResource("16_pttjf")
+
+[node name="SmoothLighting" type="HSplitContainer" parent="Options/ColorRect/ScrollContainer/VBoxContainer"]
+z_index = 1
+layout_mode = 2
+collapsed = true
+
+[node name="Title" type="Label" parent="Options/ColorRect/ScrollContainer/VBoxContainer/SmoothLighting"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_fonts/font = ExtResource("4_nsj5b")
+theme_override_font_sizes/font_size = 40
+text = "SMOOTH_LIGHTING"
+
+[node name="OptionButton" type="OptionButton" parent="Options/ColorRect/ScrollContainer/VBoxContainer/SmoothLighting"]
+custom_minimum_size = Vector2(0, 70)
+layout_mode = 2
+size_flags_horizontal = 3
+theme = ExtResource("31_nincb")
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_constants/h_separation = 10
+theme_override_fonts/font = ExtResource("4_nsj5b")
+theme_override_font_sizes/font_size = 40
+theme_override_styles/focus = SubResource("StyleBoxEmpty_chpwj")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_ytc8h")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_ox8v8")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_uvv8k")
+theme_override_constants/arrow_margin = 30
+flat = true
+selected = 1
+item_count = 2
+popup/item_0/text = "ON"
+popup/item_1/text = "OFF"
+popup/item_1/id = 1
+
+[node name="TextureRect" type="TextureRect" parent="Options/ColorRect/ScrollContainer/VBoxContainer/SmoothLighting/OptionButton"]
 z_index = -1
 layout_mode = 1
 anchors_preset = 15

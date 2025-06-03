@@ -15,6 +15,7 @@ extends Node
 @onready var mini_map_zoom_label = $ColorRect/ScrollContainer/VBoxContainer/MiniMapZoom/HScrollBar/Label
 @onready var mini_map_zoom_scroll_bar = $ColorRect/ScrollContainer/VBoxContainer/MiniMapZoom/HScrollBar
 @onready var auto_jump_option_bar = $ColorRect/ScrollContainer/VBoxContainer/AutoJump/OptionButton
+@onready var smooth_lighting_option_bar = $ColorRect/ScrollContainer/VBoxContainer/SmoothLighting/OptionButton
 @onready var particle_effect_option_bar = $ColorRect/ScrollContainer/VBoxContainer/ParticleEffect/OptionButton
 @onready var v_sync_option_bar = $ColorRect/ScrollContainer/VBoxContainer/VSync/OptionButton
 @onready var full_screen_option_bar = $ColorRect/ScrollContainer/VBoxContainer/FullScreen/OptionButton
@@ -57,6 +58,7 @@ func _on_options_button_1_pressed() -> void:
 		"block_selection_box": StaticLoad.block_selection_box_dictionary[block_selection_box_option_bar.selected],
 		"mini_map": StaticLoad.get_on_or_off_by_selection(mini_map_option_bar.selected, StaticLoad.options["mini_map"]),
 		"auto_jump": StaticLoad.get_on_or_off_by_selection(auto_jump_option_bar.selected, StaticLoad.options["auto_jump"]),
+		"smooth_lighting": StaticLoad.get_on_or_off_by_selection(smooth_lighting_option_bar.selected, StaticLoad.options["smooth_lighting"]),
 		"particle_effect": StaticLoad.get_on_or_off_by_selection(particle_effect_option_bar.selected, StaticLoad.options["particle_effect"]),
 		"v_sync": StaticLoad.get_on_or_off_by_selection(v_sync_option_bar.selected, StaticLoad.options["v_sync"]),
 		"full_screen": StaticLoad.get_on_or_off_by_selection(full_screen_option_bar.selected, StaticLoad.options["full_screen"]),
@@ -82,13 +84,20 @@ func _on_options_button_1_pressed() -> void:
 		game.bgm_audio_player.volume_db = linear_to_db(int(change_value["bgm_volume"])/50.0)
 		game.sound_audio_manager.volume_db = linear_to_db(int(change_value["sound_volume"])/50.0)
 		game.block_selection_box = StaticLoad.block_selection_box_dictionary[block_selection_box_option_bar.selected]
-		game.mini_map_on = StaticLoad.get_on_or_off_by_selection(mini_map_option_bar.selected, "on")
-		var auto_jump_on = StaticLoad.get_on_or_off_by_selection(auto_jump_option_bar.selected, "on")
+		game.mini_map_on = StaticLoad.get_on_or_off_by_selection(mini_map_option_bar.selected, StaticLoad.options["mini_map"])
+		var auto_jump_on = StaticLoad.get_on_or_off_by_selection(auto_jump_option_bar.selected, StaticLoad.options["auto_jump"])
 		if auto_jump_on == "on":
 			game.player.is_auto_jump = true
 		elif auto_jump_on == "off":
 			game.player.is_auto_jump = false
-		var particle_effect_on = StaticLoad.get_on_or_off_by_selection(particle_effect_option_bar.selected, "on")
+		var smooth_lighting_on = StaticLoad.get_on_or_off_by_selection(smooth_lighting_option_bar.selected, StaticLoad.options["smooth_lighting"])
+		if smooth_lighting_on == "on" and not game.is_smooth_light:
+			game.is_smooth_light = true
+			game.refresh_all_light()
+		elif smooth_lighting_on == "off" and game.is_smooth_light:
+			game.is_smooth_light = false
+			game.refresh_all_light()
+		var particle_effect_on = StaticLoad.get_on_or_off_by_selection(particle_effect_option_bar.selected, StaticLoad.options["particle_effect"])
 		if particle_effect_on == "on":
 			game.is_particle_effect_on = true
 		elif particle_effect_on == "off":
@@ -148,6 +157,7 @@ func load_options():
 		block_selection_box_option_bar.selected = StaticLoad.block_selection_box_dictionary.find_key(config.get_value("options", "block_selection_box"))
 		mini_map_option_bar.selected = StaticLoad.get_selection_by_on_or_off(config.get_value("options", "mini_map"), StaticLoad.options["mini_map"])
 		auto_jump_option_bar.selected = StaticLoad.get_selection_by_on_or_off(config.get_value("options", "auto_jump"), StaticLoad.options["auto_jump"])
+		smooth_lighting_option_bar.selected = StaticLoad.get_selection_by_on_or_off(config.get_value("options", "smooth_lighting"), StaticLoad.options["smooth_lighting"])
 		particle_effect_option_bar.selected = StaticLoad.get_selection_by_on_or_off(config.get_value("options", "particle_effect"), StaticLoad.options["particle_effect"])
 		v_sync_option_bar.selected = StaticLoad.get_selection_by_on_or_off(config.get_value("options", "v_sync"), StaticLoad.options["v_sync"])
 		full_screen_option_bar.selected = StaticLoad.get_selection_by_on_or_off(config.get_value("options", "full_screen"), StaticLoad.options["full_screen"])

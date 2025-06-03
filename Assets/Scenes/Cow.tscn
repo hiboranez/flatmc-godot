@@ -749,8 +749,9 @@ script = ExtResource("1_fwvoh")
 
 [node name="SubViewportContainer" type="SubViewportContainer" parent="."]
 modulate = Color(1, 1, 1, 0)
+offset_top = -23.122
 offset_right = 1024.0
-offset_bottom = 1024.0
+offset_bottom = 1000.88
 scale = Vector2(0.194021, 0.194021)
 mouse_filter = 2
 
@@ -773,7 +774,7 @@ bones/0/parent = -1
 bones/0/rest = Transform3D(0, -1, -8.74228e-08, -1, 0, -4.01339e-07, 4.01339e-07, 8.74228e-08, -1, 0.164, -1.92, -9.50344e-08)
 bones/0/enabled = true
 bones/0/position = Vector3(0.164, -1.92, -9.50344e-08)
-bones/0/rotation = Quaternion(-0.707107, 0.707107, -1.10986e-07, -1.72804e-07)
+bones/0/rotation = Quaternion(-0.707107, 0.707107, -1.10986e-07, -1.72803e-07)
 bones/0/scale = Vector3(1, 1, 1)
 bones/1/name = "Body"
 bones/1/parent = 0
@@ -987,7 +988,7 @@ size = 7.93265
 light_mask = 2
 visibility_layer = 513
 material = SubResource("ShaderMaterial_scabt")
-position = Vector2(0, -50.55)
+position = Vector2(0, -73.672)
 scale = Vector2(0.194, 0.194)
 texture = SubResource("ViewportTexture_c583f")
 
@@ -1036,31 +1037,32 @@ metadata/_edit_use_anchors_ = true
 
 [node name="FireAnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 visible = false
-position = Vector2(0, -11.745)
+position = Vector2(0, -34)
 scale = Vector2(4.61, 4.61)
 sprite_frames = SubResource("SpriteFrames_nxrlk")
 autoplay = "default"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(2.08616e-07, -14)
+position = Vector2(2.08616e-07, -37.122)
 scale = Vector2(0.99608, 1)
 shape = SubResource("RectangleShape2D_rj0cj")
 
 [node name="UpArea" type="Area2D" parent="."]
-position = Vector2(0, 23)
+position = Vector2(0, -0.121994)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="UpArea"]
 position = Vector2(-58, -75)
 shape = SubResource("RectangleShape2D_4wje3")
 
 [node name="DownArea" type="Area2D" parent="."]
-position = Vector2(0, 46)
+position = Vector2(0, 22.878)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="DownArea"]
 position = Vector2(-57.5, -67.25)
 shape = SubResource("RectangleShape2D_cgubl")
 
 [node name="GroundArea1" type="Area2D" parent="."]
+position = Vector2(0, -23.122)
 collision_mask = 5
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="GroundArea1"]
@@ -1068,6 +1070,7 @@ position = Vector2(-42, 105)
 shape = SubResource("RectangleShape2D_dh1ow")
 
 [node name="GroundArea2" type="Area2D" parent="."]
+position = Vector2(0, -23.122)
 collision_mask = 5
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="GroundArea2"]
@@ -1075,14 +1078,14 @@ position = Vector2(-92, 105)
 shape = SubResource("RectangleShape2D_hgh6k")
 
 [node name="TopArea" type="Area2D" parent="."]
-position = Vector2(0, 23)
+position = Vector2(0, -0.121994)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="TopArea"]
 position = Vector2(0, -98)
 shape = SubResource("RectangleShape2D_stvrv")
 
 [node name="CollideArea" type="Area2D" parent="."]
-position = Vector2(0, 23)
+position = Vector2(0, -0.121994)
 collision_mask = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="CollideArea"]

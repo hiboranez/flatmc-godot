@@ -110,6 +110,7 @@ SELECTED_POSITION;选中坐标;selected position
 CHUNK;区块;chunk
 FULL_SCREEN;全屏;full screen
 AUTO_JUMP;自动跳跃;auto jump
+SMOOTH_LIGHTING;平滑光照（测试中，不建议开启）;smooth lighting (testing, not recommended to open)
 PARTICLE_EFFECT;粒子效果;particle effect
 V_SYNC;垂直同步;vertical sync
 MINI_MAP;小地图;mini map

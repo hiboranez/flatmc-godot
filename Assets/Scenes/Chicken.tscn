@@ -1029,8 +1029,9 @@ script = ExtResource("1_vhybd")
 
 [node name="SubViewportContainer" type="SubViewportContainer" parent="."]
 modulate = Color(1, 1, 1, 0)
+offset_top = -12.122
 offset_right = 1024.0
-offset_bottom = 1024.0
+offset_bottom = 1011.88
 scale = Vector2(0.194021, 0.194021)
 mouse_filter = 2
 
@@ -1308,7 +1309,7 @@ blend_shapes/Sad = 0.0
 light_mask = 2
 visibility_layer = 513
 material = SubResource("ShaderMaterial_scabt")
-position = Vector2(0, -50.55)
+position = Vector2(0, -62.672)
 scale = Vector2(0.194, 0.194)
 texture = SubResource("ViewportTexture_c583f")
 
@@ -1357,31 +1358,32 @@ metadata/_edit_use_anchors_ = true
 
 [node name="FireAnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 visible = false
-position = Vector2(0, -8.01)
+position = Vector2(0, -20)
 scale = Vector2(2.625, 2.625)
 sprite_frames = SubResource("SpriteFrames_3fgam")
 autoplay = "default"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(-4.76837e-07, -9.5)
+position = Vector2(-4.76837e-07, -21.622)
 scale = Vector2(0.99608, 1)
 shape = SubResource("RectangleShape2D_rj0cj")
 
 [node name="UpArea" type="Area2D" parent="."]
-position = Vector2(0, 23)
+position = Vector2(0, 10.878)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="UpArea"]
 position = Vector2(-39, -81)
 shape = SubResource("RectangleShape2D_4wje3")
 
 [node name="DownArea" type="Area2D" parent="."]
-position = Vector2(0, 46)
+position = Vector2(0, 33.878)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="DownArea"]
 position = Vector2(-38.5, -63.25)
 shape = SubResource("RectangleShape2D_cgubl")
 
 [node name="GroundArea1" type="Area2D" parent="."]
+position = Vector2(0, -12.122)
 collision_mask = 5
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="GroundArea1"]
@@ -1389,6 +1391,7 @@ position = Vector2(-19, 95)
 shape = SubResource("RectangleShape2D_dh1ow")
 
 [node name="GroundArea2" type="Area2D" parent="."]
+position = Vector2(0, -12.122)
 collision_mask = 5
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="GroundArea2"]
@@ -1396,14 +1399,14 @@ position = Vector2(-69, 95)
 shape = SubResource("RectangleShape2D_hgh6k")
 
 [node name="TopArea" type="Area2D" parent="."]
-position = Vector2(0, 23)
+position = Vector2(0, 10.878)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="TopArea"]
 position = Vector2(0, -81)
 shape = SubResource("RectangleShape2D_stvrv")
 
 [node name="CollideArea" type="Area2D" parent="."]
-position = Vector2(0, 23)
+position = Vector2(0, 10.878)
 collision_mask = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="CollideArea"]

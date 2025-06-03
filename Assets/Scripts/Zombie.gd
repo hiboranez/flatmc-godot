@@ -64,6 +64,7 @@ var last_is_on_ladder = false
 var is_on_ladder = false
 var is_moving_to_target = false
 var is_attacking = false
+
 var hurt_tween
 var animation_tree_parameters = {
 	"walk": 0,
@@ -509,7 +510,7 @@ func update_local_gravity():
 	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
 		return
 	if StaticLoad.is_muti_mode:
-		var entity_block_pos = StaticLoad.game.tile_map_layer.local_to_map(position-Vector2(0,24))
+		var entity_block_pos = StaticLoad.game.tile_map_layer.local_to_map(position-Vector2(0,2))
 		var chunk_pos_tmp = StaticLoad.game.get_chunk_position(entity_block_pos)
 		if not StaticLoad.game.loaded_chunks.has(str(chunk_pos_tmp[0])+"."+str(chunk_pos_tmp[1])):
 			if not is_pause:
@@ -628,6 +629,8 @@ func update_local_move_by_data():
 		var block_id_down = StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.tile_map_layer.get_cell_atlas_coords(entity_block_pos))
 		if not StaticLoad.get_is_untouchable_by_id(block_id_down):
 			velocity = Vector2(0, 0)
+			last_velocity = Vector2(0, 0)
+			current_velocity = Vector2(0, 0)
 
 func add_velocity(delta_velocity):
 	if delta_velocity.x != 0:
@@ -765,7 +768,7 @@ func die(reason, object):
 		var droppped_item_list = StaticLoad.get_dropped_item_by_name("entity", "ZOMBIE", "others")
 		for droppped_item_name in droppped_item_list:
 			if droppped_item_name != "AIR" and droppped_item_list[droppped_item_name] > 0:
-				var summon_item_args = ["item", droppped_item_name, position+Vector2(0, 23), droppped_item_list[droppped_item_name], 0, 0, UUID.v4()]
+				var summon_item_args = ["item", droppped_item_name, position-Vector2(0, 1), droppped_item_list[droppped_item_name], 0, 0, UUID.v4()]
 				if StaticLoad.is_muti_mode:
 					if multiplayer.get_unique_id() == 1:
 						StaticLoad.create_entity(summon_item_args)

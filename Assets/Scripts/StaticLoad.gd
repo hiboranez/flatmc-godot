@@ -33,6 +33,7 @@ class Chunk:
 		"seed_list", "sapling_list", "leaves_list",
 		"farm_land_list", "sugar_cane_list"
 	]
+	var is_loaded: bool = false
 	var is_to_save: bool = false
 	var entity_list: Array = []
 	var dirt_list: Array = []
@@ -385,7 +386,8 @@ func get_mca_value(got_chunk_pos):
 		"chunk_sugar_cane_list": chunk_sugar_cane_list
 	}
 	
-	game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)] = Chunk.new()
+	if not game.loaded_chunks.has(str(x_chunk)+"."+str(y_chunk)):
+		game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)] = Chunk.new()
 	game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)].is_to_save = false
 	game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)].dirt_list = chunk_dirt_list
 	game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)].grass_block_list = chunk_grass_block_list
@@ -1001,28 +1003,36 @@ func get_selected_by_block_selection_box(block_selection_box):
 	return block_selection_box_dictionary.find_key(block_selection_box)
 
 func get_on_or_off_by_selection(selected, default="on"):
-	if default == "on":
-		if selected == 0:
-			return "on"
-		elif selected == 1:
-			return "off"
-	else:
-		if selected == 1:
-			return "on"
-		elif selected == 0:
-			return "off"
+	if selected == 0:
+		return "on"
+	elif selected == 1:
+		return "off"
+	#if default == "on":
+		#if selected == 0:
+			#return "on"
+		#elif selected == 1:
+			#return "off"
+	#else:
+		#if selected == 1:
+			#return "on"
+		#elif selected == 0:
+			#return "off"
 
 func get_selection_by_on_or_off(on_or_off, default="on"):
-	if default == "on":
-		if on_or_off == "on":
-			return 0
-		elif on_or_off == "off":
-			return 1
-	else:
-		if on_or_off == "on":
-			return 1
-		elif on_or_off == "off":
-			return 0
+	if on_or_off == "on":
+		return 0
+	elif on_or_off == "off":
+		return 1
+	#if default == "on":
+		#if on_or_off == "on":
+			#return 0
+		#elif on_or_off == "off":
+			#return 1
+	#else:
+		#if on_or_off == "on":
+			#return 1
+		#elif on_or_off == "off":
+			#return 0
 
 func get_level_by_ping(ping: int):
 	if ping <= 50:
@@ -1381,7 +1391,8 @@ func request_for_update_chunk(client_peer_id, is_init, x_chunk, y_chunk):
 @rpc("authority", "call_remote", "reliable", 1)
 func reply_for_update_chunk(is_init, x_chunk, y_chunk, blocks_list, entities_to_transfer):
 	game.set_chunk(Vector2i(x_chunk, y_chunk), blocks_list)
-	game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)] = Chunk.new()
+	if not game.loaded_chunks.has(str(x_chunk)+"."+str(y_chunk)):
+		game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)] = Chunk.new()
 	game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)].is_to_save = false
 	game.loaded_chunks_timer[str(x_chunk)+"."+str(y_chunk)] = StaticLoad.CHUNK_FREE_TIME
 	game.loaded_chunk_num += 1

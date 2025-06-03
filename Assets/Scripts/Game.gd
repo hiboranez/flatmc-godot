@@ -142,8 +142,10 @@ var drag_press_timer: float = 0
 var block_selection_timer: float = 0
 var block_selection_box
 var mini_map_on
+var smooth_lighting_on
 var mini_map_zoom: float
 var chunk_to_load = []
+var is_smooth_light: bool = false
 var is_mouse_motion_updated: bool = false
 var is_particle_effect_on: bool = true
 var is_online_info: bool = false
@@ -591,6 +593,52 @@ func append_process_refresh(string):
 	else:
 		refresh_to_process_double.append(string)
 
+func refresh_around_light(chunk_name):
+	is_light_pause = true
+	#for chunk_light_name in chunk_lights:
+		#var splits = chunk_light_name.split(".")
+		#if not chunk_sky_light_datas.has(splits[0]+"."+str(int(splits[1])-1)):
+			#var sky_light: PackedByteArray
+			#sky_light.resize(16)
+			#sky_light.fill(current_sky_light)
+			#chunk_sky_light_datas[chunk_light_name] = sky_light
+	var splits = chunk_name.split(".")
+	var chunk_pos = Vector2i(int(splits[0]), int(splits[1]))
+	var refresh_chunk_list = []
+	
+	#if StaticLoad.game.chunk_lights.has(str(chunk_pos[0])+"."+str(chunk_pos[1])):
+		#refresh_chunk_list.append(str(chunk_pos[0])+"."+str(chunk_pos[1]))
+	if StaticLoad.game.chunk_lights.has(str(chunk_pos[0])+"."+str(chunk_pos[1]-1)):
+		refresh_chunk_list.append(str(chunk_pos[0])+"."+str(chunk_pos[1]-1))
+	if StaticLoad.game.chunk_lights.has(str(chunk_pos[0])+"."+str(chunk_pos[1]+1)):
+		refresh_chunk_list.append(str(chunk_pos[0])+"."+str(chunk_pos[1]+1))
+	if StaticLoad.game.chunk_lights.has(str(chunk_pos[0]-1)+"."+str(chunk_pos[1])):
+		refresh_chunk_list.append(str(chunk_pos[0]-1)+"."+str(chunk_pos[1]))
+	if StaticLoad.game.chunk_lights.has(str(chunk_pos[0]+1)+"."+str(chunk_pos[1])):
+		refresh_chunk_list.append(str(chunk_pos[0]+1)+"."+str(chunk_pos[1]))
+	
+	
+	#var wait_timer = 0
+	#while wait_timer < 0.01:
+		#wait_timer += get_process_delta_time()
+	if StaticLoad.game.chunk_lights.has(str(chunk_pos[0]+1)+"."+str(chunk_pos[1]+1)):
+		refresh_chunk_list.append(str(chunk_pos[0]+1)+"."+str(chunk_pos[1]+1))
+	if StaticLoad.game.chunk_lights.has(str(chunk_pos[0]+1)+"."+str(chunk_pos[1]-1)):
+		refresh_chunk_list.append(str(chunk_pos[0]+1)+"."+str(chunk_pos[1]-1))
+	if StaticLoad.game.chunk_lights.has(str(chunk_pos[0]-1)+"."+str(chunk_pos[1]+1)):
+		refresh_chunk_list.append(str(chunk_pos[0]-1)+"."+str(chunk_pos[1]+1))
+	if StaticLoad.game.chunk_lights.has(str(chunk_pos[0]-1)+"."+str(chunk_pos[1]-1)):
+		refresh_chunk_list.append(str(chunk_pos[0]-1)+"."+str(chunk_pos[1]-1))
+	for chunk_light_name in refresh_chunk_list:
+		if chunk_lights.has(chunk_light_name):
+			if not chunk_light_to_process.has(chunk_light_name):
+				chunk_light_to_process[chunk_light_name] = "null"
+			else:
+				chunk_light_to_process_double[chunk_light_name] = "null"
+		else:
+			chunk_light_to_process[chunk_light_name] = "create"
+	is_light_pause = false
+
 func refresh_all_light():
 	is_light_pause = true
 	for chunk_light_name in chunk_lights:
@@ -796,24 +844,27 @@ func process_entity_save():
 			continue
 		if frozen_entity_dict.has(uuid):
 			continue
-		var current_chunk_pos = get_chunk_position(tile_map_layer.local_to_map(entity.position))
+		var current_entity_pos = entity.position
+		var current_chunk_pos = get_chunk_position(tile_map_layer.local_to_map(current_entity_pos))
 		var last_chunk_pos = entity.get_chunk_pos()
 		if current_chunk_pos != last_chunk_pos:
-			if loaded_chunks.has(str(current_chunk_pos[0])+"."+str(current_chunk_pos[1])):
-				loaded_chunks[str(current_chunk_pos[0])+"."+str(current_chunk_pos[1])].entity_list.append(entity.get_uuid())
-				loaded_chunks[str(current_chunk_pos[0])+"."+str(current_chunk_pos[1])].is_to_save = true
-				if loaded_chunks.has(str(last_chunk_pos[0])+"."+str(last_chunk_pos[1])):
-					loaded_chunks[str(last_chunk_pos[0])+"."+str(last_chunk_pos[1])].entity_list.erase(entity.get_uuid())
-					loaded_chunks[str(last_chunk_pos[0])+"."+str(last_chunk_pos[1])].is_to_save = true
+			var current_chunk_name = str(current_chunk_pos[0])+"."+str(current_chunk_pos[1])
+			var last_chunk_name = str(last_chunk_pos[0])+"."+str(last_chunk_pos[1])
+			if loaded_chunks.has(current_chunk_name) and loaded_chunks[current_chunk_name].is_loaded:
+				loaded_chunks[current_chunk_name].entity_list.append(entity.get_uuid())
+				loaded_chunks[current_chunk_name].is_to_save = true
+				if loaded_chunks.has(last_chunk_name):
+					loaded_chunks[last_chunk_name].entity_list.erase(entity.get_uuid())
+					loaded_chunks[last_chunk_name].is_to_save = true
 				entity.chunk_pos = current_chunk_pos
 			else:
-				entity.position = entity.last_pos
 				entity.freeze()
-				if not frozen_entity_dict.has(str(current_chunk_pos[0])+"."+str(current_chunk_pos[1])):
-					frozen_entity_dict[str(current_chunk_pos[0])+"."+str(current_chunk_pos[1])] = []
-				frozen_entity_dict[str(current_chunk_pos[0])+"."+str(current_chunk_pos[1])].append(entity.get_uuid())
+				entity.position = entity.last_pos
+				if not frozen_entity_dict.has(current_chunk_name):
+					frozen_entity_dict[current_chunk_name] = []
+				frozen_entity_dict[current_chunk_name].append(entity.get_uuid())
 		else:
-			entity.last_pos = entity.position
+			entity.last_pos = current_entity_pos
 			
 func dispatch_set_block_state_dict():
 	if not StaticLoad.is_muti_mode:
@@ -913,7 +964,7 @@ func process_light():
 					chunk_lights[chunk_light_name].update_chunk_light(Vector2i(int(splits[0]), int(splits[1])), chunk_light_to_process_tmp[chunk_light_name])
 				if get_tree() == null:
 					return
-				await get_tree().process_frame
+				#await get_tree().process_frame
 				chunk_light_to_process.erase(chunk_light_name)
 				break
 
@@ -1007,7 +1058,7 @@ func update_mini_map():
 	var half_icon_size = StaticLoad.MINI_MAP_ICON_SIZE*icon_scale*0.5
 	for player_tmp in players.get_children():
 		if player_icons.has(player_tmp.player_name):
-			player_icons[player_tmp.player_name].position = player_tmp.position-Vector2(0, half_icon_size-25)
+			player_icons[player_tmp.player_name].position = player_tmp.position-Vector2(0, half_icon_size)
 
 func open_online_info_ui():
 	is_online_info = true
@@ -1763,14 +1814,19 @@ func check_place_block_state(block_pos, block_id, selected_layer):
 		var chunk_entity_list = loaded_chunks[str(mouse_chunk_pos[0])+"."+str(mouse_chunk_pos[1])].entity_list
 		for uuid in chunk_entity_list:
 			var entity = entities[uuid]
-			if entity.get_entity_type() == "player":
+			var entity_type_tmp = entity.get_entity_type()
+			if entity_type_tmp == "player":
+				continue
+			if entity_type_tmp == "item":
+				continue
+			if entity_type_tmp == "arrow":
 				continue
 			if entity == null:
 				continue
 			var entity_pos = tile_map_layer.local_to_map(entity.position)
 			if entity_pos == block_pos:
 				return false
-			if ["zombie", "skeleton", "cow", "sheep"].has(entity.get_entity_type()):
+			if ["zombie", "skeleton", "cow", "sheep"].has(entity_type_tmp):
 				if entity_pos - Vector2i(0, 1) == block_pos:
 					return false
 	return true
@@ -1876,10 +1932,32 @@ func process_mouse_action():
 					player.is_punching = true
 			elif player.sword_breaking_timer > 0:
 				pass
-			elif player.gamemode == "creative":
-				player.destroy_block(mouse_to_block_pos)
 			else:
-				player.destroy_timer += get_process_delta_time()
+				var real_mouse_pos = mouse_to_block_pos
+				if player.gamemode != "creative":
+					real_mouse_pos = tile_map_layer.local_to_map(get_restricted_block_selection_pos())
+				var block_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(real_mouse_pos))
+				if player.punch_timer <= 0 and block_id == 0 and not player.animation_tree["parameters/Punch/active"]:
+					var chunk_pos = get_chunk_position(real_mouse_pos)
+					var chunk_name = str(chunk_pos[0])+"."+str(chunk_pos[1])
+					if loaded_chunks.has(chunk_name) and loaded_chunks[chunk_name].is_loaded:
+						for uuid in loaded_chunks[chunk_name].entity_list:
+							var entity = entities[uuid]
+							if entity == null:
+								continue
+							if ["arrow", "item"].has(entity.get_entity_type()):
+								continue
+							var entity_block_pos = tile_map_layer.local_to_map(entity.position)
+							if entity_block_pos == real_mouse_pos:
+								player.punch(entity)
+								break
+							elif ["zombie", "skeleton", "player"].has(entity.get_entity_type()) and entity_block_pos-Vector2i(0,1) == real_mouse_pos:
+								player.punch(entity)
+								break
+				elif player.gamemode == "creative":
+					player.destroy_block(mouse_to_block_pos)
+				else:
+					player.destroy_timer += get_process_delta_time()
 		elif Input.is_mouse_button_pressed(2) and not Input.is_mouse_button_pressed(1):
 			if player.in_hand_item_name.contains("SPAWN_EGG"):
 				pass
@@ -2164,6 +2242,7 @@ func init_game_as_single():
 		block_selection_box = config.get_value("options", "block_selection_box", StaticLoad.options["block_selection_box"])
 		mini_map_on = config.get_value("options", "mini_map", StaticLoad.options["mini_map"])
 		mini_map_zoom = float(config.get_value("options", "mini_map_zoom", StaticLoad.options["mini_map_zoom"]))
+		smooth_lighting_on = config.get_value("options", "smooth_lighting", StaticLoad.options["smooth_lighting"])
 		bgm_audio_player.volume_db = linear_to_db(int(config.get_value("options", "bgm_volume", StaticLoad.options["bgm_volume"]))/50.0)
 		sound_audio_manager.volume_db = linear_to_db(int(config.get_value("options", "sound_volume", StaticLoad.options["sound_volume"]))/50.0)
 		resource_pack = config.get_value("options", "resource_pack")
@@ -2176,6 +2255,12 @@ func init_game_as_single():
 			mini_map.visible = false
 		elif mini_map_on == "on":
 			mini_map.visible = true
+		if smooth_lighting_on == "on" and not is_smooth_light:
+			is_smooth_light = true
+			refresh_all_light()
+		elif smooth_lighting_on == "off" and is_smooth_light:
+			is_smooth_light = false
+			refresh_all_light()
 		var particle_effect_on = config.get_value("options", "particle_effect", StaticLoad.options["particle_effect"])
 		if particle_effect_on == "off":
 			is_particle_effect_on = false
@@ -2290,6 +2375,7 @@ func init_game_as_client():
 	block_selection_box = config.get_value("options", "block_selection_box", StaticLoad.options["block_selection_box"])
 	mini_map_on = config.get_value("options", "mini_map", StaticLoad.options["mini_map"])
 	mini_map_zoom = float(config.get_value("options", "mini_map_zoom", StaticLoad.options["mini_map_zoom"]))
+	smooth_lighting_on = config.get_value("options", "smooth_lighting", StaticLoad.options["smooth_lighting"])
 	bgm_audio_player.volume_db = linear_to_db(int(config.get_value("options", "bgm_volume", StaticLoad.options["bgm_volume"]))/50.0)
 	sound_audio_manager.volume_db = linear_to_db(int(config.get_value("options", "sound_volume", StaticLoad.options["sound_volume"]))/50.0)
 	var mini_map_zoom_tmp = mini_map_zoom/100
@@ -2301,6 +2387,12 @@ func init_game_as_client():
 		mini_map.visible = false
 	elif mini_map_on == "on":
 		mini_map.visible = true
+	if smooth_lighting_on == "on" and not is_smooth_light:
+		is_smooth_light = true
+		refresh_all_light()
+	elif smooth_lighting_on == "off" and is_smooth_light:
+		is_smooth_light = false
+		refresh_all_light()
 	var particle_effect_on = config.get_value("options", "particle_effect", StaticLoad.options["particle_effect"])
 	if particle_effect_on == "off":
 		is_particle_effect_on = false
@@ -2420,7 +2512,7 @@ func process_entity_spawn():
 						continue
 					var chunk_light_tmp = chunk_light_datas[chunk_name]
 					var self_light = chunk_light_tmp[y*16+x]
-					if undead_count <= 1 and current_sky_light <= 80 and self_light <= 80:
+					if mobs.get_child_count() <= 8 and undead_count <= 1 and current_sky_light <= 80 and self_light <= 80:
 						var rng = RandomNumberGenerator.new()
 						var num = rng.randf()
 						if num < 0.9:
@@ -2434,7 +2526,7 @@ func process_entity_spawn():
 						is_spawned = true
 						#print(chunk_name, " undead ", undead_count)
 						break
-					elif self_light >= 112:
+					elif undead_mobs.get_child_count() <= 8 and self_light >= 112:
 						if loaded_chunks[chunk_name].entity_list.size() >= 1:
 							continue
 						var rng = RandomNumberGenerator.new()
@@ -2664,7 +2756,10 @@ func update_game_details(is_pre_load: bool = false):
 		details_player_name.text = tr("PLAYER_NAME")+" : "+player.player_name
 	var pos = tile_map_layer.local_to_map(player.position)
 	details_position.text = tr("POSITON")+" : x="+str(pos[0])+", y="+str(-pos[1])
-	var selected_pos = tile_map_layer.local_to_map(tile_map_layer.get_local_mouse_position())
+	var real_mouse_pos = tile_map_layer.get_local_mouse_position()
+	if player != null and player.gamemode != "creative":
+		real_mouse_pos = get_restricted_block_selection_pos()
+	var selected_pos = tile_map_layer.local_to_map(real_mouse_pos)
 	details_selected_position.text = tr("SELECTED_POSITION")+" : x="+str(selected_pos[0])+", y="+str(-selected_pos[1])
 	var chunk = get_chunk_position(pos)
 	details_chunk.text = tr("CHUNK")+" : x="+str(chunk[0])+", y="+str(-chunk[1])
@@ -2796,7 +2891,8 @@ func update_new_chunk(is_pre_load: bool):
 				if not loaded_chunks.has(str(x)+"."+str(y)):
 					if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
 						StaticLoad.rpc_id(1, "request_for_update_chunk", multiplayer.get_unique_id(), false, x, y)
-						loaded_chunks[str(x)+"."+str(y)] = StaticLoad.Chunk.new()
+						if not loaded_chunks.has(str(x)+"."+str(y)):
+							loaded_chunks[str(x)+"."+str(y)] = StaticLoad.Chunk.new()
 						loaded_chunks[str(x)+"."+str(y)].is_to_save = false #防止重复向服务器发送申请
 						loaded_chunks_timer[str(x)+"."+str(y)] = StaticLoad.CHUNK_FREE_TIME
 					else:
@@ -2831,7 +2927,8 @@ func update_new_chunk(is_pre_load: bool):
 								}
 							StaticLoad.set_mca_value(mca, value_dict)
 							mca.save_encrypted_pass(StaticLoad.region_path+"/r."+str(x)+"."+str(y)+".mca", StaticLoad.CONFIG_PASSWORD)
-							loaded_chunks[str(x)+"."+str(y)] = StaticLoad.Chunk.new()
+							if not loaded_chunks.has(str(x)+"."+str(y)):
+								loaded_chunks[str(x)+"."+str(y)] = StaticLoad.Chunk.new()
 							loaded_chunks[str(x)+"."+str(y)].is_to_save = false
 							loaded_chunks_timer[str(x)+"."+str(y)] = StaticLoad.CHUNK_FREE_TIME
 							database_chunks.push_back(str(x)+"."+str(y))
@@ -2854,6 +2951,7 @@ func update_new_chunk(is_pre_load: bool):
 
 func free_chunk(pos: Vector2i) -> void:
 	var chunk_name = str(pos[0])+"."+str(pos[1])
+	loaded_chunks[chunk_name].is_loaded = false
 	for uuid in loaded_chunks[chunk_name].entity_list.duplicate():
 		if entities[uuid] == null:
 			continue
@@ -2878,25 +2976,32 @@ func free_chunk(pos: Vector2i) -> void:
 		chunk_sky_light_tmp.clear()
 
 func set_chunk(pos: Vector2i, blocks_list) -> void:
-	if not loaded_chunk_packed_byte_arrays.has(str(pos[0])+"."+str(pos[1])):
+	var chunk_name = str(pos[0])+"."+str(pos[1])
+	if not loaded_chunk_packed_byte_arrays.has(chunk_name):
 		var chunk_packed_byte_array: PackedByteArray
 		chunk_packed_byte_array.resize(256)
 		chunk_packed_byte_array.fill(0)
-		loaded_chunk_packed_byte_arrays[str(pos[0])+"."+str(pos[1])] = chunk_packed_byte_array
+		loaded_chunk_packed_byte_arrays[chunk_name] = chunk_packed_byte_array
 	if blocks_list[0].is_empty():
 		return
-	if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1):
-		if frozen_entity_dict.has(str(pos[0])+"."+str(pos[1])):
-			for uuid in frozen_entity_dict[str(pos[0])+"."+str(pos[1])].duplicate():
-				frozen_entity_dict[str(pos[0])+"."+str(pos[1])].erase(uuid)
-				if entities[uuid] == null:
-					continue
-				entities[uuid].unfreeze()
 	for x in range(0, 16):
 		for y in range(0, 16):
 			set_block(Vector2i(pos[0] * 16 + x, pos[1] * 16 + y), blocks_list[0][y][x], "solid", true)
 			set_block(Vector2i(pos[0] * 16 + x, pos[1] * 16 + y), blocks_list[1][y][x], "no_reach", true)
 			set_block(Vector2i(pos[0] * 16 + x, pos[1] * 16 + y), blocks_list[2][y][x], "back", true)
+	if not loaded_chunks.has(chunk_name):
+		loaded_chunks[chunk_name] = StaticLoad.Chunk.new()
+	loaded_chunks[chunk_name].is_loaded = true
+	if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1):
+		if frozen_entity_dict.has(chunk_name):
+			for uuid in frozen_entity_dict[chunk_name].duplicate():
+				frozen_entity_dict[chunk_name].erase(uuid)
+				if entities[uuid] == null:
+					continue
+				entities[uuid].unfreeze()
+	if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == player.player_peer_id):
+		if player != null and player.is_frozen and str(player.chunk_pos[0])+"."+str(player.chunk_pos[1]) == chunk_name:
+			player.unfreeze()
 
 func set_block(block_pos: Vector2i, block_id: int, tile_map_type, is_pre_load = false):
 	var tile_map_layer_tmp = tile_map_layer

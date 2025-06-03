@@ -1019,8 +1019,9 @@ script = ExtResource("1_upq8j")
 
 [node name="SubViewportContainer" type="SubViewportContainer" parent="."]
 modulate = Color(1, 1, 1, 0)
+offset_top = -22.122
 offset_right = 1024.0
-offset_bottom = 1024.0
+offset_bottom = 1001.88
 scale = Vector2(0.194021, 0.194021)
 mouse_filter = 2
 
@@ -1049,7 +1050,7 @@ bones/1/name = "Body"
 bones/1/parent = 0
 bones/1/rest = Transform3D(-1, 0, 0, 0, -1, 0, 0, 0, 1, 9.31323e-10, 0, 1.12)
 bones/1/enabled = true
-bones/1/position = Vector3(0, -5.96046e-08, 1.11934)
+bones/1/position = Vector3(0, -5.96046e-08, 1.09282)
 bones/1/rotation = Quaternion(0, 0, 1, 0)
 bones/1/scale = Vector3(1, 1, 1)
 bones/2/name = "Chest"
@@ -1084,35 +1085,35 @@ bones/6/name = "Eye_Left"
 bones/6/parent = 4
 bones/6/rest = Transform3D(-1, 9.93411e-07, 2.09808e-06, 2.09808e-06, -1.19209e-06, 1, 9.93414e-07, 1, 1.19209e-06, 0.35, 0.45, 0.18)
 bones/6/enabled = true
-bones/6/position = Vector3(0.35, 0.45, 0.18)
+bones/6/position = Vector3(0.35, 0.47, 0.18)
 bones/6/rotation = Quaternion(1.09301e-06, 0.707106, 0.707107, 3.9056e-07)
 bones/6/scale = Vector3(1, 1, 1)
 bones/7/name = "Eye_Right"
 bones/7/parent = 4
 bones/7/rest = Transform3D(-1, 9.93411e-07, 2.09808e-06, 2.09808e-06, -1.19209e-06, 1, 9.93414e-07, 1, 1.19209e-06, -0.35, 0.45, 0.18)
 bones/7/enabled = true
-bones/7/position = Vector3(-0.349999, 0.45, 0.18)
+bones/7/position = Vector3(-0.35, 0.47, 0.18)
 bones/7/rotation = Quaternion(1.09301e-06, 0.707106, 0.707107, 3.9056e-07)
 bones/7/scale = Vector3(1, 1, 1)
 bones/8/name = "EyeTracking"
 bones/8/parent = 3
 bones/8/rest = Transform3D(1, 0, -2.23638e-06, 2.91591e-13, 1, 1.30385e-07, 2.23638e-06, -1.30385e-07, 1, -9.31323e-10, 1.6, 0.05)
 bones/8/enabled = true
-bones/8/position = Vector3(1.04529e-08, 1.6, 0.05)
+bones/8/position = Vector3(2.86124e-08, 1.6, 1.65)
 bones/8/rotation = Quaternion(-6.51925e-08, -1.11819e-06, 7.28977e-14, 1)
 bones/8/scale = Vector3(1, 1, 1)
 bones/9/name = "EyeTracking_Left"
 bones/9/parent = 8
 bones/9/rest = Transform3D(1, 3.38813e-21, -6.6183e-08, 8.06894e-15, 1, 1.21919e-07, 6.6183e-08, -1.21919e-07, 1, -0.35, 5.02418e-08, 8.84659e-07)
 bones/9/enabled = true
-bones/9/position = Vector3(-0.35, 1.42058e-07, 6.31133e-07)
+bones/9/position = Vector3(-0.349999, 1.29843e-07, 0.400001)
 bones/9/rotation = Quaternion(-6.09593e-08, -3.30915e-08, 2.01723e-15, 1)
 bones/9/scale = Vector3(1, 1, 1)
 bones/10/name = "EyeTracking_Right"
 bones/10/parent = 8
 bones/10/rest = Transform3D(1, 1.35525e-20, -8.20676e-08, 1.00056e-14, 1, 1.21919e-07, 8.20676e-08, -1.21919e-07, 1, 0.35, 5.02418e-08, -6.80809e-07)
 bones/10/enabled = true
-bones/10/position = Vector3(0.35, 1.42059e-07, -9.32305e-07)
+bones/10/position = Vector3(0.350001, 1.29843e-07, 0.399999)
 bones/10/rotation = Quaternion(-6.09593e-08, -4.10338e-08, 2.50139e-15, 1)
 bones/10/scale = Vector3(1, 1, 1)
 bones/11/name = "IK-Leg_Front_Left"
@@ -1295,7 +1296,7 @@ size = 7.93265
 light_mask = 2
 visibility_layer = 513
 material = SubResource("ShaderMaterial_scabt")
-position = Vector2(0, -50.55)
+position = Vector2(0, -72.672)
 scale = Vector2(0.194, 0.194)
 texture = SubResource("ViewportTexture_c583f")
 
@@ -1344,31 +1345,32 @@ metadata/_edit_use_anchors_ = true
 
 [node name="FireAnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 visible = false
-position = Vector2(0, -14.13)
+position = Vector2(0, -35)
 scale = Vector2(4.61, 4.61)
 sprite_frames = SubResource("SpriteFrames_kyrih")
 autoplay = "default"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(2.38419e-07, -1)
+position = Vector2(2.38419e-07, -23.122)
 scale = Vector2(0.99608, 1)
 shape = SubResource("RectangleShape2D_rj0cj")
 
 [node name="UpArea" type="Area2D" parent="."]
-position = Vector2(0, 23)
+position = Vector2(0, 0.878006)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="UpArea"]
 position = Vector2(-52, -71)
 shape = SubResource("RectangleShape2D_4wje3")
 
 [node name="DownArea" type="Area2D" parent="."]
-position = Vector2(0, 46)
+position = Vector2(0, 23.878)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="DownArea"]
 position = Vector2(-51.5, -63.25)
 shape = SubResource("RectangleShape2D_cgubl")
 
 [node name="GroundArea1" type="Area2D" parent="."]
+position = Vector2(0, -22.122)
 collision_mask = 5
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="GroundArea1"]
@@ -1376,6 +1378,7 @@ position = Vector2(-36, 105)
 shape = SubResource("RectangleShape2D_dh1ow")
 
 [node name="GroundArea2" type="Area2D" parent="."]
+position = Vector2(0, -22.122)
 collision_mask = 5
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="GroundArea2"]
@@ -1383,14 +1386,14 @@ position = Vector2(-86, 105)
 shape = SubResource("RectangleShape2D_hgh6k")
 
 [node name="TopArea" type="Area2D" parent="."]
-position = Vector2(0, 23)
+position = Vector2(0, 0.878006)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="TopArea"]
 position = Vector2(0, -71)
 shape = SubResource("RectangleShape2D_stvrv")
 
 [node name="CollideArea" type="Area2D" parent="."]
-position = Vector2(0, 23)
+position = Vector2(0, 0.878006)
 collision_mask = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="CollideArea"]
