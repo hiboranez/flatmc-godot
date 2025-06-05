@@ -22,6 +22,7 @@ func _on_language_button_1_pressed() -> void:
 	if StaticLoad.is_in_game:
 		self.visible = false
 		$"..".update_game_details(true)
+		$"..".refresh_achievement_info()
 	else:
 		StaticLoad.change_scene("res://Assets/Scenes/Menu.tscn")
 

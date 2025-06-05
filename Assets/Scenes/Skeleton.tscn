@@ -1289,7 +1289,7 @@ bones/6/name = "Hip"
 bones/6/parent = 5
 bones/6/rest = Transform3D(1, 0, 1.42109e-14, 0, 1, 0, -1.42109e-14, 0, 1, 3.5984e-08, 5.96046e-08, -0.15108)
 bones/6/enabled = true
-bones/6/position = Vector3(3.60202e-08, -0.0198541, -0.15108)
+bones/6/position = Vector3(3.60202e-08, -0.0199374, -0.15108)
 bones/6/rotation = Quaternion(0, 7.10543e-15, 0, 1)
 bones/6/scale = Vector3(1, 1, 1)
 bones/7/name = "Spine.1"
@@ -1519,7 +1519,7 @@ blend_shapes/Eyes = 1.0
 blend_shapes/Sad = 0.0
 
 [node name="BoneAttachment3D" type="BoneAttachment3D" parent="SubViewportContainer/SubViewport/Skeleton/Skeleton-Bones/Skeleton3D"]
-transform = Transform3D(0.999998, -0.000501419, 0.00215875, -5.82077e-09, -0.97407, -0.226248, 0.00221622, 0.226247, -0.974068, -0.319051, 0.365704, 0.0634468)
+transform = Transform3D(0.999998, -0.000501419, 0.00215875, -5.93718e-09, -0.97407, -0.226248, 0.00221622, 0.226247, -0.974068, -0.319051, 0.365621, 0.0634468)
 bone_name = "Arm-Lower.R"
 bone_idx = 24
 

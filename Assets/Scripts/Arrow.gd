@@ -228,7 +228,7 @@ func _on_collide_area_body_entered(body: Node2D) -> void:
 	if body.name == "TileMapLayer":
 		hit_block([])
 		if StaticLoad.is_muti_mode:
-			StaticLoad.rpc_entity_func_by_uuid(uuid, hit_block, [], "others", true)
+			StaticLoad.rpc_entity_func_by_uuid(uuid, "hit_block", [], "others", true)
 	if not body.has_method("get_uuid"):
 		return
 	if body.get_uuid() == null:

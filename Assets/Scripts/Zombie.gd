@@ -237,7 +237,7 @@ func update_local_hatred():
 	elif update_hatred_timer <= 0:
 		update_hatred_timer = 1
 		if hatred_timer > 0 and target_entity != null:
-			if StaticLoad.calculate_sight_is_blocked(position, target_entity.position):
+			if StaticLoad.calculate_sight_is_blocked(position-Vector2(0, 82), target_entity.position-Vector2(0, 82)):
 				hatred_timer -= 1
 		elif hatred_timer < 0:
 			hatred_timer = 0
@@ -458,7 +458,7 @@ func update_local_refresh_target_timer():
 					target_entity = null
 				continue
 			if position.distance_to(player_tmp.position) < max_target_entity_distance:
-				if not StaticLoad.calculate_sight_is_blocked(position, player_tmp.position):
+				if not StaticLoad.calculate_sight_is_blocked(position-Vector2(0, 82), player_tmp.position-Vector2(0, 82)):
 					player_can_trace_list.append(player_tmp)
 		if target_entity == null and not player_can_trace_list.is_empty():
 			player_can_trace_list.shuffle()

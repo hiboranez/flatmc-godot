@@ -10,6 +10,8 @@ extends Control
 @onready var notice_scene = load("res://Assets/Scenes/Notice.tscn") as PackedScene
 @onready var big_notice_scene = load("res://Assets/Scenes/BigNotice.tscn") as PackedScene
 @onready var secondary_confirmation_scene = load("res://Assets/Scenes/SecondaryConfirmation.tscn") as PackedScene
+@onready var achievement_get_scene = load("res://Assets/Scenes/AchievementGet.tscn") as PackedScene
+@onready var achievement_info_scene = load("res://Assets/Scenes/AchievementInfo.tscn") as PackedScene
 @onready var ping_scene = load("res://Assets/Scenes/Ping.tscn") as PackedScene
 @onready var online_info_scene = load("res://Assets/Scenes/OnlineInfo.tscn") as PackedScene
 @onready var mouse_item_name_label_scene = load("res://Assets/Scenes/MouseItemNameLabel.tscn") as PackedScene
@@ -167,6 +169,8 @@ var tools_efficiency: Dictionary
 var tools_type: Dictionary
 var spawn_egg_colors: Dictionary
 var special_block_destroy_time: Dictionary
+var achievement_progress_dict: Dictionary
+var achievement_icon_dict: Dictionary
 var crafting_recipe_dict: Dictionary
 var commands: Dictionary
 var clinging_block_dict: Dictionary
@@ -251,6 +255,8 @@ func _ready() -> void:
 	food_dict = game_dict["food_dict"]
 	spawn_egg_colors = game_dict["spawn_egg_colors"]
 	special_block_destroy_time = game_dict["special_block_destroy_time"]
+	achievement_progress_dict = game_dict["achievement_progress_dict"]
+	achievement_icon_dict = game_dict["achievement_icon_dict"]
 	commands = game_dict["commands"]
 	clinging_block_dict = game_dict["clinging_block_dict"]
 	special_place_dict = game_dict["special_place_dict"]
@@ -1135,7 +1141,7 @@ func start_server():
 		record_server_log(Time.get_date_string_from_system(), text)
 	multiplayer.multiplayer_peer = multiplayer_peer
 	if not is_dedicated_server:
-		game.pause_button_4.disabled = true
+		game.pause_button_5.disabled = true
 		game.broadcast_to_person(game.player.player_name, tr("OPEN_SERVER_SUCCESS")+StaticLoad.HOST_IP+":"+str(port), "chartreuse")
 	var ping_instance = ping_scene.instantiate()
 	ping_instance.target_peer_id = 1
@@ -1679,7 +1685,8 @@ func old_peer_replication(peer_ids):
 	for peer_id in peer_ids:
 		game.create_player(peer_id)
 	var local_player = game.player
-	rpc_entity_func_by_uuid(local_player.get_uuid(), "change_skin", local_player.skin_texture_buffer, peer_ids, true)
+	if local_player.skin_path != "null":
+		rpc_entity_func_by_uuid(local_player.get_uuid(), "change_skin", local_player.skin_texture_buffer, peer_ids, true)
 	rpc_id(1, "old_peer_replication_finished", multiplayer.get_unique_id())
 
 @rpc("any_peer", "call_remote", "reliable", 1)
@@ -1749,7 +1756,7 @@ func process_request_for_entity_func_by_uuid(uuid, rpc_func_name, args, to_send_
 @rpc("authority", "call_remote", "reliable", 1)
 func reply_for_entity_func_by_uuid(uuid, rpc_func_name, args):
 	#print(multiplayer.get_unique_id()," ",uuid," ", rpc_func_name," ", args)
-	if rpc_func_name == null:
+	if not rpc_func_name is String:
 		return
 	if rpc_func_name == "init_remote":
 		for player_tmp in game.players.get_children():

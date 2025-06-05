@@ -125,9 +125,9 @@ func load_terrain():
 		is_loaded_terrain = true
 
 func load_finished():
-	StaticLoad.game.pause_button_4.visible = false
 	StaticLoad.game.pause_button_5.visible = false
-	StaticLoad.game.pause_button_6.visible = true
+	StaticLoad.game.pause_button_6.visible = false
+	StaticLoad.game.pause_button_7.visible = true
 	StaticLoad.game.death_button_2.visible = false
 	StaticLoad.game.death_button_3.visible = true
 	StaticLoad.game.unfreeze_game()

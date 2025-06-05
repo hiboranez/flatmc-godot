@@ -27,6 +27,7 @@ extends Node2D
 @onready var jump_button_normal = load("res://Assets/Textures/GUI/jump_button_normal.tres") as AtlasTexture
 @onready var move_center_button_fly = load("res://Assets/Textures/GUI/move_center_button_fly.tres") as AtlasTexture
 #@onready var player_other_scene = load("res://Assets/Scenes/PlayerOther.tscn") as PackedScene
+@onready var achievement_get_control = $GameUI/AchievementGetControl
 @onready var health_bar = $GameUI/ItemBarPanel/HealthBar
 @onready var hunger_bar = $GameUI/ItemBarPanel/HungerBar
 @onready var player
@@ -52,6 +53,7 @@ extends Node2D
 @onready var pause_button_4 = $PauseUI/FlowContainer/Button4
 @onready var pause_button_5 = $PauseUI/FlowContainer/Button5
 @onready var pause_button_6 = $PauseUI/FlowContainer/Button6
+@onready var pause_button_7 = $PauseUI/FlowContainer/Button7
 @onready var death_button_2 = $DeathUI/VSplitContainer/FlowContainer/Button2
 @onready var death_button_3 = $DeathUI/VSplitContainer/FlowContainer/Button3
 @onready var players = $Players
@@ -97,6 +99,8 @@ extends Node2D
 @onready var attack_icon = $GameUI/ItemBarPanel/AttackIcon
 @onready var attack_indicator_progress = $GameUI/ItemBarPanel/AttackIcon/AttackIndicatorProgress
 @onready var death_ui_flow_container = $DeathUI/VSplitContainer/FlowContainer
+@onready var achievement_ui = $AchievementUI
+@onready var achievement_scroll_box_container = $AchievementUI/StoneWall/ScrollContainer/VBoxContainer
 @onready var path_2d = $StaticBackground/Path2D
 @onready var moon_path = $StaticBackground/Path2D/MoonPath
 @onready var sun_path = $StaticBackground/Path2D/SunPath
@@ -412,7 +416,7 @@ func update_nature_growth():
 					continue
 				var rng = RandomNumberGenerator.new()
 				var num = rng.randf()
-				if num > 0.7:
+				if num > 0.999:
 					chunk.dirt_list.erase(dirt_pos)
 					set_block(dirt_block_pos, StaticLoad.get_block_id_by_name("GRASS_BLOCK"), "solid", true)
 					if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1:
@@ -425,7 +429,7 @@ func update_nature_growth():
 				var grass_block_pos = Vector2i(int(splits[0])*16,int(splits[1])*16)+grass_pos
 				var rng = RandomNumberGenerator.new()
 				var num = rng.randf()
-				if num > 0.7:
+				if num > 0.999:
 					chunk.grass_block_list.erase(grass_pos)
 					set_block(grass_block_pos, StaticLoad.get_block_id_by_name("DIRT"), "solid", true)
 					if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1:
@@ -438,7 +442,7 @@ func update_nature_growth():
 				var farm_land_block_pos = Vector2i(int(splits[0])*16,int(splits[1])*16)+farm_land_pos
 				var rng = RandomNumberGenerator.new()
 				var num = rng.randf()
-				if num > 0.7:
+				if num > 0.999:
 					chunk.farm_land_list.erase(farm_land_pos)
 					set_block(farm_land_block_pos, StaticLoad.get_block_id_by_name("DIRT"), "solid", true)
 					if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1:
@@ -446,7 +450,7 @@ func update_nature_growth():
 			for leaves_pos in chunk.leaves_list.duplicate():
 				var rng = RandomNumberGenerator.new()
 				var num = rng.randf()
-				if num > 0.7:
+				if num > 0.999:
 					chunk.leaves_list.erase(leaves_pos)
 					var leaves_block_pos = Vector2i(int(splits[0])*16,int(splits[1])*16)+leaves_pos
 					set_block_list.append([Time.get_ticks_msec(), "destroy", 0, leaves_block_pos, "no_reach", false])
@@ -458,7 +462,7 @@ func update_nature_growth():
 				var seed_block_pos = Vector2i(int(splits[0])*16,int(splits[1])*16)+seed_pos
 				var rng = RandomNumberGenerator.new()
 				var num = rng.randf()
-				if num > 0.7:
+				if num > 0.999:
 					var seed_block_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(seed_block_pos))
 					var seed_block_name = StaticLoad.get_block_name_by_id(seed_block_id)
 					if seed_block_name.contains("STAGE"):
@@ -504,7 +508,7 @@ func update_nature_growth():
 						continue
 				var rng = RandomNumberGenerator.new()
 				var num = rng.randf()
-				if num > 0.7:
+				if num > 0.999:
 					chunk.sapling_list.erase(sapling_pos)
 					for i in range(3):
 						var to_set_block_pos = Vector2i(int(splits[0])*16,int(splits[1])*16)+sapling_pos+Vector2i(0,-i)
@@ -546,7 +550,7 @@ func update_nature_growth():
 						continue
 				var rng = RandomNumberGenerator.new()
 				var num = rng.randf()
-				if num > 0.7:
+				if num > 0.999:
 					for i in range(1,3):
 						var to_set_block_pos = sugar_cane_block_pos+Vector2i(0,-i)
 						var chunk_pos = get_chunk_position(to_set_block_pos)
@@ -721,6 +725,8 @@ func process_set_block():
 					block_to_destroy_id = StaticLoad.get_block_id_by_atlas_coords(no_reach_tile_map_layer.get_cell_atlas_coords(set_block_pos))
 			var in_hand_item_name = "AIR"
 			if uuid != "destroy":
+				if not entities.has(uuid):
+					return
 				var entity = entities[uuid]
 				if entity.get_entity_type() == "player":
 					in_hand_item_name = entity.in_hand_item_name
@@ -813,7 +819,7 @@ func process_set_block():
 										entity.summon_item(summon_item_args)
 							entity.destroy_timer = 0
 							if destroy_light_names.has(entity.player_peer_id):
-								destroy_light_names[player.player_peer_id].set_texture(null)
+								destroy_light_names[entity.player_peer_id].set_texture(null)
 						elif set_block_id != 0:
 							if entity.gamemode != "creative":
 								if entity.in_hand_item_name.contains("HOE"):
@@ -1767,7 +1773,7 @@ func _input(event: InputEvent) -> void:
 				player.item_bar_amounts[selected_item_grid_tmp] = 0
 			StaticLoad.game.refresh_item_grid(selected_item_grid_tmp)
 			inventory_show_grids.get_node("InventoryGrid"+str(selected_item_grid_tmp)).init_inventory_grid(player.item_bar_names[selected_item_grid_tmp], player.item_bar_amounts[selected_item_grid_tmp])
-		
+
 func update_inventroy_player_model():
 	if not is_inventory:
 		return
@@ -1842,9 +1848,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			var icon_scale = StaticLoad.MINI_MAP_SCALE_FACTOR/mini_map_camera.zoom[0]
 			for player_icon in mini_map_players.get_children():
 				player_icon.scale = Vector2(icon_scale, icon_scale)
-		elif is_online_info:
-			pass
-		elif is_chat:
+		elif is_chat or is_pause or is_online_info:
 			pass
 		else:
 			if player.selected_item_grid >= 1:
@@ -1861,9 +1865,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			var icon_scale = StaticLoad.MINI_MAP_SCALE_FACTOR/mini_map_camera.zoom[0]
 			for player_icon in mini_map_players.get_children():
 				player_icon.scale = Vector2(icon_scale, icon_scale)
-		elif is_online_info:
-			pass
-		elif is_chat:
+		elif is_chat or is_pause or is_online_info:
 			pass
 		else:
 			if player.selected_item_grid <= 7:
@@ -1927,37 +1929,77 @@ func process_mouse_action():
 				player.last_eat_stage = -1
 				player.eat_timer = 0
 		if Input.is_mouse_button_pressed(1) and not Input.is_mouse_button_pressed(2):
+			var real_mouse_pos = mouse_to_block_pos
+			if player.gamemode != "creative":
+				real_mouse_pos = tile_map_layer.local_to_map(get_restricted_block_selection_pos())
+			var block_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(real_mouse_pos))
+			var no_reach_block_id = StaticLoad.get_block_id_by_atlas_coords(no_reach_tile_map_layer.get_cell_atlas_coords(real_mouse_pos))
 			if StaticLoad.tools_type.has(player.in_hand_item_name) and StaticLoad.tools_type[player.in_hand_item_name].has("sword"):
 				if player.attack_timer <= 0:
 					player.is_punching = true
 			elif player.sword_breaking_timer > 0:
 				pass
-			else:
-				var real_mouse_pos = mouse_to_block_pos
-				if player.gamemode != "creative":
-					real_mouse_pos = tile_map_layer.local_to_map(get_restricted_block_selection_pos())
-				var block_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(real_mouse_pos))
+			elif block_id == 0 and no_reach_block_id == 0:
 				if player.punch_timer <= 0 and block_id == 0 and not player.animation_tree["parameters/Punch/active"]:
 					var chunk_pos = get_chunk_position(real_mouse_pos)
 					var chunk_name = str(chunk_pos[0])+"."+str(chunk_pos[1])
 					if loaded_chunks.has(chunk_name) and loaded_chunks[chunk_name].is_loaded:
-						for uuid in loaded_chunks[chunk_name].entity_list:
-							var entity = entities[uuid]
-							if entity == null:
+						var is_punched = false
+						for player_tmp in players.get_children():
+							if player_tmp == player:
 								continue
-							if ["arrow", "item"].has(entity.get_entity_type()):
-								continue
-							var entity_block_pos = tile_map_layer.local_to_map(entity.position)
-							if entity_block_pos == real_mouse_pos:
-								player.punch(entity)
+							var entity_block_pos = tile_map_layer.local_to_map(player_tmp.position)
+							if entity_block_pos == real_mouse_pos or entity_block_pos-Vector2i(0,1) == real_mouse_pos:
+								if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1):
+									player.punch(["player", player_tmp.player_peer_id])
+								elif StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
+									StaticLoad.rpc_entity_func_by_uuid(player.get_uuid(), "punch", ["player", player_tmp.player_peer_id], [1], true)
+								player.is_punching = true
+								player.punch_timer = 1
+								if StaticLoad.is_muti_mode:
+									player.changed_state_dict["is_punching"] = true
+								is_punched = true
 								break
-							elif ["zombie", "skeleton", "player"].has(entity.get_entity_type()) and entity_block_pos-Vector2i(0,1) == real_mouse_pos:
-								player.punch(entity)
-								break
-				elif player.gamemode == "creative":
-					player.destroy_block(mouse_to_block_pos)
-				else:
-					player.destroy_timer += get_process_delta_time()
+						if not is_punched:
+							for entity in mobs.get_children():
+								if entity == null:
+									continue
+								if ["arrow", "item"].has(entity.get_entity_type()):
+									continue
+								var entity_block_pos = tile_map_layer.local_to_map(entity.position)
+								if entity_block_pos == real_mouse_pos:
+									if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1):
+										player.punch(["entity", entity.get_uuid()])
+									elif StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
+										StaticLoad.rpc_entity_func_by_uuid(player.get_uuid(), "punch", ["entity", entity.get_uuid()], [1], true)
+									player.is_punching = true
+									player.punch_timer = 1
+									if StaticLoad.is_muti_mode:
+										player.changed_state_dict["is_punching"] = true
+									is_punched = true
+									break
+						if not is_punched:
+							for entity in undead_mobs.get_children():
+								if entity == null:
+									continue
+								if ["arrow", "item"].has(entity.get_entity_type()):
+									continue
+								var entity_block_pos = tile_map_layer.local_to_map(entity.position)
+								if entity_block_pos == real_mouse_pos or entity_block_pos-Vector2i(0,1) == real_mouse_pos:
+									if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1):
+										player.punch(["entity", entity.get_uuid()])
+									elif StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
+										StaticLoad.rpc_entity_func_by_uuid(player.get_uuid(), "punch", ["entity", entity.get_uuid()], [1], true)
+									player.is_punching = true
+									player.punch_timer = 1
+									if StaticLoad.is_muti_mode:
+										player.changed_state_dict["is_punching"] = true
+									is_punched = true
+									break
+			elif player.gamemode == "creative":
+				player.destroy_block(mouse_to_block_pos)
+			else:
+				player.destroy_timer += get_process_delta_time()
 		elif Input.is_mouse_button_pressed(2) and not Input.is_mouse_button_pressed(1):
 			if player.in_hand_item_name.contains("SPAWN_EGG"):
 				pass
@@ -2232,6 +2274,7 @@ func init_game_as_dedicated_server():
 	#nearby_thread.start(process_nearby)
 
 func init_game_as_single():
+	refresh_achievement_info()
 	var config = ConfigFile.new()
 	var result = config.load("user://configs.cfg")
 	var player_name_tmp
@@ -2355,6 +2398,7 @@ func init_game_as_single():
 	#nearby_thread.start(process_nearby)
 
 func init_game_as_client():
+	refresh_achievement_info()
 	StaticLoad.select_world = "new world"
 	StaticLoad.update_select_world_path()
 	StaticLoad.rpc_id(1, "request_for_world_info", multiplayer.get_unique_id(), true)
@@ -2454,6 +2498,10 @@ func create_player(peer_id = 1):
 		player.init_local(peer_id)
 	else:
 		player_instance.is_other = true
+		var skin_texture = load(StaticLoad.default_skin_path) as Texture2D
+		player_instance.set_player_model_skin_by_texture(skin_texture)
+		skin_texture = Image.load_from_file(StaticLoad.default_skin_path)
+		player_instance.skin_texture_buffer = skin_texture.save_png_to_buffer()
 		var tween1 = get_tree().create_tween()
 		tween1.tween_method(player_instance.set_shader_transparent_intensity, 1.0, 0.0, StaticLoad.TELEPORT_TIME/2.0)
 		var tween2 = get_tree().create_tween()
@@ -2485,7 +2533,10 @@ func process_entity_spawn():
 			var is_spawned = false
 			var undead_count: int = 0
 			if current_sky_light <= 223:
-				for uuid in loaded_chunks[chunk_name].entity_list:
+				for uuid in loaded_chunks[chunk_name].entity_list.duplicate():
+					if not entities.has(uuid):
+						loaded_chunks[chunk_name].entity_list.erase(uuid)
+						continue
 					if entities[uuid] == null:
 						continue
 					if StaticLoad.undead_mob_list.has(entities[uuid].get_entity_type()):
@@ -3494,7 +3545,10 @@ func save_chunk(chunk_pos: Vector2i):
 	for para in StaticLoad.Chunk.para_list:
 		value_dict[para] = chunk.get(para)
 	StaticLoad.set_mca_value(mca, value_dict)
-	for uuid in chunk.entity_list:
+	for uuid in chunk.entity_list.duplicate():
+		if not entities.has(uuid):
+			chunk.entity_list.erase(uuid)
+			continue
 		var entity = entities[uuid]
 		if entity == null:
 			continue
@@ -3622,6 +3676,25 @@ func touch_button(button_name):
 		move_input_list.clear()
 		player.stop_move()
 
+func refresh_achievement_info():
+	if achievement_get_control.get_child_count() > 0:
+		for achievement_get in achievement_get_control.get_children():
+			achievement_get.title.text = tr("ACHIEVEMENT_GET")
+			achievement_get.achievement_name_label.text = tr(achievement_get.achievement_name)
+	for achievement_info in achievement_scroll_box_container.get_children():
+		achievement_info.queue_free()
+	var achieved_achievement_list_tmp = []
+	if player != null:
+		achieved_achievement_list_tmp = player.achieved_achievement_list
+	for achievement in StaticLoad.achievement_icon_dict:
+		var is_achieved = false
+		var achievement_info = StaticLoad.achievement_info_scene.instantiate()
+		achievement_info.name = achievement
+		achievement_scroll_box_container.add_child(achievement_info)	
+		if achieved_achievement_list_tmp.has(achievement):
+			is_achieved = true
+		achievement_info.init(achievement, is_achieved)
+
 func broadcast_to_person(player_name: String, text:String, color="white"):
 	if player_name != player.player_name:
 		return
@@ -3680,6 +3753,11 @@ func summon_death_particle(got_position):
 	front_particles.add_child(particle)
 	particle.init(got_position)
 
+func _on_achievement_button_1_pressed() -> void:
+	StaticLoad.click_audio_player.play()
+	pause_ui.visible = true
+	achievement_ui.visible = false
+
 func _on_pause_button_1_pressed() -> void:
 	StaticLoad.click_audio_player.play()
 	if StaticLoad.is_on_mobile_platform:
@@ -3699,12 +3777,17 @@ func _on_pause_button_3_pressed() -> void:
 
 func _on_pause_button_4_pressed() -> void:
 	StaticLoad.click_audio_player.play()
+	achievement_ui.visible = true
+	pause_ui.visible = false
+
+func _on_pause_button_5_pressed() -> void:
+	StaticLoad.click_audio_player.play()
 	pause_ui.visible = false
 	is_pause = false
 	is_input_frozen = false
 	StaticLoad.start_server()
 
-func _on_pause_button_5_pressed() -> void:
+func _on_pause_button_6_pressed() -> void:
 	StaticLoad.click_audio_player.play()
 	Input.emulate_mouse_from_touch = true
 	save_world()
@@ -3720,7 +3803,7 @@ func _on_pause_button_5_pressed() -> void:
 	StaticLoad.is_in_game = false
 	StaticLoad.change_scene("res://Assets/Scenes/Menu.tscn")
 	
-func _on_pause_button_6_pressed() -> void:
+func _on_pause_button_7_pressed() -> void:
 	Input.emulate_mouse_from_touch = true
 	StaticLoad.click_audio_player.play()
 	StaticLoad.clear_connections()

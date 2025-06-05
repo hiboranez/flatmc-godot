@@ -115,6 +115,8 @@ var trigger_change_state_list = [
 	"is_jumping", "farm_list", "inventory"
 ]
 var effect_dict = StaticLoad.default_effect_dict
+var achieved_achievement_list = []
+var achievement_progress_dict = {}
 var state_dict = {}
 var last_state_dict = {}
 var changed_state_dict = {}
@@ -128,10 +130,12 @@ var item_bar_names = StaticLoad.default_item_bar_names
 var item_bar_amounts = StaticLoad.default_item_bar_amounts
 var in_hand_item_name = "AIR"
 var current_set_layer = "solid"
+var skin_path
 var skin_texture_buffer
 
 func _ready():
 	freeze()
+	init_achievement_progress_dict()
 	update_state_dict()
 
 func _process(delta: float) -> void:
@@ -164,6 +168,12 @@ func _process(delta: float) -> void:
 	
 	update_last_velocity()
 
+func init_achievement_progress_dict():
+	for achievement in StaticLoad.achievement_progress_dict:
+		achievement_progress_dict[achievement] = {}
+		for progress in StaticLoad.achievement_progress_dict[achievement]:
+			achievement_progress_dict[achievement][progress] = false
+
 func init_local(peer_id):
 	position = Vector2i(0, -21)
 	player_peer_id = peer_id
@@ -191,7 +201,7 @@ func init_local(peer_id):
 			render_chunk = StaticLoad.RENDER_CHUNK_MAX
 		if render_chunk < StaticLoad.RENDER_CHUNK_MIN:
 			render_chunk = StaticLoad.RENDER_CHUNK_MIN
-		var skin_path = config.get_value("options", "skin_path")	
+		skin_path = config.get_value("options", "skin_path")	
 		if skin_path != "null":
 			var player_texture_tmp = Image.load_from_file(skin_path)
 			if player_texture_tmp != null:
@@ -480,17 +490,24 @@ func update_animation_by_data():
 						#changed_state_dict["is_jumping"] = true
 		is_jumping = false
 
-func punch(entity):
+func punch(args):
+	var got_entity_type = args[0]
+	var punch_entity
+	if got_entity_type == "player":
+		punch_entity = StaticLoad.player_peer_dict[args[1]]
+		if punch_entity.gamemode == "creative":
+			return
+	elif got_entity_type == "entity":
+		if StaticLoad.game.entities.has(args[1]):
+			punch_entity = StaticLoad.game.entities[args[1]]
+	if punch_entity == null:
+		return
 	var side = "left"
-	if entity.position.x < position.x:
+	if punch_entity.position.x < position.x:
 		side = "right"
-	if entity.get_entity_type() == "player":
-		entity.rpc_damage([1, side, entity.get_health(), "player_attack", player_name], true)
-	entity.get_damage([1, side, entity.get_health(), "player_attack", player_name])
-	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == player_peer_id:
-		changed_state_dict["is_punching"] = true
-	is_punching = true
-	punch_timer = 1
+	if got_entity_type == "player":
+		punch_entity.rpc_damage([1, side, punch_entity.get_health(), "player_attack", player_name], true)
+	punch_entity.get_damage([1, side, punch_entity.get_health(), "player_attack", player_name])
 
 func add_velocity(delta_velocity):
 	if delta_velocity.x != 0:
@@ -942,7 +959,7 @@ func apply_changed_state_dict(got_changed_state_dict):
 				var is_correct = true
 				for item_name_tmp in inventory_dict_tmp:
 					if not inventory_dict.has(item_name_tmp):
-						if StaticLoad.crafting_recipe_dict.has(item_name_tmp) or inventory_dict[item_name_tmp] < inventory_dict_tmp[item_name_tmp]:
+						if StaticLoad.crafting_recipe_dict.has(item_name_tmp):
 							var recipe_list = StaticLoad.crafting_recipe_dict[item_name_tmp]
 							var is_can_final_craft = true
 							for recipe in recipe_list:
@@ -981,26 +998,6 @@ func apply_changed_state_dict(got_changed_state_dict):
 		else:
 			self.set(key, got_changed_state_dict[key])
 
-func calculate_inventory_dict(args):
-	var item_bar_names_tmp = args[0]
-	var item_bar_amounts_tmp = args[1]
-	var mouse_item_name_tmp = args[2]
-	var mouse_item_amount_tmp = args[3]
-	var inventory_dict_tmp = {}
-	for i in range(36):
-		var item_name_tmp = item_bar_names_tmp[i]
-		if item_name_tmp != "AIR":
-			if inventory_dict_tmp.has(item_name_tmp):
-				inventory_dict_tmp[item_name_tmp] += item_bar_amounts_tmp[i]
-			else:
-				inventory_dict_tmp[item_name_tmp] = item_bar_amounts_tmp[i]
-	if mouse_item_name_tmp != "AIR":
-		if inventory_dict_tmp.has(mouse_item_name_tmp):
-			inventory_dict_tmp[mouse_item_name_tmp] += mouse_item_amount_tmp
-		else:
-			inventory_dict_tmp[mouse_item_name_tmp] = mouse_item_amount_tmp
-	return inventory_dict_tmp
-
 func upload_local_player_changed_state_dict():
 	if not StaticLoad.is_muti_mode:
 		return
@@ -1028,6 +1025,69 @@ func update_player_face_rotation():
 	var looking_at = Vector3(current_rotation.x, 90+turn_state*90*StaticLoad.TURN_STATE_SCALE_FACTOR, current_rotation.z)
 	player_model.rotation_degrees = looking_at
 
+func calculate_inventory_dict(args):
+	var item_bar_names_tmp = args[0]
+	var item_bar_amounts_tmp = args[1]
+	var mouse_item_name_tmp = args[2]
+	var mouse_item_amount_tmp = args[3]
+	var inventory_dict_tmp = {}
+	for i in range(36):
+		var item_name_tmp = item_bar_names_tmp[i]
+		if item_name_tmp != "AIR":
+			if inventory_dict_tmp.has(item_name_tmp):
+				inventory_dict_tmp[item_name_tmp] += item_bar_amounts_tmp[i]
+			else:
+				inventory_dict_tmp[item_name_tmp] = item_bar_amounts_tmp[i]
+	if mouse_item_name_tmp != "AIR":
+		if inventory_dict_tmp.has(mouse_item_name_tmp):
+			inventory_dict_tmp[mouse_item_name_tmp] += mouse_item_amount_tmp
+		else:
+			inventory_dict_tmp[mouse_item_name_tmp] = mouse_item_amount_tmp
+	return inventory_dict_tmp
+
+func process_achievement_progress(change_dict):
+	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
+		StaticLoad.rpc_entity_func_by_uuid(uuid, "update_achievement_progress", change_dict, [1], true)
+	else:
+		update_achievement_progress(change_dict)
+
+func update_achievement_progress(change_dict):
+	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
+		return
+	var achievement_get_list = []
+	for progress in change_dict:
+		for achievement in achievement_progress_dict:
+			if achievement_progress_dict[achievement].has(progress):
+				achievement_progress_dict[achievement][progress] = change_dict[progress]
+				if not achieved_achievement_list.has(achievement):
+					var is_all_achieved = true
+					for progress_tmp in achievement_progress_dict[achievement]:
+						if not achievement_progress_dict[achievement][progress_tmp]:
+							is_all_achieved = false
+							break
+					if is_all_achieved:
+						achievement_get_list.append(achievement)
+	if not achievement_get_list.is_empty():
+		for achievement in achievement_get_list:
+			if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1:
+				StaticLoad.rpc_entity_func_by_uuid(uuid, "get_achievement", achievement, "others", true)
+			get_achievement(achievement)
+
+func get_achievement(got_achievement_name):
+	var got_achievement_text = player_name + tr("GOT_ACHIEVEMENT") + "[" + tr(got_achievement_name) + "]"
+	StaticLoad.game.broadcast_to_all(got_achievement_text, "chartreuse")
+	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1:
+		if StaticLoad.is_dedicated_server:
+			var text = "["+StaticLoad.get_time_string(false)+" INFO]: "+got_achievement_text
+			print(text)
+			StaticLoad.record_server_log(Time.get_date_string_from_system(), text)
+	if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == player_peer_id):
+		achieved_achievement_list.append(got_achievement_name)
+		var achievement_get = StaticLoad.achievement_get_scene.instantiate()
+		StaticLoad.game.achievement_get_control.add_child(achievement_get)
+		achievement_get.init(got_achievement_name)
+		StaticLoad.game.achievement_scroll_box_container.get_node(got_achievement_name).update_achieved(true)
+	
 func rpc_damage(args, is_on_server):
 	if not StaticLoad.is_muti_mode:
 		return
@@ -1044,13 +1104,9 @@ func rpc_damage(args, is_on_server):
 				StaticLoad.rpc_entity_func_by_uuid(uuid, "get_damage", new_args, [player_peer_id], false)
 	else:
 		if player_peer_id == 1:
-			var new_args = args.duplicate()
-			new_args[1] = "null"
-			StaticLoad.rpc_entity_func_by_uuid(uuid, "get_damage", new_args, "others", true)
+			StaticLoad.rpc_entity_func_by_uuid(uuid, "get_damage", args, "others", true)
 		else:
-			var new_args = args.duplicate()
-			new_args[1] = "null"
-			StaticLoad.rpc_entity_func_by_uuid(uuid, "get_damage", new_args, [player_peer_id], false)
+			StaticLoad.rpc_entity_func_by_uuid(uuid, "get_damage", args, [player_peer_id], false)
 		
 
 func get_damage(args):
@@ -1563,6 +1619,13 @@ func get_item(args):
 		item_bar_names[selected_item_grid] = "AIR"
 	if list[0] < amount and sound_on:
 		StaticLoad.game.sound_audio_manager.play_audio_static("player", "pop")
+	if list[0] < amount:
+		if item_name == "LOG_OAK":
+			var change_dict = {
+				"get_log" : true
+			}
+			if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1):
+				update_achievement_progress(change_dict)
 	if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and player_peer_id == multiplayer.get_unique_id()):
 		if StaticLoad.game.is_inventory:
 			StaticLoad.game.append_process_refresh("refresh_inventory")
@@ -1616,7 +1679,6 @@ func shoot_arrow():
 	var lift_dist = lerp(-52, -77, shoot_timer/2)
 	var arrow_uuid = UUID.v4()
 	var arrow_args = [arrow_uuid, str(arrow_uuid), position+Vector2(face_state*30,lift_dist), shoot_speed, shoot_speed, "player", uuid, player_name, true]
-	StaticLoad.game.sound_audio_manager.play_random_audio_at_position("random", "bow_shoot", position, 1)
 	if StaticLoad.is_muti_mode:
 		if multiplayer.get_unique_id() == 1:
 			summon_arrow(arrow_args)
@@ -1629,6 +1691,7 @@ func shoot_arrow():
 func summon_arrow(args):
 	if StaticLoad.is_muti_mode and not multiplayer.get_unique_id() == 1:
 		args[3] = Vector2(0, 0)
+	StaticLoad.game.sound_audio_manager.play_random_audio_at_position("random", "bow_shoot", position, 1)
 	var arrow = StaticLoad.arrow_scene.instantiate()
 	StaticLoad.game.arrows.add_child(arrow)
 	arrow.init(args)
