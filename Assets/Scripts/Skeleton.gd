@@ -543,7 +543,7 @@ func update_local_refresh_target_timer():
 func update_local_is_on_ladder():
 	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
 		return
-	var foot_pos = position + Vector2(0, 23)
+	var foot_pos = position
 	var foot_block_pos = StaticLoad.game.tile_map_layer.local_to_map(foot_pos)
 	var foot_block_id = StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.tile_map_layer.get_cell_atlas_coords(foot_block_pos))
 	if ladder_repeat_timer > 0:
@@ -866,6 +866,28 @@ func die(reason, object):
 	is_dead = true
 	stop_move()
 	set_shader_blink_intensity(0.6)
+	if reason == "player_attack":
+		for peer_id in StaticLoad.player_peer_dict:
+			var player_tmp = StaticLoad.player_peer_dict[peer_id]
+			if player_tmp != null and player_tmp.player_name == object:
+				var change_dict = {
+					"kill_undead" : true
+				}
+				player_tmp.process_achievement_progress(change_dict)
+				break
+	elif reason == "arrow_attack":
+		var splits = object.split(".")
+		if splits[0] == "player":
+			for peer_id in StaticLoad.player_peer_dict:
+				var player_tmp = StaticLoad.player_peer_dict[peer_id]
+				if player_tmp != null and player_tmp.player_name == splits[2]:
+					var change_dict = {
+						"kill_undead" : true
+					}
+					if abs(player_tmp.position.x - position.x) > 800:
+						change_dict["snipe_skeleton"] = true
+					player_tmp.process_achievement_progress(change_dict)
+					break
 	var tween1 = get_tree().create_tween()
 	tween1.tween_method(set_name_label_modulate, Color(1,1,1,1), Color(1,1,1,0), StaticLoad.DISSOLVE_TIME)
 	StaticLoad.game.sound_audio_manager.play_random_audio_at_position("skeleton", "death", position, 1)

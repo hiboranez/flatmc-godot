@@ -8,6 +8,7 @@ extends Node2D
 @onready var game_ui = $GameUI
 @onready var options_ui = $Options
 @onready var online_ui = $OnlineUI
+@onready var sign_edit_ui = $SignEditUI
 @onready var online_ui_vbox_container = $OnlineUI/OnlineList/ScrollContainer/VBoxContainer
 @onready var item_scene = load("res://Assets/Scenes/Item.tscn") as PackedScene
 @onready var chunk_light_scene = load("res://Assets/Scenes/ChunkLight.tscn") as PackedScene
@@ -34,7 +35,6 @@ extends Node2D
 @onready var touch_time_counters = $TouchTimeCounters
 @onready var item_grids = $GameUI/ItemBarPanel/ItemBar.get_children()
 @onready var item_name_label = $GameUI/ItemBarPanel/ItemNameLabel
-@onready var bgm_audio_player = $BgmAudioPlayer
 @onready var sound_audio_manager = $SoundAudioManager
 @onready var block_selection_ui = $BlockSelectionUI
 @onready var chat_panel = $GameUI/ChatPanel
@@ -111,6 +111,8 @@ extends Node2D
 @onready var table_craft_grid = $GameUI/CraftingUI/Panel/InventoryPanel/Crafting/GridContainer
 @onready var table_craft_result_grid = $GameUI/CraftingUI/Panel/InventoryPanel/Crafting/CraftResult
 @onready var crafting_ui = $GameUI/CraftingUI
+@onready var sign_info_root = $SignInfoRoot
+@onready var sign_edit_text = $SignEditUI/TextureRect/ScrollContainer/VBoxContainer/TextEdit
 
 var frozen_entity_dict = {}
 var destroy_light_names = {}
@@ -159,6 +161,7 @@ var is_inventory: bool = false
 var is_crafting: bool = false
 var is_pause: bool = false
 var is_chat: bool = false
+var is_sign_edit: bool = false
 var is_player_info_updated: bool = false
 var is_chunk_modifing: bool = false
 var is_light_pause: bool = false
@@ -182,6 +185,8 @@ var resource_pack = StaticLoad.default_resource_pack
 var tick_timer: int = 9000
 var world_day: int = 0
 var set_block_list = []
+var spawn_protection_size = Vector2i(0, 0)
+var op_list = []
 var dragging_total_amount = 0
 var drag_inventory_grid_state = "null"
 var drag_inventory_grid_item_name = "null"
@@ -317,8 +322,15 @@ func update_day_night_cycle() -> void:
 	
 	var night_ratio = calculate_current_sky_light(false)
 	
+	var sky_color = Color(1,1,1,1)
+	if night_ratio < 0.5:
+		var t = night_ratio * 2.0  # 0 到 1
+		sky_color = lerp(Color(1, 1, 1, 1), Color(1, 0.465, 0, 1), t)
+	else:
+		var t = (night_ratio - 0.5) * 2.0  # 0 到 1
+		sky_color = lerp(Color(1, 0.465, 0, 1), Color(0, 0, 0, 1), t)
 	# 更新各个节点的属性
-	background_sky.modulate = Color(1, 1, 1, 1 - night_ratio)
+	background_sky.modulate = Color(sky_color.r, sky_color.g, sky_color.b, 1 - night_ratio)
 	background_cloud.modulate = Color(1, 1, 1, 1 - cloud_dark_ratio)
 	background_star.modulate = Color(1, 1, 1, night_ratio)
 	mini_map_sky_back.color = lerp(Color(0.443, 0.698, 1),Color(0, 0.008, 0.137),night_ratio)
@@ -678,7 +690,7 @@ func process_set_block():
 		if set_block_list.is_empty():
 			continue
 		var success_set_block_dict_tmp = {}
-		#var fail_set_block_list_tmp = []
+		var fail_set_block_list_tmp = []
 		for set_block_info in set_block_list.duplicate():
 			var set_time = set_block_info[0]
 			var uuid = set_block_info[1]
@@ -687,27 +699,97 @@ func process_set_block():
 			var set_block_layer = set_block_info[4]
 			var is_to_sync = set_block_info[5]
 			var pos_string = str(set_block_pos[0])+"_"+str(set_block_pos[1])
-			if success_set_block_dict_tmp.has(pos_string):
+			var is_client = false
+			if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
+				is_client = true
+			var is_op = false
+			var entity_tmp = null
+			if entities.has(uuid):
+				entity_tmp = entities[uuid]
+				if entity_tmp.get_entity_type() == "player":
+					if op_list.has(entity_tmp.player_name.to_lower()):
+						is_op = true
+			if uuid != "destroy" and StaticLoad.is_muti_mode and not is_client and not is_op and spawn_protection_size.x == -1 and spawn_protection_size.y > 0 and (set_block_pos.y < spawn_protection_size.y and set_block_pos.y >= -spawn_protection_size.y):
+				var block_original_id = set_block_id
+				if set_block_layer == "back":
+					block_original_id = StaticLoad.get_block_id_by_atlas_coords(back_tile_map_layer.get_cell_atlas_coords(set_block_pos))
+				else:
+					block_original_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(set_block_pos))
+					if block_original_id == 0:
+						block_original_id = StaticLoad.get_block_id_by_atlas_coords(no_reach_tile_map_layer.get_cell_atlas_coords(set_block_pos))
+				var fail_info = set_block_info.duplicate()
+				fail_info[2] = block_original_id
+				fail_info.append("no_permission")
+				fail_set_block_list_tmp.append(fail_info)
+				if entity_tmp != null:
+					entity_tmp.sword_breaking_timer = 0.2
+			elif uuid != "destroy" and StaticLoad.is_muti_mode and not is_client and not is_op and spawn_protection_size.y == -1 and spawn_protection_size.x > 0 and (set_block_pos.x < spawn_protection_size.x and set_block_pos.x >= -spawn_protection_size.x):
+				var block_original_id = set_block_id
+				if set_block_layer == "back":
+					block_original_id = StaticLoad.get_block_id_by_atlas_coords(back_tile_map_layer.get_cell_atlas_coords(set_block_pos))
+				else:
+					block_original_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(set_block_pos))
+					if block_original_id == 0:
+						block_original_id = StaticLoad.get_block_id_by_atlas_coords(no_reach_tile_map_layer.get_cell_atlas_coords(set_block_pos))
+				var fail_info = set_block_info.duplicate()
+				fail_info[2] = block_original_id
+				fail_info.append("no_permission")
+				fail_set_block_list_tmp.append(fail_info)
+				if entity_tmp != null:
+					entity_tmp.sword_breaking_timer = 0.2
+			elif uuid != "destroy" and StaticLoad.is_muti_mode and not is_client and not is_op and spawn_protection_size.x == -1 and spawn_protection_size.y == -1:
+				var block_original_id = set_block_id
+				if set_block_layer == "back":
+					block_original_id = StaticLoad.get_block_id_by_atlas_coords(back_tile_map_layer.get_cell_atlas_coords(set_block_pos))
+				else:
+					block_original_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(set_block_pos))
+					if block_original_id == 0:
+						block_original_id = StaticLoad.get_block_id_by_atlas_coords(no_reach_tile_map_layer.get_cell_atlas_coords(set_block_pos))
+				var fail_info = set_block_info.duplicate()
+				fail_info[2] = block_original_id
+				fail_info.append("no_permission")
+				fail_set_block_list_tmp.append(fail_info)
+				if entity_tmp != null:
+					entity_tmp.sword_breaking_timer = 0.2
+			elif uuid != "destroy" and StaticLoad.is_muti_mode and not is_client and not is_op and (spawn_protection_size.x > 0 and (set_block_pos.x < spawn_protection_size.x and set_block_pos.x >= -spawn_protection_size.x)) or (spawn_protection_size.y > 0 and (set_block_pos.y < spawn_protection_size.y and set_block_pos.y >= -spawn_protection_size.y)):
+				var block_original_id = set_block_id
+				if set_block_layer == "back":
+					block_original_id = StaticLoad.get_block_id_by_atlas_coords(back_tile_map_layer.get_cell_atlas_coords(set_block_pos))
+				else:
+					block_original_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(set_block_pos))
+					if block_original_id == 0:
+						block_original_id = StaticLoad.get_block_id_by_atlas_coords(no_reach_tile_map_layer.get_cell_atlas_coords(set_block_pos))
+				var fail_info = set_block_info.duplicate()
+				fail_info[2] = block_original_id
+				fail_info.append("no_permission")
+				fail_set_block_list_tmp.append(fail_info)
+				if entity_tmp != null:
+					entity_tmp.sword_breaking_timer = 0.2
+			elif success_set_block_dict_tmp.has(pos_string):
 				if set_block_layer == success_set_block_dict_tmp[pos_string][4]:
-					success_set_block_dict_tmp[pos_string][2] = set_block_id
-					success_set_block_dict_tmp[pos_string][3] = set_block_pos
-					success_set_block_dict_tmp[pos_string][4] = set_block_layer
-					#if uuid == "destroy" or set_time < success_set_block_dict_tmp[pos_string][0]:
-						#success_set_block_dict_tmp[pos_string][2] = set_block_id
-						#success_set_block_dict_tmp[pos_string][3] = set_block_pos
-						#success_set_block_dict_tmp[pos_string][4] = set_block_layer
-						#fail_set_block_list_tmp.append(success_set_block_dict_tmp[pos_string])
-						#success_set_block_dict_tmp[pos_string] = set_block_info
-					#else:
-						#set_block_info[2] = success_set_block_dict_tmp[pos_string][2]
-						#set_block_info[3] = success_set_block_dict_tmp[pos_string][3]
-						#set_block_info[4] = success_set_block_dict_tmp[pos_string][4]
-						#fail_set_block_list_tmp.append(set_block_info)
+					#success_set_block_dict_tmp[pos_string][2] = set_block_id
+					#success_set_block_dict_tmp[pos_string][3] = set_block_pos
+					#success_set_block_dict_tmp[pos_string][4] = set_block_layer
+					if uuid == "destroy" or set_time < success_set_block_dict_tmp[pos_string][0]:
+						var fail_info = success_set_block_dict_tmp[pos_string].duplicate()
+						fail_info[2] = set_block_id
+						fail_info[3] = set_block_pos
+						fail_info[4] = set_block_layer
+						fail_info.append("conflict")
+						fail_set_block_list_tmp.append(fail_info)
+						success_set_block_dict_tmp[pos_string] = set_block_info
+					else:
+						set_block_info[2] = success_set_block_dict_tmp[pos_string][2]
+						set_block_info[3] = success_set_block_dict_tmp[pos_string][3]
+						set_block_info[4] = success_set_block_dict_tmp[pos_string][4]
+						var fail_info = set_block_info.duplicate()
+						fail_info.append("conflict")
+						fail_set_block_list_tmp.append(fail_info)
 			else:
 				success_set_block_dict_tmp[pos_string] = set_block_info
 			set_block_list.erase(set_block_info)
 		success_set_block_dict.merge(success_set_block_dict_tmp, true)
-		#fail_set_block_list.append_array(fail_set_block_list_tmp)
+		fail_set_block_list.append_array(fail_set_block_list_tmp)
 		for pos_string in success_set_block_dict_tmp:
 			var set_time = success_set_block_dict_tmp[pos_string][0]
 			var uuid = success_set_block_dict_tmp[pos_string][1]
@@ -804,6 +886,8 @@ func process_set_block():
 							entity.face_state = 1
 						elif entity.face_state > 0 and tile_map_layer.local_to_map(entity.position).x > set_block_pos.x:
 							entity.face_state = -1
+						if StaticLoad.get_block_name_by_id(set_block_id) == "SIGN" and (not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1)):
+							entity.place_sign([set_block_pos])
 						if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == entity.player_peer_id):
 							set_block_selection_pos(tile_map_layer.map_to_local(set_block_pos), true)
 						if set_block_id == 0 and entity.gamemode != "creative":
@@ -834,7 +918,7 @@ func process_set_block():
 										item_name_timer = 0
 								refresh_item_grid(entity.selected_item_grid)
 								inventory_show_grids.get_node("InventoryGrid"+str(entity.selected_item_grid)).init_inventory_grid(entity.item_bar_names[entity.selected_item_grid], entity.item_bar_amounts[entity.selected_item_grid])
-						if is_to_sync and multiplayer.get_unique_id() != 1:
+						if is_to_sync and StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
 							if multiplayer.get_unique_id() == entity.player_peer_id:
 								var player_set_block_info = [set_block_id, set_block_pos, set_block_layer]
 								entity.success_set_block_list.append(player_set_block_info)
@@ -888,27 +972,28 @@ func dispatch_set_block_state_dict():
 		if uuid == "destroy":
 			pass
 		else:
-			if entities[uuid].get_entity_type() == "player":
+			if entities.has(uuid) and entities[uuid].get_entity_type() == "player":
 				except_player_id_list.append(entities[uuid].player_peer_id)
 			StaticLoad.rpc_entity_func_by_uuid(uuid, "set_block", [set_block_id, set_block_pos, set_block_layer], except_player_id_list, false)
 		success_set_block_dict.erase(pos_string)
 	
-	#for fail_info in fail_set_block_list:
-		#var set_time = fail_info[0]
-		#var uuid = fail_info[1]
-		#var set_block_id = fail_info[2]
-		#var set_block_pos = fail_info[3]
-		#var set_block_layer = fail_info[4]
-		#var is_to_sync = fail_info[5]
-		#if uuid == "destroy":
-			#fail_set_block_list.erase(fail_info)
-			#continue
-		#if entities[uuid].get_entity_type() == "player":
-			#var player_tmp = entities[uuid]
-			#var item_bar_names = player_tmp.item_bar_names
-			#var item_bar_amounts = player_tmp.item_bar_amounts
-			#StaticLoad.rpc_entity_func_by_uuid(uuid, "fail_set_block", [set_block_id, set_block_pos, set_block_layer, item_bar_names, item_bar_amounts], [player_tmp.player_peer_id], true)
-		#fail_set_block_list.erase(fail_info)
+	for fail_info in fail_set_block_list:
+		var set_time = fail_info[0]
+		var uuid = fail_info[1]
+		var set_block_id = fail_info[2]
+		var set_block_pos = fail_info[3]
+		var set_block_layer = fail_info[4]
+		var is_to_sync = fail_info[5]
+		var fail_reason = fail_info[-1]
+		if uuid == "destroy":
+			fail_set_block_list.erase(fail_info)
+			continue
+		if entities.has(uuid) and entities[uuid].get_entity_type() == "player":
+			var player_tmp = entities[uuid]
+			var item_bar_names = player_tmp.item_bar_names
+			var item_bar_amounts = player_tmp.item_bar_amounts
+			StaticLoad.rpc_entity_func_by_uuid(uuid, "fail_set_block", [set_block_id, set_block_pos, set_block_layer, item_bar_names, item_bar_amounts, fail_reason], "others", true)
+		fail_set_block_list.erase(fail_info)
 
 func process_drop_action():
 	var selected_item_grid_tmp = player.selected_item_grid
@@ -1476,13 +1561,13 @@ func _input(event: InputEvent) -> void:
 			var mouse_to_block_pos = tile_map_layer.local_to_map(mouse_in_world_pos)
 			var original_block_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(mouse_to_block_pos))
 			if StaticLoad.get_block_name_by_id(original_block_id) == "CRAFTING_TABLE":
-				if not is_crafting and not is_map and not is_pause and not is_chat and not is_inventory:
+				if not is_crafting and not is_map and not is_pause and not is_chat and not is_inventory and not is_sign_edit:
 					refresh_crafting_inventory()
 					ui_freeze_timer = 0.3
 					crafting_ui.visible = true
 					is_input_frozen = true
 					is_crafting = true
-			elif player.in_hand_item_name.contains("SPAWN_EGG") and not is_map and not is_pause and not is_chat and not is_inventory and not is_crafting:
+			elif player.in_hand_item_name.contains("SPAWN_EGG") and not is_map and not is_pause and not is_chat and not is_inventory and not is_crafting and not is_sign_edit:
 				var is_can_spawn = true
 				if player.gamemode != "creative" and not player.check_attached_block(mouse_to_block_pos, tile_map_layer):
 					is_can_spawn = false
@@ -1542,10 +1627,26 @@ func _input(event: InputEvent) -> void:
 			player.stop_move()
 		elif is_inventory:
 			inventory_ui.visible = false
+			language_ui.visible = false
+			options_ui.visible = false
+			achievement_ui.visible = false
 			is_input_frozen = false
 			is_inventory = false
 			mouse_in_inventory_grid = null
 			player.stop_move()
+		elif is_sign_edit:
+			sign_edit_ui.visible = false
+			is_sign_edit = false
+			is_input_frozen = false
+		elif achievement_ui.visible:
+			pause_ui.visible = true
+			achievement_ui.visible = false
+		elif language_ui.visible:
+			pause_ui.visible = true
+			language_ui.visible = false
+		elif options_ui.visible:
+			pause_ui.visible = true
+			options_ui.visible = false
 		else:
 			pause_ui.visible = !pause_ui.visible
 			is_pause = pause_ui.visible
@@ -1557,7 +1658,7 @@ func _input(event: InputEvent) -> void:
 	if Input.is_action_just_pressed("inventory"):
 		if player.is_dead:
 			pass
-		elif is_pause:
+		elif is_pause or is_sign_edit:
 			pass
 		elif is_map:
 			mini_map.set_anchors_preset(Control.PRESET_TOP_RIGHT)
@@ -1585,6 +1686,10 @@ func _input(event: InputEvent) -> void:
 			move_input_list.clear()
 			player.stop_move()
 		elif not is_chat:
+			var change_dict = {
+				"open_inventory" : true
+			}
+			player.process_achievement_progress(change_dict)
 			is_input_frozen = true
 			inventory_ui.visible = true
 			is_inventory = true
@@ -1597,7 +1702,7 @@ func _input(event: InputEvent) -> void:
 	if Input.is_action_just_pressed("open_map"):
 		if player.is_dead:
 			pass
-		elif is_pause or is_chat or is_inventory or is_crafting:
+		elif is_pause or is_chat or is_inventory or is_crafting or is_sign_edit:
 			pass
 		elif is_map:
 			mini_map.set_anchors_preset(Control.PRESET_TOP_RIGHT)
@@ -1684,7 +1789,7 @@ func _input(event: InputEvent) -> void:
 		is_online_info = false
 			
 	if Input.is_action_just_pressed("chat"):
-		if not player.is_dead:
+		if not player.is_dead and not is_sign_edit:
 			move_input_list.clear()
 			player.stop_move()
 			is_input_frozen = true
@@ -1839,7 +1944,7 @@ func check_place_block_state(block_pos, block_id, selected_layer):
 
 @warning_ignore("unused_parameter")
 func _unhandled_input(event: InputEvent) -> void:
-	if Input.is_action_just_released("mouse_scroll_down"):
+	if event is InputEventMouseButton and event.button_index == 5 and event.pressed:
 		if Input.is_action_pressed("ctrl"):
 			if mini_map_camera.zoom[0] >= 0.2:
 				mini_map_camera.zoom -= Vector2(0.1, 0.1)
@@ -1848,7 +1953,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			var icon_scale = StaticLoad.MINI_MAP_SCALE_FACTOR/mini_map_camera.zoom[0]
 			for player_icon in mini_map_players.get_children():
 				player_icon.scale = Vector2(icon_scale, icon_scale)
-		elif is_chat or is_pause or is_online_info:
+		elif is_chat or is_pause or is_online_info or is_sign_edit:
 			pass
 		else:
 			if player.selected_item_grid >= 1:
@@ -1856,7 +1961,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			else:
 				select_item_grid(9)
 	
-	if Input.is_action_just_released("mouse_scroll_up"):
+	if event is InputEventMouseButton and event.button_index == 4 and event.pressed:
 		if Input.is_action_pressed("ctrl"):
 			if mini_map_camera.zoom[0] <= 0.9:
 				mini_map_camera.zoom += Vector2(0.1, 0.1)
@@ -1865,7 +1970,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			var icon_scale = StaticLoad.MINI_MAP_SCALE_FACTOR/mini_map_camera.zoom[0]
 			for player_icon in mini_map_players.get_children():
 				player_icon.scale = Vector2(icon_scale, icon_scale)
-		elif is_chat or is_pause or is_online_info:
+		elif is_chat or is_pause or is_online_info or is_sign_edit:
 			pass
 		else:
 			if player.selected_item_grid <= 7:
@@ -1914,7 +2019,7 @@ func process_mouse_action():
 		return
 	var mouse_in_world_pos = tile_map_layer.get_local_mouse_position()
 	var mouse_to_block_pos = tile_map_layer.local_to_map(mouse_in_world_pos)
-	if not is_map and not is_pause and not is_chat and not is_inventory and not is_crafting:
+	if not is_map and not is_pause and not is_chat and not is_inventory and not is_crafting and not is_sign_edit:
 		if not Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
 			if player.is_pulling:
 				player.is_pulling = false
@@ -1939,7 +2044,7 @@ func process_mouse_action():
 					player.is_punching = true
 			elif player.sword_breaking_timer > 0:
 				pass
-			elif block_id == 0 and no_reach_block_id == 0:
+			elif block_id == 0 and no_reach_block_id == 0 and player.current_set_layer == "solid":
 				if player.punch_timer <= 0 and block_id == 0 and not player.animation_tree["parameters/Punch/active"]:
 					var chunk_pos = get_chunk_position(real_mouse_pos)
 					var chunk_name = str(chunk_pos[0])+"."+str(chunk_pos[1])
@@ -2002,6 +2107,8 @@ func process_mouse_action():
 				player.destroy_timer += get_process_delta_time()
 		elif Input.is_mouse_button_pressed(2) and not Input.is_mouse_button_pressed(1):
 			if player.in_hand_item_name.contains("SPAWN_EGG"):
+				pass
+			elif player.sword_breaking_timer > 0:
 				pass
 			elif StaticLoad.food_dict.has(player.in_hand_item_name):
 				if not player.is_eating and player.gamemode != "creative" and player.hunger < 20:
@@ -2105,6 +2212,9 @@ func update_destroy_ui():
 			sound_audio_manager.play_random_audio_at_position("dig", StaticLoad.get_block_type_by_id(block_id), tile_map_layer.map_to_local(player_selected_block_pos), 0.7)
 		if destroy_sort > 0 and destroy_sort < 9:
 			player_tmp.is_punching = true
+		if block_name == "BEDROCK":
+			destroy_sort = 0
+			player_tmp.is_punching = true
 		if destroy_sort >= 9:
 			player_tmp.destroy_block(player_selected_block_pos)
 			if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == player_tmp.player_peer_id:
@@ -2126,6 +2236,7 @@ func update_destroy_ui():
 				var destroy_light = destory_light_scene.instantiate()
 				destroy_light.init_light(str(peer_id), player_selected_block_pos, 0)
 				lights.add_child(destroy_light)
+				destroy_light.set_texture(null)
 				destroy_light_names[peer_id] = destroy_light
 				#if destroy_light_names.has(peer_id):
 					#var old_destroy_light = destroy_light_names[peer_id]
@@ -2256,6 +2367,20 @@ func init_game_as_dedicated_server():
 	tick_timer = int(world_info_dictionary["tick_timer"])
 	world_day = int(world_info_dictionary["world_day"])
 	calculate_current_sky_light(true)
+	var file_read = FileAccess.open(StaticLoad.server_root_path+"/ops.txt", FileAccess.READ)
+	var content_read = file_read.get_as_text()
+	content_read = content_read.replace(" ", "")
+	var properties_splits = content_read.split("\n")
+	for op in properties_splits:
+		op_list.append(op.to_lower())
+	file_read.close()
+	var properties_config = ConfigFile.new()
+	var properties_info = properties_config.load(StaticLoad.server_root_path+"/server.properties")
+	if properties_info != OK:
+		return
+	var spawn_protection_x_size = properties_config.get_value("server", "spawn_protection_x_size", "0")
+	var spawn_protection_y_size = properties_config.get_value("server", "spawn_protection_y_size", "0")
+	spawn_protection_size = Vector2i(int(spawn_protection_x_size), int(spawn_protection_y_size))
 	var regions = DirAccess.get_files_at(ProjectSettings.globalize_path(StaticLoad.region_path))
 	if regions.is_empty():
 		return
@@ -2264,6 +2389,7 @@ func init_game_as_dedicated_server():
 		database_chunks.push_back(splits[1]+"."+splits[2])
 	total_chunk_num = 1
 	loaded_chunk_num = 1
+	init_light()
 	item_thread.start(process_item)
 	tick_cycle_thread.start(process_tick_cycle)
 	dispatch_thread.start(process_dispatch)
@@ -2286,7 +2412,7 @@ func init_game_as_single():
 		mini_map_on = config.get_value("options", "mini_map", StaticLoad.options["mini_map"])
 		mini_map_zoom = float(config.get_value("options", "mini_map_zoom", StaticLoad.options["mini_map_zoom"]))
 		smooth_lighting_on = config.get_value("options", "smooth_lighting", StaticLoad.options["smooth_lighting"])
-		bgm_audio_player.volume_db = linear_to_db(int(config.get_value("options", "bgm_volume", StaticLoad.options["bgm_volume"]))/50.0)
+		StaticLoad.bgm_audio_player.volume_db = linear_to_db(int(config.get_value("options", "bgm_volume", StaticLoad.options["bgm_volume"]))/50.0)
 		sound_audio_manager.volume_db = linear_to_db(int(config.get_value("options", "sound_volume", StaticLoad.options["sound_volume"]))/50.0)
 		resource_pack = config.get_value("options", "resource_pack")
 		var mini_map_zoom_tmp = mini_map_zoom/100
@@ -2420,7 +2546,7 @@ func init_game_as_client():
 	mini_map_on = config.get_value("options", "mini_map", StaticLoad.options["mini_map"])
 	mini_map_zoom = float(config.get_value("options", "mini_map_zoom", StaticLoad.options["mini_map_zoom"]))
 	smooth_lighting_on = config.get_value("options", "smooth_lighting", StaticLoad.options["smooth_lighting"])
-	bgm_audio_player.volume_db = linear_to_db(int(config.get_value("options", "bgm_volume", StaticLoad.options["bgm_volume"]))/50.0)
+	StaticLoad.bgm_audio_player.volume_db = linear_to_db(int(config.get_value("options", "bgm_volume", StaticLoad.options["bgm_volume"]))/50.0)
 	sound_audio_manager.volume_db = linear_to_db(int(config.get_value("options", "sound_volume", StaticLoad.options["sound_volume"]))/50.0)
 	var mini_map_zoom_tmp = mini_map_zoom/100
 	mini_map_camera.zoom = Vector2(mini_map_zoom_tmp, mini_map_zoom_tmp)
@@ -2531,16 +2657,16 @@ func process_entity_spawn():
 			if is_player_nearby:
 				continue
 			var is_spawned = false
-			var undead_count: int = 0
-			if current_sky_light <= 223:
-				for uuid in loaded_chunks[chunk_name].entity_list.duplicate():
-					if not entities.has(uuid):
-						loaded_chunks[chunk_name].entity_list.erase(uuid)
-						continue
-					if entities[uuid] == null:
-						continue
-					if StaticLoad.undead_mob_list.has(entities[uuid].get_entity_type()):
-						undead_count += 1
+			#var undead_count: int = 0
+			#if current_sky_light <= 223:
+				#for uuid in loaded_chunks[chunk_name].entity_list.duplicate():
+					#if not entities.has(uuid):
+						#loaded_chunks[chunk_name].entity_list.erase(uuid)
+						#continue
+					#if entities[uuid] == null:
+						#continue
+					#if StaticLoad.undead_mob_list.has(entities[uuid].get_entity_type()):
+						#undead_count += 1
 			for y in range(16):
 				for x in range(16):
 					var block_pos = Vector2i(int(splits[0])*16,int(splits[1])*16)+Vector2i(x, y)
@@ -2563,7 +2689,7 @@ func process_entity_spawn():
 						continue
 					var chunk_light_tmp = chunk_light_datas[chunk_name]
 					var self_light = chunk_light_tmp[y*16+x]
-					if mobs.get_child_count() <= 8 and undead_count <= 1 and current_sky_light <= 80 and self_light <= 80:
+					if undead_mobs.get_child_count() <= 10 and current_sky_light <= 80 and self_light <= 80:
 						var rng = RandomNumberGenerator.new()
 						var num = rng.randf()
 						if num < 0.9:
@@ -2577,7 +2703,7 @@ func process_entity_spawn():
 						is_spawned = true
 						#print(chunk_name, " undead ", undead_count)
 						break
-					elif undead_mobs.get_child_count() <= 8 and self_light >= 112:
+					elif mobs.get_child_count() <= 10 and self_light >= 112:
 						if loaded_chunks[chunk_name].entity_list.size() >= 1:
 							continue
 						var rng = RandomNumberGenerator.new()
@@ -2673,13 +2799,16 @@ func rectify_emulate_mouse_from_touch():
 func freeze_game():
 	set_process_unhandled_input(false)
 	set_process(false)
-	bgm_audio_player.stream_paused = true
+	if not StaticLoad.is_dedicated_server:
+		#StaticLoad.bgm_audio_player.set_process(false)
+		StaticLoad.bgm_audio_player.stop()
 
 func unfreeze_game():
 	set_process_unhandled_input(true)
 	set_process(true)
-	bgm_audio_player.stream_paused = false
-	player.camera.position_smoothing_enabled = true
+	if not StaticLoad.is_dedicated_server:
+		StaticLoad.bgm_audio_player.refresh_bgm()
+		player.camera.position_smoothing_enabled = true
 
 func update_local_player_nearby_chunk():
 	if update_chunk_timer > 0:
@@ -2727,7 +2856,7 @@ func update_local_player_data():
 		move_input_list.push_back("left")
 		var current_time = Time.get_ticks_msec() / 1000.0
 		if current_time - last_left_time < StaticLoad.DOUBLE_CLICK_THRESHOLD:
-			if not player.is_sneaking and player.hunger > 6:
+			if not player.is_sneaking and (player.hunger > 6 or player.gamemode == "creative"):
 				player.move_state = "run"
 			else:
 				player.move_state = "walk"
@@ -2743,7 +2872,7 @@ func update_local_player_data():
 		move_input_list.push_back("right")
 		var current_time = Time.get_ticks_msec() / 1000.0
 		if current_time - last_right_time < StaticLoad.DOUBLE_CLICK_THRESHOLD:
-			if not player.is_sneaking and player.hunger > 6:
+			if not player.is_sneaking and (player.hunger > 6 or player.gamemode == "creative"):
 				player.move_state = "run"
 			else:
 				player.move_state = "walk"
@@ -3224,6 +3353,12 @@ func update_nearby_block_state(block_pos, update_state):
 							up_chunk.sugar_cane_list.erase(sugar_cane_pos)
 						set_block_list.append([Time.get_ticks_msec(), "destroy", 0, up_block_pos, "solid", false])
 						up_block_pos += Vector2i(0, -1)
+				elif delta == 0 and StaticLoad.get_block_name_by_id(nearby_block_id) == "SIGN":
+					var local_sign_pos = nearby_block_pos-Vector2i(nearby_block_chunk_pos[0]*16,nearby_block_chunk_pos[1]*16)
+					var chunk = loaded_chunks[str(nearby_block_chunk_pos[0])+"."+str(nearby_block_chunk_pos[1])]
+					if chunk.sign_dict.has(local_sign_pos):
+						chunk.sign_dict[local_sign_pos] = ""
+						chunk.sign_dict.erase(local_sign_pos)
 			if nearby_block_id == 0 and update_state == "after":
 				var chunk_pos = get_chunk_position(nearby_block_pos)
 				if loaded_chunks.has(str(chunk_pos[0])+"."+str(chunk_pos[1])):
@@ -3241,6 +3376,9 @@ func update_nearby_block_state(block_pos, update_state):
 						chunk.sapling_list.erase(relative_pos)
 					if chunk.sugar_cane_list.has(relative_pos):
 						chunk.sugar_cane_list.erase(relative_pos)
+					if chunk.sign_dict.has(relative_pos):
+						chunk.sign_dict[relative_pos] = ""
+						chunk.sign_dict.erase(relative_pos)
 				var no_reach_block_id = StaticLoad.get_block_id_by_atlas_coords(no_reach_tile_map_layer.get_cell_atlas_coords(nearby_block_pos))
 				if delta == 0 and check_has_nearby_leaves(nearby_block_pos):
 					var up_block_pos = nearby_block_pos+Vector2i(0,-1)
@@ -3254,6 +3392,12 @@ func update_nearby_block_state(block_pos, update_state):
 					var chunk = loaded_chunks[str(chunk_pos[0])+"."+str(chunk_pos[1])]
 					if not chunk.sapling_list.has(sapling_pos):
 						chunk.sapling_list.append(sapling_pos)
+				if StaticLoad.get_block_name_by_id(nearby_block_id) == "SIGN":
+					var chunk_pos = get_chunk_position(nearby_block_pos)
+					var sign_pos = nearby_block_pos-Vector2i(chunk_pos[0]*16,chunk_pos[1]*16)
+					var chunk = loaded_chunks[str(chunk_pos[0])+"."+str(chunk_pos[1])]
+					if not chunk.sign_dict.has(sign_pos):
+						chunk.sign_dict[sign_pos] = ""
 				if StaticLoad.get_block_name_by_id(nearby_block_id) == "REEDS":
 					var down_block_pos = nearby_block_pos+Vector2i(0,1)
 					var down_chunk_pos = get_chunk_position(down_block_pos)
@@ -3472,7 +3616,9 @@ func save_world():
 		"world_type": world_info_dictionary["world_type"],
 		"gamemode": world_info_dictionary["gamemode"],
 		"tick_timer": str(tick_timer),
-		"world_day": str(world_day)
+		"world_day": str(world_day),
+		"allow_cheat": world_info_dictionary["allow_cheat"],
+		"achievement": world_info_dictionary["achievement"]
 	}
 	StaticLoad.save_level_dat(level, level_change_value)
 	level.save_encrypted_pass(StaticLoad.world_path+"/level.dat", StaticLoad.CONFIG_PASSWORD)
@@ -3501,6 +3647,7 @@ func save_player(peer_id = 0):
 	player_config.set_value("player", "effect_dict", player_tmp.effect_dict)
 	player_config.set_value("player", "item_bar_names", player_tmp.item_bar_names)
 	player_config.set_value("player", "item_bar_amounts", player_tmp.item_bar_amounts)
+	player_config.set_value("player", "achievement_progress_dict", player_tmp.achievement_progress_dict)
 	player_config.save_encrypted_pass(StaticLoad.player_path+"/"+player_tmp.player_name.to_lower()+".dat", StaticLoad.CONFIG_PASSWORD)
 
 func save_chunk(chunk_pos: Vector2i):
@@ -3576,7 +3723,9 @@ func save_chunk(chunk_pos: Vector2i):
 		"world_type": world_info_dictionary["world_type"],
 		"gamemode": world_info_dictionary["gamemode"],
 		"tick_timer": str(tick_timer),
-		"world_day": str(world_day)
+		"world_day": str(world_day),
+		"allow_cheat": world_info_dictionary["allow_cheat"],
+		"achievement": world_info_dictionary["achievement"]
 	}
 	StaticLoad.save_level_dat(level, level_change_value)
 	level.save_encrypted_pass(StaticLoad.world_path+"/level.dat", StaticLoad.CONFIG_PASSWORD)
@@ -3682,6 +3831,7 @@ func refresh_achievement_info():
 			achievement_get.title.text = tr("ACHIEVEMENT_GET")
 			achievement_get.achievement_name_label.text = tr(achievement_get.achievement_name)
 	for achievement_info in achievement_scroll_box_container.get_children():
+		achievement_info.name = "null"
 		achievement_info.queue_free()
 	var achieved_achievement_list_tmp = []
 	if player != null:
@@ -3689,7 +3839,6 @@ func refresh_achievement_info():
 	for achievement in StaticLoad.achievement_icon_dict:
 		var is_achieved = false
 		var achievement_info = StaticLoad.achievement_info_scene.instantiate()
-		achievement_info.name = achievement
 		achievement_scroll_box_container.add_child(achievement_info)	
 		if achieved_achievement_list_tmp.has(achievement):
 			is_achieved = true
@@ -3801,6 +3950,7 @@ func _on_pause_button_6_pressed() -> void:
 	}
 	StaticLoad.save_options(change_value)
 	StaticLoad.is_in_game = false
+	StaticLoad.bgm_audio_player.refresh_bgm()
 	StaticLoad.change_scene("res://Assets/Scenes/Menu.tscn")
 	
 func _on_pause_button_7_pressed() -> void:
@@ -3809,6 +3959,7 @@ func _on_pause_button_7_pressed() -> void:
 	StaticLoad.clear_connections()
 	StaticLoad.is_muti_mode = false
 	StaticLoad.is_in_game = false
+	StaticLoad.bgm_audio_player.refresh_bgm()
 	StaticLoad.change_scene("res://Assets/Scenes/Menu.tscn")
 
 func _on_death_button_1_pressed() -> void:
@@ -3858,10 +4009,10 @@ func _on_chat_line_edit_text_submitted(new_text: String) -> void:
 				StaticLoad.rpc_entity_func_by_uuid(player.get_uuid(), "send_message", text, [player.player_peer_id], false)
 		else:
 			player.send_command(text)
-			if multiplayer.get_unique_id() == 1:
-				StaticLoad.rpc_entity_func_by_uuid(player.get_uuid(), "send_command", text, "others", true)
-			else:
-				StaticLoad.rpc_entity_func_by_uuid(player.get_uuid(), "send_command", text, [player.player_peer_id], false)
+			#if multiplayer.get_unique_id() == 1:
+				#StaticLoad.rpc_entity_func_by_uuid(player.get_uuid(), "send_command", text, "others", true)
+			#else:
+				#StaticLoad.rpc_entity_func_by_uuid(player.get_uuid(), "send_command", text, [player.player_peer_id], false)
 	else:
 		if text[0] != "/":
 			player.send_message(text)
@@ -4128,3 +4279,22 @@ func _on_inventory_ui_visibility_changed() -> void:
 			inventory_tab.z_index = 1
 		if not delete_tab_panel.visible:
 			delete_tab_panel.visible = true
+
+func _on_sign_edit_confirm_button_pressed() -> void:
+	if player == null:
+		return
+	player.edit_sign()
+	#sign_edit_ui.visible = false
+	#is_sign_edit = false
+	#is_input_frozen = false
+	#if player == null:
+		#sign_edit_text.text = ""
+		#return
+	#var sign_chunk_pos = get_chunk_position(player.editing_sign_block_pos)
+	#if loaded_chunks.has(str(sign_chunk_pos[0])+"."+str(sign_chunk_pos[1])):
+		#var chunk = loaded_chunks[str(sign_chunk_pos[0])+"."+str(sign_chunk_pos[1])]
+		#var sign_pos = Vector2i(sign_chunk_pos[0]*16,sign_chunk_pos[1]*16)-player.editing_sign_block_pos
+		#chunk.sign_dict[sign_pos] = sign_edit_text.text
+		#if player.is_reading_sign:
+			#player.refresh_reading_sign(player.reading_sign_block_pos)
+	#sign_edit_text.text = ""

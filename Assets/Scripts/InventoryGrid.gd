@@ -155,6 +155,33 @@ func _on_mouse_exited() -> void:
 	StaticLoad.game.mouse_item_name_label.stop_following()
 	StaticLoad.game.mouse_item_name_label.queue_free()
 
+func update_achievement():
+	if item_name == "CRAFTING_TABLE":
+		var change_dict = {
+			"make_crafting_table" : true
+		}
+		StaticLoad.game.player.process_achievement_progress(change_dict)
+	elif item_name == "BREAD":
+		var change_dict = {
+			"make_bread" : true
+		}
+		StaticLoad.game.player.process_achievement_progress(change_dict)
+	elif item_name.contains("PICKAXE"):
+		var change_dict = {
+			"make_pickaxe" : true
+		}
+		StaticLoad.game.player.process_achievement_progress(change_dict)
+	elif item_name.contains("HOE"):
+		var change_dict = {
+			"make_hoe" : true
+		}
+		StaticLoad.game.player.process_achievement_progress(change_dict)
+	elif item_name.contains("SWORD"):
+		var change_dict = {
+			"make_sword" : true
+		}
+		StaticLoad.game.player.process_achievement_progress(change_dict)
+
 func _on_gui_input(event: InputEvent) -> void:
 	if slot_function.contains("armor"):
 		return
@@ -524,6 +551,7 @@ func _on_gui_input(event: InputEvent) -> void:
 								can_accept_amount = i
 								break
 						if can_accept_amount > 0:
+							update_achievement()
 							var final_amount = item_amount * can_accept_amount
 							item_amount = player.get_item([item_name, final_amount, 9, 36, false])
 							if item_amount > 0:
@@ -550,6 +578,7 @@ func _on_gui_input(event: InputEvent) -> void:
 						elif slot_function.contains("table"):
 							StaticLoad.game.decline_table_crafting_material(1)
 							StaticLoad.game.refresh_table_crafting_result()
+						update_achievement()
 						if StaticLoad.game.mouse_item_name_label != null:
 							StaticLoad.game.mouse_item_name_label.stop_following()
 							StaticLoad.game.mouse_item_name_label.queue_free()
@@ -567,6 +596,7 @@ func _on_gui_input(event: InputEvent) -> void:
 							max_amount = StaticLoad.game.get_max_craft_amount("table")
 						if max_amount > 0:
 							player.mouse_item_amount += item_amount
+						update_achievement()
 						if slot_function.contains("inventory"):
 							StaticLoad.game.decline_inventory_crafting_material(1)
 							StaticLoad.game.refresh_inventory_crafting_result()
@@ -583,6 +613,7 @@ func _on_gui_input(event: InputEvent) -> void:
 						if item_amount == 0:
 							item_name = "AIR"
 						StaticLoad.game.append_process_refresh("refresh_item_grid")
+						update_achievement()
 						if slot_function.contains("inventory"):
 							StaticLoad.game.decline_inventory_crafting_material(1)
 							StaticLoad.game.refresh_inventory_crafting_result()
@@ -596,6 +627,7 @@ func _on_gui_input(event: InputEvent) -> void:
 					if player.mouse_item_name == "AIR":
 						player.mouse_item_name = item_name
 						player.mouse_item_amount = item_amount
+						update_achievement()
 						if slot_function.contains("inventory"):
 							StaticLoad.game.decline_inventory_crafting_material(1)
 							StaticLoad.game.refresh_inventory_crafting_result()
@@ -619,6 +651,7 @@ func _on_gui_input(event: InputEvent) -> void:
 							max_amount = StaticLoad.game.get_max_craft_amount("table")
 						if max_amount > 0:
 							player.mouse_item_amount += item_amount
+						update_achievement()
 						if slot_function.contains("inventory"):
 							StaticLoad.game.decline_inventory_crafting_material(1)
 							StaticLoad.game.refresh_inventory_crafting_result()

@@ -333,6 +333,21 @@ func on_body_collide_entered(body: Node) -> void:
 				return
 			if body.if_get_item_left(item_name, item_amount, 0, 36) < item_amount:
 				var left_amount = body.get_item([item_name, item_amount, 0, 36, true])
+				if item_name == "LOG_OAK":
+					var change_dict = {
+						"get_log" : true
+					}
+					body.process_achievement_progress(change_dict)
+				elif item_name == "IRON_INGOT":
+					var change_dict = {
+						"get_iron_ingot" : true
+					}
+					body.process_achievement_progress(change_dict)
+				elif item_name == "DIAMOND":
+					var change_dict = {
+						"get_diamond" : true
+					}
+					body.process_achievement_progress(change_dict)
 				if StaticLoad.is_muti_mode:
 					StaticLoad.rpc_entity_func_by_uuid(body.get_uuid(), "get_item", [item_name, item_amount, 0, 36, true], "others", true)
 				if left_amount > 0:

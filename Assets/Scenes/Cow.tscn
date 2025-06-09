@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://Assets/Scripts/Cow.gd" id="1_fwvoh"]
 [ext_resource type="Material" uid="uid://bn3mxtis1y7st" path="res://Assets/Materials/Cow.tres" id="2_rdve1"]
 [ext_resource type="Shader" path="res://Assets/Shaders/Blink.gdshader" id="3_c622n"]
-[ext_resource type="FontFile" uid="uid://csywm01568tlp" path="res://Assets/Fonts/MinecraftAE.ttf" id="4_qo45h"]
+[ext_resource type="FontFile" uid="uid://byf04fyq8gvsp" path="res://Assets/Fonts/MinecraftAE.ttf" id="4_qo45h"]
 [ext_resource type="Texture2D" uid="uid://boxi6tixm5lhw" path="res://Assets/Textures/Blocks/fire_layer_1.png" id="5_mwnge"]
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_yfova"]

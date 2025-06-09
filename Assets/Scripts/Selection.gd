@@ -37,7 +37,4 @@ func _on_selection_muti_menu_pressed() -> void:
 	StaticLoad.is_lan_server = false
 
 func _on_selection_language_pressed() -> void:
-	if self.text == "中文（简体）":
-		$"../../../..".select_language = "zh"
-	elif self.text == "English (US)":
-		$"../../../..".select_language = "en"
+	$"../../../..".select_language = name

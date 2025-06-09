@@ -3,9 +3,11 @@ extends CanvasLayer
 @onready var player_model = $Player/SubViewportContainer/SubViewport/PlayerModel
 @onready var player_model_mesh = $Player/SubViewportContainer/SubViewport/PlayerModel/Root/Skeleton3D/Mesh
 @onready var change_skin_file_dialog = $ChangeSkinFileDialog
+@onready var back_ground_camera = $Background/SubViewportContainer/SubViewport/Camera3D
 
 func _process(delta: float) -> void:
 	update_player_model()
+	back_ground_camera.rotate(Vector3.UP, -0.0001)
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
@@ -21,6 +23,11 @@ func _ready() -> void:
 	if result == OK:
 		StaticLoad.language = config.get_value("options", "language")
 		TranslationServer.set_locale(StaticLoad.language)
+		var new_music_on = config.get_value("options", "new_music", "off")
+		if new_music_on == "on":
+			StaticLoad.is_new_music_on = true
+		elif new_music_on == "off":
+			StaticLoad.is_new_music_on = false
 		if config.get_value("options", "full_screen") == "on":
 			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
 		else:
@@ -55,7 +62,7 @@ func _ready() -> void:
 	if not DirAccess.dir_exists_absolute(StaticLoad.server_log_path):
 		DirAccess.make_dir_recursive_absolute(StaticLoad.server_log_path)
 	StaticLoad.update_default_skin_path()
-	await get_tree().create_timer(0.01).timeout
+	await get_tree().create_timer(0.05).timeout
 	update_player_model_skin()
 
 func update_player_model():

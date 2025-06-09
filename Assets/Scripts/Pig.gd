@@ -373,7 +373,7 @@ func update_local_refresh_target_timer():
 func update_local_is_on_ladder():
 	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
 		return
-	var foot_pos = position + Vector2(0, 23)
+	var foot_pos = position
 	var foot_block_pos = StaticLoad.game.tile_map_layer.local_to_map(foot_pos)
 	var foot_block_id = StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.tile_map_layer.get_cell_atlas_coords(foot_block_pos))
 	if ladder_repeat_timer > 0:

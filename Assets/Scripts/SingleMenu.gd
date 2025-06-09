@@ -10,6 +10,10 @@ extends Node
 @onready var create_world_seed_line_edit = $CreateWorldUI/ColorRect2/ScrollContainer/VBoxContainer/Seed/LineEdit
 @onready var create_world_world_type_option_button = $CreateWorldUI/ColorRect2/ScrollContainer/VBoxContainer/WorldType/OptionButton
 @onready var create_world_gamemode_option_button = $CreateWorldUI/ColorRect2/ScrollContainer/VBoxContainer/Gamemode/OptionButton
+@onready var create_world_allow_cheat_option_button = $CreateWorldUI/ColorRect2/ScrollContainer/VBoxContainer/AllowCheat/OptionButton
+@onready var create_world_achievement_option_button = $CreateWorldUI/ColorRect2/ScrollContainer/VBoxContainer/Achievement/OptionButton
+@onready var edit_world_allow_cheat_option_button = $EditWorldUI/ColorRect2/ScrollContainer/VBoxContainer/AllowCheat/OptionButton
+@onready var edit_world_achievement_option_button = $EditWorldUI/ColorRect2/ScrollContainer/VBoxContainer/Achievement/OptionButton
 
 func _ready() -> void:
 	create_world_name_line_edit.text = tr("DEFAULT_WORLD_NAME")
@@ -43,6 +47,8 @@ func _notification(what):
 		StaticLoad.change_scene("res://Assets/Scenes/Menu.tscn")
 
 func enter_world():
+	#StaticLoad.bgm_audio_player.set_process(false)
+	StaticLoad.bgm_audio_player.stop()
 	StaticLoad.change_scene("res://Assets/Scenes/LoadingWorldUI.tscn")
 
 func delete_world(world_name: String):
@@ -73,12 +79,18 @@ func create_world(world_name: String):
 		var rng = RandomNumberGenerator.new()	
 		world_seed = str(rng.randi())
 	var world_type = StaticLoad.world_type_dictionary[create_world_world_type_option_button.selected]
+	var allow_cheat = StaticLoad.get_on_or_off_by_selection(create_world_allow_cheat_option_button.selected)
+	var achievement_on = StaticLoad.get_on_or_off_by_selection(create_world_achievement_option_button.selected)
+	#if allow_cheat == "on":
+		#achievement_on = "off"
 	var level_change_value = {
 		"last_modified": current_time,
 		"version": StaticLoad.options["version"],
 		"seed": world_seed,
 		"world_type": world_type,
-		"gamemode": StaticLoad.gamemode_dictionary[create_world_gamemode_option_button.selected]
+		"gamemode": StaticLoad.gamemode_dictionary[create_world_gamemode_option_button.selected],
+		"allow_cheat": allow_cheat,
+		"achievement": achievement_on,
 	}
 	StaticLoad.save_level_dat(level, level_change_value)
 	level.save_encrypted_pass(world_path+"/level.dat", StaticLoad.CONFIG_PASSWORD)
@@ -131,7 +143,19 @@ func _on_single_menu_button_2_pressed() -> void:
 	StaticLoad.click_audio_player.play()
 	if StaticLoad.select_world == null:
 		return
+	var worlds_path = "user://worlds"
+	var world_config = ConfigFile.new()
+	var world_info = world_config.load_encrypted_pass(worlds_path+"/"+StaticLoad.select_world+"/level.dat", StaticLoad.CONFIG_PASSWORD)
+	if world_info != OK:
+		return
 	edit_world_name_line_edit.text = StaticLoad.select_world
+	var allow_cheat_on = world_config.get_value("world", "allow_cheat", StaticLoad.world_level_infos["allow_cheat"])
+	var achievement_on = world_config.get_value("world", "achievement", StaticLoad.world_level_infos["achievement"])
+	#if allow_cheat_on == "on" and achievement_on == "on":
+		#achievement_on = "off"
+	edit_world_allow_cheat_option_button.selected = StaticLoad.get_selection_by_on_or_off(allow_cheat_on)
+	edit_world_achievement_option_button.selected = StaticLoad.get_selection_by_on_or_off(achievement_on)
+	_on_edit_world_allow_cheat_option_button_item_selected(0)
 	edit_world_ui.visible = true
 
 func _on_single_menu_button_3_pressed() -> void:
@@ -142,6 +166,7 @@ func _on_single_menu_button_3_pressed() -> void:
 func _on_single_menu_button_4_pressed() -> void:
 	StaticLoad.click_audio_player.play()
 	create_world_name_line_edit.text = tr("DEFAULT_WORLD_NAME")
+	_on_create_world_allow_cheat_option_button_item_selected(0)
 	create_world_ui.visible = true;
 
 func _on_single_menu_button_5_pressed() -> void:
@@ -151,6 +176,16 @@ func _on_single_menu_button_5_pressed() -> void:
 	if not StaticLoad.is_secondary_confirmation_poped:
 		StaticLoad.pop_secondary_confirmation(self, StaticLoad.select_world + tr("SECONDARY_CONFIRMATION_1"), Callable(self, "delete_world").bind(StaticLoad.select_world))
 		StaticLoad.is_secondary_confirmation_poped = true
+
+func _on_create_world_allow_cheat_option_button_item_selected(index: int) -> void:
+	pass
+	#var allow_cheat_on = StaticLoad.get_on_or_off_by_selection(create_world_allow_cheat_option_button.selected)
+	#if allow_cheat_on == "on":
+		#if StaticLoad.get_on_or_off_by_selection(create_world_achievement_option_button.selected) == "on":
+			#create_world_achievement_option_button.selected = StaticLoad.get_selection_by_on_or_off("off")
+		#create_world_achievement_option_button.disabled = true
+	#elif allow_cheat_on == "off" and create_world_achievement_option_button.disabled:
+		#create_world_achievement_option_button.disabled = false
 
 func _on_create_world_button_1_pressed() -> void:
 	StaticLoad.click_audio_player.play()
@@ -169,6 +204,16 @@ func _on_create_world_button_2_pressed() -> void:
 	StaticLoad.click_audio_player.play()
 	create_world_ui.visible = false;
 
+func _on_edit_world_allow_cheat_option_button_item_selected(index: int) -> void:
+	pass
+	#var allow_cheat_on = StaticLoad.get_on_or_off_by_selection(edit_world_allow_cheat_option_button.selected)
+	#if allow_cheat_on == "on":
+		#if StaticLoad.get_on_or_off_by_selection(edit_world_achievement_option_button.selected) == "on":
+			#edit_world_achievement_option_button.selected = StaticLoad.get_selection_by_on_or_off("off")
+		#edit_world_achievement_option_button.disabled = true
+	#elif allow_cheat_on == "off" and edit_world_achievement_option_button.disabled:
+		#edit_world_achievement_option_button.disabled = false
+
 func _on_edit_world_button_1_pressed() -> void:
 	StaticLoad.click_audio_player.play()
 	var world_path_tmp = "user://worlds/"
@@ -181,8 +226,12 @@ func _on_edit_world_button_1_pressed() -> void:
 		return
 	var level = ConfigFile.new()
 	var current_time = Time.get_datetime_string_from_system(false, true).replace(" ", "  ").replace("-", "/")
+	var allow_cheat_on = StaticLoad.get_on_or_off_by_selection(edit_world_allow_cheat_option_button.selected)
+	var achievement_on =StaticLoad.get_on_or_off_by_selection(edit_world_achievement_option_button.selected)
 	var level_change_value = {
 		"last_modified": current_time,
+		"allow_cheat": allow_cheat_on,
+		"achievement": achievement_on
 	}
 	StaticLoad.save_level_dat(level, level_change_value)
 	level.save_encrypted_pass(world_path_tmp+StaticLoad.select_world+"/level.dat", StaticLoad.CONFIG_PASSWORD)

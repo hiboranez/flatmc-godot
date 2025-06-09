@@ -1,8 +1,8 @@
 [gd_scene load_steps=6 format=3 uid="uid://o3e2ocp5m003"]
 
 [ext_resource type="Script" path="res://Assets/Scripts/ForceQuitUI.gd" id="1_e4pax"]
-[ext_resource type="Texture2D" uid="uid://b14xkgu1d1omr" path="res://Assets/Textures/Backgrounds/stone_wall.png" id="2_jps0h"]
-[ext_resource type="FontFile" uid="uid://csywm01568tlp" path="res://Assets/Fonts/MinecraftAE.ttf" id="3_xbyi6"]
+[ext_resource type="Texture2D" uid="uid://bd725jipoa84m" path="res://Assets/Textures/Backgrounds/dirt_wall.png" id="2_vxl5f"]
+[ext_resource type="FontFile" uid="uid://byf04fyq8gvsp" path="res://Assets/Fonts/MinecraftAE.ttf" id="3_xbyi6"]
 [ext_resource type="Texture2D" uid="uid://b6wbqichdrhpr" path="res://Assets/Textures/GUI/button_normal.png" id="4_abw82"]
 [ext_resource type="Script" path="res://Assets/Scripts/GameButton.gd" id="5_fkb0n"]
 
@@ -15,7 +15,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-texture = ExtResource("2_jps0h")
+texture = ExtResource("2_vxl5f")
 
 [node name="Title" type="Label" parent="."]
 anchors_preset = 8

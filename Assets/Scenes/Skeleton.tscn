@@ -4,7 +4,7 @@
 [ext_resource type="Texture2D" uid="uid://ccw0g7fx1pa6i" path="res://Assets/ResourcePacks/official_old/Entites/skeleton.png" id="2_85brn"]
 [ext_resource type="Shader" path="res://Assets/Shaders/Blink.gdshader" id="3_ffato"]
 [ext_resource type="PackedScene" uid="uid://dx77wbim6mom7" path="res://Assets/Scenes/ItemInHand.tscn" id="3_gc0vx"]
-[ext_resource type="FontFile" uid="uid://csywm01568tlp" path="res://Assets/Fonts/MinecraftAE.ttf" id="4_pyrs5"]
+[ext_resource type="FontFile" uid="uid://byf04fyq8gvsp" path="res://Assets/Fonts/MinecraftAE.ttf" id="4_pyrs5"]
 [ext_resource type="Texture2D" uid="uid://boxi6tixm5lhw" path="res://Assets/Textures/Blocks/fire_layer_1.png" id="5_i5dmt"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_3tfpq"]

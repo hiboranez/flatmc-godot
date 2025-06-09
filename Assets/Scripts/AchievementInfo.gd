@@ -11,6 +11,7 @@ func init(got_achievement_name, got_is_achieved):
 	if not StaticLoad.achievement_icon_dict.has(got_achievement_name):
 		queue_free()
 		return
+	name = got_achievement_name
 	achievement_name.text = "  "+tr(got_achievement_name)
 	achievement_description.text = tr(got_achievement_name+"_DESCRIPTION")
 	item_icon.init_icon(StaticLoad.achievement_icon_dict[got_achievement_name].to_lower())

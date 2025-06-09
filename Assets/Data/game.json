@@ -24,7 +24,7 @@
 	],
 	
 	"transparent_block_names" : [
-		"TORCH", "LADDER", "IRON_BARS", "SAPLING_OAK", "REEDS",
+		"TORCH", "LADDER", "IRON_BARS", "SAPLING_OAK", "REEDS", "SIGN",
 		"WHEAT_STAGE_0", "WHEAT_STAGE_1", "WHEAT_STAGE_2", "WHEAT_STAGE_3",
 		 "WHEAT_STAGE_4", "WHEAT_STAGE_5", "WHEAT_STAGE_6", "WHEAT_STAGE_7"
 	],
@@ -41,6 +41,7 @@
 		"air": -1.0,
 		"stone": 8.0,
 		"wood": 3.0,
+		"sand": 1.0,
 		"gravel": 1.0,
 		"grass": 1.0,
 		"glass": 1.0,
@@ -66,7 +67,7 @@
 	},
 	
 	"untouchable_blocks" : [
-		"AIR", "TORCH", "LADDER",
+		"AIR", "TORCH", "LADDER", "SIGN",
 		"REEDS", "SAPLING_OAK", "WHEAT_STAGE_0", "WHEAT_STAGE_1",
 		"WHEAT_STAGE_2", "WHEAT_STAGE_3", "WHEAT_STAGE_4",
 		"WHEAT_STAGE_5", "WHEAT_STAGE_6", "WHEAT_STAGE_7"
@@ -148,7 +149,8 @@
 		"WOOL_PURPLE": "cloth",
 		"WOOL_RED": "cloth",
 		"WOOL_WHITE": "cloth",
-		"WOOL_YELLOW": "cloth"
+		"WOOL_YELLOW": "cloth",
+		"SIGN": "wood"
 	},
 	
 	"food_dict" : {
@@ -238,7 +240,8 @@
 		"SHEEP_SPAWN_EGG": 1,
 		"CHICKEN_SPAWN_EGG": 1,
 		"ZOMBIE_SPAWN_EGG": 1,
-		"SKELETON_SPAWN_EGG": 1
+		"SKELETON_SPAWN_EGG": 1,
+		"SIGN": 1
 	},
 	
 	"spawn_egg_colors" : {
@@ -268,7 +271,7 @@
 		"TIME_TO_FARM!" : ["make_hoe"],
 		"BAKE_BREAD" : ["make_bread"],
 		"TIME_TO_STRIKE!" : ["make_sword"],
-		"MONSTER_HUNGTER" : ["kill_undead"],
+		"MONSTER_HUNTER" : ["kill_undead"],
 		"SNIPER_DUEL" : ["snipe_skeleton"],
 		"DIAMONDS!" : ["get_diamond"],
 		"IRON_BELLY" : ["eat_rotten_flesh"],
@@ -283,7 +286,7 @@
 		"TIME_TO_FARM!" : "STONE_HOE",
 		"BAKE_BREAD" : "BREAD",
 		"TIME_TO_STRIKE!" : "WOOD_SWORD",
-		"MONSTER_HUNGTER" : "BONE",
+		"MONSTER_HUNTER" : "BONE",
 		"SNIPER_DUEL" : "BOW",
 		"DIAMONDS!" : "DIAMOND_ORE",
 		"IRON_BELLY" : "ROTTEN_FLESH",
@@ -305,9 +308,9 @@
 		"COAL_ORE": {"pickaxe":{"COAL":["1:1.0"]}, "others":{"AIR":["1:1.0"]}},
 		"COBBLESTONE": {"pickaxe":{"COBBLESTONE":["1:1.0"]}, "others":{"AIR":["1:1.0"]}},
 		"COBBLESTONE_MOSSY": {"pickaxe":{"COBBLESTONE_MOSSY":["1:1.0"]}, "others":{"AIR":["1:1.0"]}},
-		"DIAMOND_BLOCK": {"pickaxe":{"DIAMOND_BLOCK":["1:1.0"]}, "others":{"AIR":["1:1.0"]}},
+		"DIAMOND_BLOCK": {"pickaxe":{"MINE_LEVEL":3,"DIAMOND_BLOCK":["1:1.0"]}, "others":{"AIR":["1:1.0"]}},
 		"DIAMOND_ORE": {"pickaxe":{"MINE_LEVEL":3,"DIAMOND":["1:1.0"]}, "others":{"AIR":["1:1.0"]}},
-		"EMERALD_BLOCK": {"pickaxe":{"EMERALD_BLOCK":["1:1.0"]}, "others":{"AIR":["1:1.0"]}},
+		"EMERALD_BLOCK": {"pickaxe":{"MINE_LEVEL":3,"EMERALD_BLOCK":["1:1.0"]}, "others":{"AIR":["1:1.0"]}},
 		"EMERALD_ORE": {"pickaxe":{"MINE_LEVEL":3,"EMERALD":["1:1.0"]}, "others":{"AIR":["1:1.0"]}},
 		"END_FRAME": {"others":{"AIR":["1:1.0"]}},
 		"END_STONE": {"END_STONE":{"GOLD_INGOT":["1:1.0"]}, "others":{"AIR":["1:1.0"]}},
@@ -315,15 +318,15 @@
 		"FURNACE_OFF": {"pickaxe":{"FURNACE_OFF":["1:1.0"]}, "others":{"AIR":["1:1.0"]}},
 		"FURNACE_ON": {"pickaxe":{"FURNACE_OFF":["1:1.0"]}, "others":{"AIR":["1:1.0"]}},
 		"GLOWSTONE": {"others":{"GLOWSTONE_DUST":["1:0.5","2:0.9","3:1.0"]}},
-		"GOLD_BLOCK": {"pickaxe":{"GOLD_BLOCK":["1:1.0"]}, "others":{"AIR":["1:1.0"]}},
+		"GOLD_BLOCK": {"pickaxe":{"MINE_LEVEL":3,"GOLD_BLOCK":["1:1.0"]}, "others":{"AIR":["1:1.0"]}},
 		"GOLD_ORE": {"pickaxe":{"MINE_LEVEL":3,"GOLD_INGOT":["1:1.0"]}, "others":{"AIR":["1:1.0"]}},
 		"GRASS_BLOCK": {"others":{"DIRT":["1:1.0"]}},
 		"GRASS_SNOWED": {"others":{"DIRT":["1:1.0"]}},
 		"GRAVEL": {"others":{"MUTEX":[["FLINT:0.1","GRAVEL:1.0"]],"FLINT":["1:1.0"],"GRAVEL":["1:1.0"]}},
 		"IRON_BARS": {"pickaxe":{"IRON_BARS":["1:1.0"]}, "others":{"AIR":["1:1.0"]}},
-		"IRON_BLOCK": {"pickaxe":{"IRON_BLOCK":["1:1.0"]}, "others":{"AIR":["1:1.0"]}},
+		"IRON_BLOCK": {"pickaxe":{"MINE_LEVEL":2,"IRON_BLOCK":["1:1.0"]}, "others":{"AIR":["1:1.0"]}},
 		"IRON_ORE": {"pickaxe":{"MINE_LEVEL":2,"IRON_INGOT":["1:1.0"]}, "others":{"AIR":["1:1.0"]}},
-		"LAPIS_BLOCK": {"pickaxe":{"LAPIS_BLOCK":["1:1.0"]}, "others":{"AIR":["1:1.0"]}},
+		"LAPIS_BLOCK": {"pickaxe":{"MINE_LEVEL":2,"LAPIS_BLOCK":["1:1.0"]}, "others":{"AIR":["1:1.0"]}},
 		"LAPIS_ORE": {"pickaxe":{"MINE_LEVEL":2,"LAPIS_LAZULI":["1:0.3","2:0.7","3:1.0"]}, "others":{"AIR":["1:1.0"]}},
 		"LEAVES": {"others":{"MUTEX":[["APPLE:0.3","SAPLING_OAK:1.0"]],"APPLE":["0:0.85","1:1.0"],"SAPLING_OAK":["0:0.5","1:1.0"]}},
 		"MELON": {"others":{"MELON_SLICE":["1:0.5","2:0.9","3:1.0"]}},
@@ -456,6 +459,7 @@
 		"TORCH" : "all",
 		"LADDER" : "back",
 		"REEDS" : "down",
+		"SIGN": "down",
 		"SAPLING_OAK" : "down",
 		"WHEAT_STAGE_0" : "down",
 		"WHEAT_STAGE_1" : "down",

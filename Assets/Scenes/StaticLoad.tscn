@@ -1,7 +1,8 @@
-[gd_scene load_steps=6 format=3 uid="uid://btiufoyl57skg"]
+[gd_scene load_steps=7 format=3 uid="uid://btiufoyl57skg"]
 
 [ext_resource type="Script" path="res://Assets/Scripts/StaticLoad.gd" id="1_r6xbh"]
 [ext_resource type="AudioStream" uid="uid://7wyg0u2vlp2c" path="res://Assets/Sounds/GUI/click.mp3" id="1_udrac"]
+[ext_resource type="Script" path="res://Assets/Scripts/BgmAudioPlayer.gd" id="3_8bstn"]
 
 [sub_resource type="Animation" id="Animation_e58u6"]
 length = 0.001
@@ -68,4 +69,9 @@ libraries = {
 [node name="ClickAudioPlayer" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("1_udrac")
 
+[node name="BgmAudioPlayer" type="AudioStreamPlayer" parent="."]
+script = ExtResource("3_8bstn")
+
 [node name="Node2D" type="Node2D" parent="."]
+
+[connection signal="finished" from="BgmAudioPlayer" to="BgmAudioPlayer" method="_on_AudioStreamPlayer2D_finished"]

@@ -5,8 +5,6 @@ extends Control
 @onready var flash_heart_texture = load("res://Assets/Textures/GUI/flash_heart.png") as Texture2D
 @onready var empty_hunger_texture = load("res://Assets/Textures/GUI/empty_hunger.png") as Texture2D
 @onready var flash_hunger_texture = load("res://Assets/Textures/GUI/flash_hunger.png") as Texture2D
-@onready var stop_bgm = load("res://Assets//Sounds//Music//MoogCity2.mp3") as AudioStream
-@onready var menu_bgm = load("res://Assets//Sounds//Music//WetHands.mp3") as AudioStream
 @onready var notice_scene = load("res://Assets/Scenes/Notice.tscn") as PackedScene
 @onready var big_notice_scene = load("res://Assets/Scenes/BigNotice.tscn") as PackedScene
 @onready var secondary_confirmation_scene = load("res://Assets/Scenes/SecondaryConfirmation.tscn") as PackedScene
@@ -17,6 +15,7 @@ extends Control
 @onready var mouse_item_name_label_scene = load("res://Assets/Scenes/MouseItemNameLabel.tscn") as PackedScene
 @onready var player_icon_scene = load("res://Assets/Scenes/PlayerIcon.tscn") as PackedScene
 @onready var server_detect_scene = load("res://Assets/Scenes/ServerDetect.tscn") as PackedScene
+@onready var sign_info_scene = load("res://Assets/Scenes/SignInfo.tscn") as PackedScene
 @onready var item_scene = load("res://Assets/Scenes/Item.tscn") as PackedScene
 @onready var arrow_scene = load("res://Assets/Scenes/Arrow.tscn") as PackedScene
 @onready var pig_scene = load("res://Assets/Scenes/Pig.tscn") as PackedScene
@@ -28,12 +27,13 @@ extends Control
 @onready var animation:AnimationPlayer = $AnimationPlayer
 @onready var click_audio_player = $ClickAudioPlayer
 @onready var server_detects = $ServerDetects
+@onready var bgm_audio_player = $BgmAudioPlayer
 
 class Chunk:
 	static var para_list = [
 		"entity_list", "dirt_list", "grass_block_list",
 		"seed_list", "sapling_list", "leaves_list",
-		"farm_land_list", "sugar_cane_list"
+		"farm_land_list", "sugar_cane_list", "sign_dict"
 	]
 	var is_loaded: bool = false
 	var is_to_save: bool = false
@@ -45,6 +45,7 @@ class Chunk:
 	var leaves_list: Array = []
 	var farm_land_list: Array = []
 	var sugar_cane_list: Array = []
+	var sign_dict: Dictionary = {}
 
 # 常数据
 const AIR_RESISTANCE = 5000
@@ -101,12 +102,14 @@ const DISPATCH_DELTA_TIME = 0.005
 # 固定数据
 var default_skin_path = "res://Assets/Textures/Skins/Steve.png"
 var screenshot_path = "user://screenshots"
-var server_log_path = "user://server_logs"
+var server_log_path = "user://local_server/logs"
+var server_root_path = "user://local_server"
 var server_path = "user://servers"
-var default_resource_pack = "official_old"
+var default_resource_pack = "official_new"
 var default_effect_dict = {
 	"hungry": 0
 }
+var default_achievement_progress_dict = {}
 var world_type_dictionary = {
 	0: "default",
 	1: "flat"
@@ -192,6 +195,7 @@ var select_world = null
 var select_server = null
 var is_lan_server = false
 var is_in_game = false
+var is_new_music_on = true
 var force_quit_reason = "null"
 var middle_button_normal
 var middle_button_chosen
@@ -272,7 +276,10 @@ func _ready() -> void:
 		"skeleton": skeleton_scene,
 		"arrow": arrow_scene,
 	}
-	
+	for achievement in achievement_progress_dict:
+		default_achievement_progress_dict[achievement] = {}
+		for progress in achievement_progress_dict[achievement]:
+			default_achievement_progress_dict[achievement][progress] = false
 	for i in range(8):
 		destroy_light_textures[i+1] = load("res://Assets/Textures/GUI/destroy"+str(i+1)+".png") as Texture2D
 	button_chosen = load("res://Assets/Textures/GUI/button_chosen.png") as Texture2D
@@ -307,6 +314,14 @@ func _ready() -> void:
 		select_world = "world"
 		if not DirAccess.dir_exists_absolute(server_log_path):
 			DirAccess.make_dir_recursive_absolute(server_log_path)
+		if not FileAccess.file_exists(server_root_path+"/server.properties"):
+			var config = ConfigFile.new()
+			config.set_value("server", "spawn_protection_x_size", "16")
+			config.set_value("server", "spawn_protection_y_size", "-1")
+			config.save(server_root_path+"/server.properties")
+		if not FileAccess.file_exists(server_root_path+"/ops.txt"):
+			var config = ConfigFile.new()
+			config.save(server_root_path+"/ops.txt")
 		StaticLoad.change_scene("res://Assets/Scenes/LoadingWorldUI.tscn")
 
 func _process(delta: float) -> void:
@@ -360,6 +375,7 @@ func set_mca_value(got_mca, got_value_dict):
 	got_mca.set_value("chunk", "leaves_list", [])
 	got_mca.set_value("chunk", "farm_land_list", [])
 	got_mca.set_value("chunk", "sugar_cane_list", [])
+	got_mca.set_value("chunk", "sign_dict", {})
 	for key in got_value_dict:
 		got_mca.set_value("chunk", key, got_value_dict[key])
 
@@ -382,6 +398,7 @@ func get_mca_value(got_chunk_pos):
 	var chunk_leaves_list = chunk_config.get_value("chunk", "leaves_list", [])
 	var chunk_farm_land_list = chunk_config.get_value("chunk", "farm_land_list", [])
 	var chunk_sugar_cane_list = chunk_config.get_value("chunk", "sugar_cane_list", [])
+	var chunk_sign_dict = chunk_config.get_value("chunk", "sign_dict", {})
 	var chunk_info_dict = {
 		"chunk_dirt_list": chunk_dirt_list,
 		"chunk_grass_block_list": chunk_grass_block_list,
@@ -389,7 +406,8 @@ func get_mca_value(got_chunk_pos):
 		"chunk_sapling_list": chunk_sapling_list,
 		"chunk_leaves_list": chunk_leaves_list,
 		"chunk_farm_land_list": chunk_farm_land_list,
-		"chunk_sugar_cane_list": chunk_sugar_cane_list
+		"chunk_sugar_cane_list": chunk_sugar_cane_list,
+		"chunk_sign_dict": chunk_sign_dict
 	}
 	
 	if not game.loaded_chunks.has(str(x_chunk)+"."+str(y_chunk)):
@@ -402,6 +420,7 @@ func get_mca_value(got_chunk_pos):
 	game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)].leaves_list = chunk_leaves_list
 	game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)].farm_land_list = chunk_farm_land_list
 	game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)].sugar_cane_list = chunk_sugar_cane_list
+	game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)].sign_dict = chunk_sign_dict
 	game.loaded_chunks_timer[str(x_chunk)+"."+str(y_chunk)] = StaticLoad.CHUNK_FREE_TIME
 	return [true, chunk_config, chunk_block_list, chunk_info_dict]
 
@@ -669,8 +688,8 @@ func generate_chunk(pos: Vector2i, got_seed, world_type):
 					var num = rng.randf()
 					if num > 0.7 and i-5 >= 0 and j-2 >=0 and j+2 <= 15:
 						trees.append(Vector2i(j, i-1))
-					#if num < 0.01 and i-5 >= 0 and j-2 >=0 and j+2 <= 15:
-						#caves.append(Vector3i(j, i, int(num*10000)))
+					#if num < 0.1 and i-5 >= 0 and j-2 >=0 and j+2 <= 15:
+						#caves.append(Vector2i(j, i))
 					row.append(block_ids["GRASS_BLOCK"])
 				elif pos[1]*16+i > int(normalized*40):
 					var noise_value2 = noise.get_noise_2d(pos[0]*16+j, pos[1]*16+i)  # 使用2D噪声
@@ -696,16 +715,76 @@ func generate_chunk(pos: Vector2i, got_seed, world_type):
 							row.append(block_ids["STONE"])
 						back_blocks[i][j] = block_ids["STONE"]
 			blocks.append(row)
+		var cave_noise = FastNoiseLite.new()
+		cave_noise.noise_type = FastNoiseLite.TYPE_PERLIN
+		cave_noise.frequency = 0.005
+		cave_noise.seed = seed
+		for i in range(16):
+			for j in range(16):
+				var noise_value = cave_noise.get_noise_2d(pos[0]*16+j, pos[1]*16+i)
+				if noise_value < 0 and noise_value > -0.04:
+					if trees.has(Vector2i(j, i-1)):
+						trees.erase(Vector2i(j, i-1))
+					if blocks[i][j] != block_ids["AIR"]:
+						blocks[i][j] = block_ids["AIR"]
+		var gravel_noise = FastNoiseLite.new()
+		gravel_noise.noise_type = FastNoiseLite.TYPE_PERLIN
+		gravel_noise.frequency = 0.5
+		gravel_noise.seed = seed
+		for i in range(16):
+			for j in range(16):
+				var noise_value = gravel_noise.get_noise_2d(pos[0]*16+j, pos[1]*16+i)
+				if noise_value < -0.15:
+					#if trees.has(Vector2i(j-1, i)):
+						#trees.erase(Vector2i(j-1, i))
+					if blocks[i][j] == block_ids["STONE"]:
+						blocks[i][j] = block_ids["GRAVEL"]
+		var sand_noise = FastNoiseLite.new()
+		sand_noise.noise_type = FastNoiseLite.TYPE_PERLIN
+		sand_noise.frequency = 0.001
+		sand_noise.seed = seed
+		for i in range(16):
+			for j in range(16):
+				var noise_value = sand_noise.get_noise_2d(pos[0]*16+j, pos[1]*16+i)
+				if noise_value < -0.01:
+					#if trees.has(Vector2i(j-1, i)):
+						#trees.erase(Vector2i(j-1, i))
+					if blocks[i][j] == block_ids["GRASS_BLOCK"] or blocks[i][j] == block_ids["DIRT"]:
+						blocks[i][j] = block_ids["SAND"]
+		for i in range(16):
+			for j in range(15,0,-1):
+				var is_planted = false
+				if blocks[j][i] == block_ids["SAND"] and blocks[j-1][i] == block_ids["AIR"]:
+					var rng = RandomNumberGenerator.new()
+					rng.seed = int(str(seed%12419)+str(pos[0])+str(i))
+					var num = rng.randf()
+					if num > 0.95:
+						if trees.has(Vector2i(i, j)):
+							trees.erase(Vector2i(i, j))
+						is_planted = true
+						for k in range(3):
+							if j-1-k >= 0 and blocks[j-1-k][i] == block_ids["AIR"]:
+								blocks[j-1-k][i] = block_ids["REEDS"]
+								if trees.has(Vector2i(i, j-1-k)):
+									trees.erase(Vector2i(i, j-1-k))
+				if is_planted:
+					break
 		#for cave in caves:
-			#for depth in range(cave[2]):
+			#for depth in range(cave[1], 16):
 				#var rng = RandomNumberGenerator.new()
 				#rng.seed = int(str(seed%12419)+str(cave[0])+str(cave[1])+str(depth))
 				#var num = int(rng.randf()*6)
 				#for i in range(num):
-					#if cave[2]%2==0:
-						#blocks[cave[1]+depth][cave[0]+i-num/2] = block_ids["AIR"]
+					#if cave[1]%2==0:
+						#if blocks[depth][cave[0]+i-num/2] == block_ids["GRASS_BLOCK"] or blocks[depth][cave[0]+i-num/2] == block_ids["DIRT"]:
+							#blocks[depth][cave[0]+i-num/2] = block_ids["AIR"]
+							#if trees.has(Vector2i(depth, cave[0]+i-num/2)):
+								#trees.erase(Vector2i(depth, cave[0]+i-num/2))
 					#else:
-						#blocks[cave[1]+depth][cave[0]-i+num/2] = block_ids["AIR"]
+						#if blocks[depth][cave[0]+i-num/2] == block_ids["GRASS_BLOCK"] or blocks[depth][cave[0]+i-num/2] == block_ids["DIRT"]:
+							#blocks[depth][cave[0]-i+num/2] = block_ids["AIR"]
+							#if trees.has(Vector2i(depth, cave[0]-i-num/2)):
+								#trees.erase(Vector2i(depth, cave[0]-i-num/2))
 		for tree in trees:
 			for i in range(3):
 				no_reach_blocks[tree[1]-i][tree[0]] = block_ids["LOG_OAK"]
@@ -713,10 +792,14 @@ func generate_chunk(pos: Vector2i, got_seed, world_type):
 				if no_reach_blocks[tree[1]-3][tree[0]+j] == block_ids["LOG_OAK"]:
 					continue
 				no_reach_blocks[tree[1]-3][tree[0]+j] = block_ids["LEAVES"]
+				if blocks[tree[1]-3][tree[0]+j] == block_ids["REEDS"]:
+					blocks[tree[1]-3][tree[0]+j] = block_ids["AIR"]
 			for j in range(-1,2):
 				if no_reach_blocks[tree[1]-4][tree[0]+j] == block_ids["LOG_OAK"]:
 					continue
 				no_reach_blocks[tree[1]-4][tree[0]+j] = block_ids["LEAVES"]
+				if blocks[tree[1]-4][tree[0]+j] == block_ids["REEDS"]:
+					blocks[tree[1]-4][tree[0]+j] = block_ids["AIR"]
 	return [blocks, no_reach_blocks, back_blocks]
 
 #func generate_chunk(pos: Vector2i):
@@ -1126,6 +1209,7 @@ func start_server():
 	reset_signals(true)
 	if not is_dedicated_server:
 		game.broadcast_to_person(game.player.player_name, tr("OPENING_PORT"), "gold")
+		game.op_list.append(game.player.player_name.to_lower())
 	var port
 	if is_dedicated_server:
 		port = 12419
@@ -1281,9 +1365,11 @@ func request_for_update_chunk(client_peer_id, is_init, x_chunk, y_chunk):
 	var blocks = []
 	var no_reach_blocks = []
 	var back_blocks = []
+	var sign_dict = {}
 	@warning_ignore("unused_variable")
 	var trees = []
 	if game.loaded_chunks.has(str(x_chunk)+"."+str(y_chunk)):
+		sign_dict = game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)].sign_dict
 		for y in range(16):
 			var row = []
 			var no_reach_row = []
@@ -1314,6 +1400,7 @@ func request_for_update_chunk(client_peer_id, is_init, x_chunk, y_chunk):
 			return
 		var chunk_config = value_list[1]
 		var block_list = value_list[2]
+		sign_dict = value_list[3]["chunk_sign_dict"]
 		game.loaded_chunk_num += 1
 		game.set_chunk(Vector2i(x_chunk, y_chunk), block_list)
 		blocks = block_list[0]
@@ -1379,27 +1466,27 @@ func request_for_update_chunk(client_peer_id, is_init, x_chunk, y_chunk):
 					value_dict["health"] = entity.get_health()
 					entities_to_transfer.append(value_dict)
 			
-	if not is_dedicated_server:
-		if not game.chunk_lights.has(str(x_chunk)+"."+str(y_chunk-1)):
-			var sky_light: PackedByteArray
-			sky_light.resize(16)
-			sky_light.fill(game.current_sky_light)
-			game.chunk_sky_light_datas[str(x_chunk)+"."+str(y_chunk)] = sky_light
-		if game.chunk_lights.has(str(x_chunk)+"."+str(y_chunk)):
-			if not game.chunk_light_to_process.has(str(x_chunk)+"."+str(y_chunk)):
-				game.chunk_light_to_process[str(x_chunk)+"."+str(y_chunk)] = "null"
-			else:
-				game.chunk_light_to_process_double[str(x_chunk)+"."+str(y_chunk)] = "null"
+	if not game.chunk_lights.has(str(x_chunk)+"."+str(y_chunk-1)):
+		var sky_light: PackedByteArray
+		sky_light.resize(16)
+		sky_light.fill(game.current_sky_light)
+		game.chunk_sky_light_datas[str(x_chunk)+"."+str(y_chunk)] = sky_light
+	if game.chunk_lights.has(str(x_chunk)+"."+str(y_chunk)):
+		if not game.chunk_light_to_process.has(str(x_chunk)+"."+str(y_chunk)):
+			game.chunk_light_to_process[str(x_chunk)+"."+str(y_chunk)] = "null"
 		else:
-			game.chunk_light_to_process[str(x_chunk)+"."+str(y_chunk)] = "create"
-	rpc_id(client_peer_id, "reply_for_update_chunk", is_init, x_chunk, y_chunk, [blocks, no_reach_blocks, back_blocks], entities_to_transfer)
+			game.chunk_light_to_process_double[str(x_chunk)+"."+str(y_chunk)] = "null"
+	else:
+		game.chunk_light_to_process[str(x_chunk)+"."+str(y_chunk)] = "create"
+	rpc_id(client_peer_id, "reply_for_update_chunk", is_init, x_chunk, y_chunk, [blocks, no_reach_blocks, back_blocks], entities_to_transfer, sign_dict)
 		
 @rpc("authority", "call_remote", "reliable", 1)
-func reply_for_update_chunk(is_init, x_chunk, y_chunk, blocks_list, entities_to_transfer):
+func reply_for_update_chunk(is_init, x_chunk, y_chunk, blocks_list, entities_to_transfer, sign_dict):
 	game.set_chunk(Vector2i(x_chunk, y_chunk), blocks_list)
 	if not game.loaded_chunks.has(str(x_chunk)+"."+str(y_chunk)):
 		game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)] = Chunk.new()
 	game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)].is_to_save = false
+	game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)].sign_dict = sign_dict
 	game.loaded_chunks_timer[str(x_chunk)+"."+str(y_chunk)] = StaticLoad.CHUNK_FREE_TIME
 	game.loaded_chunk_num += 1
 	for entity in entities_to_transfer:
@@ -1575,10 +1662,11 @@ func request_for_player_info(client_peer_id, player_name):
 		var player_position = player_config.get_value("player", "position", DEFAULT_PLAYER_SPAWN_POS)
 		var face_state = player_config.get_value("player", "face_state", DEFAULT_PLAYER_FACE_STATE)
 		var is_flying = player_config.get_value("player", "is_flying", DEFAULT_PLAYER_IS_FLYING)
-		gamemode = player_config.get_value("player", "gamemode", DEFAULT_PLAYER_GAMEMODE)
+		gamemode = player_config.get_value("player", "gamemode", gamemode)
 		var health = player_config.get_value("player", "health", DEFAULT_PLAYER_HEALTH)
 		var hunger = player_config.get_value("player", "hunger", DEFAULT_PLAYER_HUNGER)
 		var effect_dict = player_config.get_value("player", "effect_dict", default_effect_dict)
+		var achievement_progress_dict = player_config.get_value("player", "achievement_progress_dict", default_achievement_progress_dict)
 		if gamemode != "creative":
 			is_flying = false
 		new_player.position = player_position
@@ -1588,18 +1676,20 @@ func request_for_player_info(client_peer_id, player_name):
 		new_player.health = health
 		new_player.hunger = hunger
 		new_player.effect_dict = effect_dict
+		new_player.achievement_progress_dict = achievement_progress_dict
+		new_player.update_achievement_progress_dict(achievement_progress_dict)
 		new_player.update_state_dict()
 		state_dict_tmp = new_player.state_dict.duplicate()
-		rpc_id(client_peer_id, "reply_for_player_info", player_position, face_state, is_flying, gamemode, health, hunger, effect_dict)
+		rpc_id(client_peer_id, "reply_for_player_info", player_position, face_state, is_flying, gamemode, health, hunger, effect_dict, achievement_progress_dict)
 		rpc_entity_func_by_uuid(new_player.get_uuid(), "init_remote", [client_peer_id, player_name, state_dict_tmp], [client_peer_id], true)
 	else:
-		rpc_id(client_peer_id, "reply_for_player_info", DEFAULT_PLAYER_SPAWN_POS, DEFAULT_PLAYER_FACE_STATE, DEFAULT_PLAYER_IS_FLYING, DEFAULT_PLAYER_GAMEMODE, DEFAULT_PLAYER_HEALTH, DEFAULT_PLAYER_HUNGER, default_effect_dict)
+		rpc_id(client_peer_id, "reply_for_player_info", DEFAULT_PLAYER_SPAWN_POS, DEFAULT_PLAYER_FACE_STATE, DEFAULT_PLAYER_IS_FLYING, DEFAULT_PLAYER_GAMEMODE, DEFAULT_PLAYER_HEALTH, DEFAULT_PLAYER_HUNGER, default_effect_dict, default_achievement_progress_dict)
 		rpc_entity_func_by_uuid(new_player.get_uuid(), "init_remote", [client_peer_id, player_name, state_dict_tmp], [client_peer_id], true)
 	call_entity_func(new_player.get_uuid(), "init_remote", [client_peer_id, player_name, state_dict_tmp])
 	rpc("broadcast_player_join_game", player_name)
 
 @rpc("authority", "call_remote", "reliable", 1)
-func reply_for_player_info(player_position, face_state, is_flying, gamemode, health, hunger, effect_dict):
+func reply_for_player_info(player_position, face_state, is_flying, gamemode, health, hunger, effect_dict, achievement_progress_dict):
 	game.player.position = player_position
 	game.player.face_state = face_state
 	game.player.is_flying = is_flying
@@ -1607,6 +1697,8 @@ func reply_for_player_info(player_position, face_state, is_flying, gamemode, hea
 	game.player.health = health
 	game.player.hunger = hunger
 	game.player.effect_dict = effect_dict
+	game.player.update_achievement_progress_dict(achievement_progress_dict)
+	game.refresh_achievement_info()
 	if game.player.gamemode != "creative":
 		game.player.is_flying = false
 	if game.player.is_flying:

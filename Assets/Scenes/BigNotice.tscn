@@ -1,8 +1,8 @@
 [gd_scene load_steps=9 format=3 uid="uid://11mrepw1wqq1"]
 
 [ext_resource type="Script" path="res://Assets/Scripts/Notice.gd" id="1_siu2d"]
-[ext_resource type="Texture2D" uid="uid://cxywjx6lnb01f" path="res://Assets/Textures/Backgrounds/stone_brick_wall.png" id="2_37ocb"]
-[ext_resource type="FontFile" uid="uid://csywm01568tlp" path="res://Assets/Fonts/MinecraftAE.ttf" id="3_k4wpc"]
+[ext_resource type="Texture2D" uid="uid://bd725jipoa84m" path="res://Assets/Textures/Backgrounds/dirt_wall.png" id="2_31ry2"]
+[ext_resource type="FontFile" uid="uid://byf04fyq8gvsp" path="res://Assets/Fonts/MinecraftAE.ttf" id="3_k4wpc"]
 [ext_resource type="Script" path="res://Assets/Scripts/DragScroll.gd" id="4_aisv6"]
 [ext_resource type="Script" path="res://Assets/Scripts/GameButton.gd" id="4_qm3f8"]
 [ext_resource type="Texture2D" uid="uid://b6wbqichdrhpr" path="res://Assets/Textures/GUI/button_normal.png" id="5_46l0n"]
@@ -26,7 +26,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-texture = ExtResource("2_37ocb")
+texture = ExtResource("2_31ry2")
 
 [node name="ColorRect" type="ColorRect" parent="TextureRect"]
 layout_mode = 1

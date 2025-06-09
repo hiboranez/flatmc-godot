@@ -12,7 +12,7 @@ config_version=5
 
 config/name="FlatMC"
 config/description="我的世界2D版"
-config/version="Alpha v25w22a"
+config/version="Alpha v0.2.0"
 run/main_scene="res://Assets/Scenes/Menu.tscn"
 run/disable_stderr=true
 config/features=PackedStringArray("4.3", "Mobile")
@@ -51,6 +51,9 @@ animation_library={
 }
 texture={
 "detect_3d/compress_to": 0
+}
+csv_translation={
+"delimiter": 1
 }
 
 [input]
@@ -213,7 +216,8 @@ switch_layer={
 
 [internationalization]
 
-locale/translations=PackedStringArray("res://language.en.translation", "res://language.zh.translation")
+locale/translation_remaps={}
+locale/translations=PackedStringArray("res://Assets/Language/Translation.ar.translation", "res://Assets/Language/Translation.de.translation", "res://Assets/Language/Translation.en.translation", "res://Assets/Language/Translation.es.translation", "res://Assets/Language/Translation.fr.translation", "res://Assets/Language/Translation.hi.translation", "res://Assets/Language/Translation.ja.translation", "res://Assets/Language/Translation.ko.translation", "res://Assets/Language/Translation.ru.translation", "res://Assets/Language/Translation.th.translation", "res://Assets/Language/Translation.vi.translation", "res://Assets/Language/Translation.zh.translation")
 
 [memory]
 

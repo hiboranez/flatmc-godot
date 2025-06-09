@@ -15,6 +15,7 @@ extends Node
 @onready var mini_map_zoom_label = $ColorRect/ScrollContainer/VBoxContainer/MiniMapZoom/HScrollBar/Label
 @onready var mini_map_zoom_scroll_bar = $ColorRect/ScrollContainer/VBoxContainer/MiniMapZoom/HScrollBar
 @onready var auto_jump_option_bar = $ColorRect/ScrollContainer/VBoxContainer/AutoJump/OptionButton
+@onready var new_music_option_bar = $ColorRect/ScrollContainer/VBoxContainer/NewMusic/OptionButton
 @onready var smooth_lighting_option_bar = $ColorRect/ScrollContainer/VBoxContainer/SmoothLighting/OptionButton
 @onready var particle_effect_option_bar = $ColorRect/ScrollContainer/VBoxContainer/ParticleEffect/OptionButton
 @onready var v_sync_option_bar = $ColorRect/ScrollContainer/VBoxContainer/VSync/OptionButton
@@ -58,12 +59,17 @@ func _on_options_button_1_pressed() -> void:
 		"block_selection_box": StaticLoad.block_selection_box_dictionary[block_selection_box_option_bar.selected],
 		"mini_map": StaticLoad.get_on_or_off_by_selection(mini_map_option_bar.selected, StaticLoad.options["mini_map"]),
 		"auto_jump": StaticLoad.get_on_or_off_by_selection(auto_jump_option_bar.selected, StaticLoad.options["auto_jump"]),
+		"new_music": StaticLoad.get_on_or_off_by_selection(new_music_option_bar.selected, StaticLoad.options["new_music"]),
 		"smooth_lighting": StaticLoad.get_on_or_off_by_selection(smooth_lighting_option_bar.selected, StaticLoad.options["smooth_lighting"]),
 		"particle_effect": StaticLoad.get_on_or_off_by_selection(particle_effect_option_bar.selected, StaticLoad.options["particle_effect"]),
 		"v_sync": StaticLoad.get_on_or_off_by_selection(v_sync_option_bar.selected, StaticLoad.options["v_sync"]),
 		"full_screen": StaticLoad.get_on_or_off_by_selection(full_screen_option_bar.selected, StaticLoad.options["full_screen"]),
 		"mini_map_zoom": str(mini_map_zoom_scroll_bar.value)
 	}
+	if db_to_linear(StaticLoad.bgm_audio_player.volume_db) > 0 and int(change_value["bgm_volume"]) <= 0:
+		StaticLoad.bgm_audio_player.stop()
+	elif db_to_linear(StaticLoad.bgm_audio_player.volume_db) <= 0 and int(change_value["bgm_volume"]) > 0:
+		StaticLoad.bgm_audio_player.refresh_bgm()
 	StaticLoad.save_options(change_value)
 	StaticLoad.click_audio_player.volume_db = linear_to_db(int(change_value["sound_volume"])/50.0)
 	if stored_full_screen != change_value["full_screen"]:
@@ -76,12 +82,18 @@ func _on_options_button_1_pressed() -> void:
 			DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_ENABLED)
 		else:
 			DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
+	if change_value["new_music"] == "off" and StaticLoad.is_new_music_on:
+		StaticLoad.is_new_music_on = false
+		StaticLoad.bgm_audio_player.refresh_bgm()
+	elif change_value["new_music"] == "on" and not StaticLoad.is_new_music_on:
+		StaticLoad.is_new_music_on = true
+		StaticLoad.bgm_audio_player.refresh_bgm()
+	StaticLoad.bgm_audio_player.volume_db = linear_to_db(int(change_value["bgm_volume"])/50.0)
 	if StaticLoad.is_in_game:
 		var game = $".."
 		game.player.render_chunk = int(change_value["render_chunk"])
 		var fov_zoom = 1+1.6*(int(change_value["fov_zoom"])/100.0)
 		game.player.camera.zoom = Vector2(fov_zoom, fov_zoom)
-		game.bgm_audio_player.volume_db = linear_to_db(int(change_value["bgm_volume"])/50.0)
 		game.sound_audio_manager.volume_db = linear_to_db(int(change_value["sound_volume"])/50.0)
 		game.block_selection_box = StaticLoad.block_selection_box_dictionary[block_selection_box_option_bar.selected]
 		game.mini_map_on = StaticLoad.get_on_or_off_by_selection(mini_map_option_bar.selected, StaticLoad.options["mini_map"])
@@ -133,10 +145,16 @@ func _on_options_fov_zoom_scroll_bar_scrolling() -> void:
 	fov_zoom_label.text = str(fov_zoom_scroll_bar.value)+"%"
 
 func _on_options_bgm_volume_scroll_bar_scrolling() -> void:
-	bgm_volume_label.text = str(bgm_volume_scroll_bar.value)+"%"
+	if bgm_volume_scroll_bar.value > 0:
+		bgm_volume_label.text = str(bgm_volume_scroll_bar.value)+"%"
+	else:
+		bgm_volume_label.text = tr("OFF")
 
 func _on_options_sound_volume_scroll_bar_scrolling() -> void:
-	sound_volume_label.text = str(sound_volume_scroll_bar.value)+"%"
+	if sound_volume_scroll_bar.value > 0:
+		sound_volume_label.text = str(sound_volume_scroll_bar.value)+"%"
+	else:
+		sound_volume_label.text = tr("OFF")
 
 func _on_options_mini_map_zoom_scroll_bar_scrolling() -> void:
 	mini_map_zoom_label.text = str(mini_map_zoom_scroll_bar.value)+"%"
@@ -157,6 +175,7 @@ func load_options():
 		block_selection_box_option_bar.selected = StaticLoad.block_selection_box_dictionary.find_key(config.get_value("options", "block_selection_box"))
 		mini_map_option_bar.selected = StaticLoad.get_selection_by_on_or_off(config.get_value("options", "mini_map"), StaticLoad.options["mini_map"])
 		auto_jump_option_bar.selected = StaticLoad.get_selection_by_on_or_off(config.get_value("options", "auto_jump"), StaticLoad.options["auto_jump"])
+		new_music_option_bar.selected = StaticLoad.get_selection_by_on_or_off(config.get_value("options", "new_music"), StaticLoad.options["new_music"])
 		smooth_lighting_option_bar.selected = StaticLoad.get_selection_by_on_or_off(config.get_value("options", "smooth_lighting"), StaticLoad.options["smooth_lighting"])
 		particle_effect_option_bar.selected = StaticLoad.get_selection_by_on_or_off(config.get_value("options", "particle_effect"), StaticLoad.options["particle_effect"])
 		v_sync_option_bar.selected = StaticLoad.get_selection_by_on_or_off(config.get_value("options", "v_sync"), StaticLoad.options["v_sync"])

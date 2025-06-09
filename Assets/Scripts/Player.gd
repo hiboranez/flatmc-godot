@@ -46,6 +46,8 @@ var walk_period: float = 0.83
 var run_period: float = 0.42
 var dropped_item_speed: float = 1000
 var arrow_shoot_speed = Vector2(2000, -1000)
+var reading_sign_block_pos = Vector2i(0, 0)
+var editing_sign_block_pos = Vector2i(0, 0)
 var dropped_item_no_collect_time: float = 1
 var render_chunk: int = 1
 var player_peer_id: int
@@ -98,6 +100,7 @@ var is_down_area_colliding = false
 var is_top_area_colliding = false
 var is_ground_area_colliding = false
 var is_on_ladder = false
+var is_reading_sign = false
 var animation_tree_parameters = {
 	"walk": 0,
 	"run": 0,
@@ -159,6 +162,7 @@ func _process(delta: float) -> void:
 	update_local_velocity()
 	update_local_gravity()
 	update_local_is_on_ladder()
+	update_local_is_reading_sign()
 	update_local_set_block()
 	update_local_move_by_data()
 	update_local_item_in_hand()
@@ -173,6 +177,19 @@ func init_achievement_progress_dict():
 		achievement_progress_dict[achievement] = {}
 		for progress in StaticLoad.achievement_progress_dict[achievement]:
 			achievement_progress_dict[achievement][progress] = false
+
+func update_achievement_progress_dict(got_achievement_progress_dict):
+	for achievement in got_achievement_progress_dict:
+		achievement_progress_dict[achievement] = got_achievement_progress_dict[achievement]
+	for achievement in achievement_progress_dict:
+		if not achieved_achievement_list.has(achievement):
+			var is_all_achieved = true
+			for progress_tmp in achievement_progress_dict[achievement]:
+				if not achievement_progress_dict[achievement][progress_tmp]:
+					is_all_achieved = false
+					break
+			if is_all_achieved:
+				achieved_achievement_list.append(achievement)
 
 func init_local(peer_id):
 	position = Vector2i(0, -21)
@@ -233,6 +250,9 @@ func init_local(peer_id):
 				effect_dict = player_config.get_value("player", "effect_dict", StaticLoad.default_effect_dict)
 				item_bar_names = player_config.get_value("player", "item_bar_names", item_bar_names)
 				item_bar_amounts = player_config.get_value("player", "item_bar_amounts", item_bar_amounts)
+				var achievement_progress_dict_tmp = player_config.get_value("player", "achievement_progress_dict", achievement_progress_dict)
+				update_achievement_progress_dict(achievement_progress_dict_tmp)
+				StaticLoad.game.refresh_achievement_info()
 		inventory_dict = calculate_inventory_dict([item_bar_names, item_bar_amounts, mouse_item_name, mouse_item_amount])
 		if gamemode != "creative":
 			is_flying = false
@@ -280,8 +300,38 @@ func init_local(peer_id):
 		return
 	StaticLoad.rpc("create_new_peer_player", player_peer_id)
 
+func refresh_reading_sign(sign_block_pos):
+	for sign_info_tmp in StaticLoad.game.sign_info_root.get_children():
+		sign_info_tmp.queue_free()
+	reading_sign_block_pos = sign_block_pos
+	var sign_info = StaticLoad.sign_info_scene.instantiate()
+	var sign_chunk_pos = StaticLoad.game.get_chunk_position(sign_block_pos)
+	var sign_pos = Vector2i(sign_chunk_pos[0]*16,sign_chunk_pos[1]*16)-sign_block_pos
+	var text = ""
+	if StaticLoad.game.loaded_chunks.has(str(sign_chunk_pos[0])+"."+str(sign_chunk_pos[1])):
+		var chunk = StaticLoad.game.loaded_chunks[str(sign_chunk_pos[0])+"."+str(sign_chunk_pos[1])]
+		if chunk.sign_dict.has(sign_pos):
+			text = chunk.sign_dict[sign_pos]
+	StaticLoad.game.sign_info_root.add_child(sign_info)
+	sign_info.init(text, sign_block_pos)
+
+func update_local_is_reading_sign():
+	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != player_peer_id:
+		return
+	var foot_pos = position
+	var foot_block_pos = StaticLoad.game.tile_map_layer.local_to_map(foot_pos)
+	var foot_block_id = StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.tile_map_layer.get_cell_atlas_coords(foot_block_pos))
+	if StaticLoad.get_block_name_by_id(foot_block_id) == "SIGN":
+		if not is_reading_sign or reading_sign_block_pos != foot_block_pos:
+			is_reading_sign = true
+			refresh_reading_sign(foot_block_pos)
+	elif is_reading_sign:
+		is_reading_sign = false
+		for sign_info_tmp in StaticLoad.game.sign_info_root.get_children():
+			sign_info_tmp.queue_free()
+
 func update_local_is_on_ladder():
-	var foot_pos = position + Vector2(0, 23)
+	var foot_pos = position
 	var foot_block_pos = StaticLoad.game.tile_map_layer.local_to_map(foot_pos)
 	var foot_block_id = StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.tile_map_layer.get_cell_atlas_coords(foot_block_pos))
 	if StaticLoad.get_block_name_by_id(foot_block_id) == "LADDER":
@@ -357,12 +407,12 @@ func update_animation_by_data():
 		sneak_timer = 0
 	
 	if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == player_peer_id):
-		if not StaticLoad.game.is_chat and not StaticLoad.game.is_inventory and not StaticLoad.game.is_crafting and not StaticLoad.game.is_pause and not StaticLoad.game.is_map and (is_pulling or is_eating):
+		if not StaticLoad.game.is_chat and not StaticLoad.game.is_inventory and not StaticLoad.game.is_crafting and not StaticLoad.game.is_pause and not StaticLoad.game.is_map and not StaticLoad.game.is_sign_edit and (is_pulling or is_eating):
 			if move_state == "run":
 				move_state = "walk"
 	
 	if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == player_peer_id):
-		if not StaticLoad.game.is_chat and not StaticLoad.game.is_inventory and not StaticLoad.game.is_crafting and not StaticLoad.game.is_pause and not StaticLoad.game.is_map and Input.is_action_pressed("shift") and not is_sneaking:
+		if not StaticLoad.game.is_chat and not StaticLoad.game.is_inventory and not StaticLoad.game.is_crafting and not StaticLoad.game.is_pause and not StaticLoad.game.is_map and not StaticLoad.game.is_sign_edit and Input.is_action_pressed("shift") and not is_sneaking:
 			is_sneaking = true
 			if move_state == "run":
 				move_state = "walk"
@@ -695,6 +745,44 @@ func update_local_velocity():
 				#diff = -diff
 			#velocity += Vector2(0, diff)
 
+func place_sign(args):
+	var set_block_pos = args[0]
+	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1:
+		StaticLoad.rpc_entity_func_by_uuid(uuid, "place_sign", args, [player_peer_id], true)
+	if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == player_peer_id):
+		editing_sign_block_pos = set_block_pos
+		StaticLoad.game.is_input_frozen = true
+		StaticLoad.game.sign_edit_text.grab_focus()
+		StaticLoad.game.sign_edit_text.text = ""
+		StaticLoad.game.sign_edit_ui.visible = true
+		StaticLoad.game.is_sign_edit = true
+
+func change_sign_text(args):
+	var sign_chunk_pos = args[0]
+	var sign_pos = args[1]
+	var text = args[2]
+	if StaticLoad.game.loaded_chunks.has(str(sign_chunk_pos[0])+"."+str(sign_chunk_pos[1])):
+		var chunk = StaticLoad.game.loaded_chunks[str(sign_chunk_pos[0])+"."+str(sign_chunk_pos[1])]
+		chunk.sign_dict[sign_pos] = text
+
+func edit_sign():
+	StaticLoad.game.sign_edit_ui.visible = false
+	StaticLoad.game.is_sign_edit = false
+	StaticLoad.game.is_input_frozen = false
+	var sign_chunk_pos = StaticLoad.game.get_chunk_position(editing_sign_block_pos)
+	if StaticLoad.game.loaded_chunks.has(str(sign_chunk_pos[0])+"."+str(sign_chunk_pos[1])):
+		var chunk = StaticLoad.game.loaded_chunks[str(sign_chunk_pos[0])+"."+str(sign_chunk_pos[1])]
+		var sign_pos = Vector2i(sign_chunk_pos[0]*16,sign_chunk_pos[1]*16)-editing_sign_block_pos
+		chunk.sign_dict[sign_pos] = StaticLoad.game.sign_edit_text.text
+		if is_reading_sign:
+			refresh_reading_sign(reading_sign_block_pos)
+		if StaticLoad.is_muti_mode:
+			if multiplayer.get_unique_id() == 1:
+				StaticLoad.rpc_entity_func_by_uuid(uuid, "change_sign_text", [sign_chunk_pos, sign_pos, StaticLoad.game.sign_edit_text.text], "others", true)
+			else:
+				StaticLoad.rpc_entity_func_by_uuid(uuid, "change_sign_text", [sign_chunk_pos, sign_pos, StaticLoad.game.sign_edit_text.text], [player_peer_id], false)
+	StaticLoad.game.sign_edit_text.text = ""
+		
 func update_local_set_block():
 	if not set_block_list.is_empty():
 		for set_block_info in set_block_list.duplicate():
@@ -703,13 +791,14 @@ func update_local_set_block():
 			var set_block_layer = set_block_info[2]
 			StaticLoad.game.set_block_list.append([Time.get_ticks_msec(), uuid, set_block_id, set_block_pos, set_block_layer, true])
 			set_block_list.erase(set_block_info)
-	if not success_set_block_list.is_empty() and multiplayer.get_unique_id() != 1:
-		for set_block_info in success_set_block_list.duplicate():
-			if changed_state_dict.has("set_block_list") and changed_state_dict["set_block_list"] is Array:
-				changed_state_dict["set_block_list"].append(set_block_info)
-			else:
-				changed_state_dict["set_block_list"] = [set_block_info]
-			success_set_block_list.erase(set_block_info)
+	if not success_set_block_list.is_empty():
+		if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
+			for set_block_info in success_set_block_list.duplicate():
+				if changed_state_dict.has("set_block_list") and changed_state_dict["set_block_list"] is Array:
+					changed_state_dict["set_block_list"].append(set_block_info)
+				else:
+					changed_state_dict["set_block_list"] = [set_block_info]
+				success_set_block_list.erase(set_block_info)
 
 func update_local_gravity():
 	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != player_peer_id:
@@ -808,7 +897,7 @@ func update_local_move_by_data():
 	if velocity.length() > StaticLoad.FLOAT_DELTA:
 		var player_block_pos = StaticLoad.game.tile_map_layer.local_to_map(position)
 		var block_id_down = StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.tile_map_layer.get_cell_atlas_coords(player_block_pos))
-		var block_id_up = StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.tile_map_layer.get_cell_atlas_coords(player_block_pos-Vector2i(0,50)))
+		var block_id_up = StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.tile_map_layer.get_cell_atlas_coords(player_block_pos-Vector2i(0,1)))
 		if not StaticLoad.get_is_untouchable_by_id(block_id_down):
 			velocity = Vector2(0, 0)
 		if not StaticLoad.get_is_untouchable_by_id(block_id_up):
@@ -1052,6 +1141,8 @@ func process_achievement_progress(change_dict):
 		update_achievement_progress(change_dict)
 
 func update_achievement_progress(change_dict):
+	if StaticLoad.game.world_info_dictionary["achievement"] == "off":
+		return
 	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
 		return
 	var achievement_get_list = []
@@ -1074,11 +1165,12 @@ func update_achievement_progress(change_dict):
 			get_achievement(achievement)
 
 func get_achievement(got_achievement_name):
+	achieved_achievement_list.append(got_achievement_name)
 	var got_achievement_text = player_name + tr("GOT_ACHIEVEMENT") + "[" + tr(got_achievement_name) + "]"
 	StaticLoad.game.broadcast_to_all(got_achievement_text, "chartreuse")
 	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1:
 		if StaticLoad.is_dedicated_server:
-			var text = "["+StaticLoad.get_time_string(false)+" INFO]: "+got_achievement_text
+			var text = "["+StaticLoad.get_time_string(false)+" INFO]: "+player_name+" got achievement [" + got_achievement_name.to_lower().replace("_"," ") + "]"
 			print(text)
 			StaticLoad.record_server_log(Time.get_date_string_from_system(), text)
 	if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == player_peer_id):
@@ -1159,7 +1251,11 @@ func fail_set_block(args):
 	var set_block_layer = args[2]
 	item_bar_names = args[3]
 	item_bar_amounts = args[4]
-	StaticLoad.game.set_block_list.append([Time.get_ticks_msec(), uuid, set_block_id, set_block_pos, set_block_layer, false])
+	StaticLoad.game.set_block(set_block_pos, set_block_id, set_block_layer, true)
+	StaticLoad.game.update_chunk_light_by_pos(StaticLoad.game.get_chunk_position(set_block_pos))
+	if args[-1] == "no_permission":
+		var no_permission_message = tr("NO_BUILD_PERMISSION")
+		StaticLoad.game.broadcast_to_all(no_permission_message, "pink")
 
 func destroy_block(block_pos: Vector2i):
 	var destroy_layer = current_set_layer
@@ -1292,6 +1388,11 @@ func eat_food(args):
 	if not StaticLoad.food_dict.has(got_food_name):
 		return
 	var food_info = StaticLoad.food_dict[got_food_name]
+	if got_food_name == "ROTTEN_FLESH" and hunger <= 0:
+		var change_dict = {
+			"eat_rotten_flesh" : true
+		}
+		process_achievement_progress(change_dict)
 	var new_hunger = hunger + int(food_info["food"])
 	if food_info.has("effect"):
 		for effect in food_info["effect"]:
@@ -1449,6 +1550,9 @@ func player_die(reason, object):
 	if StaticLoad.game.is_pause:
 		StaticLoad.game.pause_ui.visible = false
 		StaticLoad.game.is_pause = false
+	if StaticLoad.game.is_sign_edit:
+		StaticLoad.game.sign_edit_ui.visible = false
+		StaticLoad.game.is_sign_edit = false
 	if StaticLoad.game.is_inventory:
 		StaticLoad.game.inventory_ui.visible = false
 		StaticLoad.game.is_inventory = false
@@ -1480,18 +1584,47 @@ func send_message(message: String):
 		StaticLoad.record_server_log(Time.get_date_string_from_system(), text)
 
 func send_command(command: String):
+	if StaticLoad.commands.has(command):
+		StaticLoad.game.close_chat_ui()
+	if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1):
+		if (StaticLoad.game.world_info_dictionary["allow_cheat"] == "on" and not StaticLoad.is_dedicated_server) or StaticLoad.game.op_list.has(player_name.to_lower()):
+			process_command(command)
+		else:
+			var no_permission_message = tr("NO_COMMAND_PERMISSION")
+			StaticLoad.game.broadcast_to_all(no_permission_message, "pink")
+			if StaticLoad.is_muti_mode and StaticLoad.is_dedicated_server:
+				var text = "["+StaticLoad.get_time_string(false)+" INFO]: "+"<"+player_name+"> "+command+" denied: no permission"
+				print(text)
+				StaticLoad.record_server_log(Time.get_date_string_from_system(), text)	
+	elif StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
+		StaticLoad.rpc_entity_func_by_uuid(uuid, "request_for_command", command, [1], true)
+
+func command_denied(command):
+	var no_permission_message = tr("NO_COMMAND_PERMISSION")
+	StaticLoad.game.broadcast_to_all(no_permission_message, "pink")
+
+func request_for_command(command: String):
+	if (StaticLoad.game.world_info_dictionary["allow_cheat"] == "on" and not StaticLoad.is_dedicated_server) or StaticLoad.game.op_list.has(player_name.to_lower()):
+		process_command(command)
+		StaticLoad.rpc_entity_func_by_uuid(uuid, "process_command", command, "others", true)
+	else:
+		StaticLoad.rpc_entity_func_by_uuid(uuid, "command_denied", command, [player_peer_id], true)
+		if StaticLoad.is_muti_mode and StaticLoad.is_dedicated_server:
+			var text = "["+StaticLoad.get_time_string(false)+" INFO]: "+"<"+player_name+"> "+command+" denied: no permission"
+			print(text)
+			StaticLoad.record_server_log(Time.get_date_string_from_system(), text)
+
+func process_command(command: String):
 	var splits = command.split(" ")
 	if StaticLoad.is_dedicated_server:
 		var text = "["+StaticLoad.get_time_string(false)+" INFO]: "+"<"+player_name+"> "+command
 		print(text)
 		StaticLoad.record_server_log(Time.get_date_string_from_system(), text)
 	if splits[0] == "/help":
-		StaticLoad.game.close_chat_ui()
 		StaticLoad.game.broadcast_to_person(player_name, tr("COMMAND_LIST"), "gold")
 		for key in StaticLoad.commands:
 			StaticLoad.game.broadcast_to_person(player_name, key, "gold")
 	elif splits[0] == "/tp":
-		StaticLoad.game.close_chat_ui()
 		if splits.size() == 3:
 			var x = int(splits[1])
 			var y = int(splits[2])
@@ -1619,13 +1752,13 @@ func get_item(args):
 		item_bar_names[selected_item_grid] = "AIR"
 	if list[0] < amount and sound_on:
 		StaticLoad.game.sound_audio_manager.play_audio_static("player", "pop")
-	if list[0] < amount:
-		if item_name == "LOG_OAK":
-			var change_dict = {
-				"get_log" : true
-			}
-			if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1):
-				update_achievement_progress(change_dict)
+	#if list[0] < amount:
+		#if item_name == "LOG_OAK":
+			#var change_dict = {
+				#"get_log" : true
+			#}
+			#if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1):
+				#update_achievement_progress(change_dict)
 	if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and player_peer_id == multiplayer.get_unique_id()):
 		if StaticLoad.game.is_inventory:
 			StaticLoad.game.append_process_refresh("refresh_inventory")
@@ -1922,7 +2055,7 @@ func update_local_hunger():
 			hunger_timer = 0
 			if hunger > 0:
 				hunger -= 1
-				if hunger <= 6 and move_state == "run":
+				if hunger <= 6 and move_state == "run" and gamemode != "creative":
 					move_state = "walk"
 
 func change_skin(got_skin_texture_buffer):

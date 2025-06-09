@@ -3,7 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://ovfrn8y2usm7" path="res://Assets/Textures/GUI/achievement_background.png" id="1_3int6"]
 [ext_resource type="PackedScene" uid="uid://dpnk4w3vgwyft" path="res://Assets/Scenes/ItemIcon.tscn" id="2_t1jfx"]
 [ext_resource type="Script" path="res://Assets/Scripts/AchievementGet.gd" id="2_td4ak"]
-[ext_resource type="FontFile" uid="uid://csywm01568tlp" path="res://Assets/Fonts/MinecraftAE.ttf" id="3_whe8e"]
+[ext_resource type="FontFile" uid="uid://byf04fyq8gvsp" path="res://Assets/Fonts/MinecraftAE.ttf" id="3_whe8e"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_t87vm"]
 atlas = ExtResource("1_3int6")

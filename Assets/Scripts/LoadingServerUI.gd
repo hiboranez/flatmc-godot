@@ -4,6 +4,7 @@ extends CanvasLayer
 @onready var button1 = $Button1
 @onready var title = $Title
 @onready var game_path = "res://Assets/Scenes/Game.tscn"
+@onready var tip_label = $ProgressBar/Tip
 
 var scene_load_progress = []
 var scene_load_status = 0
@@ -17,6 +18,7 @@ var port
 
 func _ready() -> void:
 	progress_bar.max_value = 100
+	update_tip()
 	if StaticLoad.is_in_game:
 		is_server_connected = true
 		button1.visible = false
@@ -24,6 +26,13 @@ func _ready() -> void:
 		StaticLoad.game.freeze_game()
 		StaticLoad.game.create_player(multiplayer.get_unique_id())
 		StaticLoad.game.init_game_as_client()
+
+func update_tip():
+	if StaticLoad.is_dedicated_server:
+		return
+	var rng = RandomNumberGenerator.new()
+	var num = rng.randi_range(0,1)
+	tip_label.text = tr("TIP_"+str(num))
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 @warning_ignore("unused_parameter")
@@ -84,6 +93,7 @@ func connect_server():
 	while not is_server_connected:
 		await get_tree().create_timer(1).timeout
 	title.text = tr("CONNECTION_SUCCESS")
+	StaticLoad.bgm_audio_player.stop()
 	StaticLoad.rpc_id(1, "request_for_connect_state_check", multiplayer.get_unique_id(), player_name, StaticLoad.options["version"])
 	while not is_server_state_checked:
 		if connect_interrupt_reason != "null":

@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://Assets/Scripts/Zombie.gd" id="1_o4hmc"]
 [ext_resource type="Material" uid="uid://paeswhiik3iy" path="res://Assets/Materials/Zombie.tres" id="2_qainc"]
 [ext_resource type="Shader" path="res://Assets/Shaders/Blink.gdshader" id="3_7hiaf"]
-[ext_resource type="FontFile" uid="uid://csywm01568tlp" path="res://Assets/Fonts/MinecraftAE.ttf" id="4_k3jrx"]
+[ext_resource type="FontFile" uid="uid://byf04fyq8gvsp" path="res://Assets/Fonts/MinecraftAE.ttf" id="4_k3jrx"]
 [ext_resource type="Texture2D" uid="uid://boxi6tixm5lhw" path="res://Assets/Textures/Blocks/fire_layer_1.png" id="5_g8tax"]
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_wtcf8"]

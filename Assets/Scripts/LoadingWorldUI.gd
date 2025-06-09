@@ -3,6 +3,7 @@ extends CanvasLayer
 @onready var progress_bar = $ProgressBar
 @onready var title = $Title
 @onready var game_path = "res://Assets/Scenes/Game.tscn"
+@onready var tip_label = $ProgressBar/Tip
 
 var scene_load_progress = []
 var scene_load_status = 0
@@ -10,6 +11,7 @@ var is_loaded_terrain: bool = false
 
 func _ready() -> void:
 	progress_bar.max_value = 100
+	update_tip()
 	if not StaticLoad.is_in_game:
 		ResourceLoader.load_threaded_request(game_path)
 		StaticLoad.update_select_world_path()
@@ -31,6 +33,13 @@ func _process(delta: float) -> void:
 		title.text = tr("COMPLETED")
 		await get_tree().create_timer(1).timeout
 		load_finished()
+
+func update_tip():
+	if StaticLoad.is_dedicated_server:
+		return
+	var rng = RandomNumberGenerator.new()
+	var num = rng.randi_range(0,1)
+	tip_label.text = tr("TIP_"+str(num))
 
 func load_scene():
 	title.text = tr("LOADING_SCENE")

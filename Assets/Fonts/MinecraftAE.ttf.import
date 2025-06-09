@@ -2,7 +2,7 @@
 
 importer="font_data_dynamic"
 type="FontFile"
-uid="uid://csywm01568tlp"
+uid="uid://byf04fyq8gvsp"
 path="res://.godot/imported/MinecraftAE.ttf-501ecc1e8cec09c44c28ded30d567d97.fontdata"
 
 [deps]
@@ -14,16 +14,16 @@ dest_files=["res://.godot/imported/MinecraftAE.ttf-501ecc1e8cec09c44c28ded30d567
 
 Rendering=null
 antialiasing=1
-generate_mipmaps=true
+generate_mipmaps=false
 disable_embedded_bitmaps=true
 multichannel_signed_distance_field=false
 msdf_pixel_range=8
 msdf_size=48
 allow_system_fallback=true
 force_autohinter=false
-hinting=2
+hinting=1
 subpixel_positioning=1
-oversampling=5.0
+oversampling=0.0
 Fallbacks=null
 fallbacks=[]
 Compress=null

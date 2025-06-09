@@ -1,8 +1,8 @@
 [gd_scene load_steps=21 format=3 uid="uid://c2xj82s25mlo"]
 
-[ext_resource type="Texture2D" uid="uid://b14xkgu1d1omr" path="res://Assets/Textures/Backgrounds/stone_wall.png" id="1_cg14s"]
 [ext_resource type="Script" path="res://Assets/Scripts/Options.gd" id="1_d0p62"]
-[ext_resource type="FontFile" uid="uid://csywm01568tlp" path="res://Assets/Fonts/MinecraftAE.ttf" id="2_5ysu4"]
+[ext_resource type="Texture2D" uid="uid://bd725jipoa84m" path="res://Assets/Textures/Backgrounds/dirt_wall.png" id="2_1ygwg"]
+[ext_resource type="FontFile" uid="uid://byf04fyq8gvsp" path="res://Assets/Fonts/MinecraftAE.ttf" id="2_5ysu4"]
 [ext_resource type="Script" path="res://Assets/Scripts/DragScroll.gd" id="3_whodl"]
 [ext_resource type="Texture2D" uid="uid://b6wbqichdrhpr" path="res://Assets/Textures/GUI/button_normal.png" id="4_cgyyv"]
 [ext_resource type="Texture2D" uid="uid://caueuwmlcmeot" path="res://Assets/Textures/GUI/button_disabled.png" id="4_tjirk"]
@@ -56,7 +56,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-texture = ExtResource("1_cg14s")
+texture = ExtResource("2_1ygwg")
 
 [node name="ColorRect" type="ColorRect" parent="."]
 anchors_preset = 15
@@ -302,6 +302,50 @@ grow_vertical = 2
 theme = ExtResource("7_tggb6")
 texture = ExtResource("4_tjirk")
 
+[node name="NewMusic" type="HSplitContainer" parent="ColorRect/ScrollContainer/VBoxContainer"]
+z_index = 1
+layout_mode = 2
+collapsed = true
+
+[node name="Title" type="Label" parent="ColorRect/ScrollContainer/VBoxContainer/NewMusic"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_fonts/font = ExtResource("2_5ysu4")
+theme_override_font_sizes/font_size = 40
+text = "NEW_MUSIC"
+
+[node name="OptionButton" type="OptionButton" parent="ColorRect/ScrollContainer/VBoxContainer/NewMusic"]
+custom_minimum_size = Vector2(0, 70)
+layout_mode = 2
+size_flags_horizontal = 3
+theme = ExtResource("7_tggb6")
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_constants/h_separation = 10
+theme_override_fonts/font = ExtResource("2_5ysu4")
+theme_override_font_sizes/font_size = 40
+theme_override_styles/focus = SubResource("StyleBoxEmpty_k1gad")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_t7o14")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_y24qp")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_cfs5x")
+theme_override_constants/arrow_margin = 30
+flat = true
+selected = 1
+item_count = 2
+popup/item_0/text = "ON"
+popup/item_1/text = "OFF"
+popup/item_1/id = 1
+
+[node name="TextureRect" type="TextureRect" parent="ColorRect/ScrollContainer/VBoxContainer/NewMusic/OptionButton"]
+z_index = -1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("7_tggb6")
+texture = ExtResource("4_tjirk")
+
 [node name="SmoothLighting" type="HSplitContainer" parent="ColorRect/ScrollContainer/VBoxContainer"]
 z_index = 1
 layout_mode = 2
@@ -329,7 +373,7 @@ theme_override_styles/pressed = SubResource("StyleBoxEmpty_y24qp")
 theme_override_styles/normal = SubResource("StyleBoxEmpty_cfs5x")
 theme_override_constants/arrow_margin = 30
 flat = true
-selected = 1
+selected = 0
 item_count = 2
 popup/item_0/text = "ON"
 popup/item_1/text = "OFF"
@@ -373,7 +417,7 @@ theme_override_styles/pressed = SubResource("StyleBoxEmpty_y24qp")
 theme_override_styles/normal = SubResource("StyleBoxEmpty_cfs5x")
 theme_override_constants/arrow_margin = 30
 flat = true
-selected = 1
+selected = 0
 item_count = 2
 popup/item_0/text = "ON"
 popup/item_1/text = "OFF"

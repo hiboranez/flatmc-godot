@@ -4,7 +4,7 @@
 [ext_resource type="Material" uid="uid://cof4bjt7jgu3p" path="res://Assets/Materials/Sheep.tres" id="2_j5llg"]
 [ext_resource type="Material" uid="uid://drqk55f32s807" path="res://Assets/Materials/SheepWool.tres" id="3_nvj7c"]
 [ext_resource type="Shader" path="res://Assets/Shaders/Blink.gdshader" id="3_owpda"]
-[ext_resource type="FontFile" uid="uid://csywm01568tlp" path="res://Assets/Fonts/MinecraftAE.ttf" id="4_lngir"]
+[ext_resource type="FontFile" uid="uid://byf04fyq8gvsp" path="res://Assets/Fonts/MinecraftAE.ttf" id="4_lngir"]
 [ext_resource type="Texture2D" uid="uid://boxi6tixm5lhw" path="res://Assets/Textures/Blocks/fire_layer_1.png" id="6_8jp81"]
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_oixuv"]

@@ -122,6 +122,7 @@
 		"WOOL_PURPLE": 72,
 		"WOOL_RED": 73,
 		"WOOL_WHITE": 74,
-		"WOOL_YELLOW": 75
+		"WOOL_YELLOW": 75,
+		"SIGN": 76
 	}
 }

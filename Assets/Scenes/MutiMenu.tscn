@@ -1,8 +1,9 @@
-[gd_scene load_steps=11 format=3 uid="uid://b867dgdjiob65"]
+[gd_scene load_steps=12 format=3 uid="uid://b867dgdjiob65"]
 
 [ext_resource type="Script" path="res://Assets/Scripts/MutiMenu.gd" id="1_0dsvw"]
+[ext_resource type="Texture2D" uid="uid://bd725jipoa84m" path="res://Assets/Textures/Backgrounds/dirt_wall.png" id="2_m2yro"]
 [ext_resource type="Texture2D" uid="uid://b14xkgu1d1omr" path="res://Assets/Textures/Backgrounds/stone_wall.png" id="2_na4yf"]
-[ext_resource type="FontFile" uid="uid://csywm01568tlp" path="res://Assets/Fonts/MinecraftAE.ttf" id="3_6e6p5"]
+[ext_resource type="FontFile" uid="uid://byf04fyq8gvsp" path="res://Assets/Fonts/MinecraftAE.ttf" id="3_6e6p5"]
 [ext_resource type="Texture2D" uid="uid://b6wbqichdrhpr" path="res://Assets/Textures/GUI/button_normal.png" id="4_3ur2f"]
 [ext_resource type="Script" path="res://Assets/Scripts/DragScroll.gd" id="4_cp3ns"]
 [ext_resource type="Script" path="res://Assets/Scripts/GameButton.gd" id="5_dl57o"]
@@ -33,7 +34,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-texture = ExtResource("2_na4yf")
+texture = ExtResource("2_m2yro")
 
 [node name="ColorRect" type="ColorRect" parent="."]
 anchors_preset = 15

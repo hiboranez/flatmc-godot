@@ -1,13 +1,13 @@
-[gd_scene load_steps=138 format=4 uid="uid://2hv5eany3vpf"]
+[gd_scene load_steps=148 format=4 uid="uid://2hv5eany3vpf"]
 
 [ext_resource type="Script" path="res://Assets/Scripts/Game.gd" id="1_ctu8j"]
-[ext_resource type="Script" path="res://Assets/Scripts/BgmAudioPlayer.gd" id="2_gyse0"]
 [ext_resource type="Texture2D" uid="uid://cqpbp4dic383f" path="res://Assets/Textures/GUI/unknown_version_gui.webp" id="2_mnda3"]
 [ext_resource type="Script" path="res://Assets/Scripts/SoundAudioManager.gd" id="2_vxlg4"]
 [ext_resource type="Texture2D" uid="uid://co37dhrfnga6g" path="res://Assets/Textures/Backgrounds/Sky.png" id="2_xngfj"]
 [ext_resource type="TileSet" uid="uid://cgix634ydmo4p" path="res://Assets/TileSets/official_old.tres" id="3_fa3r6"]
 [ext_resource type="Texture2D" uid="uid://d02e418c7jdla" path="res://Assets/Textures/GUI/mobile_small_button.png" id="4_5q8xe"]
-[ext_resource type="FontFile" uid="uid://csywm01568tlp" path="res://Assets/Fonts/MinecraftAE.ttf" id="4_nsj5b"]
+[ext_resource type="TileSet" uid="uid://bggb6d560u47r" path="res://Assets/TileSets/official_new.tres" id="4_bwiap"]
+[ext_resource type="FontFile" uid="uid://byf04fyq8gvsp" path="res://Assets/Fonts/MinecraftAE.ttf" id="4_nsj5b"]
 [ext_resource type="Texture2D" uid="uid://b6wbqichdrhpr" path="res://Assets/Textures/GUI/button_normal.png" id="5_0o0wo"]
 [ext_resource type="Script" path="res://Assets/Scripts/ItemGrid.gd" id="5_taigv"]
 [ext_resource type="Texture2D" uid="uid://bcse7navndyua" path="res://Assets/Textures/GUI/selected_item_bar.png" id="6_d227v"]
@@ -59,7 +59,9 @@
 [ext_resource type="PackedScene" uid="uid://dx77wbim6mom7" path="res://Assets/Scenes/ItemInHand.tscn" id="30_shd7e"]
 [ext_resource type="Theme" uid="uid://do1xfdxltcv20" path="res://Assets/Themes/gui_theme.tres" id="31_nincb"]
 [ext_resource type="Texture2D" uid="uid://5usjvr6nn8e1" path="res://Assets/Textures/GUI/tab_panel_right.png" id="35_p3vs0"]
+[ext_resource type="Texture2D" uid="uid://bhf0vdb84mjy8" path="res://Assets/ResourcePacks/official_old/Blocks/sign.png" id="51_djya5"]
 [ext_resource type="Texture2D" uid="uid://ovfrn8y2usm7" path="res://Assets/Textures/GUI/achievement_background.png" id="53_hcsln"]
+[ext_resource type="Texture2D" uid="uid://bd725jipoa84m" path="res://Assets/Textures/Backgrounds/dirt_wall.png" id="57_krg4n"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_6ugo2"]
 size = Vector2(125, 125)
@@ -1714,6 +1716,14 @@ VScrollBar/styles/scroll = SubResource("StyleBoxLine_hxvga")
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_vm4jx"]
 size = Vector2(150, 150)
 
+[sub_resource type="Theme" id="Theme_wfoeb"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ojpio"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_paxpn"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_0lsok"]
+
 [sub_resource type="AtlasTexture" id="AtlasTexture_4kfdj"]
 atlas = ExtResource("53_hcsln")
 region = Rect2(0, 0, 256, 202)
@@ -1774,6 +1784,18 @@ content_margin_left = 30.0
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_8ilgk"]
 content_margin_left = 30.0
 
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_lbbkt"]
+content_margin_left = 30.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_jctxr"]
+content_margin_left = 30.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_m7qet"]
+content_margin_left = 30.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_a0l8i"]
+content_margin_left = 30.0
+
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_chpwj"]
 content_margin_left = 30.0
 
@@ -1806,7 +1828,7 @@ metadata/_edit_vertical_guides_ = [1640.0]
 [node name="Lights" type="Node2D" parent="."]
 
 [node name="DarkLight" type="PointLight2D" parent="Lights"]
-position = Vector2(-72, -264)
+position = Vector2(80, -312)
 scale = Vector2(20000, 20000)
 color = Color(0, 0, 0, 1)
 blend_mode = 2
@@ -1818,17 +1840,17 @@ script = ExtResource("2_vxlg4")
 
 [node name="BackTileMapLayer" type="TileMapLayer" parent="."]
 modulate = Color(0.393086, 0.393086, 0.393085, 1)
-tile_set = ExtResource("3_fa3r6")
+tile_set = ExtResource("4_bwiap")
 collision_enabled = false
 
 [node name="NoReachTileMapLayer" type="TileMapLayer" parent="."]
-tile_set = ExtResource("3_fa3r6")
+tile_set = ExtResource("4_bwiap")
 collision_enabled = false
 
 [node name="BackParticles" type="Node2D" parent="."]
 
 [node name="TileMapLayer" type="TileMapLayer" parent="."]
-tile_set = ExtResource("3_fa3r6")
+tile_set = ExtResource("4_bwiap")
 
 [node name="Items" type="Node2D" parent="."]
 
@@ -1849,8 +1871,8 @@ texture = ExtResource("6_k82cs")
 
 [node name="TouchTimeCounters" type="Node2D" parent="."]
 
-[node name="BgmAudioPlayer" type="AudioStreamPlayer" parent="."]
-script = ExtResource("2_gyse0")
+[node name="SignInfoRoot" type="Node2D" parent="."]
+light_mask = 4
 
 [node name="MobileUI" type="CanvasLayer" parent="."]
 visible = false
@@ -5350,6 +5372,112 @@ shape_visible = false
 passby_press = true
 visibility_mode = 1
 
+[node name="SignEditUI" type="CanvasLayer" parent="."]
+visible = false
+
+[node name="ColorRect" type="ColorRect" parent="SignEditUI"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.705882)
+
+[node name="TextureRect" type="TextureRect" parent="SignEditUI"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -318.0
+offset_top = -356.0
+offset_right = 318.0
+offset_bottom = 280.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("51_djya5")
+expand_mode = 1
+
+[node name="ScrollContainer" type="ScrollContainer" parent="SignEditUI/TextureRect"]
+z_index = 2
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 86.0
+offset_top = 128.0
+offset_right = -86.0
+offset_bottom = -260.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = SubResource("Theme_wfoeb")
+horizontal_scroll_mode = 0
+script = ExtResource("13_wfnj5")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="SignEditUI/TextureRect/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="TextEdit" type="TextEdit" parent="SignEditUI/TextureRect/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_fonts/font = ExtResource("4_nsj5b")
+theme_override_font_sizes/font_size = 40
+theme_override_styles/normal = SubResource("StyleBoxEmpty_ojpio")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_paxpn")
+theme_override_styles/read_only = SubResource("StyleBoxEmpty_0lsok")
+wrap_mode = 1
+caret_blink = true
+
+[node name="ColorRect" type="ColorRect" parent="SignEditUI/TextureRect"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 62.0
+offset_top = 101.0
+offset_right = -62.0
+offset_bottom = -228.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.392157)
+
+[node name="Button" type="Button" parent="SignEditUI/TextureRect"]
+z_index = 1
+custom_minimum_size = Vector2(600, 108)
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -300.0
+offset_top = -108.0
+offset_right = 300.0
+grow_horizontal = 2
+grow_vertical = 0
+size_flags_horizontal = 6
+focus_mode = 0
+theme_override_colors/icon_disabled_color = Color(0.784314, 0.784314, 0.784314, 1)
+theme_override_fonts/font = ExtResource("4_nsj5b")
+theme_override_font_sizes/font_size = 40
+text = "CONFIRM"
+flat = true
+icon_alignment = 1
+expand_icon = true
+script = ExtResource("6_u15tu")
+
+[node name="Icon" type="TextureRect" parent="SignEditUI/TextureRect/Button"]
+z_index = -1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("5_0o0wo")
+
 [node name="PauseUI" type="CanvasLayer" parent="."]
 visible = false
 
@@ -5563,10 +5691,17 @@ grow_vertical = 2
 color = Color(0, 0, 0, 0.705882)
 
 [node name="StoneWall" type="TextureRect" parent="AchievementUI"]
-offset_left = 440.0
-offset_top = 88.0
-offset_right = 1464.0
-offset_bottom = 888.0
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -512.0
+offset_top = -400.0
+offset_right = 512.0
+offset_bottom = 400.0
+grow_horizontal = 2
+grow_vertical = 2
 texture = ExtResource("15_e4i4j")
 expand_mode = 1
 stretch_mode = 1
@@ -5801,7 +5936,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-texture = ExtResource("15_e4i4j")
+texture = ExtResource("57_krg4n")
 
 [node name="ColorRect" type="ColorRect" parent="Options"]
 anchors_preset = 15
@@ -6048,6 +6183,50 @@ grow_vertical = 2
 theme = ExtResource("31_nincb")
 texture = ExtResource("16_pttjf")
 
+[node name="NewMusic" type="HSplitContainer" parent="Options/ColorRect/ScrollContainer/VBoxContainer"]
+z_index = 1
+layout_mode = 2
+collapsed = true
+
+[node name="Title" type="Label" parent="Options/ColorRect/ScrollContainer/VBoxContainer/NewMusic"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_fonts/font = ExtResource("4_nsj5b")
+theme_override_font_sizes/font_size = 40
+text = "NEW_MUSIC"
+
+[node name="OptionButton" type="OptionButton" parent="Options/ColorRect/ScrollContainer/VBoxContainer/NewMusic"]
+custom_minimum_size = Vector2(0, 70)
+layout_mode = 2
+size_flags_horizontal = 3
+theme = ExtResource("31_nincb")
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_constants/h_separation = 10
+theme_override_fonts/font = ExtResource("4_nsj5b")
+theme_override_font_sizes/font_size = 40
+theme_override_styles/focus = SubResource("StyleBoxEmpty_lbbkt")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_jctxr")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_m7qet")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_a0l8i")
+theme_override_constants/arrow_margin = 30
+flat = true
+selected = 0
+item_count = 2
+popup/item_0/text = "ON"
+popup/item_1/text = "OFF"
+popup/item_1/id = 1
+
+[node name="TextureRect" type="TextureRect" parent="Options/ColorRect/ScrollContainer/VBoxContainer/NewMusic/OptionButton"]
+z_index = -1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("31_nincb")
+texture = ExtResource("16_pttjf")
+
 [node name="SmoothLighting" type="HSplitContainer" parent="Options/ColorRect/ScrollContainer/VBoxContainer"]
 z_index = 1
 layout_mode = 2
@@ -6075,7 +6254,7 @@ theme_override_styles/pressed = SubResource("StyleBoxEmpty_ox8v8")
 theme_override_styles/normal = SubResource("StyleBoxEmpty_uvv8k")
 theme_override_constants/arrow_margin = 30
 flat = true
-selected = 1
+selected = 0
 item_count = 2
 popup/item_0/text = "ON"
 popup/item_1/text = "OFF"
@@ -6473,6 +6652,8 @@ visible = false
 [connection signal="hidden" from="GameUI/CraftingUI" to="." method="_on_crafting_ui_hidden"]
 [connection signal="focus_entered" from="GameUI/CraftingUI/Panel/CraftingCloseButton" to="GameUI/CraftingUI/Panel/CraftingCloseButton" method="_touch_button_focus_entered"]
 [connection signal="pressed" from="GameUI/CraftingUI/Panel/CraftingCloseButton/CraftingCloseButton" to="GameUI/CraftingUI/Panel/CraftingCloseButton" method="_touch_button_focus_entered"]
+[connection signal="gui_input" from="SignEditUI/TextureRect/ScrollContainer" to="SignEditUI/TextureRect/ScrollContainer" method="_on_scrollcontainer_gui_input"]
+[connection signal="pressed" from="SignEditUI/TextureRect/Button" to="." method="_on_sign_edit_confirm_button_pressed"]
 [connection signal="pressed" from="PauseUI/FlowContainer/Button1" to="." method="_on_pause_button_1_pressed"]
 [connection signal="pressed" from="PauseUI/FlowContainer/Button2" to="." method="_on_pause_button_2_pressed"]
 [connection signal="pressed" from="PauseUI/FlowContainer/Button3" to="." method="_on_pause_button_3_pressed"]

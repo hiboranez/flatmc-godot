@@ -1,8 +1,8 @@
 [gd_scene load_steps=6 format=3 uid="uid://cu3jvcsxmx5r"]
 
 [ext_resource type="Script" path="res://Assets/Scripts/LoadingWorldUI.gd" id="1_emcj8"]
-[ext_resource type="Texture2D" uid="uid://b14xkgu1d1omr" path="res://Assets/Textures/Backgrounds/stone_wall.png" id="2_cfspx"]
-[ext_resource type="FontFile" uid="uid://csywm01568tlp" path="res://Assets/Fonts/MinecraftAE.ttf" id="3_jvgc3"]
+[ext_resource type="Texture2D" uid="uid://bd725jipoa84m" path="res://Assets/Textures/Backgrounds/dirt_wall.png" id="2_cqph0"]
+[ext_resource type="FontFile" uid="uid://byf04fyq8gvsp" path="res://Assets/Fonts/MinecraftAE.ttf" id="3_jvgc3"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ti8e8"]
 bg_color = Color(0.270222, 0.270222, 0.270222, 1)
@@ -19,7 +19,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-texture = ExtResource("2_cfspx")
+texture = ExtResource("2_cqph0")
 
 [node name="Title" type="Label" parent="."]
 anchors_preset = 8
@@ -54,3 +54,21 @@ theme_override_fonts/font = ExtResource("3_jvgc3")
 theme_override_font_sizes/font_size = 30
 theme_override_styles/background = SubResource("StyleBoxFlat_ti8e8")
 theme_override_styles/fill = SubResource("StyleBoxFlat_41h7p")
+
+[node name="Tip" type="Label" parent="ProgressBar"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -960.0
+offset_top = 59.0
+offset_right = 960.0
+offset_bottom = 130.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_fonts/font = ExtResource("3_jvgc3")
+theme_override_font_sizes/font_size = 40
+horizontal_alignment = 1
+vertical_alignment = 1
