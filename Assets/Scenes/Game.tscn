@@ -1,22 +1,23 @@
-[gd_scene load_steps=148 format=4 uid="uid://2hv5eany3vpf"]
+[gd_scene load_steps=145 format=4 uid="uid://2hv5eany3vpf"]
 
 [ext_resource type="Script" path="res://Assets/Scripts/Game.gd" id="1_ctu8j"]
-[ext_resource type="Texture2D" uid="uid://cqpbp4dic383f" path="res://Assets/Textures/GUI/unknown_version_gui.webp" id="2_mnda3"]
 [ext_resource type="Script" path="res://Assets/Scripts/SoundAudioManager.gd" id="2_vxlg4"]
 [ext_resource type="Texture2D" uid="uid://co37dhrfnga6g" path="res://Assets/Textures/Backgrounds/Sky.png" id="2_xngfj"]
 [ext_resource type="TileSet" uid="uid://cgix634ydmo4p" path="res://Assets/TileSets/official_old.tres" id="3_fa3r6"]
-[ext_resource type="Texture2D" uid="uid://d02e418c7jdla" path="res://Assets/Textures/GUI/mobile_small_button.png" id="4_5q8xe"]
 [ext_resource type="TileSet" uid="uid://bggb6d560u47r" path="res://Assets/TileSets/official_new.tres" id="4_bwiap"]
 [ext_resource type="FontFile" uid="uid://byf04fyq8gvsp" path="res://Assets/Fonts/MinecraftAE.ttf" id="4_nsj5b"]
 [ext_resource type="Texture2D" uid="uid://b6wbqichdrhpr" path="res://Assets/Textures/GUI/button_normal.png" id="5_0o0wo"]
 [ext_resource type="Script" path="res://Assets/Scripts/ItemGrid.gd" id="5_taigv"]
+[ext_resource type="Texture2D" uid="uid://d2h42yenvpbpg" path="res://Assets/Textures/GUI/virtual_button_panel.png" id="6_866ih"]
 [ext_resource type="Texture2D" uid="uid://bcse7navndyua" path="res://Assets/Textures/GUI/selected_item_bar.png" id="6_d227v"]
 [ext_resource type="Texture2D" uid="uid://cyxsiopf4sp15" path="res://Assets/Textures/GUI/selected_block_ui.png" id="6_k82cs"]
-[ext_resource type="Texture2D" uid="uid://cex1f20qlb2x0" path="res://Assets/Textures/GUI/move_button_left_down.png" id="6_rle0m"]
 [ext_resource type="Script" path="res://Assets/Scripts/GameButton.gd" id="6_u15tu"]
-[ext_resource type="Texture2D" uid="uid://bve61l2aynnoa" path="res://Assets/Textures/GUI/move_button_right_down.png" id="7_aqtia"]
 [ext_resource type="Texture2D" uid="uid://dggx0hmyex5x6" path="res://Assets/Textures/GUI/item_bar.png" id="7_cjy4x"]
-[ext_resource type="Texture2D" uid="uid://gkbqtdcsmhs0" path="res://Assets/Textures/GUI/jump_button_normal.tres" id="11_as60q"]
+[ext_resource type="Texture2D" uid="uid://dl6nsmyrgcqvc" path="res://Assets/Textures/GUI/chat_button_BE2.png" id="8_46xoo"]
+[ext_resource type="Texture2D" uid="uid://3ixafl6xterh" path="res://Assets/Textures/GUI/menu_button.png" id="9_uk8pl"]
+[ext_resource type="Texture2D" uid="uid://c54jual1nitga" path="res://Assets/Textures/GUI/joystick_panel.png" id="10_gctjq"]
+[ext_resource type="Texture2D" uid="uid://d3qitq50bfota" path="res://Assets/Textures/GUI/joystick.png" id="11_8psof"]
+[ext_resource type="Script" path="res://Assets/Scripts/JoystickPanel.gd" id="11_n4b4x"]
 [ext_resource type="Script" path="res://Assets/Scripts/Background.gd" id="13_exxx2"]
 [ext_resource type="Script" path="res://Assets/Scripts/DragScroll.gd" id="13_wfnj5"]
 [ext_resource type="Texture2D" uid="uid://4yhjmj0m1jrd" path="res://Assets/Textures/Backgrounds/stars_full.png" id="14_76111"]
@@ -27,6 +28,7 @@
 [ext_resource type="Texture2D" uid="uid://dv7b4hmbshg8t" path="res://Assets/ResourcePacks/official_old/Environments/moon_phases.png" id="15_uryls"]
 [ext_resource type="Script" path="res://Assets/Scripts/MouseItem.gd" id="15_wgrmd"]
 [ext_resource type="Script" path="res://Assets/Scripts/TouchButton.gd" id="16_3a6pi"]
+[ext_resource type="Texture2D" uid="uid://bkljnb17sf2d4" path="res://Assets/Textures/GUI/jump.png" id="16_3wqun"]
 [ext_resource type="PackedScene" uid="uid://bhyxpmrih3ijn" path="res://Assets/Scenes/InventoryGrid.tscn" id="16_bad8v"]
 [ext_resource type="PackedScene" uid="uid://dpnk4w3vgwyft" path="res://Assets/Scenes/ItemIcon.tscn" id="16_hr8b5"]
 [ext_resource type="Texture2D" uid="uid://caueuwmlcmeot" path="res://Assets/Textures/GUI/button_disabled.png" id="16_pttjf"]
@@ -34,13 +36,18 @@
 [ext_resource type="Texture2D" uid="uid://bl03d3dhjffag" path="res://Assets/Textures/GUI/arrow_panel.png" id="17_1hju8"]
 [ext_resource type="Script" path="res://Assets/Scripts/HealthBar.gd" id="17_aqx3v"]
 [ext_resource type="Texture2D" uid="uid://5bfw6khqwyta" path="res://Assets/Textures/GUI/empty_heart.png" id="17_b2rft"]
+[ext_resource type="Texture2D" uid="uid://dhefkaoror8o7" path="res://Assets/Textures/GUI/oreui_attack_button.png" id="17_mk6p6"]
+[ext_resource type="Texture2D" uid="uid://bwwlvjsw0jgsh" path="res://Assets/Textures/GUI/switch_layer.png" id="17_qyn5t"]
+[ext_resource type="Texture2D" uid="uid://ieeo5rsm5wx2" path="res://Assets/Textures/GUI/sneak.png" id="17_tjill"]
 [ext_resource type="Texture2D" uid="uid://bl0xpo1luvy7i" path="res://Assets/Textures/GUI/white_background.png" id="17_ud88f"]
 [ext_resource type="Texture2D" uid="uid://bn78hs0omgltt" path="res://Assets/Textures/GUI/slider_box_default.png" id="17_wst6d"]
 [ext_resource type="Texture2D" uid="uid://cknufva8e2vcv" path="res://Assets/Textures/GUI/panel.png" id="18_1usby"]
 [ext_resource type="Material" uid="uid://xffbfmc4nkjq" path="res://Assets/Materials/PlayerSkin.tres" id="18_11ax2"]
+[ext_resource type="Texture2D" uid="uid://bquvercx5u4ap" path="res://Assets/Textures/GUI/oreui_sprint_button.png" id="18_irgfn"]
 [ext_resource type="Texture2D" uid="uid://dpshcvcyt856e" path="res://Assets/Textures/GUI/slider_box_hover.png" id="18_pg3nf"]
 [ext_resource type="Texture2D" uid="uid://d0y2isr3jncsw" path="res://Assets/Textures/GUI/full_heart.png" id="18_sscm7"]
 [ext_resource type="Texture2D" uid="uid://cb3c6rd57rnuu" path="res://Assets/Textures/GUI/transparent_background.png" id="18_sydpy"]
+[ext_resource type="Texture2D" uid="uid://de2qux5nqcvuc" path="res://Assets/Textures/GUI/widgets.png" id="18_wy5go"]
 [ext_resource type="PackedScene" uid="uid://dgk4c6ipagqa4" path="res://Assets/Scenes/Language.tscn" id="19_6nn42"]
 [ext_resource type="Texture2D" uid="uid://22byb2ldosct" path="res://Assets/Textures/GUI/half_heart.png" id="19_olvt3"]
 [ext_resource type="Texture2D" uid="uid://18usdnqj200e" path="res://Assets/Textures/GUI/more_ui.png" id="21_gulf0"]
@@ -66,50 +73,12 @@
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_6ugo2"]
 size = Vector2(125, 125)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_tsrx7"]
-atlas = ExtResource("2_mnda3")
-region = Rect2(200, 82, 18, 18)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_b3kjx"]
-atlas = ExtResource("2_mnda3")
-region = Rect2(200, 64, 18, 18)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_u2aky"]
-atlas = ExtResource("2_mnda3")
-region = Rect2(6, 139, 18, 18)
-
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_4vujl"]
-size = Vector2(175, 175)
+size = Vector2(90, 90)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_ek5pi"]
-atlas = ExtResource("2_mnda3")
-region = Rect2(2, 109, 22, 22)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_gw21v"]
-atlas = ExtResource("2_mnda3")
-region = Rect2(28, 139, 18, 18)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_yavt6"]
-atlas = ExtResource("2_mnda3")
-region = Rect2(54, 109, 22, 22)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_wrpgv"]
-size = Vector2(175, 525)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_e7ss8"]
-atlas = ExtResource("2_mnda3")
-region = Rect2(28, 109, 22, 22)
-
-[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_8lp3y"]
-load_path = "res://.godot/imported/unknown_version_gui.webp-ea970ca1430c74c04c1d43217f01df98.ctex"
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_omkwn"]
-atlas = SubResource("CompressedTexture2D_8lp3y")
-region = Rect2(218, 82, 18, 18)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_l0u8a"]
-atlas = ExtResource("2_mnda3")
-region = Rect2(80, 109, 22, 22)
+[sub_resource type="AtlasTexture" id="AtlasTexture_6gvfi"]
+atlas = ExtResource("18_wy5go")
+region = Rect2(240, 0, 15, 15)
 
 [sub_resource type="Curve2D" id="Curve2D_wkano"]
 _data = {
@@ -1828,7 +1797,7 @@ metadata/_edit_vertical_guides_ = [1640.0]
 [node name="Lights" type="Node2D" parent="."]
 
 [node name="DarkLight" type="PointLight2D" parent="Lights"]
-position = Vector2(80, -312)
+position = Vector2(88, -304)
 scale = Vector2(20000, 20000)
 color = Color(0, 0, 0, 1)
 blend_mode = 2
@@ -1888,7 +1857,7 @@ grow_horizontal = 2
 
 [node name="F1Button" type="TouchScreenButton" parent="MobileUI/FunctionButtons"]
 z_index = 1
-position = Vector2(-250, 45)
+position = Vector2(-400, 45)
 shape = SubResource("RectangleShape2D_6ugo2")
 shape_visible = false
 
@@ -1900,15 +1869,17 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-texture = ExtResource("4_5q8xe")
+texture = ExtResource("6_866ih")
 
 [node name="Title" type="Label" parent="MobileUI/FunctionButtons/F1Button/Icon"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_bottom = -6.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("4_nsj5b")
 theme_override_font_sizes/font_size = 30
 text = " F1"
@@ -1917,7 +1888,7 @@ vertical_alignment = 1
 
 [node name="F2Button" type="TouchScreenButton" parent="MobileUI/FunctionButtons"]
 z_index = 1
-position = Vector2(-150, 45)
+position = Vector2(-300, 45)
 shape = SubResource("RectangleShape2D_6ugo2")
 shape_visible = false
 
@@ -1929,15 +1900,17 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-texture = ExtResource("4_5q8xe")
+texture = ExtResource("6_866ih")
 
 [node name="Title" type="Label" parent="MobileUI/FunctionButtons/F2Button/Icon"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_bottom = -6.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("4_nsj5b")
 theme_override_font_sizes/font_size = 30
 text = " F2"
@@ -1946,7 +1919,7 @@ vertical_alignment = 1
 
 [node name="F3Button" type="TouchScreenButton" parent="MobileUI/FunctionButtons"]
 z_index = 1
-position = Vector2(-50, 45)
+position = Vector2(-200, 45)
 shape = SubResource("RectangleShape2D_6ugo2")
 shape_visible = false
 
@@ -1958,69 +1931,26 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-texture = ExtResource("4_5q8xe")
+texture = ExtResource("6_866ih")
 
 [node name="Title" type="Label" parent="MobileUI/FunctionButtons/F3Button/Icon"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_bottom = -6.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("4_nsj5b")
 theme_override_font_sizes/font_size = 30
 text = " F3"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="TabButton" type="TouchScreenButton" parent="MobileUI/FunctionButtons"]
-z_index = 1
-position = Vector2(50, 45)
-shape = SubResource("RectangleShape2D_6ugo2")
-shape_visible = false
-
-[node name="Icon" type="TextureRect" parent="MobileUI/FunctionButtons/TabButton"]
-z_index = -1
-custom_minimum_size = Vector2(90, 90)
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-texture = ExtResource("4_5q8xe")
-
-[node name="Title" type="Label" parent="MobileUI/FunctionButtons/TabButton/Icon"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_fonts/font = ExtResource("4_nsj5b")
-theme_override_font_sizes/font_size = 30
-text = " Tab"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="ChatButton" type="TouchScreenButton" parent="MobileUI/FunctionButtons"]
-z_index = 1
-position = Vector2(150, 45)
-shape = SubResource("RectangleShape2D_6ugo2")
-shape_visible = false
-
-[node name="Icon" type="TextureRect" parent="MobileUI/FunctionButtons/ChatButton"]
-z_index = -1
-custom_minimum_size = Vector2(90, 90)
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-texture = SubResource("AtlasTexture_tsrx7")
-
 [node name="PauseButton" type="TouchScreenButton" parent="MobileUI/FunctionButtons"]
 z_index = 1
-position = Vector2(250, 45)
+position = Vector2(-100, 45)
 shape = SubResource("RectangleShape2D_6ugo2")
 shape_visible = false
 
@@ -2032,175 +1962,177 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-texture = SubResource("AtlasTexture_b3kjx")
+texture = ExtResource("9_uk8pl")
 
-[node name="MoveButtonsLeft" type="Control" parent="MobileUI"]
-modulate = Color(1, 1, 1, 0.392157)
+[node name="ChatButton" type="TouchScreenButton" parent="MobileUI/FunctionButtons"]
+z_index = 1
+position = Vector2(0, 45)
+shape = SubResource("RectangleShape2D_6ugo2")
+shape_visible = false
+
+[node name="Icon" type="TextureRect" parent="MobileUI/FunctionButtons/ChatButton"]
+z_index = -1
+custom_minimum_size = Vector2(90, 90)
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("8_46xoo")
+
+[node name="TabButton" type="TouchScreenButton" parent="MobileUI/FunctionButtons"]
+z_index = 1
+position = Vector2(100, 44)
+shape = SubResource("RectangleShape2D_6ugo2")
+shape_visible = false
+
+[node name="Icon" type="TextureRect" parent="MobileUI/FunctionButtons/TabButton"]
+z_index = -1
+custom_minimum_size = Vector2(90, 90)
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("6_866ih")
+
+[node name="Title" type="Label" parent="MobileUI/FunctionButtons/TabButton/Icon"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_bottom = -6.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("4_nsj5b")
+theme_override_font_sizes/font_size = 30
+text = " Tab"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="RunButton" type="TouchScreenButton" parent="MobileUI/FunctionButtons"]
+z_index = 1
+position = Vector2(200, 45)
+shape = SubResource("RectangleShape2D_4vujl")
+shape_visible = false
+passby_press = true
+
+[node name="RunButton" type="TextureRect" parent="MobileUI/FunctionButtons/RunButton"]
+modulate = Color(1, 1, 1, 0.784314)
+z_index = -1
+custom_minimum_size = Vector2(90, 90)
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -45.0
+offset_top = -45.0
+offset_right = 45.0
+offset_bottom = 45.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+texture = ExtResource("18_irgfn")
+
+[node name="SneakButton" type="TouchScreenButton" parent="MobileUI/FunctionButtons"]
+z_index = 1
+position = Vector2(300, 45)
+shape = SubResource("RectangleShape2D_4vujl")
+shape_visible = false
+passby_press = true
+
+[node name="SneakButton" type="TextureRect" parent="MobileUI/FunctionButtons/SneakButton"]
+modulate = Color(1, 1, 1, 0.784314)
+z_index = -1
+custom_minimum_size = Vector2(90, 90)
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -45.0
+offset_top = -45.0
+offset_right = 45.0
+offset_bottom = 45.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+texture = ExtResource("17_tjill")
+
+[node name="SwitchLayerButton" type="TouchScreenButton" parent="MobileUI/FunctionButtons"]
+z_index = 1
+position = Vector2(400, 45)
+shape = SubResource("RectangleShape2D_4vujl")
+shape_visible = false
+passby_press = true
+
+[node name="SwitchLayerButton" type="TextureRect" parent="MobileUI/FunctionButtons/SwitchLayerButton"]
+modulate = Color(1, 1, 1, 0.784314)
+z_index = -1
+custom_minimum_size = Vector2(90, 90)
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -45.0
+offset_top = -45.0
+offset_right = 45.0
+offset_bottom = 45.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+texture = ExtResource("17_qyn5t")
+
+[node name="MovePanel" type="Control" parent="MobileUI"]
+modulate = Color(1, 1, 1, 0.705882)
 layout_mode = 3
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
-offset_left = 124.0
-offset_top = -692.0
-offset_right = 649.0
-offset_bottom = -167.0
 grow_vertical = 0
 
-[node name="UpLeftButton" type="TouchScreenButton" parent="MobileUI/MoveButtonsLeft"]
-z_index = 1
-position = Vector2(102.5, 102.5)
-shape = SubResource("RectangleShape2D_6ugo2")
-shape_visible = false
-passby_press = true
-
-[node name="UpLeftButton" type="TextureRect" parent="MobileUI/MoveButtonsLeft/UpLeftButton"]
-z_index = -1
-custom_minimum_size = Vector2(150, 150)
-offset_left = -75.0
-offset_top = -75.0
-offset_right = 75.0
-offset_bottom = 75.0
+[node name="JoystickPanel" type="TextureRect" parent="MobileUI/MovePanel"]
+custom_minimum_size = Vector2(340, 340)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 100.0
+offset_top = -600.0
+offset_right = 440.0
+offset_bottom = -260.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset = Vector2(170, 170)
 mouse_filter = 0
-texture = SubResource("AtlasTexture_u2aky")
+texture = ExtResource("10_gctjq")
+expand_mode = 1
+script = ExtResource("11_n4b4x")
 
-[node name="UpButton" type="TouchScreenButton" parent="MobileUI/MoveButtonsLeft"]
-z_index = 1
-position = Vector2(262.5, 87.5)
-shape = SubResource("RectangleShape2D_4vujl")
-shape_visible = false
-passby_press = true
-
-[node name="UpButton" type="TextureRect" parent="MobileUI/MoveButtonsLeft/UpButton"]
-z_index = -1
-custom_minimum_size = Vector2(175, 175)
-offset_left = -87.5
-offset_top = -87.5
-offset_right = 87.5
-offset_bottom = 87.5
-mouse_filter = 0
-texture = SubResource("AtlasTexture_ek5pi")
-
-[node name="UpRightButton" type="TouchScreenButton" parent="MobileUI/MoveButtonsLeft"]
-z_index = 1
-position = Vector2(422.5, 102.5)
-shape = SubResource("RectangleShape2D_6ugo2")
-shape_visible = false
-passby_press = true
-
-[node name="UpRightButton" type="TextureRect" parent="MobileUI/MoveButtonsLeft/UpRightButton"]
-z_index = -1
-custom_minimum_size = Vector2(150, 150)
-offset_left = -75.0
-offset_top = -75.0
-offset_right = 75.0
-offset_bottom = 75.0
-mouse_filter = 0
-texture = SubResource("AtlasTexture_gw21v")
-
-[node name="DownLeftButton" type="TouchScreenButton" parent="MobileUI/MoveButtonsLeft"]
-z_index = 1
-position = Vector2(102.5, 422.5)
-shape = SubResource("RectangleShape2D_6ugo2")
-shape_visible = false
-passby_press = true
-
-[node name="DownLeftButton" type="TextureRect" parent="MobileUI/MoveButtonsLeft/DownLeftButton"]
-z_index = -1
-custom_minimum_size = Vector2(150, 150)
-offset_left = -75.0
-offset_top = -75.0
-offset_right = 75.0
-offset_bottom = 75.0
-mouse_filter = 0
-texture = ExtResource("6_rle0m")
-
-[node name="DownButton" type="TouchScreenButton" parent="MobileUI/MoveButtonsLeft"]
-z_index = 1
-position = Vector2(262.5, 437.5)
-shape = SubResource("RectangleShape2D_4vujl")
-shape_visible = false
-passby_press = true
-
-[node name="DownButton" type="TextureRect" parent="MobileUI/MoveButtonsLeft/DownButton"]
-z_index = -1
-custom_minimum_size = Vector2(175, 175)
-offset_left = -87.5
-offset_top = -87.5
-offset_right = 87.5
-offset_bottom = 87.5
-mouse_filter = 0
-texture = SubResource("AtlasTexture_yavt6")
-
-[node name="DownRightButton" type="TouchScreenButton" parent="MobileUI/MoveButtonsLeft"]
-z_index = 1
-position = Vector2(422.5, 422.5)
-shape = SubResource("RectangleShape2D_6ugo2")
-shape_visible = false
-passby_press = true
-
-[node name="DownRightButton" type="TextureRect" parent="MobileUI/MoveButtonsLeft/DownRightButton"]
-z_index = -1
-custom_minimum_size = Vector2(150, 150)
-offset_left = -75.0
-offset_top = -75.0
-offset_right = 75.0
-offset_bottom = 75.0
-mouse_filter = 0
-texture = ExtResource("7_aqtia")
-
-[node name="LeftButton" type="TouchScreenButton" parent="MobileUI/MoveButtonsLeft"]
-z_index = 1
-position = Vector2(87.5, 262.5)
-shape = SubResource("RectangleShape2D_wrpgv")
-shape_visible = false
-passby_press = true
-
-[node name="LeftButton" type="TextureRect" parent="MobileUI/MoveButtonsLeft/LeftButton"]
-z_index = -1
-custom_minimum_size = Vector2(175, 175)
-offset_left = -87.5
-offset_top = -87.5
-offset_right = 87.5
-offset_bottom = 87.5
-mouse_filter = 0
-texture = SubResource("AtlasTexture_e7ss8")
-
-[node name="CenterButton" type="TouchScreenButton" parent="MobileUI/MoveButtonsLeft"]
-z_index = 1
-position = Vector2(262.5, 262.5)
-shape = SubResource("RectangleShape2D_4vujl")
-shape_visible = false
-passby_press = true
-
-[node name="CenterButton" type="TextureRect" parent="MobileUI/MoveButtonsLeft/CenterButton"]
-z_index = -1
-custom_minimum_size = Vector2(175, 175)
-offset_left = -87.5
-offset_top = -87.5
-offset_right = 87.5
-offset_bottom = 87.5
-mouse_filter = 0
-texture = SubResource("AtlasTexture_omkwn")
-
-[node name="RightButton" type="TouchScreenButton" parent="MobileUI/MoveButtonsLeft"]
-z_index = 1
-position = Vector2(437.5, 262.5)
-shape = SubResource("RectangleShape2D_wrpgv")
-shape_visible = false
-passby_press = true
-
-[node name="RightButton" type="TextureRect" parent="MobileUI/MoveButtonsLeft/RightButton"]
-z_index = -1
-custom_minimum_size = Vector2(175, 175)
-offset_left = -87.5
-offset_top = -87.5
-offset_right = 87.5
-offset_bottom = 87.5
-mouse_filter = 0
-texture = SubResource("AtlasTexture_l0u8a")
+[node name="Joystick" type="TextureRect" parent="MobileUI/MovePanel/JoystickPanel"]
+custom_minimum_size = Vector2(340, 340)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -170.0
+offset_top = -170.0
+offset_right = 170.0
+offset_bottom = 170.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset = Vector2(170, 170)
+mouse_filter = 2
+texture = ExtResource("11_8psof")
+expand_mode = 1
 
 [node name="MoveButtonsRight" type="Control" parent="MobileUI"]
-modulate = Color(1, 1, 1, 0.392157)
+modulate = Color(1, 1, 1, 0.705882)
 layout_mode = 3
 anchors_preset = 3
 anchor_left = 1.0
@@ -2216,7 +2148,7 @@ grow_vertical = 0
 
 [node name="JumpButton" type="TouchScreenButton" parent="MobileUI/MoveButtonsRight"]
 z_index = 1
-position = Vector2(88, 88)
+position = Vector2(80, 77)
 shape = SubResource("RectangleShape2D_4vujl")
 shape_visible = false
 passby_press = true
@@ -2229,7 +2161,82 @@ offset_top = -87.5
 offset_right = 87.5
 offset_bottom = 87.5
 mouse_filter = 0
-texture = ExtResource("11_as60q")
+texture = ExtResource("16_3wqun")
+
+[node name="AttackButton" type="TouchScreenButton" parent="MobileUI/MoveButtonsRight"]
+z_index = 1
+position = Vector2(80, -139)
+shape = SubResource("RectangleShape2D_4vujl")
+shape_visible = false
+passby_press = true
+
+[node name="AttackButton" type="TextureRect" parent="MobileUI/MoveButtonsRight/AttackButton"]
+z_index = -1
+custom_minimum_size = Vector2(175, 175)
+offset_left = -87.5
+offset_top = -87.5
+offset_right = 87.5
+offset_bottom = 87.5
+mouse_filter = 0
+texture = ExtResource("17_mk6p6")
+
+[node name="JoystickPanel" type="TextureRect" parent="MobileUI/MoveButtonsRight"]
+visible = false
+custom_minimum_size = Vector2(340, 340)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -72.0
+offset_top = -83.0
+offset_right = 93.0
+offset_bottom = 82.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset = Vector2(170, 170)
+mouse_filter = 0
+texture = ExtResource("10_gctjq")
+expand_mode = 1
+script = ExtResource("11_n4b4x")
+
+[node name="Joystick" type="TextureRect" parent="MobileUI/MoveButtonsRight/JoystickPanel"]
+custom_minimum_size = Vector2(340, 340)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -170.0
+offset_top = -170.0
+offset_right = 170.0
+offset_bottom = 170.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset = Vector2(170, 170)
+mouse_filter = 2
+texture = ExtResource("11_8psof")
+expand_mode = 1
+
+[node name="MouseUI" type="TextureRect" parent="MobileUI"]
+visible = false
+light_mask = 4
+z_index = 1
+custom_minimum_size = Vector2(50, 50)
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -1920.0
+offset_top = -1080.0
+offset_right = -1870.0
+offset_bottom = -1030.0
+grow_horizontal = 0
+grow_vertical = 0
+scale = Vector2(2, 2)
+pivot_offset = Vector2(50, 50)
+texture = SubResource("AtlasTexture_6gvfi")
 
 [node name="StaticBackground" type="ParallaxBackground" parent="."]
 layer = -3
@@ -6600,23 +6607,16 @@ visible = false
 [connection signal="pressed" from="MobileUI/FunctionButtons/F1Button" to="." method="_on_mobile_f1_button_pressed"]
 [connection signal="pressed" from="MobileUI/FunctionButtons/F2Button" to="." method="_on_mobile_f2_button_pressed"]
 [connection signal="pressed" from="MobileUI/FunctionButtons/F3Button" to="." method="_on_mobile_f3_button_pressed"]
-[connection signal="pressed" from="MobileUI/FunctionButtons/TabButton" to="." method="_on_mobile_tab_button_pressed"]
-[connection signal="pressed" from="MobileUI/FunctionButtons/ChatButton" to="." method="_on_mobile_chat_button_pressed"]
 [connection signal="pressed" from="MobileUI/FunctionButtons/PauseButton" to="." method="_on_mobile_pause_button_pressed"]
-[connection signal="pressed" from="MobileUI/MoveButtonsLeft/UpLeftButton" to="." method="_on_mobile_move_button_up_left_pressed"]
-[connection signal="pressed" from="MobileUI/MoveButtonsLeft/UpButton" to="." method="_on_mobile_move_button_up_pressed"]
-[connection signal="released" from="MobileUI/MoveButtonsLeft/UpButton" to="." method="_on_mobile_move_button_up_released"]
-[connection signal="pressed" from="MobileUI/MoveButtonsLeft/UpRightButton" to="." method="_on_mobile_move_button_up_right_pressed"]
-[connection signal="pressed" from="MobileUI/MoveButtonsLeft/DownLeftButton" to="." method="_on_mobile_move_button_down_left_pressed"]
-[connection signal="pressed" from="MobileUI/MoveButtonsLeft/DownButton" to="." method="_on_mobile_move_button_down_pressed"]
-[connection signal="released" from="MobileUI/MoveButtonsLeft/DownButton" to="." method="_on_mobile_move_button_down_released"]
-[connection signal="pressed" from="MobileUI/MoveButtonsLeft/DownRightButton" to="." method="_on_mobile_move_button_down_right_pressed"]
-[connection signal="pressed" from="MobileUI/MoveButtonsLeft/LeftButton" to="." method="_on_mobile_move_button_left_pressed"]
-[connection signal="released" from="MobileUI/MoveButtonsLeft/LeftButton" to="." method="_on_mobile_move_button_left_released"]
-[connection signal="pressed" from="MobileUI/MoveButtonsLeft/RightButton" to="." method="_on_mobile_move_button_right_pressed"]
-[connection signal="released" from="MobileUI/MoveButtonsLeft/RightButton" to="." method="_on_mobile_move_button_right_released"]
-[connection signal="pressed" from="MobileUI/MoveButtonsRight/JumpButton" to="." method="_on_mobile_move_button_jump_pressed"]
-[connection signal="released" from="MobileUI/MoveButtonsRight/JumpButton" to="." method="_on_mobile_move_button_jump_released"]
+[connection signal="pressed" from="MobileUI/FunctionButtons/ChatButton" to="." method="_on_mobile_chat_button_pressed"]
+[connection signal="pressed" from="MobileUI/FunctionButtons/TabButton" to="." method="_on_mobile_tab_button_pressed"]
+[connection signal="pressed" from="MobileUI/FunctionButtons/RunButton" to="." method="_on_mobile_run_button_pressed"]
+[connection signal="pressed" from="MobileUI/FunctionButtons/SneakButton" to="." method="_on_mobile_sneak_button_pressed"]
+[connection signal="pressed" from="MobileUI/FunctionButtons/SwitchLayerButton" to="." method="_on_mobile_switch_layer_button_pressed"]
+[connection signal="pressed" from="MobileUI/MoveButtonsRight/JumpButton" to="." method="_on_mobile_jump_button_pressed"]
+[connection signal="released" from="MobileUI/MoveButtonsRight/JumpButton" to="." method="_on_mobile_jump_button_released"]
+[connection signal="pressed" from="MobileUI/MoveButtonsRight/AttackButton" to="." method="_on_mobile_attack_button_pressed"]
+[connection signal="released" from="MobileUI/MoveButtonsRight/AttackButton" to="." method="_on_mobile_attack_button_released"]
 [connection signal="gui_input" from="OnlineUI/OnlineList/ScrollContainer" to="OnlineUI/OnlineList/ScrollContainer" method="_on_scrollcontainer_gui_input"]
 [connection signal="pre_sort_children" from="GameUI/ChatHistory" to="." method="_on_chat_history_out_pre_sort_children"]
 [connection signal="gui_input" from="GameUI/ChatPanel/ChatHistory" to="GameUI/ChatPanel/ChatHistory" method="_on_scrollcontainer_gui_input"]

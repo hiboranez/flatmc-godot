@@ -416,7 +416,7 @@ func update_animation_by_data():
 			is_sneaking = true
 			if move_state == "run":
 				move_state = "walk"
-		elif not Input.is_action_pressed("shift") and is_sneaking:
+		elif not Input.is_action_pressed("shift") and is_sneaking and not StaticLoad.game.is_mobile_sneaking:
 			is_sneaking = false
 		
 	if move_state == "run" and not is_sneaking and not is_pulling and not is_eating:
@@ -756,6 +756,8 @@ func place_sign(args):
 		StaticLoad.game.sign_edit_text.text = ""
 		StaticLoad.game.sign_edit_ui.visible = true
 		StaticLoad.game.is_sign_edit = true
+		if not Input.emulate_mouse_from_touch:
+			Input.emulate_mouse_from_touch = true
 
 func change_sign_text(args):
 	var sign_chunk_pos = args[0]
@@ -1235,6 +1237,9 @@ func get_damage(args):
 		hurt_tween = get_tree().create_tween()
 		hurt_tween.tween_method(set_shader_blink_intensity, 0.6, 0, StaticLoad.HURT_TIME)
 		StaticLoad.game.sound_audio_manager.play_random_audio_at_position("damage", "hit", position, 1)
+	if StaticLoad.is_on_mobile_platform:
+		if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == player_peer_id):
+			Input.vibrate_handheld(100, 0.4)
 
 func set_z_rotation(got_rotation):
 	player_model.rotation.z = deg_to_rad(got_rotation)
@@ -1572,7 +1577,7 @@ func player_die(reason, object):
 	StaticLoad.game.death_ui.visible = true
 	StaticLoad.game.is_input_frozen = true
 	if StaticLoad.is_on_mobile_platform:
-		Input.emulate_mouse_from_touch = false
+		Input.emulate_mouse_from_touch = true
 	StaticLoad.game.move_input_list.clear()
 
 func send_message(message: String):

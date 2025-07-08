@@ -185,7 +185,7 @@ func update_achievement():
 func _on_gui_input(event: InputEvent) -> void:
 	if slot_function.contains("armor"):
 		return
-	if not (event is InputEventMouseButton or event is InputEventScreenTouch):
+	if not (event is InputEventMouseButton):
 		return
 	var player = StaticLoad.game.player
 	var mouse_item_name_tmp = player.mouse_item_name
@@ -536,7 +536,7 @@ func _on_gui_input(event: InputEvent) -> void:
 					player.mouse_item_name = item_name
 					player.mouse_item_amount = StaticLoad.get_max_amount_by_name(item_name)
 	elif slot_function.contains("craft_result"):
-		if event.button_index == 1:
+		if event.button_index == 1 and event.pressed:
 			if Input.is_action_pressed("shift"):
 				if item_name != "AIR":
 					var min_amount = 0
@@ -603,7 +603,7 @@ func _on_gui_input(event: InputEvent) -> void:
 						elif slot_function.contains("table"):
 							StaticLoad.game.decline_table_crafting_material(1)
 							StaticLoad.game.refresh_table_crafting_result()
-		elif event.button_index == 2 or event.button_index == 3:
+		elif (event.button_index == 2 or event.button_index == 3) and event.pressed:
 			if Input.is_action_pressed("shift"):
 				if item_name != "AIR":
 					if player.if_get_item_left(item_name, item_amount, 0, 36) == 0:

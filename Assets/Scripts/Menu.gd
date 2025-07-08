@@ -13,6 +13,8 @@ func _process(delta: float) -> void:
 func _ready() -> void:
 	if OS.has_feature("dedicated_server"):
 		return
+	if OS.has_feature("android"):
+		change_skin_file_dialog.current_dir = "/storage/emulated/0/"
 	StaticLoad.select_server = null
 	StaticLoad.select_world = null
 	var exist_options = StaticLoad.check_options_outdated()
@@ -121,6 +123,8 @@ func _on_menu_button_6_pressed() -> void:
 
 func _on_menu_change_skin_button_pressed() -> void:
 	StaticLoad.click_audio_player.play()
+	if OS.has_feature("android"):
+		OS.request_permissions()
 	change_skin_file_dialog.visible = true
 
 func _on_menu_clear_skin_button_pressed() -> void:

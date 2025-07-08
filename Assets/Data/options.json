@@ -13,7 +13,7 @@
 		"auto_jump": "on",
 		"new_music": "on",
 		"smooth_lighting": "on",
-		"particle_effect": "on",
+		"particle_effect": "off",
 		"v_sync": "on",
 		"mini_map": "on",
 		"mini_map_zoom": 30,

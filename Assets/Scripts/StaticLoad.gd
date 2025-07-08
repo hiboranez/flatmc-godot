@@ -5,6 +5,14 @@ extends Control
 @onready var flash_heart_texture = load("res://Assets/Textures/GUI/flash_heart.png") as Texture2D
 @onready var empty_hunger_texture = load("res://Assets/Textures/GUI/empty_hunger.png") as Texture2D
 @onready var flash_hunger_texture = load("res://Assets/Textures/GUI/flash_hunger.png") as Texture2D
+@onready var attack_button_texture = load("res://Assets/Textures/GUI/oreui_attack_button.png") as Texture2D
+@onready var attack_button_pressed_texture = load("res://Assets/Textures/GUI/oreui_attack_button_pressed.png") as Texture2D
+@onready var run_button_texture = load("res://Assets/Textures/GUI/oreui_sprint_button.png") as Texture2D
+@onready var run_button_pressed_texture = load("res://Assets/Textures/GUI/oreui_sprint_button_pressed.png") as Texture2D
+@onready var sneak_button_texture = load("res://Assets/Textures/GUI/sneak.png") as Texture2D
+@onready var sneak_button_pressed_texture = load("res://Assets/Textures/GUI/sneak_pressed.png") as Texture2D
+@onready var switch_layer_button_texture = load("res://Assets/Textures/GUI/switch_layer.png") as Texture2D
+@onready var switch_layer_button_pressed_texture = load("res://Assets/Textures/GUI/switch_layer_pressed.png") as Texture2D
 @onready var notice_scene = load("res://Assets/Scenes/Notice.tscn") as PackedScene
 @onready var big_notice_scene = load("res://Assets/Scenes/BigNotice.tscn") as PackedScene
 @onready var secondary_confirmation_scene = load("res://Assets/Scenes/SecondaryConfirmation.tscn") as PackedScene

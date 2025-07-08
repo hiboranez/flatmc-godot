@@ -24,9 +24,9 @@ extends Node2D
 @onready var tab_panel_scene = load("res://Assets/Scenes/TabPanel.tscn") as PackedScene
 @onready var destroy_particle_scene = load("res://Assets/Scenes/DestroyParticle.tscn") as PackedScene
 @onready var death_particle_scene = load("res://Assets/Scenes/DeathParticle.tscn") as PackedScene
-@onready var move_center_button_normal = load("res://Assets/Textures/GUI/move_center_button_normal.tres") as AtlasTexture
-@onready var jump_button_normal = load("res://Assets/Textures/GUI/jump_button_normal.tres") as AtlasTexture
-@onready var move_center_button_fly = load("res://Assets/Textures/GUI/move_center_button_fly.tres") as AtlasTexture
+@onready var move_center_button_normal = load("res://Assets/Textures/GUI/jump.png") as Texture2D
+@onready var jump_button_normal = load("res://Assets/Textures/GUI/jump.png") as Texture2D
+@onready var move_center_button_fly = load("res://Assets/Textures/GUI/oreui_flyingascend_button.png") as Texture2D
 #@onready var player_other_scene = load("res://Assets/Scenes/PlayerOther.tscn") as PackedScene
 @onready var achievement_get_control = $GameUI/AchievementGetControl
 @onready var health_bar = $GameUI/ItemBarPanel/HealthBar
@@ -58,11 +58,14 @@ extends Node2D
 @onready var death_button_3 = $DeathUI/VSplitContainer/FlowContainer/Button3
 @onready var players = $Players
 @onready var mobile_ui = $MobileUI
-@onready var move_buttons_left = $MobileUI/MoveButtonsLeft
+@onready var move_panel = $MobileUI/MovePanel
 @onready var move_buttons_right = $MobileUI/MoveButtonsRight
-@onready var move_up_left_button = $MobileUI/MoveButtonsLeft/UpLeftButton
-@onready var move_up_right_button = $MobileUI/MoveButtonsLeft/UpRightButton
 @onready var move_jump_button_icon = $MobileUI/MoveButtonsRight/JumpButton/JumpButton
+@onready var attack_button = $MobileUI/MoveButtonsRight/AttackButton
+@onready var attack_button_icon = $MobileUI/MoveButtonsRight/AttackButton/AttackButton
+@onready var run_button_icon = $MobileUI/FunctionButtons/RunButton/RunButton
+@onready var sneak_button_icon = $MobileUI/FunctionButtons/SneakButton/SneakButton
+@onready var switch_layer_button_icon = $MobileUI/FunctionButtons/SwitchLayerButton/SwitchLayerButton
 @onready var inventory_ui = $GameUI/InventoryUI
 @onready var mini_map_camera = $GameUI/MiniMap/SubViewportContainer/SubViewport/Camera2D
 @onready var mini_map_tile_map_layer = $GameUI/MiniMap/SubViewportContainer/SubViewport/TileMapLayer
@@ -113,6 +116,9 @@ extends Node2D
 @onready var crafting_ui = $GameUI/CraftingUI
 @onready var sign_info_root = $SignInfoRoot
 @onready var sign_edit_text = $SignEditUI/TextureRect/ScrollContainer/VBoxContainer/TextEdit
+@onready var joystick_panel = $MobileUI/MovePanel/JoystickPanel
+@onready var mouse_joystick_panel = $MobileUI/MoveButtonsRight/JoystickPanel
+@onready var mouse_ui = $MobileUI/MouseUI
 
 var frozen_entity_dict = {}
 var destroy_light_names = {}
@@ -151,6 +157,9 @@ var mini_map_on
 var smooth_lighting_on
 var mini_map_zoom: float
 var chunk_to_load = []
+var is_mobile_attacking: bool = false
+var is_mobile_sneaking: bool = false
+var is_mobile_running: bool = false
 var is_smooth_light: bool = false
 var is_mouse_motion_updated: bool = false
 var is_particle_effect_on: bool = true
@@ -170,6 +179,7 @@ var loaded_chunk_packed_byte_arrays: Dictionary
 var loaded_chunks: Dictionary #true代表已修改，需要最后保存
 var loaded_chunks_timer: Dictionary
 var database_chunks = []
+var block_touch_index: int = -1
 var total_chunk_num = 0
 var loaded_chunk_num = 0
 var die_no_press_timer: float = 0
@@ -211,17 +221,74 @@ func _notification(what):
 			print("窗口意外关闭，游戏已自动保存")
 	elif what == NOTIFICATION_WM_GO_BACK_REQUEST:
 		StaticLoad.click_audio_player.play()
-		if is_chat:
+		if player.is_dead:
+			pass
+		elif is_chat:
 			close_chat_ui()
-			Input.emulate_mouse_from_touch = false
+			await get_tree().create_timer(0.01).timeout
+			if StaticLoad.is_on_mobile_platform:
+				reset_touch(false)
+		elif is_map:
+			mini_map.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+			mini_map.size = Vector2(270, 270)
+			mini_map.position = Vector2(get_viewport_rect().size[0]-270, 0)
+			if StaticLoad.is_on_mobile_platform:
+				mobile_ui.visible = true
+			item_bar_panel.visible = true
+			move_input_list.clear()
+			player.stop_move()
+			is_map = false
+			is_input_frozen = false
+			await get_tree().create_timer(0.01).timeout
+			if StaticLoad.is_on_mobile_platform:
+				reset_touch(false)
+		elif is_crafting:
+			crafting_ui.visible = false
+			is_input_frozen = false
+			is_crafting = false
+			mouse_in_inventory_grid = null
+			player.stop_move()
+			await get_tree().create_timer(0.01).timeout
+			if StaticLoad.is_on_mobile_platform:
+				reset_touch(false)
+		elif is_inventory:
+			inventory_ui.visible = false
+			language_ui.visible = false
+			options_ui.visible = false
+			achievement_ui.visible = false
+			is_input_frozen = false
+			is_inventory = false
+			mouse_in_inventory_grid = null
+			player.stop_move()
+			await get_tree().create_timer(0.01).timeout
+			if StaticLoad.is_on_mobile_platform:
+				reset_touch(false)
+		elif is_sign_edit:
+			sign_edit_ui.visible = false
+			is_sign_edit = false
+			is_input_frozen = false
+			await get_tree().create_timer(0.01).timeout
+			if StaticLoad.is_on_mobile_platform:
+				reset_touch(false)
+		elif achievement_ui.visible:
+			pause_ui.visible = true
+			achievement_ui.visible = false
+		elif language_ui.visible:
+			pause_ui.visible = true
+			language_ui.visible = false
+		elif options_ui.visible:
+			pause_ui.visible = true
+			options_ui.visible = false
 		else:
 			pause_ui.visible = !pause_ui.visible
 			is_pause = pause_ui.visible
+			is_input_frozen = is_pause
 			if pause_ui.visible:
-				is_input_frozen = true
 				move_input_list.clear()
 				player.stop_move()
-			Input.emulate_mouse_from_touch = true
+			await get_tree().create_timer(0.01).timeout
+			if StaticLoad.is_on_mobile_platform:
+				reset_touch(false)
 
 func _exit_tree():
 	if light_thread.is_started():
@@ -240,9 +307,10 @@ func _exit_tree():
 func _ready() -> void:
 	StaticLoad.update_game_node()
 	StaticLoad.update_select_world_path()
+	Input.set_emulate_mouse_from_touch(false)
 	if StaticLoad.is_on_mobile_platform:
 		mobile_ui.visible = true
-		Input.emulate_mouse_from_touch = false
+		reset_touch(false)
 	if StaticLoad.is_muti_mode:
 		var loading_ui = loading_server_ui_scene.instantiate()
 		add_child(loading_ui)
@@ -1555,7 +1623,7 @@ func _input(event: InputEvent) -> void:
 		if event.button_index == 2 and event.pressed and not Input.is_mouse_button_pressed(1):
 			var mouse_in_world_pos
 			if player.gamemode != "creative":
-				mouse_in_world_pos = get_restricted_block_selection_pos()
+				mouse_in_world_pos = get_restricted_block_selection_pos(get_local_mouse_position())
 			else:
 				mouse_in_world_pos = tile_map_layer.get_local_mouse_position()
 			var mouse_to_block_pos = tile_map_layer.local_to_map(mouse_in_world_pos)
@@ -1879,30 +1947,6 @@ func _input(event: InputEvent) -> void:
 			StaticLoad.game.refresh_item_grid(selected_item_grid_tmp)
 			inventory_show_grids.get_node("InventoryGrid"+str(selected_item_grid_tmp)).init_inventory_grid(player.item_bar_names[selected_item_grid_tmp], player.item_bar_amounts[selected_item_grid_tmp])
 
-func update_inventroy_player_model():
-	if not is_inventory:
-		return
-	var mouse_pos = get_viewport().get_mouse_position()
-	var viewport_size = get_viewport_rect().size
-	var viewport_half_size = viewport_size/2.0
-	var target_pos = mouse_pos-viewport_half_size+Vector2(viewport_size[0]*0.112,viewport_size[1]*0.25)
-	inventory_player_model.look_at(Vector3(target_pos[0], -target_pos[1], 3250), Vector3.UP, true)
-
-func process_touch_input():
-	if is_input_frozen:
-		return
-	
-	for touch in touch_list:
-		if touch.double_tap:
-			var block_pos = tile_map_layer.local_to_map(camera_screen_pos_to_local_pos(player.camera, touch.position))
-			if check_place_block_state(block_pos, StaticLoad.get_block_id_by_name(player.item_bar_names[player.selected_item_grid]), player.current_set_layer):
-				player.place_block(block_pos)
-			grab_item(block_pos)
-		else:
-			var pressed_time = touch_time_counters.get_node(str(touch.index)).timer
-			if pressed_time >= StaticLoad.LONG_TOUCH_TIME:
-				player.destroy_block(tile_map_layer.local_to_map(camera_screen_pos_to_local_pos(player.camera, touch.position)))
-
 func check_place_block_state(block_pos, block_id, selected_layer):
 	if StaticLoad.get_is_untouchable_by_id(block_id):
 		return true
@@ -1942,77 +1986,14 @@ func check_place_block_state(block_pos, block_id, selected_layer):
 					return false
 	return true
 
-@warning_ignore("unused_parameter")
-func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton and event.button_index == 5 and event.pressed:
-		if Input.is_action_pressed("ctrl"):
-			if mini_map_camera.zoom[0] >= 0.2:
-				mini_map_camera.zoom -= Vector2(0.1, 0.1)
-			if mini_map_camera.zoom[0] < 0.1:
-				mini_map_camera.zoom = Vector2(0.1, 0.1)
-			var icon_scale = StaticLoad.MINI_MAP_SCALE_FACTOR/mini_map_camera.zoom[0]
-			for player_icon in mini_map_players.get_children():
-				player_icon.scale = Vector2(icon_scale, icon_scale)
-		elif is_chat or is_pause or is_online_info or is_sign_edit:
-			pass
-		else:
-			if player.selected_item_grid >= 1:
-				select_item_grid(player.selected_item_grid)
-			else:
-				select_item_grid(9)
-	
-	if event is InputEventMouseButton and event.button_index == 4 and event.pressed:
-		if Input.is_action_pressed("ctrl"):
-			if mini_map_camera.zoom[0] <= 0.9:
-				mini_map_camera.zoom += Vector2(0.1, 0.1)
-			if mini_map_camera.zoom[0] > 1:
-				mini_map_camera.zoom = Vector2(1, 1)
-			var icon_scale = StaticLoad.MINI_MAP_SCALE_FACTOR/mini_map_camera.zoom[0]
-			for player_icon in mini_map_players.get_children():
-				player_icon.scale = Vector2(icon_scale, icon_scale)
-		elif is_chat or is_pause or is_online_info or is_sign_edit:
-			pass
-		else:
-			if player.selected_item_grid <= 7:
-				select_item_grid(player.selected_item_grid+2)
-			else:
-				select_item_grid(1)
-	
-	if is_input_frozen:
+func update_inventroy_player_model():
+	if not is_inventory:
 		return
-	
-	if event is InputEventScreenTouch:
-		if event.pressed:
-			touch_list.push_back(event)
-			var time_counter_instance = time_counter.instantiate()
-			touch_time_counters.add_child(time_counter_instance)
-			time_counter_instance.name = str(event.index)
-			time_counter_instance.start_counting()
-		else:
-			var pressed_time = touch_time_counters.get_node(str(event.index)).timer
-			if pressed_time < StaticLoad.LONG_TOUCH_TIME:
-				var block_pos = tile_map_layer.local_to_map(camera_screen_pos_to_local_pos(player.camera, event.position))
-				if check_place_block_state(block_pos, StaticLoad.get_block_id_by_name(player.item_bar_names[player.selected_item_grid]), player.current_set_layer):
-					player.place_block(block_pos)
-			var touch_to_remove_index
-			for i in range(touch_list.size()):
-				if touch_list[i].index == event.index:
-					touch_to_remove_index = i
-					break
-			touch_list.remove_at(touch_to_remove_index)
-			@warning_ignore("shadowed_variable")
-			var time_counter = touch_time_counters.get_node(str(event.index))
-			time_counter.stop_counting()
-			time_counter.queue_free()	
-	
-	if event is InputEventScreenDrag:
-		for touch in touch_list:
-			if touch.index == event.index:
-				touch.position = event.position
-				break
-
-	if event is InputEventMouseMotion:
-		is_mouse_motion_updated = true
+	var mouse_pos = get_viewport().get_mouse_position()
+	var viewport_size = get_viewport_rect().size
+	var viewport_half_size = viewport_size/2.0
+	var target_pos = mouse_pos-viewport_half_size+Vector2(viewport_size[0]*0.112,viewport_size[1]*0.25)
+	inventory_player_model.look_at(Vector3(target_pos[0], -target_pos[1], 3250), Vector3.UP, true)
 
 func process_mouse_action():
 	if player.is_dead:
@@ -2020,7 +2001,7 @@ func process_mouse_action():
 	var mouse_in_world_pos = tile_map_layer.get_local_mouse_position()
 	var mouse_to_block_pos = tile_map_layer.local_to_map(mouse_in_world_pos)
 	if not is_map and not is_pause and not is_chat and not is_inventory and not is_crafting and not is_sign_edit:
-		if not Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
+		if not Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT) and touch_list.is_empty():
 			if player.is_pulling:
 				player.is_pulling = false
 				if player.shoot_timer > 0:
@@ -2036,7 +2017,7 @@ func process_mouse_action():
 		if Input.is_mouse_button_pressed(1) and not Input.is_mouse_button_pressed(2):
 			var real_mouse_pos = mouse_to_block_pos
 			if player.gamemode != "creative":
-				real_mouse_pos = tile_map_layer.local_to_map(get_restricted_block_selection_pos())
+				real_mouse_pos = tile_map_layer.local_to_map(get_restricted_block_selection_pos(get_local_mouse_position()))
 			var block_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(real_mouse_pos))
 			var no_reach_block_id = StaticLoad.get_block_id_by_atlas_coords(no_reach_tile_map_layer.get_cell_atlas_coords(real_mouse_pos))
 			if StaticLoad.tools_type.has(player.in_hand_item_name) and StaticLoad.tools_type[player.in_hand_item_name].has("sword"):
@@ -2121,7 +2102,7 @@ func process_mouse_action():
 			elif player.gamemode == "creative":
 				player.place_block(mouse_to_block_pos)
 			else:
-				player.place_block(tile_map_layer.local_to_map(get_restricted_block_selection_pos()))
+				player.place_block(tile_map_layer.local_to_map(get_restricted_block_selection_pos(get_local_mouse_position())))
 	
 	if not StaticLoad.is_on_mobile_platform and not Input.is_mouse_button_pressed(1):
 		player.destroy_timer = 0
@@ -2129,13 +2110,349 @@ func process_mouse_action():
 			destroy_light_names[player.player_peer_id].set_texture(null)
 	
 	if is_mouse_motion_updated and player.gamemode != "creative":
-		var mouse_to_in_world_pos_tmp = get_restricted_block_selection_pos()
+		var mouse_to_in_world_pos_tmp = get_restricted_block_selection_pos(get_local_mouse_position())
 		if tile_map_layer.local_to_map(mouse_to_in_world_pos_tmp) != tile_map_layer.local_to_map(last_mouse_in_world_pos):
 			player.destroy_timer = 0
 			if destroy_light_names.has(player.player_peer_id):
 				destroy_light_names[player.player_peer_id].set_texture(null)
 		is_mouse_motion_updated = false
 		last_mouse_in_world_pos = mouse_to_in_world_pos_tmp
+
+func process_touch_input():
+	if player.is_dead or is_input_frozen:
+		return
+	for touch in touch_list:
+		if touch.double_tap:
+			#if block_touch_index == -1:
+				#block_touch_index = touch.index
+			var mouse_in_world_pos = camera_screen_pos_to_local_pos(player.camera, touch.position)
+			var mouse_to_block_pos = tile_map_layer.local_to_map(mouse_in_world_pos)
+			if not is_map and not is_pause and not is_chat and not is_inventory and not is_crafting and not is_sign_edit:
+				var real_mouse_pos = mouse_to_block_pos
+				if player.gamemode != "creative":
+					real_mouse_pos = tile_map_layer.local_to_map(get_restricted_block_selection_pos(get_local_mouse_position()))
+				#var block_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(real_mouse_pos))
+				#var no_reach_block_id = StaticLoad.get_block_id_by_atlas_coords(no_reach_tile_map_layer.get_cell_atlas_coords(real_mouse_pos))
+				if player.gamemode == "creative":
+					grab_item(real_mouse_pos)
+					player.place_block(real_mouse_pos)
+				else:
+					player.place_block(real_mouse_pos)
+			#var block_pos = tile_map_layer.local_to_map(camera_screen_pos_to_local_pos(player.camera, touch.position))
+			#if check_place_block_state(block_pos, StaticLoad.get_block_id_by_name(player.item_bar_names[player.selected_item_grid]), player.current_set_layer):
+				#player.place_block(block_pos)
+			#grab_item(block_pos)
+		else:
+			var pressed_time = touch_time_counters.get_node(str(touch.index)).timer
+			if pressed_time >= StaticLoad.LONG_TOUCH_TIME:
+				#if block_touch_index == -1:
+					#block_touch_index = touch.index
+				var mouse_in_world_pos = camera_screen_pos_to_local_pos(player.camera, touch.position)
+				var mouse_to_block_pos = tile_map_layer.local_to_map(mouse_in_world_pos)
+				if not is_map and not is_pause and not is_chat and not is_inventory and not is_crafting and not is_sign_edit:
+					if touch.pressed:
+						var real_mouse_pos = mouse_to_block_pos
+						if player.gamemode != "creative":
+							real_mouse_pos = tile_map_layer.local_to_map(get_restricted_block_selection_pos(get_local_mouse_position()))
+						var block_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(real_mouse_pos))
+						var no_reach_block_id = StaticLoad.get_block_id_by_atlas_coords(no_reach_tile_map_layer.get_cell_atlas_coords(real_mouse_pos))
+						if StaticLoad.tools_type.has(player.in_hand_item_name) and StaticLoad.tools_type[player.in_hand_item_name].has("sword"):
+							if player.attack_timer <= 0:
+								player.is_punching = true
+						elif player.sword_breaking_timer > 0:
+							pass
+						elif StaticLoad.food_dict.has(player.in_hand_item_name):
+							if not player.is_eating and player.gamemode != "creative" and player.hunger < 20:
+								player.is_eating = true
+						#elif player.in_hand_item_name.contains("BOW"):
+							#if player.gamemode != "creative" and not player.item_bar_names.has("ARROW"):
+								#pass
+							#elif player.item_bar_names[player.selected_item_grid].contains("BOW"):
+								#player.is_pulling = true
+						elif player.gamemode == "creative":
+							player.destroy_block(mouse_to_block_pos)
+						elif not Input.is_mouse_button_pressed(1):
+							player.destroy_timer += get_process_delta_time()
+	
+	if is_mouse_motion_updated and player.gamemode != "creative":
+		var mouse_to_in_world_pos_tmp = get_restricted_block_selection_pos(get_local_mouse_position())
+		if tile_map_layer.local_to_map(mouse_to_in_world_pos_tmp) != tile_map_layer.local_to_map(last_mouse_in_world_pos):
+			player.destroy_timer = 0
+			if destroy_light_names.has(player.player_peer_id):
+				destroy_light_names[player.player_peer_id].set_texture(null)
+		is_mouse_motion_updated = false
+		last_mouse_in_world_pos = mouse_to_in_world_pos_tmp
+	
+	if player.in_hand_item_name.contains("BOW") or (StaticLoad.tools_type.has(player.in_hand_item_name) and StaticLoad.tools_type[player.in_hand_item_name].has("sword")):
+		if not attack_button.visible:
+			attack_button.visible = true
+	elif attack_button.visible:
+		attack_button.visible = false
+	
+	if not Input.is_mouse_button_pressed(1) and not Input.is_mouse_button_pressed(2):
+		if is_mobile_attacking:
+			if player.in_hand_item_name.contains("BOW"):
+				if player.gamemode != "creative" and not player.item_bar_names.has("ARROW"):
+					pass
+				elif player.item_bar_names[player.selected_item_grid].contains("BOW"):
+					player.is_pulling = true
+			elif StaticLoad.tools_type.has(player.in_hand_item_name) and StaticLoad.tools_type[player.in_hand_item_name].has("sword"):
+				if player.attack_timer <= 0:
+					player.is_punching = true
+		else:
+			if player.is_pulling:
+				player.is_pulling = false
+				if player.shoot_timer > 0:
+					player.in_hand_item_name = "BOW"
+					player.set_item_in_hand("BOW")
+					player.shoot_arrow()
+					player.shoot_timer = 0
+					player.last_shoot_stage = -1
+	
+	if player != null:
+		var joystick_pos = joystick_panel.get_now_pos()
+		if joystick_pos != null:
+			if joystick_pos.x != 0:
+				if joystick_pos.x > 0:
+					player.face_state = 1
+				elif joystick_pos.x < 0:
+					player.face_state = -1
+				if is_mobile_running and not player.is_sneaking and (player.hunger > 6 or player.gamemode == "creative"):
+					player.move_state = "run"
+				else:
+					player.move_state = "walk"
+			elif move_input_list.is_empty():
+				player.move_state = "idle"
+			
+			if joystick_pos.y < -0.4 and not player.is_jump_pressed:
+				player.is_jump_pressed = true
+			
+			if joystick_pos.y > 0.4 and not player.is_down_pressed:
+				player.is_down_pressed = true
+		
+		#var mouse_joystick_pos = mouse_joystick_panel.get_now_pos()
+		#if mouse_joystick_pos != null:
+			#var viewport_size = get_viewport_rect().size
+			#if abs(mouse_joystick_pos.x) > 0.5 or abs(mouse_joystick_pos.y) > 0.5:
+				#var mouse_ui_next_pos = mouse_ui.position + mouse_joystick_pos * get_process_delta_time() * 500
+				#if mouse_ui_next_pos.x > viewport_size.x:
+					#mouse_ui_next_pos.x = viewport_size.x
+				#elif mouse_ui_next_pos.x < 0:
+					#mouse_ui_next_pos.x = 0
+				#if mouse_ui_next_pos.y > viewport_size.y:
+					#mouse_ui_next_pos.y = viewport_size.y
+				#elif mouse_ui_next_pos.y < 0:
+					#mouse_ui_next_pos.y = 0
+				#mouse_ui.position = mouse_ui_next_pos
+	#
+				#block_selection_timer = StaticLoad.BLOCK_SELECTION_TIME
+				#var mouse_in_world_pos = camera_screen_pos_to_local_pos(player.camera, mouse_ui_next_pos)
+				#if player.gamemode == "creative":
+					#set_block_selection_pos(mouse_in_world_pos)
+				#else:
+					#set_block_selection_pos(get_restricted_block_selection_pos(mouse_in_world_pos))
+				
+
+@warning_ignore("unused_parameter")
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.button_index == 5 and event.pressed:
+		if Input.is_action_pressed("ctrl"):
+			if mini_map_camera.zoom[0] >= 0.2:
+				mini_map_camera.zoom -= Vector2(0.1, 0.1)
+			if mini_map_camera.zoom[0] < 0.1:
+				mini_map_camera.zoom = Vector2(0.1, 0.1)
+			var icon_scale = StaticLoad.MINI_MAP_SCALE_FACTOR/mini_map_camera.zoom[0]
+			for player_icon in mini_map_players.get_children():
+				player_icon.scale = Vector2(icon_scale, icon_scale)
+		elif is_chat or is_pause or is_online_info or is_sign_edit:
+			pass
+		else:
+			if player.selected_item_grid >= 1:
+				select_item_grid(player.selected_item_grid)
+			else:
+				select_item_grid(9)
+	
+	if event is InputEventMouseButton and event.button_index == 4 and event.pressed:
+		if Input.is_action_pressed("ctrl"):
+			if mini_map_camera.zoom[0] <= 0.9:
+				mini_map_camera.zoom += Vector2(0.1, 0.1)
+			if mini_map_camera.zoom[0] > 1:
+				mini_map_camera.zoom = Vector2(1, 1)
+			var icon_scale = StaticLoad.MINI_MAP_SCALE_FACTOR/mini_map_camera.zoom[0]
+			for player_icon in mini_map_players.get_children():
+				player_icon.scale = Vector2(icon_scale, icon_scale)
+		elif is_chat or is_pause or is_online_info or is_sign_edit:
+			pass
+		else:
+			if player.selected_item_grid <= 7:
+				select_item_grid(player.selected_item_grid+2)
+			else:
+				select_item_grid(1)
+	
+	if event is InputEventScreenTouch:
+		if event.pressed:
+			if block_touch_index == -1:
+				block_touch_index = event.index
+			touch_list.push_back(event)
+			var time_counter_instance = time_counter.instantiate()
+			touch_time_counters.add_child(time_counter_instance)
+			time_counter_instance.name = str(event.index)
+			time_counter_instance.start_counting()
+		else:
+			var pressed_time = touch_time_counters.get_node(str(event.index)).timer
+			if pressed_time < StaticLoad.LONG_TOUCH_TIME:
+				var mouse_in_world_pos = camera_screen_pos_to_local_pos(player.camera, event.position)
+				var mouse_to_block_pos = tile_map_layer.local_to_map(mouse_in_world_pos)
+				var real_mouse_pos = mouse_to_block_pos
+				if player.gamemode != "creative":
+					real_mouse_pos = tile_map_layer.local_to_map(get_restricted_block_selection_pos(get_local_mouse_position()))
+				var original_block_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(real_mouse_pos))
+				var block_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(real_mouse_pos))
+				var no_reach_block_id = StaticLoad.get_block_id_by_atlas_coords(no_reach_tile_map_layer.get_cell_atlas_coords(real_mouse_pos))
+				var is_punched = false
+				if StaticLoad.get_block_name_by_id(original_block_id) == "CRAFTING_TABLE":
+					if not is_crafting and not is_map and not is_pause and not is_chat and not is_inventory and not is_sign_edit:
+						refresh_crafting_inventory()
+						ui_freeze_timer = 0.3
+						crafting_ui.visible = true
+						is_input_frozen = true
+						is_crafting = true
+				elif player.in_hand_item_name.contains("SPAWN_EGG") and not is_map and not is_pause and not is_chat and not is_inventory and not is_crafting and not is_sign_edit:
+					var is_can_spawn = true
+					if player.gamemode != "creative" and not player.check_attached_block(real_mouse_pos, tile_map_layer):
+						is_can_spawn = false
+					else:
+						original_block_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(real_mouse_pos))
+						if original_block_id != 0 and not StaticLoad.get_is_transparent_by_id(original_block_id):
+							is_can_spawn = false
+					if is_can_spawn:
+						var splits = player.in_hand_item_name.split("_")
+						var entity_type = splits[0].to_lower()
+						var uuid = UUID.v4()
+						var summon_entity_args = [entity_type, uuid, str(uuid) ,mouse_in_world_pos, "default"]
+						if StaticLoad.is_muti_mode:
+							if multiplayer.get_unique_id() == 1:
+								player.create_entity(summon_entity_args)
+								StaticLoad.rpc_entity_func_by_uuid(player.get_uuid(), "create_entity", summon_entity_args, "others", true)
+							else:
+								StaticLoad.rpc_entity_func_by_uuid(player.get_uuid(), "create_entity", summon_entity_args, [1, multiplayer.get_unique_id()], false)
+						else:
+							player.create_entity(summon_entity_args)
+						player.is_punching = true
+						if player.face_state < 0 and tile_map_layer.local_to_map(player.position).x < real_mouse_pos.x:
+							player.face_state = 1
+						elif player.face_state > 0 and tile_map_layer.local_to_map(player.position).x > real_mouse_pos.x:
+							player.face_state = -1
+						if player.gamemode != "creative":
+							var select_sort = player.selected_item_grid
+							player.item_bar_amounts[select_sort] -= 1
+							if player.item_bar_amounts[select_sort] <= 0:
+								player.item_bar_names[select_sort] = "AIR"
+							refresh_item_grid(select_sort)
+				elif player.sword_breaking_timer > 0:
+					pass
+				elif block_id == 0 and no_reach_block_id == 0 and player.current_set_layer == "solid":
+					if player.punch_timer <= 0 and block_id == 0 and not player.animation_tree["parameters/Punch/active"]:
+						var chunk_pos = get_chunk_position(real_mouse_pos)
+						var chunk_name = str(chunk_pos[0])+"."+str(chunk_pos[1])
+						if loaded_chunks.has(chunk_name) and loaded_chunks[chunk_name].is_loaded:
+							for player_tmp in players.get_children():
+								if player_tmp == player:
+									continue
+								var entity_block_pos = tile_map_layer.local_to_map(player_tmp.position)
+								if entity_block_pos == real_mouse_pos or entity_block_pos-Vector2i(0,1) == real_mouse_pos:
+									if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1):
+										player.punch(["player", player_tmp.player_peer_id])
+									elif StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
+										StaticLoad.rpc_entity_func_by_uuid(player.get_uuid(), "punch", ["player", player_tmp.player_peer_id], [1], true)
+									player.is_punching = true
+									player.punch_timer = 1
+									if StaticLoad.is_muti_mode:
+										player.changed_state_dict["is_punching"] = true
+									is_punched = true
+									break
+							if not is_punched:
+								for entity in mobs.get_children():
+									if entity == null:
+										continue
+									if ["arrow", "item"].has(entity.get_entity_type()):
+										continue
+									var entity_block_pos = tile_map_layer.local_to_map(entity.position)
+									if entity_block_pos == real_mouse_pos:
+										if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1):
+											player.punch(["entity", entity.get_uuid()])
+										elif StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
+											StaticLoad.rpc_entity_func_by_uuid(player.get_uuid(), "punch", ["entity", entity.get_uuid()], [1], true)
+										player.is_punching = true
+										player.punch_timer = 1
+										if StaticLoad.is_muti_mode:
+											player.changed_state_dict["is_punching"] = true
+										is_punched = true
+										break
+							if not is_punched:
+								for entity in undead_mobs.get_children():
+									if entity == null:
+										continue
+									if ["arrow", "item"].has(entity.get_entity_type()):
+										continue
+									var entity_block_pos = tile_map_layer.local_to_map(entity.position)
+									if entity_block_pos == real_mouse_pos or entity_block_pos-Vector2i(0,1) == real_mouse_pos:
+										if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1):
+											player.punch(["entity", entity.get_uuid()])
+										elif StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
+											StaticLoad.rpc_entity_func_by_uuid(player.get_uuid(), "punch", ["entity", entity.get_uuid()], [1], true)
+										player.is_punching = true
+										player.punch_timer = 1
+										if StaticLoad.is_muti_mode:
+											player.changed_state_dict["is_punching"] = true
+										is_punched = true
+										break
+				if not is_punched:
+					if player.gamemode == "creative":
+						player.place_block(real_mouse_pos)
+					else:
+						player.place_block(real_mouse_pos)
+				#var block_pos = tile_map_layer.local_to_map(camera_screen_pos_to_local_pos(player.camera, event.position))
+				#if check_place_block_state(block_pos, StaticLoad.get_block_id_by_name(player.item_bar_names[player.selected_item_grid]), player.current_set_layer):
+					#player.place_block(block_pos)
+			else:
+				if not Input.is_mouse_button_pressed(1) and not Input.is_mouse_button_pressed(2):
+					if player.is_eating:
+						player.is_eating = false
+						player.last_eat_stage = -1
+						player.eat_timer = 0
+				#elif player.is_pulling:
+					#player.is_pulling = false
+					#if player.shoot_timer > 0:
+						#player.in_hand_item_name = "BOW"
+						#player.set_item_in_hand("BOW")
+						#player.shoot_arrow()
+						#player.shoot_timer = 0
+						#player.last_shoot_stage = -1
+				
+			var touch_to_remove_index
+			for i in range(touch_list.size()):
+				if touch_list[i].index == event.index:
+					touch_to_remove_index = i
+					if block_touch_index == i:
+						block_touch_index = -1
+					break
+			touch_list.remove_at(touch_to_remove_index)
+			@warning_ignore("shadowed_variable")
+			var time_counter = touch_time_counters.get_node(str(event.index))
+			time_counter.stop_counting()
+			time_counter.queue_free()	
+	
+	if event is InputEventScreenDrag:
+		if block_touch_index == -1:
+			block_touch_index = event.index
+		for touch in touch_list:
+			if touch.index == event.index:
+				touch.position = event.position
+				break
+
+	if event is InputEventMouseMotion:
+		is_mouse_motion_updated = true
 
 func update_resource_pack():
 	tile_map_layer.tile_set = load("res://Assets/TileSets/"+str(resource_pack)+".tres") as TileSet
@@ -2789,12 +3106,24 @@ func refresh_item_grid(sort):
 				item_grid_tmp.get_node("Amount").visible = true
 
 func rectify_emulate_mouse_from_touch():
-	if is_input_frozen:
+	if not StaticLoad.is_on_mobile_platform:
+		return
+	if is_crafting or is_map or is_pause or is_chat or is_inventory or is_sign_edit:
 		if not Input.emulate_mouse_from_touch:
-			Input.emulate_mouse_from_touch = true
+			reset_touch(true)
 	else:
 		if Input.emulate_mouse_from_touch:
-			Input.emulate_mouse_from_touch = false
+			reset_touch(false)
+
+func reset_touch(is_open_mouse_emulate):
+	for touch in touch_list:
+		var time_counter = touch_time_counters.get_node(str(touch.index))
+		time_counter.stop_counting()
+		time_counter.queue_free()
+	touch_list.clear()
+	block_touch_index = -1
+	await get_tree().create_timer(0.1).timeout
+	Input.set_emulate_mouse_from_touch(is_open_mouse_emulate)
 
 func freeze_game():
 	set_process_unhandled_input(false)
@@ -2922,6 +3251,7 @@ func init_infinite_container():
 		count += 1
 
 func close_chat_ui():
+	chat_line_edit.release_focus()
 	is_chat = false
 	is_input_frozen = false
 	chat_panel.visible = false
@@ -2938,7 +3268,7 @@ func update_game_details(is_pre_load: bool = false):
 	details_position.text = tr("POSITON")+" : x="+str(pos[0])+", y="+str(-pos[1])
 	var real_mouse_pos = tile_map_layer.get_local_mouse_position()
 	if player != null and player.gamemode != "creative":
-		real_mouse_pos = get_restricted_block_selection_pos()
+		real_mouse_pos = get_restricted_block_selection_pos(get_local_mouse_position())
 	var selected_pos = tile_map_layer.local_to_map(real_mouse_pos)
 	details_selected_position.text = tr("SELECTED_POSITION")+" : x="+str(selected_pos[0])+", y="+str(-selected_pos[1])
 	var chunk = get_chunk_position(pos)
@@ -2968,10 +3298,28 @@ func update_block_selection():
 		if player.gamemode == "creative":
 			set_block_selection_pos(get_local_mouse_position())
 		else:
-			set_block_selection_pos(get_restricted_block_selection_pos())
+			set_block_selection_pos(get_restricted_block_selection_pos(get_local_mouse_position()))
+	if block_touch_index != -1:
+		var block_touch
+		for touch in touch_list.duplicate():
+			if touch.index == block_touch_index:
+				block_touch = touch
+				break
+		if block_touch != null:
+			block_selection_timer = StaticLoad.BLOCK_SELECTION_TIME
+			var mouse_in_world_pos = camera_screen_pos_to_local_pos(player.camera, block_touch.position)
+			if player.gamemode == "creative":
+				var mouse_in_world_block_pos = tile_map_layer.local_to_map(mouse_in_world_pos)
+				set_block_selection_pos(mouse_in_world_pos)
+				player.selected_block_pos = mouse_in_world_block_pos
+			else:
+				var mouse_in_world_new_pos = get_restricted_block_selection_pos(mouse_in_world_pos)
+				var mouse_in_world_block_pos = tile_map_layer.local_to_map(mouse_in_world_new_pos)
+				set_block_selection_pos(mouse_in_world_new_pos)
+				player.selected_block_pos = mouse_in_world_block_pos
 
-func get_restricted_block_selection_pos():
-	var mouse_in_world_pos = get_local_mouse_position()
+func get_restricted_block_selection_pos(target_position):
+	var mouse_in_world_pos = target_position
 	var player_head_pos = player.position - Vector2(0, 60)
 	var player_center_pos = player.position - Vector2(0, 24)
 	var relative_to_player_pos = mouse_in_world_pos - player_head_pos
@@ -3817,6 +4165,9 @@ func touch_button(button_name):
 		is_input_frozen = false
 		move_input_list.clear()
 		player.stop_move()
+		await get_tree().create_timer(0.01).timeout
+		if StaticLoad.is_on_mobile_platform:
+			reset_touch(false)
 	if button_name == "CraftingCloseButton":
 		await get_tree().create_timer(0.01).timeout
 		crafting_ui.visible = false
@@ -3824,6 +4175,9 @@ func touch_button(button_name):
 		is_input_frozen = false
 		move_input_list.clear()
 		player.stop_move()
+		await get_tree().create_timer(0.01).timeout
+		if StaticLoad.is_on_mobile_platform:
+			reset_touch(false)
 
 func refresh_achievement_info():
 	if achievement_get_control.get_child_count() > 0:
@@ -3909,11 +4263,12 @@ func _on_achievement_button_1_pressed() -> void:
 
 func _on_pause_button_1_pressed() -> void:
 	StaticLoad.click_audio_player.play()
-	if StaticLoad.is_on_mobile_platform:
-		Input.emulate_mouse_from_touch = false
 	pause_ui.visible = false
 	is_pause = false
 	is_input_frozen = false
+	await get_tree().create_timer(0.01).timeout
+	if StaticLoad.is_on_mobile_platform:
+		reset_touch(false)
 
 func _on_pause_button_2_pressed() -> void:
 	StaticLoad.click_audio_player.play()
@@ -3938,7 +4293,8 @@ func _on_pause_button_5_pressed() -> void:
 
 func _on_pause_button_6_pressed() -> void:
 	StaticLoad.click_audio_player.play()
-	Input.emulate_mouse_from_touch = true
+	if StaticLoad.is_on_mobile_platform:
+		reset_touch(true)
 	save_world()
 	save_player()
 	if StaticLoad.is_muti_mode:
@@ -3954,7 +4310,8 @@ func _on_pause_button_6_pressed() -> void:
 	StaticLoad.change_scene("res://Assets/Scenes/Menu.tscn")
 	
 func _on_pause_button_7_pressed() -> void:
-	Input.emulate_mouse_from_touch = true
+	if StaticLoad.is_on_mobile_platform:
+		reset_touch(true)
 	StaticLoad.click_audio_player.play()
 	StaticLoad.clear_connections()
 	StaticLoad.is_muti_mode = false
@@ -3970,10 +4327,14 @@ func _on_death_button_1_pressed() -> void:
 			StaticLoad.rpc_entity_func_by_uuid(player.get_uuid(), "respawn", true, "others", true)
 		else:
 			StaticLoad.rpc_entity_func_by_uuid(player.get_uuid(), "respawn", true, [player.player_peer_id], false)
+	await get_tree().create_timer(0.01).timeout
+	if StaticLoad.is_on_mobile_platform:
+		reset_touch(false)
 
 func _on_death_button_2_pressed() -> void:
 	StaticLoad.click_audio_player.play()
-	Input.emulate_mouse_from_touch = true
+	if StaticLoad.is_on_mobile_platform:
+		reset_touch(true)
 	save_world()
 	save_player()
 	if StaticLoad.is_muti_mode:
@@ -3989,7 +4350,7 @@ func _on_death_button_2_pressed() -> void:
 	
 func _on_death_button_3_pressed() -> void:
 	StaticLoad.click_audio_player.play()
-	Input.emulate_mouse_from_touch = true
+	reset_touch(true)
 	StaticLoad.clear_connections()
 	StaticLoad.is_muti_mode = false
 	StaticLoad.is_in_game = false
@@ -4026,26 +4387,47 @@ func _on_chat_line_edit_text_submitted(new_text: String) -> void:
 	chat_line_edit.text = ""
 	if StaticLoad.is_on_mobile_platform:
 		close_chat_ui()
-		Input.emulate_mouse_from_touch = false
+		await get_tree().create_timer(0.1).timeout
+		reset_touch(false)
+		await get_tree().create_timer(0.1).timeout
+		move_input_list.clear()
+		player.stop_move()
+		is_input_frozen = true
+		is_map = true
+		await get_tree().create_timer(0.01)
+		reset_touch(false)
+		await get_tree().create_timer(0.1).timeout
+		is_input_frozen = false
+		is_map = false
+		await get_tree().create_timer(0.01)
+		reset_touch(false)
 
 func _on_chat_history_out_pre_sort_children() -> void:
 	chat_history_out.scroll_vertical = 1e9
 
 func _on_mobile_f1_button_pressed():
+	if is_map or is_pause or is_chat or is_inventory or is_crafting or is_sign_edit:
+		return
 	StaticLoad.click_audio_player.play()
 	switch_ui_visibility()
-	move_buttons_left.visible = game_ui.visible
+	move_panel.visible = game_ui.visible
 	move_buttons_right.visible = game_ui.visible
 
 func _on_mobile_f2_button_pressed():
+	if is_map or is_pause or is_chat or is_inventory or is_crafting or is_sign_edit:
+		return
 	StaticLoad.click_audio_player.play()
 	screenshot()
 	
 func _on_mobile_f3_button_pressed():
+	if is_map or is_pause or is_chat or is_inventory or is_crafting or is_sign_edit:
+		return
 	StaticLoad.click_audio_player.play()
 	switch_details_visibility()
 	
 func _on_mobile_tab_button_pressed():
+	if is_map or is_pause or is_chat or is_inventory or is_crafting or is_sign_edit:
+		return
 	StaticLoad.click_audio_player.play()
 	if online_ui.visible:
 		online_ui.visible = false
@@ -4053,6 +4435,8 @@ func _on_mobile_tab_button_pressed():
 		open_online_info_ui()
 
 func _on_mobile_chat_button_pressed():
+	if is_map or is_pause or is_inventory or is_crafting or is_sign_edit:
+		return
 	StaticLoad.click_audio_player.play()
 	if not is_chat:
 		move_input_list.clear()
@@ -4065,16 +4449,23 @@ func _on_mobile_chat_button_pressed():
 		chat_history_in.scroll_vertical = 1e9
 		chat_line_edit.grab_focus()
 		chat_line_edit.text = ""
-		Input.emulate_mouse_from_touch = true
+		if StaticLoad.is_on_mobile_platform:
+			reset_touch(true)
 	else:
 		close_chat_ui()
-		Input.emulate_mouse_from_touch = false
+		await get_tree().create_timer(0.01).timeout
+		if StaticLoad.is_on_mobile_platform:
+			reset_touch(false)
 
 func _on_mobile_pause_button_pressed():
+	if is_map or is_pause or is_chat or is_inventory or is_crafting or is_sign_edit:
+		return
 	StaticLoad.click_audio_player.play()
 	if is_chat:
 		close_chat_ui()
-		Input.emulate_mouse_from_touch = false
+		await get_tree().create_timer(0.01).timeout
+		if StaticLoad.is_on_mobile_platform:
+			reset_touch(false)
 	else:
 		pause_ui.visible = !pause_ui.visible
 		is_pause = pause_ui.visible
@@ -4082,9 +4473,12 @@ func _on_mobile_pause_button_pressed():
 			is_input_frozen = true
 			move_input_list.clear()
 			player.stop_move()
-		Input.emulate_mouse_from_touch = true
+		if StaticLoad.is_on_mobile_platform:
+			reset_touch(true)
 
 func _on_mobile_map_button_pressed():
+	if is_map or is_pause or is_chat or is_inventory or is_crafting or is_sign_edit:
+		return
 	StaticLoad.click_audio_player.play()
 	mini_map.set_anchors_preset(Control.PRESET_FULL_RECT)
 	mini_map.size = get_viewport_rect().size
@@ -4095,6 +4489,9 @@ func _on_mobile_map_button_pressed():
 	player.stop_move()
 	is_input_frozen = true
 	is_map = true
+	await get_tree().create_timer(0.01)
+	if StaticLoad.is_on_mobile_platform:
+		reset_touch(false)
 
 func _on_mobile_map_button_released():
 	mini_map.set_anchors_preset(Control.PRESET_TOP_RIGHT)
@@ -4106,94 +4503,9 @@ func _on_mobile_map_button_released():
 	player.stop_move()
 	is_input_frozen = false
 	is_map = false
-
-func _on_mobile_move_button_up_pressed():
-	Input.action_release("down")
-	Input.action_release("move_left")
-	Input.action_release("move_right")
-	if not Input.is_action_pressed("jump"):
-		Input.action_press("jump")
-		
-func _on_mobile_move_button_up_released():
-	Input.action_release("jump")
-
-func _on_mobile_move_button_down_pressed():
-	Input.action_release("jump")
-	Input.action_release("move_left")
-	Input.action_release("move_right")
-	if not Input.is_action_pressed("down"):
-		Input.action_press("down")
-	
-func _on_mobile_move_button_down_released():
-	Input.action_release("down")
-
-func _on_mobile_move_button_left_pressed():
-	Input.action_release("jump")
-	Input.action_release("down")
-	Input.action_release("move_right")
-	if not Input.is_action_pressed("move_left"):
-		Input.action_press("move_left")
-		
-func _on_mobile_move_button_left_released():
-	Input.action_release("jump")
-	Input.action_release("down")
-	Input.action_release("move_left")
-	Input.action_release("move_right")
-
-func _on_mobile_move_button_right_pressed():
-	Input.action_release("jump")
-	Input.action_release("down")
-	Input.action_release("move_left")
-	if not Input.is_action_pressed("move_right"):
-		Input.action_press("move_right")
-
-func _on_mobile_move_button_right_released():
-	Input.action_release("jump")
-	Input.action_release("down")
-	Input.action_release("move_left")
-	Input.action_release("move_right")
-
-func _on_mobile_move_button_up_left_pressed():
-	Input.action_release("down")
-	Input.action_release("move_right")
-	if not Input.is_action_pressed("jump"):
-		Input.action_press("jump")
-	if not Input.is_action_pressed("move_left"):
-		Input.action_press("move_left")
-		
-func _on_mobile_move_button_up_right_pressed():
-	Input.action_release("down")
-	Input.action_release("move_left")
-	if not Input.is_action_pressed("jump"):
-		Input.action_press("jump")
-	if not Input.is_action_pressed("move_right"):
-		Input.action_press("move_right")
-
-func _on_mobile_move_button_down_left_pressed():
-	Input.action_release("jump")
-	Input.action_release("move_right")
-	if not Input.is_action_pressed("down"):
-		Input.action_press("down")
-	if not Input.is_action_pressed("move_left"):
-		Input.action_press("move_left")
-		
-func _on_mobile_move_button_down_right_pressed():
-	Input.action_release("jump")
-	Input.action_release("move_left")
-	if not Input.is_action_pressed("down"):
-		Input.action_press("down")
-	if not Input.is_action_pressed("move_right"):
-		Input.action_press("move_right")
-
-func _on_mobile_move_button_jump_pressed():
-	Input.action_release("down")
-	#Input.action_release("move_left")
-	#Input.action_release("move_right")
-	if not Input.is_action_pressed("jump"):
-		Input.action_press("jump")
-		
-func _on_mobile_move_button_jump_released():
-	Input.action_release("jump")
+	await get_tree().create_timer(0.01)
+	if StaticLoad.is_on_mobile_platform:
+		reset_touch(false)
 
 func _on_inventory_ui_dark_mask_gui_input(event: InputEvent) -> void:
 	if not event is InputEventMouseButton:
@@ -4284,6 +4596,9 @@ func _on_sign_edit_confirm_button_pressed() -> void:
 	if player == null:
 		return
 	player.edit_sign()
+	await get_tree().create_timer(0.01).timeout
+	if StaticLoad.is_on_mobile_platform:
+		reset_touch(false)
 	#sign_edit_ui.visible = false
 	#is_sign_edit = false
 	#is_input_frozen = false
@@ -4298,3 +4613,60 @@ func _on_sign_edit_confirm_button_pressed() -> void:
 		#if player.is_reading_sign:
 			#player.refresh_reading_sign(player.reading_sign_block_pos)
 	#sign_edit_text.text = ""
+func _on_mobile_jump_button_pressed():
+	if not Input.is_action_pressed("jump"):
+		Input.action_press("jump")
+		
+func _on_mobile_jump_button_released():
+	Input.action_release("jump")
+
+func _on_mobile_attack_button_pressed() -> void:
+	if is_map or is_pause or is_chat or is_inventory or is_crafting or is_sign_edit:
+		return
+	is_mobile_attacking = true
+
+func _on_mobile_attack_button_released() -> void:
+	is_mobile_attacking = false
+
+func _on_mobile_run_button_pressed() -> void:
+	if is_map or is_pause or is_chat or is_inventory or is_crafting or is_sign_edit:
+		return
+	StaticLoad.click_audio_player.play()
+	if is_mobile_running:
+		is_mobile_running = false
+		run_button_icon.texture = StaticLoad.run_button_texture
+	else:
+		is_mobile_running = true
+		run_button_icon.texture = StaticLoad.run_button_pressed_texture
+
+func _on_mobile_sneak_button_pressed() -> void:
+	if is_map or is_pause or is_chat or is_inventory or is_crafting or is_sign_edit:
+		return
+	StaticLoad.click_audio_player.play()
+	if not player.is_sneaking:
+		is_mobile_sneaking = true
+		player.is_sneaking = true
+		if player.move_state == "run":
+			player.move_state = "walk"
+		sneak_button_icon.texture = StaticLoad.sneak_button_pressed_texture
+	elif player.is_sneaking:
+		is_mobile_sneaking = false
+		player.is_sneaking = false
+		sneak_button_icon.texture = StaticLoad.sneak_button_texture
+
+func _on_mobile_switch_layer_button_pressed() -> void:
+	if is_map or is_pause or is_chat or is_inventory or is_crafting or is_sign_edit:
+		return
+	StaticLoad.click_audio_player.play()
+	if player.current_set_layer == "solid":
+		player.current_set_layer = "back"
+		tile_map_layer.modulate = Color(0.393,0.393,0.393,1)
+		no_reach_tile_map_layer.modulate = Color(0.393,0.393,0.393,1)
+		back_tile_map_layer.modulate = Color(1,1,1,1)
+		switch_layer_button_icon.texture = StaticLoad.switch_layer_button_pressed_texture
+	elif player.current_set_layer == "back":
+		player.current_set_layer = "solid"
+		tile_map_layer.modulate = Color(1,1,1,1)
+		no_reach_tile_map_layer.modulate = Color(1,1,1,1)
+		back_tile_map_layer.modulate = Color(0.393,0.393,0.393,1)
+		switch_layer_button_icon.texture = StaticLoad.switch_layer_button_texture
