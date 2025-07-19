@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bq30e4vyjdtjb"
-path="res://.godot/imported/diamond_axe.png-55b43533b8ac5ce22dc19c27280b1d0c.ctex"
+path="res://.godot/imported/diamond_axe.png-faef6c870e9729a82b6859afb0ea6236.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_new/Items/diamond_axe.png"
-dest_files=["res://.godot/imported/diamond_axe.png-55b43533b8ac5ce22dc19c27280b1d0c.ctex"]
+source_file="res://assets/ResourcePacks/official_new/Items/diamond_axe.png"
+dest_files=["res://.godot/imported/diamond_axe.png-faef6c870e9729a82b6859afb0ea6236.ctex"]
 
 [params]
 

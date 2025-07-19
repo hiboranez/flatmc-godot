@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://boi5fuwubn8gw"
-path="res://.godot/imported/reeds.png-33f95ba65c078204d6b3994936907d2f.ctex"
+path="res://.godot/imported/reeds.png-f2803ce729a9df66d27bce8a14d61a7b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_new/Blocks/reeds.png"
-dest_files=["res://.godot/imported/reeds.png-33f95ba65c078204d6b3994936907d2f.ctex"]
+source_file="res://assets/ResourcePacks/official_new/Blocks/reeds.png"
+dest_files=["res://.godot/imported/reeds.png-f2803ce729a9df66d27bce8a14d61a7b.ctex"]
 
 [params]
 

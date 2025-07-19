@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dw7u2i7uco1cw"
-path="res://.godot/imported/sweep_6.png-46263f98bbd08e7801965e85cbea1d93.ctex"
+path="res://.godot/imported/sweep_6.png-07405a9d92735b3ab047f8d15f76026a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/Textures/Entities/sweep_6.png"
-dest_files=["res://.godot/imported/sweep_6.png-46263f98bbd08e7801965e85cbea1d93.ctex"]
+source_file="res://assets/textures/Entities/sweep_6.png"
+dest_files=["res://.godot/imported/sweep_6.png-07405a9d92735b3ab047f8d15f76026a.ctex"]
 
 [params]
 

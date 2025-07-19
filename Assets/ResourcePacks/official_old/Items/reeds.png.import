@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bca77unuih2tj"
-path="res://.godot/imported/reeds.png-dde88aa8082fc9ea9caabb560656e479.ctex"
+path="res://.godot/imported/reeds.png-62de06c192643de65613e4b3e6892a3e.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_old/Items/reeds.png"
-dest_files=["res://.godot/imported/reeds.png-dde88aa8082fc9ea9caabb560656e479.ctex"]
+source_file="res://assets/ResourcePacks/official_old/Items/reeds.png"
+dest_files=["res://.godot/imported/reeds.png-62de06c192643de65613e4b3e6892a3e.ctex"]
 
 [params]
 

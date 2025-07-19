@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://b2ivqvn47qeb6"]
 
-[ext_resource type="Script" path="res://Assets/Scripts/ChunkLight.gd" id="1_dwr8a"]
+[ext_resource type="Script" path="res://assets/scripts/ChunkLight.gd" id="1_kn2js"]
 
 [node name="ChunkLight" type="PointLight2D"]
 enabled = false
@@ -8,4 +8,4 @@ blend_mode = 2
 range_item_cull_mask = 3
 offset = Vector2(400, 400)
 texture_scale = 50.0
-script = ExtResource("1_dwr8a")
+script = ExtResource("1_kn2js")

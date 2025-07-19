@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://caylikopew488"
-path="res://.godot/imported/wool_cyan.png-645826f8b678e50a05d6698f3a8c34df.ctex"
+path="res://.godot/imported/wool_cyan.png-ee8e200cfd6f6d33bee8f73b541f1d64.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_new/ModelBlocks/wool_cyan.png"
-dest_files=["res://.godot/imported/wool_cyan.png-645826f8b678e50a05d6698f3a8c34df.ctex"]
+source_file="res://assets/ResourcePacks/official_new/ModelBlocks/wool_cyan.png"
+dest_files=["res://.godot/imported/wool_cyan.png-ee8e200cfd6f6d33bee8f73b541f1d64.ctex"]
 
 [params]
 

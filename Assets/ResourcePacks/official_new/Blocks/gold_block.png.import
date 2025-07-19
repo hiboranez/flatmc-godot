@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b25qymuasskfa"
-path="res://.godot/imported/gold_block.png-7bc476ba1e315a07466ac32fb061dc48.ctex"
+path="res://.godot/imported/gold_block.png-06adc3f9f6da96c779ebe790d74da12a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_new/Blocks/gold_block.png"
-dest_files=["res://.godot/imported/gold_block.png-7bc476ba1e315a07466ac32fb061dc48.ctex"]
+source_file="res://assets/ResourcePacks/official_new/Blocks/gold_block.png"
+dest_files=["res://.godot/imported/gold_block.png-06adc3f9f6da96c779ebe790d74da12a.ctex"]
 
 [params]
 

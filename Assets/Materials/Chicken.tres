@@ -1,6 +1,6 @@
 [gd_resource type="StandardMaterial3D" load_steps=2 format=3 uid="uid://brj0rsw67826q"]
 
-[ext_resource type="Texture2D" uid="uid://dsqxd6qkm60ge" path="res://Assets/ResourcePacks/official_old/Entites/chicken.png" id="1_stj61"]
+[ext_resource type="Texture2D" uid="uid://dsqxd6qkm60ge" path="res://assets/ResourcePacks/official_old/Entites/chicken.png" id="1_stj61"]
 
 [resource]
 resource_local_to_scene = true

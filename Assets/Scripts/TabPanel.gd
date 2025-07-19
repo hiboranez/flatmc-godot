@@ -21,6 +21,6 @@ func switch_tab():
 func _on_dark_mask_gui_input(event: InputEvent) -> void:
 	if not event is InputEventMouseButton:
 		return
-	StaticLoad.click_audio_player.play()
+	AudioManager.play_static_audio("sound/ui/click")
 	switch_tab()
 		

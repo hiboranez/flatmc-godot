@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dbmxsa0wj8ara"
-path="res://.godot/imported/end_stone.png-c9323d210b6fbd05006be8a70abf001e.ctex"
+path="res://.godot/imported/end_stone.png-953556d78c6ada82653db974003aaad0.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_new/Blocks/end_stone.png"
-dest_files=["res://.godot/imported/end_stone.png-c9323d210b6fbd05006be8a70abf001e.ctex"]
+source_file="res://assets/ResourcePacks/official_new/Blocks/end_stone.png"
+dest_files=["res://.godot/imported/end_stone.png-953556d78c6ada82653db974003aaad0.ctex"]
 
 [params]
 

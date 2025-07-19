@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://m1nfvo6xrwvj"
-path="res://.godot/imported/furnace_off.png-c0b885a1e1ce10df7c6773d3e4831f0c.ctex"
+path="res://.godot/imported/furnace_off.png-fa00e21be54f2aaea381caaf45d9dcff.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_new/ModelBlocks/furnace_off.png"
-dest_files=["res://.godot/imported/furnace_off.png-c0b885a1e1ce10df7c6773d3e4831f0c.ctex"]
+source_file="res://assets/ResourcePacks/official_new/ModelBlocks/furnace_off.png"
+dest_files=["res://.godot/imported/furnace_off.png-fa00e21be54f2aaea381caaf45d9dcff.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dsgucapp3337k"
-path="res://.godot/imported/end_portal_frame_side.png-42b7407ed1561aab409d1ca7f3dd9b64.ctex"
+path="res://.godot/imported/end_portal_frame_side.png-3566ee05535c3a08df2a9988d659436d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_new/Blocks/end_portal_frame_side.png"
-dest_files=["res://.godot/imported/end_portal_frame_side.png-42b7407ed1561aab409d1ca7f3dd9b64.ctex"]
+source_file="res://assets/ResourcePacks/official_new/Blocks/end_portal_frame_side.png"
+dest_files=["res://.godot/imported/end_portal_frame_side.png-3566ee05535c3a08df2a9988d659436d.ctex"]
 
 [params]
 

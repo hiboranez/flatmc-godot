@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://1cno4fdj2kn"
-path="res://.godot/imported/lapis_lazuli.png-dc41d6e1e286a1d87545e393af1fb129.ctex"
+path="res://.godot/imported/lapis_lazuli.png-5730af29faae68d887f30d36d0489a82.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_old/Items/lapis_lazuli.png"
-dest_files=["res://.godot/imported/lapis_lazuli.png-dc41d6e1e286a1d87545e393af1fb129.ctex"]
+source_file="res://assets/ResourcePacks/official_old/Items/lapis_lazuli.png"
+dest_files=["res://.godot/imported/lapis_lazuli.png-5730af29faae68d887f30d36d0489a82.ctex"]
 
 [params]
 

@@ -13,18 +13,24 @@ config_version=5
 config/name="FlatMC"
 config/description="我的世界2D版"
 config/version="Alpha v0.2.0"
-run/main_scene="res://Assets/Scenes/Menu.tscn"
+run/main_scene="res://assets/scenes/menu.tscn"
 run/disable_stderr=true
 config/features=PackedStringArray("4.3", "Mobile")
 boot_splash/show_image=false
-boot_splash/image="res://Assets/Textures/GUI/author.png"
-config/icon="res://Assets/Textures/GUI/icon.png"
+boot_splash/image="res://assets/textures/ui/fmc_author_page.png"
+config/icon="res://assets/textures/ui/fmc_icon.png"
 
 [autoload]
 
-StaticLoad="*res://Assets/Scenes/StaticLoad.tscn"
+StaticLoad="*res://assets/scenes/StaticLoad.tscn"
 ServiceDiscovery="*res://addons/lan_servers_discovery/servers_discovery.gd"
 UUID="*res://addons/uuid/uuid.gd"
+TextureManager="*res://assets/scripts/texture_manager.gd"
+SceneManager="*res://assets/scripts/scene_manager.gd"
+AudioManager="*res://assets/scenes/audio_manager.tscn"
+SettingsManager="*res://assets/scripts/settings_manager.gd"
+ServerManager="*res://assets/scripts/server_manager.gd"
+DataManager="*res://assets/scripts/data_manager.gd"
 
 [display]
 
@@ -43,6 +49,11 @@ project/assembly_name="FlatMC"
 [editor_plugins]
 
 enabled=PackedStringArray("res://addons/lan_servers_discovery/plugin.cfg", "res://addons/uuid/plugin.cfg")
+
+[gui]
+
+theme/custom="res://assets/themes/ui_theme.tres"
+theme/custom_font="res://assets/fonts/fmcles.tres"
 
 [importer_defaults]
 
@@ -214,10 +225,14 @@ switch_layer={
 ]
 }
 
+[input_devices]
+
+pointing/emulate_mouse_from_touch=false
+
 [internationalization]
 
 locale/translation_remaps={}
-locale/translations=PackedStringArray("res://Assets/Language/Translation.ar.translation", "res://Assets/Language/Translation.de.translation", "res://Assets/Language/Translation.en.translation", "res://Assets/Language/Translation.es.translation", "res://Assets/Language/Translation.fr.translation", "res://Assets/Language/Translation.hi.translation", "res://Assets/Language/Translation.ja.translation", "res://Assets/Language/Translation.ko.translation", "res://Assets/Language/Translation.ru.translation", "res://Assets/Language/Translation.th.translation", "res://Assets/Language/Translation.vi.translation", "res://Assets/Language/Translation.zh.translation")
+locale/translations=PackedStringArray("res://assets/languages/translation.de.translation", "res://assets/languages/translation.en.translation", "res://assets/languages/translation.es.translation", "res://assets/languages/translation.fr.translation", "res://assets/languages/translation.hi.translation", "res://assets/languages/translation.ja.translation", "res://assets/languages/translation.ko.translation", "res://assets/languages/translation.ru.translation", "res://assets/languages/translation.th.translation", "res://assets/languages/translation.vi.translation", "res://assets/languages/translation.zh.translation")
 
 [memory]
 
@@ -230,5 +245,6 @@ limits/message_queue/max_size_mb=64
 [rendering]
 
 textures/canvas_textures/default_texture_filter=0
-renderer/rendering_method="mobile"
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
 textures/vram_compression/import_etc2_astc=true

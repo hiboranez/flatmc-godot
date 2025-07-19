@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://djmryvmekm77c"
-path="res://.godot/imported/log_oak.png-9c069446f44c6be066864378e6fe61bf.ctex"
+path="res://.godot/imported/log_oak.png-3d84e1e4587576692c05b1a9cf5777cc.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_new/ModelBlocks/log_oak.png"
-dest_files=["res://.godot/imported/log_oak.png-9c069446f44c6be066864378e6fe61bf.ctex"]
+source_file="res://assets/ResourcePacks/official_new/ModelBlocks/log_oak.png"
+dest_files=["res://.godot/imported/log_oak.png-3d84e1e4587576692c05b1a9cf5777cc.ctex"]
 
 [params]
 

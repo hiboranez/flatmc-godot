@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bvcqft1tlccv2"
-path="res://.godot/imported/Steve.png-0c02c1872136f83287a302eb0bfad35f.ctex"
+path="res://.godot/imported/Steve.png-14911b484b64b987ad8978b6266ef4de.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_old/Skins/Steve.png"
-dest_files=["res://.godot/imported/Steve.png-0c02c1872136f83287a302eb0bfad35f.ctex"]
+source_file="res://assets/ResourcePacks/official_old/Skins/Steve.png"
+dest_files=["res://.godot/imported/Steve.png-14911b484b64b987ad8978b6266ef4de.ctex"]
 
 [params]
 

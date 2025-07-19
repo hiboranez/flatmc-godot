@@ -1,10 +1,10 @@
 [gd_scene load_steps=11 format=4 uid="uid://dx77wbim6mom7"]
 
-[ext_resource type="Texture2D" uid="uid://ca0fg15x86lrk" path="res://Assets/ResourcePacks/official_old/ModelBlocks/missing_texture.png" id="1_1jrlc"]
-[ext_resource type="Script" path="res://Assets/Scripts/ItemInHand.gd" id="1_leyrq"]
-[ext_resource type="ArrayMesh" uid="uid://hncgg8lyf8ke" path="res://Assets/Meshs/ItemMesh.tres" id="1_sicmm"]
-[ext_resource type="ArrayMesh" uid="uid://b4me2jvrj54xr" path="res://Assets/Meshs/ToolMesh.tres" id="2_d705i"]
-[ext_resource type="Material" uid="uid://chhq6mpw7v267" path="res://Assets/Materials/ItemModel.tres" id="2_rtab3"]
+[ext_resource type="Texture2D" uid="uid://ca0fg15x86lrk" path="res://assets/ResourcePacks/official_old/ModelBlocks/missing_texture.png" id="1_1jrlc"]
+[ext_resource type="Script" path="res://assets/scripts/ItemInHand.gd" id="1_leyrq"]
+[ext_resource type="ArrayMesh" uid="uid://hncgg8lyf8ke" path="res://assets/Meshs/ItemMesh.tres" id="1_sicmm"]
+[ext_resource type="ArrayMesh" uid="uid://b4me2jvrj54xr" path="res://assets/Meshs/ToolMesh.tres" id="2_d705i"]
+[ext_resource type="Material" uid="uid://chhq6mpw7v267" path="res://assets/Materials/ItemModel.tres" id="2_rtab3"]
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_36w1w"]
 _surfaces = [{

@@ -2,13 +2,13 @@
 
 importer="font_data_dynamic"
 type="FontFile"
-uid="uid://byf04fyq8gvsp"
-path="res://.godot/imported/MinecraftAE.ttf-501ecc1e8cec09c44c28ded30d567d97.fontdata"
+uid="uid://dahei608a1d0f"
+path="res://.godot/imported/MinecraftAE.ttf-73054bdb1c890b96a4e72d25f7a015d5.fontdata"
 
 [deps]
 
-source_file="res://Assets/Fonts/MinecraftAE.ttf"
-dest_files=["res://.godot/imported/MinecraftAE.ttf-501ecc1e8cec09c44c28ded30d567d97.fontdata"]
+source_file="res://assets/fonts/MinecraftAE.ttf"
+dest_files=["res://.godot/imported/MinecraftAE.ttf-73054bdb1c890b96a4e72d25f7a015d5.fontdata"]
 
 [params]
 

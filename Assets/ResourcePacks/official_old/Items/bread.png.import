@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dbfx8f7nj83rp"
-path="res://.godot/imported/bread.png-8d2e9630bb2bb7612ee546fb8c7dfb45.ctex"
+path="res://.godot/imported/bread.png-eb538ccb9c3349fc0eabcf9fd3df2993.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_old/Items/bread.png"
-dest_files=["res://.godot/imported/bread.png-8d2e9630bb2bb7612ee546fb8c7dfb45.ctex"]
+source_file="res://assets/ResourcePacks/official_old/Items/bread.png"
+dest_files=["res://.godot/imported/bread.png-eb538ccb9c3349fc0eabcf9fd3df2993.ctex"]
 
 [params]
 

@@ -1,6 +1,6 @@
 [gd_scene load_steps=30 format=4 uid="uid://8na614iyxrbw"]
 
-[ext_resource type="Material" uid="uid://xffbfmc4nkjq" path="res://Assets/Materials/PlayerSkin.tres" id="1_0fv35"]
+[ext_resource type="Material" uid="uid://xffbfmc4nkjq" path="res://assets/Materials/PlayerSkin.tres" id="1_0fv35"]
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_pvgkc"]
 resource_name = "Player_Object_1"

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://e0wme2k3jqwb"
-path="res://.godot/imported/hay_block.png-36b820a97781d713836774cab3a528b5.ctex"
+path="res://.godot/imported/hay_block.png-9f2ec871f4aff09d3afb41d8b53fefa6.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_old/Blocks/hay_block.png"
-dest_files=["res://.godot/imported/hay_block.png-36b820a97781d713836774cab3a528b5.ctex"]
+source_file="res://assets/ResourcePacks/official_old/Blocks/hay_block.png"
+dest_files=["res://.godot/imported/hay_block.png-9f2ec871f4aff09d3afb41d8b53fefa6.ctex"]
 
 [params]
 

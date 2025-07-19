@@ -119,7 +119,7 @@ func disconnect_and_free():
 # 获取服务器在线状态
 @rpc("any_peer", "call_remote", "reliable", 2)
 func request_for_server_state(client_peer_id):
-	rpc_id(client_peer_id, "reply_for_server_state", StaticLoad.player_peer_dict.size(), StaticLoad.world_icon_buffer, StaticLoad.options["version"])
+	rpc_id(client_peer_id, "reply_for_server_state", StaticLoad.player_peer_dict.size(), StaticLoad.world_icon_buffer, SettingsManager.get_default_setting("version"))
 
 @rpc("authority", "call_remote", "reliable", 2)
 func reply_for_server_state(online_player_number, world_icon_buffer_tmp, version_tmp):
@@ -137,7 +137,7 @@ func reply_for_server_state(online_player_number, world_icon_buffer_tmp, version
 		
 		var server_path_tmp = "user://servers/"+server_name+".srv"
 		var server_config = ConfigFile.new()
-		var server_info = server_config.load_encrypted_pass(server_path_tmp, StaticLoad.CONFIG_PASSWORD)
+		var server_info = server_config.load_encrypted_pass(server_path_tmp, SettingsManager.get_default_value("config_password"))
 		if server_info != OK:
 			disconnect_and_free()
 			return
@@ -151,7 +151,7 @@ func reply_for_server_state(online_player_number, world_icon_buffer_tmp, version
 			world_icon_image.resize(256, 256)
 			world_icon_buffer_tmp = world_icon_image.save_png_to_buffer()
 		server.set_value("server", "icon", world_icon_buffer_tmp)
-		server.save_encrypted_pass(server_path_tmp, StaticLoad.CONFIG_PASSWORD)
+		server.save_encrypted_pass(server_path_tmp, SettingsManager.get_default_value("config_password"))
 		if StaticLoad.check_server_version(version_tmp):
 			selection.online_info_label.text = tr("ONLINE_PLAYERS")+" : "+str(online_player_number)
 			is_server_info_received = true

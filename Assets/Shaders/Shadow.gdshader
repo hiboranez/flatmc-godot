@@ -1,19 +1,23 @@
 shader_type canvas_item;
 
-uniform vec2 shadow_offset = vec2(2.0, 2.0); // 阴影偏移（单位：像素）
-uniform vec4 shadow_color : source_color = vec4(0.0, 0.0, 0.0, 0.5); // 阴影颜色
+uniform vec4 shadow_color = vec4(0.0, 0.0, 0.0, 0.5);
+uniform vec2 shadow_offset = vec2(2.0, 2.0);
+uniform float shadow_smoothness : hint_range(0.0, 1.0) = 0.5;
 
 void fragment() {
-    // 原字体颜色
-    vec4 original = texture(TEXTURE, UV);
-
-    // 阴影采样点
-    vec2 shadow_uv = UV - shadow_offset / TEXTURE_PIXEL_SIZE;
-    vec4 shadow = texture(TEXTURE, shadow_uv);
-
-    // 只使用阴影的透明度（alpha）与阴影颜色混合
-    vec4 shadow_result = shadow_color * shadow.a;
-
-    // 最终颜色 = 阴影 + 字体（前景优先）
-    COLOR = mix(shadow_result, original, original.a);
+    // 先采样阴影部分
+    vec4 shadow = texture(TEXTURE, UV - shadow_offset / TEXTURE_PIXEL_SIZE) * shadow_color;
+    
+    // 再采样原始文本
+    vec4 text = texture(TEXTURE, UV);
+    
+    // 混合阴影和文本
+    COLOR = mix(shadow, text, text.a);
+    
+    // 添加平滑效果
+    if (shadow_smoothness > 0.0) {
+        float shadow_alpha = texture(TEXTURE, UV - shadow_offset / TEXTURE_PIXEL_SIZE).a;
+        float smooth_edge = smoothstep(0.0, shadow_smoothness, shadow_alpha);
+        COLOR = mix(COLOR, shadow, smooth_edge * shadow_color.a);
+    }
 }

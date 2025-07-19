@@ -1,6 +1,6 @@
 [gd_resource type="ArrayMesh" load_steps=4 format=4 uid="uid://farwlml4b14v"]
 
-[ext_resource type="Texture2D" uid="uid://3ihwcstrfr3r" path="res://Assets/Textures/ModelBlocks/missing_texture.png" id="1_1rmv2"]
+[ext_resource type="Texture2D" uid="uid://3ihwcstrfr3r" path="res://assets/textures/ModelBlocks/missing_texture.png" id="1_1rmv2"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1a3o5"]
 resource_local_to_scene = true

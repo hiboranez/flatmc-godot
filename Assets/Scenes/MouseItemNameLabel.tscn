@@ -1,8 +1,8 @@
 [gd_scene load_steps=4 format=3 uid="uid://dg1exet246lpi"]
 
-[ext_resource type="FontFile" uid="uid://byf04fyq8gvsp" path="res://Assets/Fonts/MinecraftAE.ttf" id="1_4sogc"]
-[ext_resource type="Script" path="res://Assets/Scripts/MouseItemNameLabel.gd" id="2_f3m6b"]
-[ext_resource type="Texture2D" uid="uid://hwpewi7853dy" path="res://Assets/Textures/GUI/inventory_description_background_big.png" id="3_hucvw"]
+[ext_resource type="FontFile" uid="uid://dahei608a1d0f" path="res://assets/fonts/MinecraftAE.ttf" id="1_w8ew3"]
+[ext_resource type="Script" path="res://assets/scripts/MouseItemNameLabel.gd" id="2_vim71"]
+[ext_resource type="Texture2D" uid="uid://hwpewi7853dy" path="res://assets/textures/ui/inventory_description_background_big.png" id="3_gqbgs"]
 
 [node name="MouseItemNameLabel" type="Label"]
 z_index = 4
@@ -10,10 +10,10 @@ offset_left = 24.0
 offset_top = 24.0
 offset_right = 25.0
 offset_bottom = 64.0
-theme_override_fonts/font = ExtResource("1_4sogc")
+theme_override_fonts/font = ExtResource("1_w8ew3")
 theme_override_font_sizes/font_size = 40
 vertical_alignment = 1
-script = ExtResource("2_f3m6b")
+script = ExtResource("2_vim71")
 
 [node name="NinePatchRect" type="NinePatchRect" parent="."]
 z_index = -1
@@ -27,7 +27,7 @@ offset_right = 26.0
 offset_bottom = 29.0
 grow_horizontal = 2
 grow_vertical = 2
-texture = ExtResource("3_hucvw")
+texture = ExtResource("3_gqbgs")
 patch_margin_left = 20
 patch_margin_top = 20
 patch_margin_right = 20

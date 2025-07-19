@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b5qm8lns3go62"
-path="res://.godot/imported/melon_slice.png-b16add09c5d4f2dd6243c6aee8ab2ace.ctex"
+path="res://.godot/imported/melon_slice.png-dcbe874b733de3a0c1d590e5734e2342.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_new/Items/melon_slice.png"
-dest_files=["res://.godot/imported/melon_slice.png-b16add09c5d4f2dd6243c6aee8ab2ace.ctex"]
+source_file="res://assets/ResourcePacks/official_new/Items/melon_slice.png"
+dest_files=["res://.godot/imported/melon_slice.png-dcbe874b733de3a0c1d590e5734e2342.ctex"]
 
 [params]
 

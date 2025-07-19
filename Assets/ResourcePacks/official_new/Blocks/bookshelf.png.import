@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cgf1fgmmqrw0e"
-path="res://.godot/imported/bookshelf.png-b5d42468dd36f6a6c411327cde5c5040.ctex"
+path="res://.godot/imported/bookshelf.png-8460c4a3b06b23456f83a7fba98e7433.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_new/Blocks/bookshelf.png"
-dest_files=["res://.godot/imported/bookshelf.png-b5d42468dd36f6a6c411327cde5c5040.ctex"]
+source_file="res://assets/ResourcePacks/official_new/Blocks/bookshelf.png"
+dest_files=["res://.godot/imported/bookshelf.png-8460c4a3b06b23456f83a7fba98e7433.ctex"]
 
 [params]
 

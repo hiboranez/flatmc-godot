@@ -1,6 +1,6 @@
 [gd_scene load_steps=4 format=3 uid="uid://dawffcsxvxlwd"]
 
-[ext_resource type="Texture2D" uid="uid://djcm3otov3782" path="res://Assets/Textures/Skins/Steve.png" id="1_8ovch"]
+[ext_resource type="Texture2D" uid="uid://djcm3otov3782" path="res://assets/textures/skins/Steve.png" id="1_8ovch"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_087iu"]
 resource_local_to_scene = true

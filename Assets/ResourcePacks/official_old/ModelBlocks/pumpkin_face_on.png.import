@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dogxjma666l4r"
-path="res://.godot/imported/pumpkin_face_on.png-0c34c3895364257988d91f5518982757.ctex"
+path="res://.godot/imported/pumpkin_face_on.png-a80e5ae46df5ad41ccb3ae241fd96af4.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_old/ModelBlocks/pumpkin_face_on.png"
-dest_files=["res://.godot/imported/pumpkin_face_on.png-0c34c3895364257988d91f5518982757.ctex"]
+source_file="res://assets/ResourcePacks/official_old/ModelBlocks/pumpkin_face_on.png"
+dest_files=["res://.godot/imported/pumpkin_face_on.png-a80e5ae46df5ad41ccb3ae241fd96af4.ctex"]
 
 [params]
 

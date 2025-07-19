@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bpdc5e5gkwq7g"
-path="res://.godot/imported/wood_pickaxe.png-8a9f7ce00a90ef2b242ef93a168c4e22.ctex"
+path="res://.godot/imported/wood_pickaxe.png-f3e85db3387077ca4077e37b17da7885.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_old/Items/wood_pickaxe.png"
-dest_files=["res://.godot/imported/wood_pickaxe.png-8a9f7ce00a90ef2b242ef93a168c4e22.ctex"]
+source_file="res://assets/ResourcePacks/official_old/Items/wood_pickaxe.png"
+dest_files=["res://.godot/imported/wood_pickaxe.png-f3e85db3387077ca4077e37b17da7885.ctex"]
 
 [params]
 

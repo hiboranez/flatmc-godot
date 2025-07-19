@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c8umsgheqpqbl"
-path="res://.godot/imported/stone_sword.png-0a64a41a5bab11959705ed072bf5338d.ctex"
+path="res://.godot/imported/stone_sword.png-4655d30cc51895dd8bf5e7820ff36531.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_old/Items/stone_sword.png"
-dest_files=["res://.godot/imported/stone_sword.png-0a64a41a5bab11959705ed072bf5338d.ctex"]
+source_file="res://assets/ResourcePacks/official_old/Items/stone_sword.png"
+dest_files=["res://.godot/imported/stone_sword.png-4655d30cc51895dd8bf5e7820ff36531.ctex"]
 
 [params]
 

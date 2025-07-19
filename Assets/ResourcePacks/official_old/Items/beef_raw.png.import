@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c01arhdgjnw6q"
-path="res://.godot/imported/beef_raw.png-bc85b84e8bae844055e70d492ed69663.ctex"
+path="res://.godot/imported/beef_raw.png-c75fe2d5375f33bbdb7f9706b4083d45.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_old/Items/beef_raw.png"
-dest_files=["res://.godot/imported/beef_raw.png-bc85b84e8bae844055e70d492ed69663.ctex"]
+source_file="res://assets/ResourcePacks/official_old/Items/beef_raw.png"
+dest_files=["res://.godot/imported/beef_raw.png-c75fe2d5375f33bbdb7f9706b4083d45.ctex"]
 
 [params]
 

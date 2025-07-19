@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://dpnk4w3vgwyft"]
 
-[ext_resource type="Script" path="res://Assets/Scripts/ItemIcon.gd" id="1_twrqu"]
-[ext_resource type="Texture2D" uid="uid://dhon14arctwm8" path="res://Assets/Textures/Blocks/missing_texture.png" id="3_2ytw0"]
+[ext_resource type="Script" path="res://assets/scripts/ItemIcon.gd" id="1_twrqu"]
+[ext_resource type="Texture2D" uid="uid://dhon14arctwm8" path="res://assets/textures/Blocks/missing_texture.png" id="3_2ytw0"]
 
 [node name="ItemIcon" type="Control"]
 layout_mode = 3

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://btvxtdu2fwnin"
-path="res://.godot/imported/diamond_ore.png-a09e87c0ab18be6138f969823f9ebc89.ctex"
+path="res://.godot/imported/diamond_ore.png-1b69026b6d69e002a8b1bc2ce4f07cdb.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_old/Blocks/diamond_ore.png"
-dest_files=["res://.godot/imported/diamond_ore.png-a09e87c0ab18be6138f969823f9ebc89.ctex"]
+source_file="res://assets/ResourcePacks/official_old/Blocks/diamond_ore.png"
+dest_files=["res://.godot/imported/diamond_ore.png-1b69026b6d69e002a8b1bc2ce4f07cdb.ctex"]
 
 [params]
 

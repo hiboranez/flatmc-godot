@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=3 uid="uid://btd4kl3c2fhvf"]
 
-[ext_resource type="FontFile" uid="uid://csywm01568tlp" path="res://Assets/Fonts/MinecraftAE.ttf" id="1_idwo7"]
-[ext_resource type="Script" path="res://Assets/Scripts/Message.gd" id="2_m0odn"]
+[ext_resource type="FontFile" uid="uid://dahei608a1d0f" path="res://assets/fonts/MinecraftAE.ttf" id="1_idwo7"]
+[ext_resource type="Script" path="res://assets/scripts/Message.gd" id="2_m0odn"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_4hw4g"]
 content_margin_left = 10.0

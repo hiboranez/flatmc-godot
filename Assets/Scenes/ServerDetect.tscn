@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://g1sm4t2ceg7"]
 
-[ext_resource type="Script" path="res://Assets/Scripts/ServerDetect.gd" id="1_5ux55"]
+[ext_resource type="Script" path="res://assets/scripts/ServerDetect.gd" id="1_5ux55"]
 
 [node name="ServerDetect" type="Control"]
 layout_mode = 3

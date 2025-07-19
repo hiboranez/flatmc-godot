@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ctb1diiypvybh"
-path="res://.godot/imported/sandstone_chiseled.png-117792b47324a54214d11db8fab871f7.ctex"
+path="res://.godot/imported/sandstone_chiseled.png-e2a0445f57425d130841fdda4870a52e.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_new/ModelBlocks/sandstone_chiseled.png"
-dest_files=["res://.godot/imported/sandstone_chiseled.png-117792b47324a54214d11db8fab871f7.ctex"]
+source_file="res://assets/ResourcePacks/official_new/ModelBlocks/sandstone_chiseled.png"
+dest_files=["res://.godot/imported/sandstone_chiseled.png-e2a0445f57425d130841fdda4870a52e.ctex"]
 
 [params]
 

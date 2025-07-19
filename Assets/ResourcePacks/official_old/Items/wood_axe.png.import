@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dpseef8ggb5ub"
-path="res://.godot/imported/wood_axe.png-4dbf6e456267c52e48ed6b3424784a9f.ctex"
+path="res://.godot/imported/wood_axe.png-2b0fd7b4b54b4112df5fdf8fb2a6c382.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_old/Items/wood_axe.png"
-dest_files=["res://.godot/imported/wood_axe.png-4dbf6e456267c52e48ed6b3424784a9f.ctex"]
+source_file="res://assets/ResourcePacks/official_old/Items/wood_axe.png"
+dest_files=["res://.godot/imported/wood_axe.png-2b0fd7b4b54b4112df5fdf8fb2a6c382.ctex"]
 
 [params]
 

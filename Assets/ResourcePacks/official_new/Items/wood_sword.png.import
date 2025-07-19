@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dpva8ih8t2u7o"
-path="res://.godot/imported/wood_sword.png-51f04c441e4907fe0528d5879a471926.ctex"
+path="res://.godot/imported/wood_sword.png-a4a4ee1cce8979ed079738b67fc0f6be.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_new/Items/wood_sword.png"
-dest_files=["res://.godot/imported/wood_sword.png-51f04c441e4907fe0528d5879a471926.ctex"]
+source_file="res://assets/ResourcePacks/official_new/Items/wood_sword.png"
+dest_files=["res://.godot/imported/wood_sword.png-a4a4ee1cce8979ed079738b67fc0f6be.ctex"]
 
 [params]
 

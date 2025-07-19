@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cyad3epe3nnxp"
-path="res://.godot/imported/lapis_ore.png-19d38f839ef8c9e43f7bda62edbe1502.ctex"
+path="res://.godot/imported/lapis_ore.png-805cf6f96a45a5526d3cdf20ed539d1d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_new/Blocks/lapis_ore.png"
-dest_files=["res://.godot/imported/lapis_ore.png-19d38f839ef8c9e43f7bda62edbe1502.ctex"]
+source_file="res://assets/ResourcePacks/official_new/Blocks/lapis_ore.png"
+dest_files=["res://.godot/imported/lapis_ore.png-805cf6f96a45a5526d3cdf20ed539d1d.ctex"]
 
 [params]
 

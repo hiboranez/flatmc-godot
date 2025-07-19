@@ -1,0 +1,154 @@
+[gd_scene load_steps=13 format=3 uid="uid://cnyxlc6wneab6"]
+
+[ext_resource type="Script" path="res://assets/scripts/resource_pack_menu.gd" id="1_cxkxb"]
+[ext_resource type="Texture2D" uid="uid://bd725jipoa84m" path="res://assets/textures/backgrounds/dirt_wall.png" id="2_h5lj3"]
+[ext_resource type="FontVariation" uid="uid://ck7gxbgy6ry6b" path="res://assets/fonts/fmcles.tres" id="3_a3uow"]
+[ext_resource type="Script" path="res://assets/scripts/DragScroll.gd" id="4_8eawc"]
+[ext_resource type="Theme" uid="uid://do1xfdxltcv20" path="res://assets/themes/ui_theme.tres" id="5_qorm4"]
+[ext_resource type="Texture2D" uid="uid://caueuwmlcmeot" path="res://assets/textures/ui/game_button_disabled.png" id="6_bra8j"]
+[ext_resource type="PackedScene" uid="uid://df6k4i6hb4a6p" path="res://assets/scenes/ui_button.tscn" id="7_ciwye"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_rfgq5"]
+content_margin_left = 30.0
+content_margin_top = 50.0
+content_margin_right = 30.0
+content_margin_bottom = 30.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_k1gad"]
+content_margin_left = 30.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_t7o14"]
+content_margin_left = 30.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_y24qp"]
+content_margin_left = 30.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_cfs5x"]
+content_margin_left = 30.0
+
+[node name="ResourcePackMenu" type="CanvasLayer"]
+script = ExtResource("1_cxkxb")
+
+[node name="Background" type="TextureRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_h5lj3")
+
+[node name="Title" type="Label" parent="."]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -257.0
+offset_right = 257.0
+offset_bottom = 106.0
+grow_horizontal = 2
+size_flags_horizontal = 4
+theme_override_fonts/font = ExtResource("3_a3uow")
+theme_override_font_sizes/font_size = 50
+text = "RESOURCE_PACK"
+horizontal_alignment = 1
+
+[node name="Content" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 160.0
+offset_top = 100.0
+offset_right = -160.0
+offset_bottom = -180.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.686275)
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Content"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxEmpty_rfgq5")
+script = ExtResource("4_8eawc")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Content/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 2
+theme_override_constants/separation = 60
+
+[node name="ResourcePack" type="HSplitContainer" parent="Content/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+collapsed = true
+
+[node name="Title" type="Label" parent="Content/ScrollContainer/VBoxContainer/ResourcePack"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_fonts/font = ExtResource("3_a3uow")
+theme_override_font_sizes/font_size = 40
+text = "RESOURCE_PACK"
+
+[node name="OptionButton" type="OptionButton" parent="Content/ScrollContainer/VBoxContainer/ResourcePack"]
+custom_minimum_size = Vector2(0, 70)
+layout_mode = 2
+size_flags_horizontal = 3
+theme = ExtResource("5_qorm4")
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_constants/h_separation = 10
+theme_override_fonts/font = ExtResource("3_a3uow")
+theme_override_font_sizes/font_size = 40
+theme_override_styles/focus = SubResource("StyleBoxEmpty_k1gad")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_t7o14")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_y24qp")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_cfs5x")
+theme_override_constants/arrow_margin = 30
+flat = true
+selected = 1
+item_count = 2
+popup/item_0/text = "OFFICIAL_OLD"
+popup/item_1/text = "OFFICIAL_NEW"
+popup/item_1/id = 1
+
+[node name="TextureRect" type="TextureRect" parent="Content/ScrollContainer/VBoxContainer/ResourcePack/OptionButton"]
+show_behind_parent = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("5_qorm4")
+texture = ExtResource("6_bra8j")
+expand_mode = 1
+
+[node name="BottomButtons" type="GridContainer" parent="Content"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -2.0
+offset_top = 36.0
+offset_right = 2.0
+offset_bottom = 136.0
+grow_horizontal = 2
+grow_vertical = 0
+columns = 2
+
+[node name="SaveButton" parent="Content/BottomButtons" instance=ExtResource("7_ciwye")]
+custom_minimum_size = Vector2(0, 100)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "SAVE"
+
+[node name="CancelButton" parent="Content/BottomButtons" instance=ExtResource("7_ciwye")]
+custom_minimum_size = Vector2(0, 100)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "CANCEL"
+
+[connection signal="gui_input" from="Content/ScrollContainer" to="Content/ScrollContainer" method="_on_scrollcontainer_gui_input"]
+[connection signal="pressed" from="Content/BottomButtons/SaveButton" to="." method="_on_settings_save_button_pressed"]
+[connection signal="pressed" from="Content/BottomButtons/CancelButton" to="." method="_on_settings_cancel_button_pressed"]

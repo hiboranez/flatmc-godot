@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dfbcy4l0kwj1h"
-path="res://.godot/imported/emerald_ore.png-c18e05da5b51b575e1207a3bdca22201.ctex"
+path="res://.godot/imported/emerald_ore.png-fe7d50a2d4f7e6e3b9c47e03256963db.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_old/Blocks/emerald_ore.png"
-dest_files=["res://.godot/imported/emerald_ore.png-c18e05da5b51b575e1207a3bdca22201.ctex"]
+source_file="res://assets/ResourcePacks/official_old/Blocks/emerald_ore.png"
+dest_files=["res://.godot/imported/emerald_ore.png-fe7d50a2d4f7e6e3b9c47e03256963db.ctex"]
 
 [params]
 

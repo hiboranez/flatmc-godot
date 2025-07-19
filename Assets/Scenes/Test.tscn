@@ -1,8 +1,8 @@
 [gd_scene load_steps=23 format=4 uid="uid://dig6m7m0gc37m"]
 
-[ext_resource type="Material" uid="uid://brj0rsw67826q" path="res://Assets/Materials/Chicken.tres" id="1_cirh4"]
-[ext_resource type="Shader" path="res://Assets/Shaders/Blink.gdshader" id="2_4tdfm"]
-[ext_resource type="FontFile" uid="uid://csywm01568tlp" path="res://Assets/Fonts/MinecraftAE.ttf" id="3_0q2l1"]
+[ext_resource type="Material" uid="uid://brj0rsw67826q" path="res://assets/Materials/Chicken.tres" id="1_cirh4"]
+[ext_resource type="Shader" path="res://assets/Shaders/Blink.gdshader" id="2_4tdfm"]
+[ext_resource type="FontFile" uid="uid://dahei608a1d0f" path="res://assets/fonts/MinecraftAE.ttf" id="3_0q2l1"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_132hd"]
 size = Vector2(36.1417, 45)

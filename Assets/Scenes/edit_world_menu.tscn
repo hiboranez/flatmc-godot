@@ -1,0 +1,227 @@
+[gd_scene load_steps=14 format=3 uid="uid://bqtpxlgj6u5n2"]
+
+[ext_resource type="Texture2D" uid="uid://bd725jipoa84m" path="res://assets/textures/backgrounds/dirt_wall.png" id="1_d2h37"]
+[ext_resource type="Script" path="res://assets/scripts/edit_world_menu.gd" id="1_llldt"]
+[ext_resource type="Texture2D" uid="uid://caueuwmlcmeot" path="res://assets/textures/ui/game_button_disabled.png" id="3_rt4un"]
+[ext_resource type="FontVariation" uid="uid://ck7gxbgy6ry6b" path="res://assets/fonts/fmcles.tres" id="3_wex4c"]
+[ext_resource type="Theme" uid="uid://do1xfdxltcv20" path="res://assets/themes/ui_theme.tres" id="4_hmybv"]
+[ext_resource type="PackedScene" uid="uid://df6k4i6hb4a6p" path="res://assets/scenes/ui_button.tscn" id="5_av5gp"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_u6nnc"]
+content_margin_left = 30.0
+content_margin_top = 50.0
+content_margin_right = 30.0
+content_margin_bottom = 30.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_t8c5e"]
+content_margin_left = 25.0
+texture = ExtResource("3_rt4un")
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_rqwwl"]
+content_margin_left = 30.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_yxggf"]
+content_margin_left = 30.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_f80m2"]
+content_margin_left = 30.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_jhep8"]
+content_margin_left = 30.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_chwc8"]
+content_margin_left = 30.0
+
+[node name="EditWorldMenu" type="CanvasLayer"]
+layer = 2
+script = ExtResource("1_llldt")
+
+[node name="Background" type="TextureRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1_d2h37")
+
+[node name="Title" type="Label" parent="."]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -200.0
+offset_right = 200.0
+offset_bottom = 106.0
+grow_horizontal = 2
+size_flags_horizontal = 4
+theme_override_fonts/font = ExtResource("3_wex4c")
+theme_override_font_sizes/font_size = 50
+text = "EDIT_WORLD"
+horizontal_alignment = 1
+
+[node name="Content" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 160.0
+offset_top = 100.0
+offset_right = -160.0
+offset_bottom = -180.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.686275)
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Content"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxEmpty_u6nnc")
+vertical_scroll_mode = 3
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Content/ScrollContainer"]
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 2
+theme_override_constants/separation = 30
+
+[node name="WorldName" type="HSplitContainer" parent="Content/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Content/ScrollContainer/VBoxContainer/WorldName"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_fonts/font = ExtResource("3_wex4c")
+theme_override_font_sizes/font_size = 40
+text = "WORLD_NAME"
+
+[node name="LineEdit" type="LineEdit" parent="Content/ScrollContainer/VBoxContainer/WorldName"]
+custom_minimum_size = Vector2(0, 70)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_constants/caret_width = 5
+theme_override_constants/minimum_character_width = 0
+theme_override_fonts/font = ExtResource("3_wex4c")
+theme_override_font_sizes/font_size = 40
+theme_override_styles/normal = SubResource("StyleBoxTexture_t8c5e")
+caret_blink = true
+
+[node name="AllowCheat" type="HSplitContainer" parent="Content/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+collapsed = true
+
+[node name="Title" type="Label" parent="Content/ScrollContainer/VBoxContainer/AllowCheat"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_fonts/font = ExtResource("3_wex4c")
+theme_override_font_sizes/font_size = 40
+text = "ALLOW_CHEAT"
+
+[node name="OptionButton" type="OptionButton" parent="Content/ScrollContainer/VBoxContainer/AllowCheat"]
+custom_minimum_size = Vector2(0, 70)
+layout_mode = 2
+size_flags_horizontal = 3
+theme = ExtResource("4_hmybv")
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_constants/h_separation = 10
+theme_override_fonts/font = ExtResource("3_wex4c")
+theme_override_font_sizes/font_size = 40
+theme_override_styles/focus = SubResource("StyleBoxEmpty_rqwwl")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_yxggf")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_f80m2")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_jhep8")
+theme_override_constants/arrow_margin = 30
+flat = true
+selected = 1
+item_count = 2
+popup/item_0/text = "ON"
+popup/item_1/text = "OFF"
+popup/item_1/id = 1
+
+[node name="TextureRect" type="TextureRect" parent="Content/ScrollContainer/VBoxContainer/AllowCheat/OptionButton"]
+show_behind_parent = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("4_hmybv")
+texture = ExtResource("3_rt4un")
+expand_mode = 1
+
+[node name="Achievement" type="HSplitContainer" parent="Content/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+collapsed = true
+
+[node name="Title" type="Label" parent="Content/ScrollContainer/VBoxContainer/Achievement"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_fonts/font = ExtResource("3_wex4c")
+theme_override_font_sizes/font_size = 40
+text = "ACHIEVEMENT"
+
+[node name="OptionButton" type="OptionButton" parent="Content/ScrollContainer/VBoxContainer/Achievement"]
+custom_minimum_size = Vector2(0, 70)
+layout_mode = 2
+size_flags_horizontal = 3
+theme = ExtResource("4_hmybv")
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_constants/h_separation = 10
+theme_override_fonts/font = ExtResource("3_wex4c")
+theme_override_font_sizes/font_size = 40
+theme_override_styles/focus = SubResource("StyleBoxEmpty_rqwwl")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_chwc8")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_yxggf")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_f80m2")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_jhep8")
+theme_override_constants/arrow_margin = 30
+flat = true
+selected = 0
+item_count = 2
+popup/item_0/text = "ON"
+popup/item_1/text = "OFF"
+popup/item_1/id = 1
+
+[node name="TextureRect" type="TextureRect" parent="Content/ScrollContainer/VBoxContainer/Achievement/OptionButton"]
+show_behind_parent = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("4_hmybv")
+texture = ExtResource("3_rt4un")
+expand_mode = 1
+
+[node name="BottomButtons" type="GridContainer" parent="Content"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -2.0
+offset_top = 28.0
+offset_right = 2.0
+offset_bottom = 138.0
+grow_horizontal = 2
+grow_vertical = 0
+columns = 2
+
+[node name="ConfirmButton" parent="Content/BottomButtons" instance=ExtResource("5_av5gp")]
+custom_minimum_size = Vector2(0, 110)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "CONFIRM"
+
+[node name="CancelButton" parent="Content/BottomButtons" instance=ExtResource("5_av5gp")]
+custom_minimum_size = Vector2(0, 110)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "CANCEL"
+
+[connection signal="pressed" from="Content/BottomButtons/ConfirmButton" to="." method="_on_edit_world_menu_confirm_button_pressed"]
+[connection signal="pressed" from="Content/BottomButtons/CancelButton" to="." method="_on_edit_world_menu_cancel_button_pressed"]

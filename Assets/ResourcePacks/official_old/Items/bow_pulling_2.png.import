@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ihciab5pxq12"
-path="res://.godot/imported/bow_pulling_2.png-9f4e48266703f22a46fecc5b69592847.ctex"
+path="res://.godot/imported/bow_pulling_2.png-9de97419e0762c1e1399ef5558ea6104.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_old/Items/bow_pulling_2.png"
-dest_files=["res://.godot/imported/bow_pulling_2.png-9f4e48266703f22a46fecc5b69592847.ctex"]
+source_file="res://assets/ResourcePacks/official_old/Items/bow_pulling_2.png"
+dest_files=["res://.godot/imported/bow_pulling_2.png-9de97419e0762c1e1399ef5558ea6104.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cnpcn0v4suqgy"
-path="res://.godot/imported/leaves.png-33800c71bb3d402c56320015dc2b77ef.ctex"
+path="res://.godot/imported/leaves.png-9306a08c79ffd876c3adca90fb154ea9.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_new/ModelBlocks/leaves.png"
-dest_files=["res://.godot/imported/leaves.png-33800c71bb3d402c56320015dc2b77ef.ctex"]
+source_file="res://assets/ResourcePacks/official_new/ModelBlocks/leaves.png"
+dest_files=["res://.godot/imported/leaves.png-9306a08c79ffd876c3adca90fb154ea9.ctex"]
 
 [params]
 

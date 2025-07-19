@@ -1,7 +1,7 @@
 [gd_scene load_steps=8 format=3 uid="uid://c02whpnt6cd73"]
 
-[ext_resource type="Script" path="res://Assets/Scripts/DestroyParticle.gd" id="1_76xfi"]
-[ext_resource type="Texture2D" uid="uid://mwaoofocv6xo" path="res://Assets/ResourcePacks/official_old/Items/gold_pickaxe.png" id="2_t3na3"]
+[ext_resource type="Script" path="res://assets/scripts/DestroyParticle.gd" id="1_1oxta"]
+[ext_resource type="Texture2D" uid="uid://mwaoofocv6xo" path="res://assets/ResourcePacks/official_old/Items/gold_pickaxe.png" id="2_ftwe8"]
 
 [sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_yno2g"]
 particle_flag_disable_z = true
@@ -28,26 +28,26 @@ scale_max = 3.0
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_jgsqp"]
 resource_local_to_scene = true
-atlas = ExtResource("2_t3na3")
+atlas = ExtResource("2_ftwe8")
 region = Rect2(10, 1, 5, 5)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_u01hl"]
 resource_local_to_scene = true
-atlas = ExtResource("2_t3na3")
+atlas = ExtResource("2_ftwe8")
 region = Rect2(4, 1, 5, 5)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_l6al5"]
 resource_local_to_scene = true
-atlas = ExtResource("2_t3na3")
+atlas = ExtResource("2_ftwe8")
 region = Rect2(10, 7, 5, 5)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_0wjkq"]
 resource_local_to_scene = true
-atlas = ExtResource("2_t3na3")
+atlas = ExtResource("2_ftwe8")
 region = Rect2(4, 7, 5, 5)
 
 [node name="DestroyParticle" type="Node2D"]
-script = ExtResource("1_76xfi")
+script = ExtResource("1_1oxta")
 
 [node name="GPUParticles1" type="GPUParticles2D" parent="."]
 emitting = false

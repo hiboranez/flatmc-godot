@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dlar7dqhsfrg"
-path="res://.godot/imported/gold_axe.png-65ee0682ab4e62e945641cf35ea5e4b0.ctex"
+path="res://.godot/imported/gold_axe.png-947c60cc068d929eed3f79db7f719a04.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_old/Items/gold_axe.png"
-dest_files=["res://.godot/imported/gold_axe.png-65ee0682ab4e62e945641cf35ea5e4b0.ctex"]
+source_file="res://assets/ResourcePacks/official_old/Items/gold_axe.png"
+dest_files=["res://.godot/imported/gold_axe.png-947c60cc068d929eed3f79db7f719a04.ctex"]
 
 [params]
 

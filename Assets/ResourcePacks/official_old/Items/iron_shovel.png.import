@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://s3bacpfvmvcc"
-path="res://.godot/imported/iron_shovel.png-91d6d92395f286b096664c3cb5cc030c.ctex"
+path="res://.godot/imported/iron_shovel.png-735c51718be814203fcf1467cd515219.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_old/Items/iron_shovel.png"
-dest_files=["res://.godot/imported/iron_shovel.png-91d6d92395f286b096664c3cb5cc030c.ctex"]
+source_file="res://assets/ResourcePacks/official_old/Items/iron_shovel.png"
+dest_files=["res://.godot/imported/iron_shovel.png-735c51718be814203fcf1467cd515219.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cjgit1blta1hx"
-path="res://.godot/imported/stone_axe.png-e09fb5eeef9bf199595421e9ba4b3c9e.ctex"
+path="res://.godot/imported/stone_axe.png-b5293df7325cffdd2abfa57ea636926b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_old/Items/stone_axe.png"
-dest_files=["res://.godot/imported/stone_axe.png-e09fb5eeef9bf199595421e9ba4b3c9e.ctex"]
+source_file="res://assets/ResourcePacks/official_old/Items/stone_axe.png"
+dest_files=["res://.godot/imported/stone_axe.png-b5293df7325cffdd2abfa57ea636926b.ctex"]
 
 [params]
 

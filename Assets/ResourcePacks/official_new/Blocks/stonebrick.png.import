@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://860v4ceuobh4"
-path="res://.godot/imported/stonebrick.png-e482517932cee1de5d11fdbf4b21e251.ctex"
+path="res://.godot/imported/stonebrick.png-5426f418257d7a217eafcc9cdc3b2cd5.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_new/Blocks/stonebrick.png"
-dest_files=["res://.godot/imported/stonebrick.png-e482517932cee1de5d11fdbf4b21e251.ctex"]
+source_file="res://assets/ResourcePacks/official_new/Blocks/stonebrick.png"
+dest_files=["res://.godot/imported/stonebrick.png-5426f418257d7a217eafcc9cdc3b2cd5.ctex"]
 
 [params]
 

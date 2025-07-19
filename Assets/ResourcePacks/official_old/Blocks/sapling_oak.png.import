@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://kajfa8ylb41g"
-path="res://.godot/imported/sapling_oak.png-6a23c832a9f6154f905385abc99f591d.ctex"
+path="res://.godot/imported/sapling_oak.png-b257f3b3836a55c43f0c555120c32fd6.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_old/Blocks/sapling_oak.png"
-dest_files=["res://.godot/imported/sapling_oak.png-6a23c832a9f6154f905385abc99f591d.ctex"]
+source_file="res://assets/ResourcePacks/official_old/Blocks/sapling_oak.png"
+dest_files=["res://.godot/imported/sapling_oak.png-b257f3b3836a55c43f0c555120c32fd6.ctex"]
 
 [params]
 

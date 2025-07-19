@@ -200,25 +200,25 @@ func init_local(peer_id):
 	var skin_texture = load(StaticLoad.default_skin_path) as Texture2D
 	player_icon_instance.get_node("UpSkin").texture.atlas = skin_texture
 	if result == OK:
-		player_name = config.get_value("options", "player_name", StaticLoad.options["player_name"])
+		player_name = config.get_value("settings", "player_name", SettingsManager.get_default_setting("player_name"))
 		StaticLoad.game.player_icons[player_name] = player_icon_instance
 		StaticLoad.game.mini_map_players.add_child(player_icon_instance)
 		uuid = UUID.uuid_from_username(player_name)
 		name_label.text = player_name
 		StaticLoad.player_peer_dict[player_peer_id] = self
-		var auto_jump_on = config.get_value("options", "auto_jump", StaticLoad.options["auto_jump"])
+		var auto_jump_on = config.get_value("settings", "auto_jump", SettingsManager.get_default_setting("auto_jump"))
 		if auto_jump_on == "on":
 			is_auto_jump = true
 		elif auto_jump_on == "off":
 			is_auto_jump = false
-		var fov_zoom = 1+1.6*(int(config.get_value("options", "fov_zoom", StaticLoad.options["fov_zoom"]))/100.0)
+		var fov_zoom = 1+1.6*(int(config.get_value("settings", "fov_zoom", SettingsManager.get_default_setting("fov_zoom")))/100.0)
 		camera.zoom = Vector2(fov_zoom, fov_zoom)
-		render_chunk = int(config.get_value("options", "render_chunk", StaticLoad.options["render_chunk"]))
+		render_chunk = int(config.get_value("settings", "render_chunk", SettingsManager.get_default_setting("render_chunk")))
 		if render_chunk > StaticLoad.RENDER_CHUNK_MAX:
 			render_chunk = StaticLoad.RENDER_CHUNK_MAX
 		if render_chunk < StaticLoad.RENDER_CHUNK_MIN:
 			render_chunk = StaticLoad.RENDER_CHUNK_MIN
-		skin_path = config.get_value("options", "skin_path")	
+		skin_path = config.get_value("settings", "skin_path")	
 		if skin_path != "null":
 			var player_texture_tmp = Image.load_from_file(skin_path)
 			if player_texture_tmp != null:
@@ -238,7 +238,7 @@ func init_local(peer_id):
 		var player_infos = DirAccess.get_files_at(ProjectSettings.globalize_path(StaticLoad.player_path))
 		for player_info in player_infos:
 			var player_config = ConfigFile.new()
-			var player_result = player_config.load_encrypted_pass(StaticLoad.player_path+"/"+player_name.to_lower()+".dat", StaticLoad.CONFIG_PASSWORD)
+			var player_result = player_config.load_encrypted_pass(StaticLoad.player_path+"/"+player_name.to_lower()+".dat", SettingsManager.get_default_value("config_password"))
 			if player_result == OK:
 				position = player_config.get_value("player", "position", StaticLoad.DEFAULT_PLAYER_SPAWN_POS)
 				face_state = player_config.get_value("player", "face_state", StaticLoad.DEFAULT_PLAYER_FACE_STATE)

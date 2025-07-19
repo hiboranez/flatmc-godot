@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cg5ngtoqse4yk"
-path="res://.godot/imported/wool_magenta.png-e4e9f742728384d89a5314905ec7754e.ctex"
+path="res://.godot/imported/wool_magenta.png-57f0e9702a92aaa9bc7205a1281870b8.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_new/ModelBlocks/wool_magenta.png"
-dest_files=["res://.godot/imported/wool_magenta.png-e4e9f742728384d89a5314905ec7754e.ctex"]
+source_file="res://assets/ResourcePacks/official_new/ModelBlocks/wool_magenta.png"
+dest_files=["res://.godot/imported/wool_magenta.png-57f0e9702a92aaa9bc7205a1281870b8.ctex"]
 
 [params]
 

@@ -1,0 +1,60 @@
+[gd_scene load_steps=4 format=3 uid="uid://df6k4i6hb4a6p"]
+
+[ext_resource type="Texture2D" uid="uid://13erbwvp880l" path="res://assets/textures/ui/ui_button.png" id="1_ehdds"]
+[ext_resource type="FontVariation" uid="uid://ck7gxbgy6ry6b" path="res://assets/fonts/fmcles.tres" id="2_3ws18"]
+[ext_resource type="Script" path="res://assets/scripts/ui_button.gd" id="2_xc6hp"]
+
+[node name="UIButton" type="NinePatchRect"]
+custom_minimum_size = Vector2(1000, 110)
+offset_right = 1000.0
+offset_bottom = 110.0
+mouse_filter = 0
+texture = ExtResource("1_ehdds")
+patch_margin_left = 21
+patch_margin_top = 21
+patch_margin_right = 21
+patch_margin_bottom = 21
+axis_stretch_horizontal = 1
+axis_stretch_vertical = 1
+script = ExtResource("2_xc6hp")
+text = ""
+
+[node name="Text" type="Label" parent="."]
+z_index = 1
+custom_minimum_size = Vector2(900, 100)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_bottom = -4.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.878431, 0.878431, 0.878431, 1)
+theme_override_colors/font_shadow_color = Color(0.215686, 0.215686, 0.215686, 1)
+theme_override_constants/shadow_offset_x = 4
+theme_override_constants/shadow_offset_y = 4
+theme_override_constants/shadow_outline_size = 4
+theme_override_fonts/font = ExtResource("2_3ws18")
+theme_override_font_sizes/font_size = 35
+text = "Text"
+horizontal_alignment = 1
+vertical_alignment = 1
+text_overrun_behavior = 1
+
+[node name="Icon" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 13
+anchor_left = 0.5
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -7.0
+offset_top = 14.0
+offset_right = 7.0
+offset_bottom = -14.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 3
+
+[connection signal="mouse_entered" from="." to="." method="_on_mouse_entered"]
+[connection signal="mouse_exited" from="." to="." method="_on_mouse_exited"]

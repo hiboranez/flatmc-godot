@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cscumoyl8xudn"
-path="res://.godot/imported/porkchop_raw.png-8979757867b7bcd55fd19180e546ab55.ctex"
+path="res://.godot/imported/porkchop_raw.png-9ea1278d3d6d7d93032ed536dbe79f71.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_old/Items/porkchop_raw.png"
-dest_files=["res://.godot/imported/porkchop_raw.png-8979757867b7bcd55fd19180e546ab55.ctex"]
+source_file="res://assets/ResourcePacks/official_old/Items/porkchop_raw.png"
+dest_files=["res://.godot/imported/porkchop_raw.png-9ea1278d3d6d7d93032ed536dbe79f71.ctex"]
 
 [params]
 

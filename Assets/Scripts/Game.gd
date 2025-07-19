@@ -6,7 +6,7 @@ extends Node2D
 @onready var death_ui = $DeathUI
 @onready var pause_ui = $PauseUI
 @onready var game_ui = $GameUI
-@onready var options_ui = $Options
+@onready var settings_ui = $settings
 @onready var online_ui = $OnlineUI
 @onready var sign_edit_ui = $SignEditUI
 @onready var online_ui_vbox_container = $OnlineUI/OnlineList/ScrollContainer/VBoxContainer
@@ -216,11 +216,11 @@ func _notification(what):
 		var change_value = {
 			"mini_map_zoom": str(int(mini_map_camera.zoom[0]*100))
 		}
-		StaticLoad.save_options(change_value)
+		SettingsManager.save_settings(change_value)
 		if not StaticLoad.is_muti_mode:
 			print("窗口意外关闭，游戏已自动保存")
 	elif what == NOTIFICATION_WM_GO_BACK_REQUEST:
-		StaticLoad.click_audio_player.play()
+		AudioManager.play_static_audio("sound/ui/click")
 		if player.is_dead:
 			pass
 		elif is_chat:
@@ -254,7 +254,7 @@ func _notification(what):
 		elif is_inventory:
 			inventory_ui.visible = false
 			language_ui.visible = false
-			options_ui.visible = false
+			settings_ui.visible = false
 			achievement_ui.visible = false
 			is_input_frozen = false
 			is_inventory = false
@@ -276,9 +276,9 @@ func _notification(what):
 		elif language_ui.visible:
 			pause_ui.visible = true
 			language_ui.visible = false
-		elif options_ui.visible:
+		elif settings_ui.visible:
 			pause_ui.visible = true
-			options_ui.visible = false
+			settings_ui.visible = false
 		else:
 			pause_ui.visible = !pause_ui.visible
 			is_pause = pause_ui.visible
@@ -1696,7 +1696,7 @@ func _input(event: InputEvent) -> void:
 		elif is_inventory:
 			inventory_ui.visible = false
 			language_ui.visible = false
-			options_ui.visible = false
+			settings_ui.visible = false
 			achievement_ui.visible = false
 			is_input_frozen = false
 			is_inventory = false
@@ -1712,9 +1712,9 @@ func _input(event: InputEvent) -> void:
 		elif language_ui.visible:
 			pause_ui.visible = true
 			language_ui.visible = false
-		elif options_ui.visible:
+		elif settings_ui.visible:
 			pause_ui.visible = true
-			options_ui.visible = false
+			settings_ui.visible = false
 		else:
 			pause_ui.visible = !pause_ui.visible
 			is_pause = pause_ui.visible
@@ -1876,7 +1876,7 @@ func _input(event: InputEvent) -> void:
 			grab_item(mouse_to_block_pos)
 	
 	if Input.is_action_just_pressed("switch_layer"):
-		StaticLoad.click_audio_player.play()
+		AudioManager.play_static_audio("sound/ui/click")
 		if player.current_set_layer == "solid":
 			player.current_set_layer = "back"
 			tile_map_layer.modulate = Color(0.393,0.393,0.393,1)
@@ -2676,11 +2676,11 @@ func camera_screen_pos_to_local_pos(camera, pos):
 func init_game_as_dedicated_server():
 	var worlds_path = "user://worlds"
 	var world_config = ConfigFile.new()
-	var world_info = world_config.load_encrypted_pass(worlds_path+"/"+StaticLoad.select_world+"/level.dat", StaticLoad.CONFIG_PASSWORD)
+	var world_info = world_config.load_encrypted_pass(worlds_path+"/"+StaticLoad.select_world+"/level.dat", SettingsManager.get_default_value("config_password"))
 	if world_info != OK:
 		return
-	for key in StaticLoad.world_level_infos:
-		world_info_dictionary[key] = world_config.get_value("world", key, StaticLoad.world_level_infos[key])
+	for key in SettingsManager.default_world_info_dict:
+		world_info_dictionary[key] = world_config.get_value("world", key, SettingsManager.get_default_world_info(key))
 	tick_timer = int(world_info_dictionary["tick_timer"])
 	world_day = int(world_info_dictionary["world_day"])
 	calculate_current_sky_light(true)
@@ -2723,15 +2723,15 @@ func init_game_as_single():
 	var player_name_tmp
 	var render_chunk_tmp = 1
 	if result == OK:
-		player_name_tmp = config.get_value("options", "player_name", StaticLoad.options["player_name"])
-		render_chunk_tmp = int(config.get_value("options", "render_chunk", StaticLoad.options["render_chunk"]))
-		block_selection_box = config.get_value("options", "block_selection_box", StaticLoad.options["block_selection_box"])
-		mini_map_on = config.get_value("options", "mini_map", StaticLoad.options["mini_map"])
-		mini_map_zoom = float(config.get_value("options", "mini_map_zoom", StaticLoad.options["mini_map_zoom"]))
-		smooth_lighting_on = config.get_value("options", "smooth_lighting", StaticLoad.options["smooth_lighting"])
-		StaticLoad.bgm_audio_player.volume_db = linear_to_db(int(config.get_value("options", "bgm_volume", StaticLoad.options["bgm_volume"]))/50.0)
-		sound_audio_manager.volume_db = linear_to_db(int(config.get_value("options", "sound_volume", StaticLoad.options["sound_volume"]))/50.0)
-		resource_pack = config.get_value("options", "resource_pack")
+		player_name_tmp = config.get_value("settings", "player_name", SettingsManager.get_default_setting("player_name"))
+		render_chunk_tmp = int(config.get_value("settings", "render_chunk", SettingsManager.get_default_setting("render_chunk")))
+		block_selection_box = config.get_value("settings", "block_selection_box", SettingsManager.get_default_setting("block_selection_box"))
+		mini_map_on = config.get_value("settings", "mini_map", SettingsManager.get_default_setting("mini_map"))
+		mini_map_zoom = float(config.get_value("settings", "mini_map_zoom", SettingsManager.get_default_setting("mini_map_zoom")))
+		smooth_lighting_on = config.get_value("settings", "smooth_lighting", SettingsManager.get_default_setting("smooth_lighting"))
+		AudioManager.bgm_audio_player.volume_db = linear_to_db(int(config.get_value("settings", "bgm_volume", SettingsManager.get_default_setting("bgm_volume")))/50.0)
+		sound_audio_manager.volume_db = linear_to_db(int(config.get_value("settings", "sound_volume", SettingsManager.get_default_setting("sound_volume")))/50.0)
+		resource_pack = config.get_value("settings", "resource_pack")
 		var mini_map_zoom_tmp = mini_map_zoom/100
 		mini_map_camera.zoom = Vector2(mini_map_zoom_tmp, mini_map_zoom_tmp)
 		var icon_scale = StaticLoad.MINI_MAP_SCALE_FACTOR/mini_map_camera.zoom[0]
@@ -2747,23 +2747,23 @@ func init_game_as_single():
 		elif smooth_lighting_on == "off" and is_smooth_light:
 			is_smooth_light = false
 			refresh_all_light()
-		var particle_effect_on = config.get_value("options", "particle_effect", StaticLoad.options["particle_effect"])
+		var particle_effect_on = config.get_value("settings", "particle_effect", SettingsManager.get_default_setting("particle_effect"))
 		if particle_effect_on == "off":
 			is_particle_effect_on = false
 		elif particle_effect_on == "on":
 			is_particle_effect_on = true
-		#player.player_name = config.get_value("options", "player_name", StaticLoad.options["player_name"])
+		#player.player_name = config.get_value("settings", "player_name", SettingsManager.get_default_setting("player_name"))
 		#player.name_label.text = player.player_name
-		#var fov_zoom = 1+1.6*(int(config.get_value("options", "fov_zoom", StaticLoad.options["fov_zoom"]))/100.0)
+		#var fov_zoom = 1+1.6*(int(config.get_value("settings", "fov_zoom", SettingsManager.get_default_setting("fov_zoom")))/100.0)
 		#player.camera.zoom = Vector2(fov_zoom, fov_zoom)
 		#update_game_details(true)
 	var worlds_path = "user://worlds"
 	var world_config = ConfigFile.new()
-	var world_info = world_config.load_encrypted_pass(worlds_path+"/"+StaticLoad.select_world+"/level.dat", StaticLoad.CONFIG_PASSWORD)
+	var world_info = world_config.load_encrypted_pass(worlds_path+"/"+StaticLoad.select_world+"/level.dat", SettingsManager.get_default_value("config_password"))
 	if world_info != OK:
 		return
-	for key in StaticLoad.world_level_infos:
-		world_info_dictionary[key] = world_config.get_value("world", key, StaticLoad.world_level_infos[key])
+	for key in SettingsManager.default_world_info_dict:
+		world_info_dictionary[key] = world_config.get_value("world", key, SettingsManager.get_default_world_info(key))
 	tick_timer = int(world_info_dictionary["tick_timer"])
 	world_day = int(world_info_dictionary["world_day"])
 	calculate_current_sky_light(true)
@@ -2776,7 +2776,7 @@ func init_game_as_single():
 	var player_config = ConfigFile.new()
 	var player_position_tmp = Vector2(0, 1)
 	if FileAccess.file_exists(StaticLoad.player_path+"/"+player_name_tmp.to_lower()+".dat"):
-		var player_result = player_config.load_encrypted_pass(StaticLoad.player_path+"/"+player_name_tmp.to_lower()+".dat", StaticLoad.CONFIG_PASSWORD)
+		var player_result = player_config.load_encrypted_pass(StaticLoad.player_path+"/"+player_name_tmp.to_lower()+".dat", SettingsManager.get_default_value("config_password"))
 		if player_result == OK:
 			player_position_tmp = player_config.get_value("player", "position", StaticLoad.DEFAULT_PLAYER_SPAWN_POS)
 	var chunk_pos = get_chunk_position(tile_map_layer.local_to_map(player_position_tmp))
@@ -2853,18 +2853,18 @@ func init_game_as_client():
 	var result = config.load("user://configs.cfg")
 	if result != OK:
 		return
-	player.render_chunk = int(config.get_value("options", "render_chunk", StaticLoad.options["render_chunk"]))
+	player.render_chunk = int(config.get_value("settings", "render_chunk", SettingsManager.get_default_setting("render_chunk")))
 	if player.render_chunk > StaticLoad.RENDER_CHUNK_MAX:
 		player.render_chunk = StaticLoad.RENDER_CHUNK_MAX
 	if player.render_chunk < StaticLoad.RENDER_CHUNK_MIN:
 		player.render_chunk = StaticLoad.RENDER_CHUNK_MIN
-	resource_pack = config.get_value("options", "resource_pack")
-	block_selection_box = config.get_value("options", "block_selection_box", StaticLoad.options["block_selection_box"])
-	mini_map_on = config.get_value("options", "mini_map", StaticLoad.options["mini_map"])
-	mini_map_zoom = float(config.get_value("options", "mini_map_zoom", StaticLoad.options["mini_map_zoom"]))
-	smooth_lighting_on = config.get_value("options", "smooth_lighting", StaticLoad.options["smooth_lighting"])
-	StaticLoad.bgm_audio_player.volume_db = linear_to_db(int(config.get_value("options", "bgm_volume", StaticLoad.options["bgm_volume"]))/50.0)
-	sound_audio_manager.volume_db = linear_to_db(int(config.get_value("options", "sound_volume", StaticLoad.options["sound_volume"]))/50.0)
+	resource_pack = config.get_value("settings", "resource_pack")
+	block_selection_box = config.get_value("settings", "block_selection_box", SettingsManager.get_default_setting("block_selection_box"))
+	mini_map_on = config.get_value("settings", "mini_map", SettingsManager.get_default_setting("mini_map"))
+	mini_map_zoom = float(config.get_value("settings", "mini_map_zoom", SettingsManager.get_default_setting("mini_map_zoom")))
+	smooth_lighting_on = config.get_value("settings", "smooth_lighting", SettingsManager.get_default_setting("smooth_lighting"))
+	AudioManager.bgm_audio_player.volume_db = linear_to_db(int(config.get_value("settings", "bgm_volume", SettingsManager.get_default_setting("bgm_volume")))/50.0)
+	sound_audio_manager.volume_db = linear_to_db(int(config.get_value("settings", "sound_volume", SettingsManager.get_default_setting("sound_volume")))/50.0)
 	var mini_map_zoom_tmp = mini_map_zoom/100
 	mini_map_camera.zoom = Vector2(mini_map_zoom_tmp, mini_map_zoom_tmp)
 	var icon_scale = StaticLoad.MINI_MAP_SCALE_FACTOR/mini_map_camera.zoom[0]
@@ -2880,7 +2880,7 @@ func init_game_as_client():
 	elif smooth_lighting_on == "off" and is_smooth_light:
 		is_smooth_light = false
 		refresh_all_light()
-	var particle_effect_on = config.get_value("options", "particle_effect", StaticLoad.options["particle_effect"])
+	var particle_effect_on = config.get_value("settings", "particle_effect", SettingsManager.get_default_setting("particle_effect"))
 	if particle_effect_on == "off":
 		is_particle_effect_on = false
 	elif particle_effect_on == "on":
@@ -3129,14 +3129,14 @@ func freeze_game():
 	set_process_unhandled_input(false)
 	set_process(false)
 	if not StaticLoad.is_dedicated_server:
-		#StaticLoad.bgm_audio_player.set_process(false)
-		StaticLoad.bgm_audio_player.stop()
+		#AudioManager.bgm_audio_player.set_process(false)
+		AudioManager.bgm_audio_player.stop()
 
 func unfreeze_game():
 	set_process_unhandled_input(true)
 	set_process(true)
 	if not StaticLoad.is_dedicated_server:
-		StaticLoad.bgm_audio_player.refresh_bgm()
+		AudioManager.bgm_audio_player.refresh_bgm()
 		player.camera.position_smoothing_enabled = true
 
 func update_local_player_nearby_chunk():
@@ -3454,7 +3454,7 @@ func update_new_chunk(is_pre_load: bool):
 									"back_blocks" : chunk[2]
 								}
 							StaticLoad.set_mca_value(mca, value_dict)
-							mca.save_encrypted_pass(StaticLoad.region_path+"/r."+str(x)+"."+str(y)+".mca", StaticLoad.CONFIG_PASSWORD)
+							mca.save_encrypted_pass(StaticLoad.region_path+"/r."+str(x)+"."+str(y)+".mca", SettingsManager.get_default_value("config_password"))
 							if not loaded_chunks.has(str(x)+"."+str(y)):
 								loaded_chunks[str(x)+"."+str(y)] = StaticLoad.Chunk.new()
 							loaded_chunks[str(x)+"."+str(y)].is_to_save = false
@@ -3969,7 +3969,7 @@ func save_world():
 		"achievement": world_info_dictionary["achievement"]
 	}
 	StaticLoad.save_level_dat(level, level_change_value)
-	level.save_encrypted_pass(StaticLoad.world_path+"/level.dat", StaticLoad.CONFIG_PASSWORD)
+	level.save_encrypted_pass(StaticLoad.world_path+"/level.dat", SettingsManager.get_default_value("config_password"))
 
 func save_player(peer_id = 0):
 	var player_tmp
@@ -3996,7 +3996,7 @@ func save_player(peer_id = 0):
 	player_config.set_value("player", "item_bar_names", player_tmp.item_bar_names)
 	player_config.set_value("player", "item_bar_amounts", player_tmp.item_bar_amounts)
 	player_config.set_value("player", "achievement_progress_dict", player_tmp.achievement_progress_dict)
-	player_config.save_encrypted_pass(StaticLoad.player_path+"/"+player_tmp.player_name.to_lower()+".dat", StaticLoad.CONFIG_PASSWORD)
+	player_config.save_encrypted_pass(StaticLoad.player_path+"/"+player_tmp.player_name.to_lower()+".dat", SettingsManager.get_default_value("config_password"))
 
 func save_chunk(chunk_pos: Vector2i):
 	var mca = ConfigFile.new()
@@ -4060,7 +4060,7 @@ func save_chunk(chunk_pos: Vector2i):
 		else:
 			var entity_info = [entity.get_entity_type(), entity.get_entity_name(), entity.position, entity.get_health()]
 			mca.set_value("entity", uuid, entity_info)
-	mca.save_encrypted_pass(StaticLoad.region_path+"/r."+str(x_chunk)+"."+str(y_chunk)+".mca", StaticLoad.CONFIG_PASSWORD)
+	mca.save_encrypted_pass(StaticLoad.region_path+"/r."+str(x_chunk)+"."+str(y_chunk)+".mca", SettingsManager.get_default_value("config_password"))
 	
 	var level = ConfigFile.new()
 	var current_time = Time.get_datetime_string_from_system(false, true).replace(" ", "  ").replace("-", "/")
@@ -4076,13 +4076,13 @@ func save_chunk(chunk_pos: Vector2i):
 		"achievement": world_info_dictionary["achievement"]
 	}
 	StaticLoad.save_level_dat(level, level_change_value)
-	level.save_encrypted_pass(StaticLoad.world_path+"/level.dat", StaticLoad.CONFIG_PASSWORD)
+	level.save_encrypted_pass(StaticLoad.world_path+"/level.dat", SettingsManager.get_default_value("config_password"))
 
 func select_item_grid(grid_name) -> void:
 	if str(grid_name) == "More":
 		if is_inventory or is_crafting:
 			return
-		StaticLoad.click_audio_player.play()
+		AudioManager.play_static_audio("sound/ui/click")
 		inventory_ui.visible = true
 		is_inventory = true
 		is_input_frozen = true
@@ -4157,7 +4157,7 @@ func init_inventory():
 		refresh_item_grid(i)
 
 func touch_button(button_name):
-	StaticLoad.click_audio_player.play()
+	AudioManager.play_static_audio("sound/ui/click")
 	if button_name == "InventoryCloseButton":
 		await get_tree().create_timer(0.01).timeout
 		inventory_ui.visible = false
@@ -4257,12 +4257,12 @@ func summon_death_particle(got_position):
 	particle.init(got_position)
 
 func _on_achievement_button_1_pressed() -> void:
-	StaticLoad.click_audio_player.play()
+	AudioManager.play_static_audio("sound/ui/click")
 	pause_ui.visible = true
 	achievement_ui.visible = false
 
 func _on_pause_button_1_pressed() -> void:
-	StaticLoad.click_audio_player.play()
+	AudioManager.play_static_audio("sound/ui/click")
 	pause_ui.visible = false
 	is_pause = false
 	is_input_frozen = false
@@ -4271,28 +4271,28 @@ func _on_pause_button_1_pressed() -> void:
 		reset_touch(false)
 
 func _on_pause_button_2_pressed() -> void:
-	StaticLoad.click_audio_player.play()
-	options_ui.load_in_game_options()
-	options_ui.visible = true
+	AudioManager.play_static_audio("sound/ui/click")
+	settings_ui.load_in_game_settings()
+	settings_ui.visible = true
 
 func _on_pause_button_3_pressed() -> void:
-	StaticLoad.click_audio_player.play()
+	AudioManager.play_static_audio("sound/ui/click")
 	language_ui.visible = true
 
 func _on_pause_button_4_pressed() -> void:
-	StaticLoad.click_audio_player.play()
+	AudioManager.play_static_audio("sound/ui/click")
 	achievement_ui.visible = true
 	pause_ui.visible = false
 
 func _on_pause_button_5_pressed() -> void:
-	StaticLoad.click_audio_player.play()
+	AudioManager.play_static_audio("sound/ui/click")
 	pause_ui.visible = false
 	is_pause = false
 	is_input_frozen = false
 	StaticLoad.start_server()
 
 func _on_pause_button_6_pressed() -> void:
-	StaticLoad.click_audio_player.play()
+	AudioManager.play_static_audio("sound/ui/click")
 	if StaticLoad.is_on_mobile_platform:
 		reset_touch(true)
 	save_world()
@@ -4304,23 +4304,23 @@ func _on_pause_button_6_pressed() -> void:
 	var change_value = {
 		"mini_map_zoom": str(int(mini_map_camera.zoom[0]*100))
 	}
-	StaticLoad.save_options(change_value)
+	SettingsManager.save_settings(change_value)
 	StaticLoad.is_in_game = false
-	StaticLoad.bgm_audio_player.refresh_bgm()
-	StaticLoad.change_scene("res://Assets/Scenes/Menu.tscn")
+	AudioManager.bgm_audio_player.refresh_bgm()
+	SceneManager.change_scene("menu")
 	
 func _on_pause_button_7_pressed() -> void:
 	if StaticLoad.is_on_mobile_platform:
 		reset_touch(true)
-	StaticLoad.click_audio_player.play()
+	AudioManager.play_static_audio("sound/ui/click")
 	StaticLoad.clear_connections()
 	StaticLoad.is_muti_mode = false
 	StaticLoad.is_in_game = false
-	StaticLoad.bgm_audio_player.refresh_bgm()
-	StaticLoad.change_scene("res://Assets/Scenes/Menu.tscn")
+	AudioManager.bgm_audio_player.refresh_bgm()
+	SceneManager.change_scene("menu")
 
 func _on_death_button_1_pressed() -> void:
-	StaticLoad.click_audio_player.play()
+	AudioManager.play_static_audio("sound/ui/click")
 	player.respawn(true)
 	if StaticLoad.is_muti_mode:
 		if multiplayer.get_unique_id() == 1:
@@ -4332,7 +4332,7 @@ func _on_death_button_1_pressed() -> void:
 		reset_touch(false)
 
 func _on_death_button_2_pressed() -> void:
-	StaticLoad.click_audio_player.play()
+	AudioManager.play_static_audio("sound/ui/click")
 	if StaticLoad.is_on_mobile_platform:
 		reset_touch(true)
 	save_world()
@@ -4344,17 +4344,17 @@ func _on_death_button_2_pressed() -> void:
 	var change_value = {
 		"mini_map_zoom": str(int(mini_map_camera.zoom[0]*100))
 	}
-	StaticLoad.save_options(change_value)
+	SettingsManager.save_settings(change_value)
 	StaticLoad.is_in_game = false
-	StaticLoad.change_scene("res://Assets/Scenes/Menu.tscn")
+	SceneManager.change_scene("menu")
 	
 func _on_death_button_3_pressed() -> void:
-	StaticLoad.click_audio_player.play()
+	AudioManager.play_static_audio("sound/ui/click")
 	reset_touch(true)
 	StaticLoad.clear_connections()
 	StaticLoad.is_muti_mode = false
 	StaticLoad.is_in_game = false
-	StaticLoad.change_scene("res://Assets/Scenes/Menu.tscn")
+	SceneManager.change_scene("menu")
 
 @warning_ignore("unused_parameter")
 func _on_chat_line_edit_text_submitted(new_text: String) -> void:
@@ -4408,7 +4408,7 @@ func _on_chat_history_out_pre_sort_children() -> void:
 func _on_mobile_f1_button_pressed():
 	if is_map or is_pause or is_chat or is_inventory or is_crafting or is_sign_edit:
 		return
-	StaticLoad.click_audio_player.play()
+	AudioManager.play_static_audio("sound/ui/click")
 	switch_ui_visibility()
 	move_panel.visible = game_ui.visible
 	move_buttons_right.visible = game_ui.visible
@@ -4416,19 +4416,19 @@ func _on_mobile_f1_button_pressed():
 func _on_mobile_f2_button_pressed():
 	if is_map or is_pause or is_chat or is_inventory or is_crafting or is_sign_edit:
 		return
-	StaticLoad.click_audio_player.play()
+	AudioManager.play_static_audio("sound/ui/click")
 	screenshot()
 	
 func _on_mobile_f3_button_pressed():
 	if is_map or is_pause or is_chat or is_inventory or is_crafting or is_sign_edit:
 		return
-	StaticLoad.click_audio_player.play()
+	AudioManager.play_static_audio("sound/ui/click")
 	switch_details_visibility()
 	
 func _on_mobile_tab_button_pressed():
 	if is_map or is_pause or is_chat or is_inventory or is_crafting or is_sign_edit:
 		return
-	StaticLoad.click_audio_player.play()
+	AudioManager.play_static_audio("sound/ui/click")
 	if online_ui.visible:
 		online_ui.visible = false
 	elif StaticLoad.is_muti_mode:
@@ -4437,7 +4437,7 @@ func _on_mobile_tab_button_pressed():
 func _on_mobile_chat_button_pressed():
 	if is_map or is_pause or is_inventory or is_crafting or is_sign_edit:
 		return
-	StaticLoad.click_audio_player.play()
+	AudioManager.play_static_audio("sound/ui/click")
 	if not is_chat:
 		move_input_list.clear()
 		player.stop_move()
@@ -4460,7 +4460,7 @@ func _on_mobile_chat_button_pressed():
 func _on_mobile_pause_button_pressed():
 	if is_map or is_pause or is_chat or is_inventory or is_crafting or is_sign_edit:
 		return
-	StaticLoad.click_audio_player.play()
+	AudioManager.play_static_audio("sound/ui/click")
 	if is_chat:
 		close_chat_ui()
 		await get_tree().create_timer(0.01).timeout
@@ -4479,7 +4479,7 @@ func _on_mobile_pause_button_pressed():
 func _on_mobile_map_button_pressed():
 	if is_map or is_pause or is_chat or is_inventory or is_crafting or is_sign_edit:
 		return
-	StaticLoad.click_audio_player.play()
+	AudioManager.play_static_audio("sound/ui/click")
 	mini_map.set_anchors_preset(Control.PRESET_FULL_RECT)
 	mini_map.size = get_viewport_rect().size
 	mini_map.position = Vector2(0, 0)
@@ -4631,7 +4631,7 @@ func _on_mobile_attack_button_released() -> void:
 func _on_mobile_run_button_pressed() -> void:
 	if is_map or is_pause or is_chat or is_inventory or is_crafting or is_sign_edit:
 		return
-	StaticLoad.click_audio_player.play()
+	AudioManager.play_static_audio("sound/ui/click")
 	if is_mobile_running:
 		is_mobile_running = false
 		run_button_icon.texture = StaticLoad.run_button_texture
@@ -4642,7 +4642,7 @@ func _on_mobile_run_button_pressed() -> void:
 func _on_mobile_sneak_button_pressed() -> void:
 	if is_map or is_pause or is_chat or is_inventory or is_crafting or is_sign_edit:
 		return
-	StaticLoad.click_audio_player.play()
+	AudioManager.play_static_audio("sound/ui/click")
 	if not player.is_sneaking:
 		is_mobile_sneaking = true
 		player.is_sneaking = true
@@ -4657,7 +4657,7 @@ func _on_mobile_sneak_button_pressed() -> void:
 func _on_mobile_switch_layer_button_pressed() -> void:
 	if is_map or is_pause or is_chat or is_inventory or is_crafting or is_sign_edit:
 		return
-	StaticLoad.click_audio_player.play()
+	AudioManager.play_static_audio("sound/ui/click")
 	if player.current_set_layer == "solid":
 		player.current_set_layer = "back"
 		tile_map_layer.modulate = Color(0.393,0.393,0.393,1)

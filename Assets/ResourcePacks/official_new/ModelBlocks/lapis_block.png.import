@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bh7cyb11o4t1c"
-path="res://.godot/imported/lapis_block.png-a2db52317c6c492c45a90cb7e3418d6c.ctex"
+path="res://.godot/imported/lapis_block.png-81a4f30c97f7d4a6d2a7d4bc20df16d5.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_new/ModelBlocks/lapis_block.png"
-dest_files=["res://.godot/imported/lapis_block.png-a2db52317c6c492c45a90cb7e3418d6c.ctex"]
+source_file="res://assets/ResourcePacks/official_new/ModelBlocks/lapis_block.png"
+dest_files=["res://.godot/imported/lapis_block.png-81a4f30c97f7d4a6d2a7d4bc20df16d5.ctex"]
 
 [params]
 

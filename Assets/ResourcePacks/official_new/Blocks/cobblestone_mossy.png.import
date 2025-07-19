@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ksx50wh261wq"
-path="res://.godot/imported/cobblestone_mossy.png-3d6254f8723a9439f7fe34b8e765193b.ctex"
+path="res://.godot/imported/cobblestone_mossy.png-b1724c478ae03273e0acb6007539f94f.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_new/Blocks/cobblestone_mossy.png"
-dest_files=["res://.godot/imported/cobblestone_mossy.png-3d6254f8723a9439f7fe34b8e765193b.ctex"]
+source_file="res://assets/ResourcePacks/official_new/Blocks/cobblestone_mossy.png"
+dest_files=["res://.godot/imported/cobblestone_mossy.png-b1724c478ae03273e0acb6007539f94f.ctex"]
 
 [params]
 

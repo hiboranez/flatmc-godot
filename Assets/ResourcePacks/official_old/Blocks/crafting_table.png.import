@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://mlr6cop33263"
-path="res://.godot/imported/crafting_table.png-6dd80315c724b27788bf9951783063f1.ctex"
+path="res://.godot/imported/crafting_table.png-e74588c3e59133cd2baa0b98f53795ef.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_old/Blocks/crafting_table.png"
-dest_files=["res://.godot/imported/crafting_table.png-6dd80315c724b27788bf9951783063f1.ctex"]
+source_file="res://assets/ResourcePacks/official_old/Blocks/crafting_table.png"
+dest_files=["res://.godot/imported/crafting_table.png-e74588c3e59133cd2baa0b98f53795ef.ctex"]
 
 [params]
 

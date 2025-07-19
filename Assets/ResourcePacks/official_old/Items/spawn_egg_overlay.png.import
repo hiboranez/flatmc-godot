@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bgrjemvkkn8eb"
-path="res://.godot/imported/spawn_egg_overlay.png-aeb7870d3febcdbb9bad1ab2c1f850f9.ctex"
+path="res://.godot/imported/spawn_egg_overlay.png-ba85ff458315fcf02c18932851b877ae.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_old/Items/spawn_egg_overlay.png"
-dest_files=["res://.godot/imported/spawn_egg_overlay.png-aeb7870d3febcdbb9bad1ab2c1f850f9.ctex"]
+source_file="res://assets/ResourcePacks/official_old/Items/spawn_egg_overlay.png"
+dest_files=["res://.godot/imported/spawn_egg_overlay.png-ba85ff458315fcf02c18932851b877ae.ctex"]
 
 [params]
 

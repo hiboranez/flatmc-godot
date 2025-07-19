@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bidk5dilouw38"
-path="res://.godot/imported/gravel.png-2dfb4ae905ca79c0fe7581347c5913ae.ctex"
+path="res://.godot/imported/gravel.png-d09198268d916755e5143e2ed9b5570c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_new/ModelBlocks/gravel.png"
-dest_files=["res://.godot/imported/gravel.png-2dfb4ae905ca79c0fe7581347c5913ae.ctex"]
+source_file="res://assets/ResourcePacks/official_new/ModelBlocks/gravel.png"
+dest_files=["res://.godot/imported/gravel.png-d09198268d916755e5143e2ed9b5570c.ctex"]
 
 [params]
 

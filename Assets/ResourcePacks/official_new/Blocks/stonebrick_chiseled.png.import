@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dhv130tyir4pr"
-path="res://.godot/imported/stonebrick_chiseled.png-ebb4d3f9b1172a6d4c3c276b7afe9495.ctex"
+path="res://.godot/imported/stonebrick_chiseled.png-fd74c5b7ba4868e5b44db7e661c61db2.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_new/Blocks/stonebrick_chiseled.png"
-dest_files=["res://.godot/imported/stonebrick_chiseled.png-ebb4d3f9b1172a6d4c3c276b7afe9495.ctex"]
+source_file="res://assets/ResourcePacks/official_new/Blocks/stonebrick_chiseled.png"
+dest_files=["res://.godot/imported/stonebrick_chiseled.png-fd74c5b7ba4868e5b44db7e661c61db2.ctex"]
 
 [params]
 

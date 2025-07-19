@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cdpyxbtgbw7ly"
-path="res://.godot/imported/iron_block.png-dd83bd9738664f7fa1d50a4d6bdf34e5.ctex"
+path="res://.godot/imported/iron_block.png-e1b0b73bc8d1c8f7509f11c57c088ed6.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_old/ModelBlocks/iron_block.png"
-dest_files=["res://.godot/imported/iron_block.png-dd83bd9738664f7fa1d50a4d6bdf34e5.ctex"]
+source_file="res://assets/ResourcePacks/official_old/ModelBlocks/iron_block.png"
+dest_files=["res://.godot/imported/iron_block.png-e1b0b73bc8d1c8f7509f11c57c088ed6.ctex"]
 
 [params]
 

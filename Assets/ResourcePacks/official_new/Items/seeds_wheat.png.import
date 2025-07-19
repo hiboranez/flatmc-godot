@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cru6l87ayu7o5"
-path="res://.godot/imported/seeds_wheat.png-5b066b990ee4229186e3e24f62319d03.ctex"
+path="res://.godot/imported/seeds_wheat.png-5f48ded5d4baa8a5b3f0b3082b2d406d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_new/Items/seeds_wheat.png"
-dest_files=["res://.godot/imported/seeds_wheat.png-5b066b990ee4229186e3e24f62319d03.ctex"]
+source_file="res://assets/ResourcePacks/official_new/Items/seeds_wheat.png"
+dest_files=["res://.godot/imported/seeds_wheat.png-5f48ded5d4baa8a5b3f0b3082b2d406d.ctex"]
 
 [params]
 

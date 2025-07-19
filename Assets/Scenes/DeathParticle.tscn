@@ -1,7 +1,7 @@
 [gd_scene load_steps=12 format=3 uid="uid://du2661adlbfc7"]
 
-[ext_resource type="Script" path="res://Assets/Scripts/DeathParticle.gd" id="1_4yuiw"]
-[ext_resource type="Texture2D" uid="uid://bo14nwudx2ec3" path="res://Assets/Textures/GUI/particles.png" id="1_cps7l"]
+[ext_resource type="Script" path="res://assets/scripts/DeathParticle.gd" id="1_yq4hu"]
+[ext_resource type="Texture2D" uid="uid://bo14nwudx2ec3" path="res://assets/textures/ui/particles.png" id="2_aehll"]
 
 [sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_2xuqn"]
 particle_flag_disable_z = true
@@ -29,39 +29,39 @@ scale_min = 2.0
 scale_max = 3.0
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_28xt8"]
-atlas = ExtResource("1_cps7l")
+atlas = ExtResource("2_aehll")
 region = Rect2(0, 0, 8, 8)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_aiudq"]
-atlas = ExtResource("1_cps7l")
+atlas = ExtResource("2_aehll")
 region = Rect2(8, 0, 8, 8)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_cbykv"]
-atlas = ExtResource("1_cps7l")
+atlas = ExtResource("2_aehll")
 region = Rect2(16, 0, 8, 8)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_snb8m"]
-atlas = ExtResource("1_cps7l")
+atlas = ExtResource("2_aehll")
 region = Rect2(24, 0, 8, 8)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_v7qer"]
-atlas = ExtResource("1_cps7l")
+atlas = ExtResource("2_aehll")
 region = Rect2(32, 0, 8, 8)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_hes8p"]
-atlas = ExtResource("1_cps7l")
+atlas = ExtResource("2_aehll")
 region = Rect2(40, 0, 8, 8)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_o3w1j"]
-atlas = ExtResource("1_cps7l")
+atlas = ExtResource("2_aehll")
 region = Rect2(48, 0, 8, 8)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_qwyqw"]
-atlas = ExtResource("1_cps7l")
+atlas = ExtResource("2_aehll")
 region = Rect2(56, 0, 8, 8)
 
 [node name="DeathParticle" type="Node2D"]
-script = ExtResource("1_4yuiw")
+script = ExtResource("1_yq4hu")
 
 [node name="GPUParticles1" type="GPUParticles2D" parent="."]
 emitting = false

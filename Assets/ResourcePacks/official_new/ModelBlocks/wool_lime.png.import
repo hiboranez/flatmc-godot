@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bn850bs82541s"
-path="res://.godot/imported/wool_lime.png-f57f9476d8b2456f109b947e13df86b5.ctex"
+path="res://.godot/imported/wool_lime.png-cf7418c7592a6e395322e68d087c18f1.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_new/ModelBlocks/wool_lime.png"
-dest_files=["res://.godot/imported/wool_lime.png-f57f9476d8b2456f109b947e13df86b5.ctex"]
+source_file="res://assets/ResourcePacks/official_new/ModelBlocks/wool_lime.png"
+dest_files=["res://.godot/imported/wool_lime.png-cf7418c7592a6e395322e68d087c18f1.ctex"]
 
 [params]
 

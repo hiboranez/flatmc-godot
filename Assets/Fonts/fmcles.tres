@@ -1,0 +1,13 @@
+[gd_resource type="FontVariation" load_steps=3 format=3 uid="uid://ck7gxbgy6ry6b"]
+
+[ext_resource type="FontFile" uid="uid://i8ixu8j7vjra" path="res://assets/fonts/mojangles.otf" id="1_3poxq"]
+[ext_resource type="FontFile" uid="uid://chh48t1stworc" path="res://assets/fonts/unifont.otf" id="2_gbsid"]
+
+[resource]
+fallbacks = Array[Font]([ExtResource("2_gbsid")])
+base_font = ExtResource("1_3poxq")
+opentype_features = {
+1667329140: 0
+}
+spacing_bottom = 15
+baseline_offset = 0.09

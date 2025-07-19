@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bwjs2v7ihtl8"
-path="res://.godot/imported/end_frame.png-f60d4665776952bea062b35d0036bd05.ctex"
+path="res://.godot/imported/end_frame.png-d32f7e9dae7845eceae1bb4ac66e5a37.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_old/ModelBlocks/end_frame.png"
-dest_files=["res://.godot/imported/end_frame.png-f60d4665776952bea062b35d0036bd05.ctex"]
+source_file="res://assets/ResourcePacks/official_old/ModelBlocks/end_frame.png"
+dest_files=["res://.godot/imported/end_frame.png-d32f7e9dae7845eceae1bb4ac66e5a37.ctex"]
 
 [params]
 

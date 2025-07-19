@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dv7b4hmbshg8t"
-path="res://.godot/imported/moon_phases.png-3c6ae8465a815a086186835e42ad2ce1.ctex"
+path="res://.godot/imported/moon_phases.png-5c00e22da9671235e82d8ff05ccf4305.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_old/Environments/moon_phases.png"
-dest_files=["res://.godot/imported/moon_phases.png-3c6ae8465a815a086186835e42ad2ce1.ctex"]
+source_file="res://assets/ResourcePacks/official_old/Environments/moon_phases.png"
+dest_files=["res://.godot/imported/moon_phases.png-5c00e22da9671235e82d8ff05ccf4305.ctex"]
 
 [params]
 

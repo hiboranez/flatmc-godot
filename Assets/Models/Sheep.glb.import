@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://cs16ehkdho4np"
-path="res://.godot/imported/Sheep.glb-fb3ecefe73764a357d2e6632b6365fa4.scn"
+path="res://.godot/imported/Sheep.glb-7186aa978094b3f9ba2b9ddeb33cbb86.scn"
 
 [deps]
 
-source_file="res://Assets/Models/Sheep.glb"
-dest_files=["res://.godot/imported/Sheep.glb-fb3ecefe73764a357d2e6632b6365fa4.scn"]
+source_file="res://assets/Models/Sheep.glb"
+dest_files=["res://.godot/imported/Sheep.glb-7186aa978094b3f9ba2b9ddeb33cbb86.scn"]
 
 [params]
 

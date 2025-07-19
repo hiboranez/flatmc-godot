@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://qfj6neb1x5xq"
-path="res://.godot/imported/sandstone_smooth.png-5a855cd1648be01c3dddfb5291ed5747.ctex"
+path="res://.godot/imported/sandstone_smooth.png-4d9dc5ee4ee4534868091edabad21bf3.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_old/ModelBlocks/sandstone_smooth.png"
-dest_files=["res://.godot/imported/sandstone_smooth.png-5a855cd1648be01c3dddfb5291ed5747.ctex"]
+source_file="res://assets/ResourcePacks/official_old/ModelBlocks/sandstone_smooth.png"
+dest_files=["res://.godot/imported/sandstone_smooth.png-4d9dc5ee4ee4534868091edabad21bf3.ctex"]
 
 [params]
 

@@ -1,9 +1,9 @@
 [gd_scene load_steps=7 format=3 uid="uid://bhyxpmrih3ijn"]
 
-[ext_resource type="Texture2D" uid="uid://cx13x00aocnau" path="res://Assets/Textures/GUI/inventory_grid.png" id="1_okcax"]
-[ext_resource type="Script" path="res://Assets/Scripts/InventoryGrid.gd" id="2_kedk6"]
-[ext_resource type="PackedScene" uid="uid://dpnk4w3vgwyft" path="res://Assets/Scenes/ItemIcon.tscn" id="3_latsn"]
-[ext_resource type="FontFile" uid="uid://byf04fyq8gvsp" path="res://Assets/Fonts/MinecraftAE.ttf" id="4_ntyvc"]
+[ext_resource type="Texture2D" uid="uid://cx13x00aocnau" path="res://assets/textures/ui/inventory_grid.png" id="1_okcax"]
+[ext_resource type="Script" path="res://assets/scripts/InventoryGrid.gd" id="2_kedk6"]
+[ext_resource type="PackedScene" uid="uid://dpnk4w3vgwyft" path="res://assets/scenes/ItemIcon.tscn" id="3_latsn"]
+[ext_resource type="FontFile" uid="uid://dahei608a1d0f" path="res://assets/fonts/MinecraftAE.ttf" id="4_ntyvc"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cjbd7"]
 bg_color = Color(0.270222, 0.270222, 0.270222, 1)

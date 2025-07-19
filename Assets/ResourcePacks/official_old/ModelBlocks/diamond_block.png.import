@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://0xo3nghnyre8"
-path="res://.godot/imported/diamond_block.png-49aed2f29178b1abfed3f3a65fd252a3.ctex"
+path="res://.godot/imported/diamond_block.png-d96e8e29b151a0f9b56c0224740874ba.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_old/ModelBlocks/diamond_block.png"
-dest_files=["res://.godot/imported/diamond_block.png-49aed2f29178b1abfed3f3a65fd252a3.ctex"]
+source_file="res://assets/ResourcePacks/official_old/ModelBlocks/diamond_block.png"
+dest_files=["res://.godot/imported/diamond_block.png-d96e8e29b151a0f9b56c0224740874ba.ctex"]
 
 [params]
 

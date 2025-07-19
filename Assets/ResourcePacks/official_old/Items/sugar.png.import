@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cwaoml4xtbv76"
-path="res://.godot/imported/sugar.png-43cbe3dbffd6f6561b67956cf2b09b8c.ctex"
+path="res://.godot/imported/sugar.png-d3288f3af1cde85a1baf0c8be74d41bf.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_old/Items/sugar.png"
-dest_files=["res://.godot/imported/sugar.png-43cbe3dbffd6f6561b67956cf2b09b8c.ctex"]
+source_file="res://assets/ResourcePacks/official_old/Items/sugar.png"
+dest_files=["res://.godot/imported/sugar.png-d3288f3af1cde85a1baf0c8be74d41bf.ctex"]
 
 [params]
 

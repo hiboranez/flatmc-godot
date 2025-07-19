@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=4 uid="uid://dqd56smycgtnn"]
 
-[ext_resource type="TileSet" uid="uid://cgix634ydmo4p" path="res://Assets/TileSets/official_old.tres" id="1_0wcka"]
+[ext_resource type="TileSet" uid="uid://cgix634ydmo4p" path="res://assets/TileSets/official_old.tres" id="1_0wcka"]
 
 [node name="Node2D" type="ParallaxBackground"]
 offset = Vector2(500, 400)

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c16wy17rph6xm"
-path="res://.godot/imported/stone_hoe.png-41d9270e51d09bc1ecd5374a03aff95f.ctex"
+path="res://.godot/imported/stone_hoe.png-8fa58c52cb15f219d1fc0ba372e93fe2.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_new/Items/stone_hoe.png"
-dest_files=["res://.godot/imported/stone_hoe.png-41d9270e51d09bc1ecd5374a03aff95f.ctex"]
+source_file="res://assets/ResourcePacks/official_new/Items/stone_hoe.png"
+dest_files=["res://.godot/imported/stone_hoe.png-8fa58c52cb15f219d1fc0ba372e93fe2.ctex"]
 
 [params]
 

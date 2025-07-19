@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cphkpw73jalju"
-path="res://.godot/imported/emerald_block.png-28fca1d5304cec413240b454b1e5d245.ctex"
+path="res://.godot/imported/emerald_block.png-918ddb24e8a38c934d064c058e869303.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_new/Blocks/emerald_block.png"
-dest_files=["res://.godot/imported/emerald_block.png-28fca1d5304cec413240b454b1e5d245.ctex"]
+source_file="res://assets/ResourcePacks/official_new/Blocks/emerald_block.png"
+dest_files=["res://.godot/imported/emerald_block.png-918ddb24e8a38c934d064c058e869303.ctex"]
 
 [params]
 

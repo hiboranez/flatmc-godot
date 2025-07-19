@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dxxj75er44s6k"
-path="res://.godot/imported/cow.png-ad5372a41ab3a06fe6ce5e9efa2650bb.ctex"
+path="res://.godot/imported/cow.png-68490179672d5a78ea71e133c01c1bcb.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_old/Entites/cow.png"
-dest_files=["res://.godot/imported/cow.png-ad5372a41ab3a06fe6ce5e9efa2650bb.ctex"]
+source_file="res://assets/ResourcePacks/official_old/Entites/cow.png"
+dest_files=["res://.godot/imported/cow.png-68490179672d5a78ea71e133c01c1bcb.ctex"]
 
 [params]
 

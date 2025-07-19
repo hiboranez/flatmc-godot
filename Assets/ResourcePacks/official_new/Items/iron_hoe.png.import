@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://f5744ash1dww"
-path="res://.godot/imported/iron_hoe.png-1df1f78ff7d9278ad453296ff6aafa3a.ctex"
+path="res://.godot/imported/iron_hoe.png-b3983751abefd3e4ac5372c1986fd183.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_new/Items/iron_hoe.png"
-dest_files=["res://.godot/imported/iron_hoe.png-1df1f78ff7d9278ad453296ff6aafa3a.ctex"]
+source_file="res://assets/ResourcePacks/official_new/Items/iron_hoe.png"
+dest_files=["res://.godot/imported/iron_hoe.png-b3983751abefd3e4ac5372c1986fd183.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bmu0yifo64m76"
-path="res://.godot/imported/wool_light_gray.png-ea7d01e1d7028bd41a1ef3334843d75c.ctex"
+path="res://.godot/imported/wool_light_gray.png-655b1e68bd91705f2048c19afb06200c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_new/ModelBlocks/wool_light_gray.png"
-dest_files=["res://.godot/imported/wool_light_gray.png-ea7d01e1d7028bd41a1ef3334843d75c.ctex"]
+source_file="res://assets/ResourcePacks/official_new/ModelBlocks/wool_light_gray.png"
+dest_files=["res://.godot/imported/wool_light_gray.png-655b1e68bd91705f2048c19afb06200c.ctex"]
 
 [params]
 

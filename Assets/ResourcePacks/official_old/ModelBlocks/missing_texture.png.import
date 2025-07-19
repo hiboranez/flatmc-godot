@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ca0fg15x86lrk"
-path="res://.godot/imported/missing_texture.png-23e050e17e9644dbdbd33b8189a6b1a1.ctex"
+path="res://.godot/imported/missing_texture.png-16e61579fb21444c307f1e85aedd60cd.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_old/ModelBlocks/missing_texture.png"
-dest_files=["res://.godot/imported/missing_texture.png-23e050e17e9644dbdbd33b8189a6b1a1.ctex"]
+source_file="res://assets/ResourcePacks/official_old/ModelBlocks/missing_texture.png"
+dest_files=["res://.godot/imported/missing_texture.png-16e61579fb21444c307f1e85aedd60cd.ctex"]
 
 [params]
 

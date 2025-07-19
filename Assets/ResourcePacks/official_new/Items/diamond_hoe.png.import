@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://desxqsyn6sfrl"
-path="res://.godot/imported/diamond_hoe.png-72ed4fd83ba40b9646caf367a4b2b601.ctex"
+path="res://.godot/imported/diamond_hoe.png-c858695fea3ba1ef5a6d548c0756c9a8.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_new/Items/diamond_hoe.png"
-dest_files=["res://.godot/imported/diamond_hoe.png-72ed4fd83ba40b9646caf367a4b2b601.ctex"]
+source_file="res://assets/ResourcePacks/official_new/Items/diamond_hoe.png"
+dest_files=["res://.godot/imported/diamond_hoe.png-c858695fea3ba1ef5a6d548c0756c9a8.ctex"]
 
 [params]
 

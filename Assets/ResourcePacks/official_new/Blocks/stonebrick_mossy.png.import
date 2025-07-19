@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dcw1a8ohdevvr"
-path="res://.godot/imported/stonebrick_mossy.png-468c04870f97c2566046f5507a778e96.ctex"
+path="res://.godot/imported/stonebrick_mossy.png-7513fb2b3879a67aa1483aa5ef82cabe.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_new/Blocks/stonebrick_mossy.png"
-dest_files=["res://.godot/imported/stonebrick_mossy.png-468c04870f97c2566046f5507a778e96.ctex"]
+source_file="res://assets/ResourcePacks/official_new/Blocks/stonebrick_mossy.png"
+dest_files=["res://.godot/imported/stonebrick_mossy.png-7513fb2b3879a67aa1483aa5ef82cabe.ctex"]
 
 [params]
 

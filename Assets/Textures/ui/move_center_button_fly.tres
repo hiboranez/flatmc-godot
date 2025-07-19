@@ -1,0 +1,7 @@
+[gd_resource type="AtlasTexture" load_steps=2 format=3 uid="uid://b865g1kv46nt0"]
+
+[ext_resource type="Texture2D" uid="uid://cqpbp4dic383f" path="res://assets/textures/ui/unknown_version_gui.webp" id="1_ovor3"]
+
+[resource]
+atlas = ExtResource("1_ovor3")
+region = Rect2(108, 137, 18, 18)

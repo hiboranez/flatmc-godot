@@ -13,9 +13,6 @@ extends Control
 @onready var sneak_button_pressed_texture = load("res://Assets/Textures/GUI/sneak_pressed.png") as Texture2D
 @onready var switch_layer_button_texture = load("res://Assets/Textures/GUI/switch_layer.png") as Texture2D
 @onready var switch_layer_button_pressed_texture = load("res://Assets/Textures/GUI/switch_layer_pressed.png") as Texture2D
-@onready var notice_scene = load("res://Assets/Scenes/Notice.tscn") as PackedScene
-@onready var big_notice_scene = load("res://Assets/Scenes/BigNotice.tscn") as PackedScene
-@onready var secondary_confirmation_scene = load("res://Assets/Scenes/SecondaryConfirmation.tscn") as PackedScene
 @onready var achievement_get_scene = load("res://Assets/Scenes/AchievementGet.tscn") as PackedScene
 @onready var achievement_info_scene = load("res://Assets/Scenes/AchievementInfo.tscn") as PackedScene
 @onready var ping_scene = load("res://Assets/Scenes/Ping.tscn") as PackedScene
@@ -35,7 +32,6 @@ extends Control
 @onready var animation:AnimationPlayer = $AnimationPlayer
 @onready var click_audio_player = $ClickAudioPlayer
 @onready var server_detects = $ServerDetects
-@onready var bgm_audio_player = $BgmAudioPlayer
 
 class Chunk:
 	static var para_list = [
@@ -68,7 +64,6 @@ const FLOAT_DELTA: float = 0.01
 const ITEM_NAME_SHOW_TIME: float = 2
 const ITEM_NAME_DISAPPEAR_TIME: float = 0.2
 const DOUBLE_CLICK_THRESHOLD:float = 0.25
-const CONFIG_PASSWORD: String = "QQ1241999312"
 const DEFAULT_PLAYER_SPAWN_POS = Vector2(0, -1)
 const DEFAULT_PLAYER_FACE_STATE = 1
 const DEFAULT_PLAYER_IS_FLYING = false
@@ -108,11 +103,6 @@ const DROP_ALL_TIME = 1.0
 const DISPATCH_DELTA_TIME = 0.005
 
 # 固定数据
-var default_skin_path = "res://Assets/Textures/Skins/Steve.png"
-var screenshot_path = "user://screenshots"
-var server_log_path = "user://local_server/logs"
-var server_root_path = "user://local_server"
-var server_path = "user://servers"
 var default_resource_pack = "official_new"
 var default_effect_dict = {
 	"hungry": 0
@@ -156,7 +146,7 @@ var block_ids: Dictionary
 var block_ids_initial: Dictionary
 var block_ids_0_1: Dictionary
 var block_ids_0_2: Dictionary
-var options: Dictionary
+var settings: Dictionary
 var world_level_infos: Dictionary
 var default_item_bar_names: Array
 var default_item_bar_amounts: Array
@@ -223,18 +213,20 @@ var player_path
 var language
 var game
 
+var texture_dict = {}
+
 func _ready() -> void:
 	# 隐藏自身
 	self.hide()
-	
+	return
 	# 加载数据
-	var block_id_dict = load_json_file("res://Assets/Data/block_id.json", {"all" : "int"})
+	var block_id_dict = DataManager.load_json_file("res://Assets/Data/block_id.json", {"all" : "int"})
 	block_ids_initial = block_id_dict["initial"]
 	block_ids_0_1 = block_id_dict["0.1.x"]
 	block_ids_0_2 = block_id_dict["0.2.x"]
-	var options_dict = load_json_file("res://Assets/Data/options.json", {})
-	options = options_dict["options"]
-	world_level_infos = options_dict["world_level_infos"]
+	var settings_dict = DataManager.load_json_file("res://Assets/Data/settings.json", {})
+	settings = settings_dict["settings"]
+	world_level_infos = settings_dict["world_level_infos"]
 	var current_time = Time.get_datetime_string_from_system(false, true).replace(" ", "  ").replace("-", "/")
 	world_level_infos["last_modified"] = current_time
 	var game_data_type_dict = {
@@ -242,9 +234,9 @@ func _ready() -> void:
 		"item_model_types" : "int",
 		"item_max_amounts" : "int"
 	}
-	var recipe_dict = load_json_file("res://Assets/Data/recipe.json", {})
+	var recipe_dict = DataManager.load_json_file("res://Assets/Data/recipe.json", {})
 	crafting_recipe_dict = recipe_dict["crafting_recipe_dict"]
-	var game_dict = load_json_file("res://Assets/Data/game.json", game_data_type_dict)
+	var game_dict = DataManager.load_json_file("res://Assets/Data/game.json", game_data_type_dict)
 	default_item_bar_names = game_dict["default_item_bar_names"]
 	default_item_bar_amounts = game_dict["default_item_bar_amounts"]
 	transparent_block_names = game_dict["transparent_block_names"]
@@ -290,9 +282,9 @@ func _ready() -> void:
 			default_achievement_progress_dict[achievement][progress] = false
 	for i in range(8):
 		destroy_light_textures[i+1] = load("res://Assets/Textures/GUI/destroy"+str(i+1)+".png") as Texture2D
-	button_chosen = load("res://Assets/Textures/GUI/button_chosen.png") as Texture2D
-	button_disabled = load("res://Assets/Textures/GUI/button_disabled.png") as Texture2D
-	button_normal = load("res://Assets/Textures/GUI/button_normal.png") as Texture2D
+	button_chosen = load("res://Assets/Textures/GUI/small_button_chosen.png") as Texture2D
+	button_disabled = load("res://Assets/Textures/GUI/game_button_disabled.png") as Texture2D
+	button_normal = load("res://Assets/Textures/GUI/small_button.png") as Texture2D
 	small_button_chosen = load("res://Assets/Textures/GUI/small_button_chosen.png") as Texture2D
 	small_button_normal = load("res://Assets/Textures/GUI/small_button.png") as Texture2D
 	middle_button_chosen = load("res://Assets/Textures/GUI/middle_button_chosen.png") as Texture2D
@@ -313,24 +305,24 @@ func _ready() -> void:
 		transparent_block_ids.append(get_block_id_by_name(transparent_block_name))
 	
 	# 如果是专用服务器，直接开服
-	if is_dedicated_server:
-		var world_server_path = "user://worlds/world"
-		if not DirAccess.dir_exists_absolute(world_server_path):
-			DirAccess.make_dir_recursive_absolute(world_server_path)
-			dedicated_server_create_world()
-			await get_tree().create_timer(1).timeout
-		select_world = "world"
-		if not DirAccess.dir_exists_absolute(server_log_path):
-			DirAccess.make_dir_recursive_absolute(server_log_path)
-		if not FileAccess.file_exists(server_root_path+"/server.properties"):
-			var config = ConfigFile.new()
-			config.set_value("server", "spawn_protection_x_size", "16")
-			config.set_value("server", "spawn_protection_y_size", "-1")
-			config.save(server_root_path+"/server.properties")
-		if not FileAccess.file_exists(server_root_path+"/ops.txt"):
-			var config = ConfigFile.new()
-			config.save(server_root_path+"/ops.txt")
-		StaticLoad.change_scene("res://Assets/Scenes/LoadingWorldUI.tscn")
+	#if is_dedicated_server:
+		#var world_server_path = "user://worlds/world"
+		#if not DirAccess.dir_exists_absolute(world_server_path):
+			#DirAccess.make_dir_recursive_absolute(world_server_path)
+			#dedicated_server_create_world()
+			#await get_tree().create_timer(1).timeout
+		#select_world = "world"
+		#if not DirAccess.dir_exists_absolute(server_log_path):
+			#DirAccess.make_dir_recursive_absolute(server_log_path)
+		#if not FileAccess.file_exists(server_root_path+"/server.properties"):
+			#var config = ConfigFile.new()
+			#config.set_value("server", "spawn_protection_x_size", "16")
+			#config.set_value("server", "spawn_protection_y_size", "-1")
+			#config.save(server_root_path+"/server.properties")
+		#if not FileAccess.file_exists(server_root_path+"/ops.txt"):
+			#var config = ConfigFile.new()
+			#config.save(server_root_path+"/ops.txt")
+		#SceneManager.change_scene("loading_world_menu")
 
 func _process(delta: float) -> void:
 	process_stored_rpc()
@@ -338,31 +330,11 @@ func _process(delta: float) -> void:
 func update_game_node():
 	game = $"/root/Game"
 
-func update_default_skin_path():
-	var config = ConfigFile.new()
-	var result = config.load("user://configs.cfg")
-	if result == OK:
-		var resource_pack = config.get_value("options", "resource_pack")
-		default_skin_path = "res://Assets/ResourcePacks/"+resource_pack+"/Skins/Steve.png"
-
 func update_select_world_path():
 	if select_world != null:
 		world_path = "user://worlds/"+select_world
 		region_path = world_path+"/regions"
 		player_path = world_path+"/players"
-
-func change_scene(path):
-	#self.show()
-	#self.set_layer(999)
-	#animation.play("show")
-	#await animation.animation_finished
-	if typeof(path) == TYPE_STRING:
-		get_tree().change_scene_to_file(path)
-	else:
-		get_tree().change_scene_to_packed(path)
-	#animation.play_backwards("show")
-	#await animation.animation_finished
-	#self.set_layer(-1)
 
 func save_level_dat(world_config, change_value: Dictionary):
 	for key in world_level_infos.keys():
@@ -391,7 +363,7 @@ func get_mca_value(got_chunk_pos):
 	var chunk_config = ConfigFile.new()
 	var x_chunk = got_chunk_pos[0]
 	var y_chunk = got_chunk_pos[1]
-	var chunk_result = chunk_config.load_encrypted_pass(StaticLoad.region_path+"/r."+str(x_chunk)+"."+str(y_chunk)+".mca", CONFIG_PASSWORD)
+	var chunk_result = chunk_config.load_encrypted_pass(StaticLoad.region_path+"/r."+str(x_chunk)+"."+str(y_chunk)+".mca", SettingsManager.get_default_value("config_password"))
 	if chunk_result != OK:
 		return [false]
 	var blocks = chunk_config.get_value("chunk", "blocks", [])
@@ -468,7 +440,7 @@ func convert_world_version(world_name, old_version):
 	for region in regions:
 		var splits = region.split(".")
 		var chunk_config = ConfigFile.new()
-		var chunk_result = chunk_config.load_encrypted_pass(region_path_tmp+"/"+region, StaticLoad.CONFIG_PASSWORD)
+		var chunk_result = chunk_config.load_encrypted_pass(region_path_tmp+"/"+region, StaticLoad.SettingsManager.get_default_value("config_password"))
 		if chunk_result != OK:
 			return
 		var blocks = "null"
@@ -507,16 +479,16 @@ func convert_world_version(world_name, old_version):
 		mca.set_value("chunk", "blocks", blocks)
 		mca.set_value("chunk", "no_reach_blocks", no_reach_blocks)
 		mca.set_value("chunk", "back_blocks", back_blocks)
-		mca.save_encrypted_pass(region_path_tmp+"/r."+splits[1]+"."+splits[2]+".mca", StaticLoad.CONFIG_PASSWORD)
+		mca.save_encrypted_pass(region_path_tmp+"/r."+splits[1]+"."+splits[2]+".mca", StaticLoad.SettingsManager.get_default_value("config_password"))
 	var world_path_tmp = "user://worlds/"+world_name
 	var level = ConfigFile.new()
 	var current_time = Time.get_datetime_string_from_system(false, true).replace(" ", "  ").replace("-", "/")
 	var level_change_value = {
 		"last_modified": current_time,
-		"version": StaticLoad.options["version"]
+		"version": StaticLoad.settings["version"]
 	}
 	save_level_dat(level, level_change_value)
-	level.save_encrypted_pass(world_path_tmp+"/level.dat", StaticLoad.CONFIG_PASSWORD)
+	level.save_encrypted_pass(world_path_tmp+"/level.dat", StaticLoad.SettingsManager.get_default_value("config_password"))
 
 func convert_blocks_version(blocks, block_ids_old):
 	for i in range(16):
@@ -538,69 +510,6 @@ func convert_blocks_version(blocks, block_ids_old):
 						new_id = block_ids[block_name_tmp]
 			blocks[i][j] = new_id
 	return blocks
-
-func check_options_outdated():
-	var exsit_options = {"is_option_outdated": false}
-	var config = ConfigFile.new()
-	var result = config.load("user://configs.cfg")
-	if result != OK:
-		exsit_options["is_option_outdated"] = true
-		return exsit_options
-	for key in StaticLoad.options.keys():
-		var option = config.get_value("options", key, null)
-		if option == null:
-			exsit_options["is_option_outdated"] = true
-		else:
-			exsit_options[key] = option
-	return exsit_options
-
-func generate_options(exist_options: Dictionary):
-	var default_config = ConfigFile.new()
-	TranslationServer.set_locale("zh")
-	for key in options.keys():
-		if key == "version":
-			continue
-		if exist_options.has(key):
-			default_config.set_value("options", key, exist_options[key])
-		else:
-			default_config.set_value("options", key, str(options[key]))
-	default_config.save("user://configs.cfg")
-
-func save_options(change_value: Dictionary):
-	var current_config = ConfigFile.new()
-	var config = ConfigFile.new()
-	var result = current_config.load("user://configs.cfg")
-	if result != OK:
-		return
-	for key in options.keys():
-		var current_value = current_config.get_value("options", key)
-		if key == "player_name" and current_value.length() > MAX_NAME_LENGTH:
-			current_value = current_value.substr(0,MAX_NAME_LENGTH)
-		config.set_value("options", key, current_value)
-	for key in change_value.keys():
-		config.set_value("options", key, change_value[key])
-	config.save("user://configs.cfg")
-
-func pop_notification(root, title: String, info: String, is_destroying = true):
-	var notice = notice_scene.instantiate()
-	root.add_child(notice)
-	notice.set_title(title)
-	notice.set_text(info)
-	if is_destroying:
-		notice.destroy_count_down()
-
-func pop_big_notification(root, title: String, info: String, button_text: String):
-	var notice = big_notice_scene.instantiate()
-	root.add_child(notice)
-	notice.set_title(title)
-	notice.set_text(info)
-	notice.set_button_text(button_text)
-
-func pop_secondary_confirmation(root, info: String, function: Callable):
-	var secondary_confirmation = secondary_confirmation_scene.instantiate()
-	root.add_child(secondary_confirmation)
-	secondary_confirmation.set_text(info)
-	secondary_confirmation.connect_secondary_confirmation_button_1(function)
 
 func process_stored_rpc():
 	if not is_muti_mode:
@@ -839,33 +748,6 @@ func generate_chunk(pos: Vector2i, got_seed, world_type):
 				#row.append(16)
 			#blocks.append(row)
 	#return blocks
-
-func load_json_file(file_path, data_type_dict):
-	if FileAccess.file_exists(file_path):
-		var data_file = FileAccess.open(file_path, FileAccess.READ)
-		var parsed_result = JSON.parse_string(data_file.get_as_text())
-		if parsed_result is Dictionary:
-			if data_type_dict.has("all"):
-				data_type_dict = {}
-				for data in parsed_result:
-					data_type_dict[data] = "int"
-			for data in parsed_result:
-				for key in parsed_result[data]:
-					if key is float:
-						key = int(key)
-				if data_type_dict.has(data):
-					if data_type_dict[data] == "int":
-						if parsed_result[data] is Dictionary:
-							for key in parsed_result[data]:
-								parsed_result[data][key] = int(parsed_result[data][key])
-						elif parsed_result[data] is Array:
-							for i in range(parsed_result[data].size()):
-								parsed_result[data][i] = int(parsed_result[data][i])
-			return parsed_result
-		else:
-			print("读取出错")
-	else:
-		print("文件未找到")
 
 func calculate_sight_is_blocked(pos1, pos2):
 	var tile_map_layer_tmp = game.tile_map_layer
@@ -1115,22 +997,6 @@ func get_on_or_off_by_selection(selected, default="on"):
 		#elif selected == 0:
 			#return "off"
 
-func get_selection_by_on_or_off(on_or_off, default="on"):
-	if on_or_off == "on":
-		return 0
-	elif on_or_off == "off":
-		return 1
-	#if default == "on":
-		#if on_or_off == "on":
-			#return 0
-		#elif on_or_off == "off":
-			#return 1
-	#else:
-		#if on_or_off == "on":
-			#return 1
-		#elif on_or_off == "off":
-			#return 0
-
 func get_level_by_ping(ping: int):
 	if ping <= 50:
 		return 5
@@ -1156,13 +1022,13 @@ func dedicated_server_create_world():
 	var current_time = Time.get_datetime_string_from_system(false, true).replace(" ", "  ").replace("-", "/")
 	var level_change_value = {
 		"last_modified": current_time,
-		"version": StaticLoad.options["version"],
+		"version": StaticLoad.settings["version"],
 		"seed": "1241999312",
 		"world_type": "default",
 		"gamemode": "survival"
 	}
 	save_level_dat(level, level_change_value)
-	level.save_encrypted_pass(world_path+"/level.dat", StaticLoad.CONFIG_PASSWORD)
+	level.save_encrypted_pass(world_path+"/level.dat", StaticLoad.SettingsManager.get_default_value("config_password"))
 	for x in range(-1,1):
 		for y in range(-1,1):
 			var mca = ConfigFile.new()
@@ -1173,7 +1039,7 @@ func dedicated_server_create_world():
 				"back_blocks" : chunk[2]
 			}
 			set_mca_value(mca, value_dict)
-			mca.save_encrypted_pass(region_path+"/r."+str(x)+"."+str(y)+".mca", StaticLoad.CONFIG_PASSWORD)
+			mca.save_encrypted_pass(region_path+"/r."+str(x)+"."+str(y)+".mca", StaticLoad.SettingsManager.get_default_value("config_password"))
 
 func get_random_available_port():
 	var port_range_start = 1024
@@ -1193,55 +1059,11 @@ func get_random_available_port():
 
 func check_server_version(check_version):
 	var splits_1 = check_version.split(".")
-	var splits_2 = options["version"].split(".")
+	var splits_2 = settings["version"].split(".")
 	for i in range(3):
 		if splits_1[i] != splits_2[i]:
 			return false
 	return true
-
-func record_server_log(log_name, content, is_endl = true):
-	if not FileAccess.file_exists(server_log_path+"/"+log_name+".txt"):
-		var log_config = ConfigFile.new()
-		log_config.save(server_log_path+"/"+log_name+".txt")
-	var file_read = FileAccess.open(server_log_path+"/"+log_name+".txt", FileAccess.READ)
-	var content_read = file_read.get_as_text()
-	var file = FileAccess.open(server_log_path+"/"+log_name+".txt", FileAccess.WRITE)
-	file.store_string(content_read)
-	if is_endl:
-		file.store_string(content+"\n")
-	else:
-		file.store_string(content)
-	file.close()
-
-func start_server():
-	reset_signals(true)
-	if not is_dedicated_server:
-		game.broadcast_to_person(game.player.player_name, tr("OPENING_PORT"), "gold")
-		game.op_list.append(game.player.player_name.to_lower())
-	var port
-	if is_dedicated_server:
-		port = 12419
-	else:
-		port = get_random_available_port()
-	var err = multiplayer_peer.create_server(port)
-	if OK != err:
-		game.broadcast_to_person(game.player.player_name, tr("OPEN_SERVER_FAIL_1")+StaticLoad.HOST_IP+":"+str(port)+tr("OPEN_SERVER_FAIL_2"), "pink")
-		return
-	if is_dedicated_server:
-		var text = "["+get_time_string(false)+" INFO]: "+"Server opened on 127.0.0.1:12419"
-		print(text)
-		record_server_log(Time.get_date_string_from_system(), text)
-	multiplayer.multiplayer_peer = multiplayer_peer
-	if not is_dedicated_server:
-		game.pause_button_5.disabled = true
-		game.broadcast_to_person(game.player.player_name, tr("OPEN_SERVER_SUCCESS")+StaticLoad.HOST_IP+":"+str(port), "chartreuse")
-	var ping_instance = ping_scene.instantiate()
-	ping_instance.target_peer_id = 1
-	ping_instance.ping = 1
-	ping_peer_dict[1] = ping_instance
-	StaticLoad.is_muti_mode = true
-	ServiceDiscovery.server_data = {'Name':str(port)+"|"+game.player.player_name}
-	ServiceDiscovery.set_server()
 
 func clear_connections():
 	multiplayer.multiplayer_peer.close()
@@ -1312,7 +1134,7 @@ func client_got_server_disconnected():
 	is_in_game = false
 	is_muti_mode = false
 	force_quit_reason = "connection_interrupted"
-	change_scene("res://Assets/Scenes/ForceQuitUI.tscn")
+	SceneManager.change_scene("force_quit_menu")
 
 func client_got_connected_to_server():
 	#print(multiplayer.get_unique_id()," : connected to server")
@@ -1355,7 +1177,7 @@ func peer_disconnect_broadcast(client_peer_id):
 	if StaticLoad.is_dedicated_server:
 		var text = "["+get_time_string(false)+" INFO]: "+player_peer_dict[client_peer_id].player_name+" left the game"
 		print(text)
-		record_server_log(Time.get_date_string_from_system(), text)
+		ServerManager.record_server_log(Time.get_date_string_from_system(), text)
 	destroy_peer(client_peer_id)
 
 @rpc("any_peer", "call_remote", "reliable", 1)
@@ -1419,7 +1241,7 @@ func request_for_update_chunk(client_peer_id, is_init, x_chunk, y_chunk):
 		var mca = ConfigFile.new()
 		var worlds_path = "user://worlds"
 		var world_config = ConfigFile.new()
-		var world_info = world_config.load_encrypted_pass(worlds_path+"/"+StaticLoad.select_world+"/level.dat", StaticLoad.CONFIG_PASSWORD)
+		var world_info = world_config.load_encrypted_pass(worlds_path+"/"+StaticLoad.select_world+"/level.dat", StaticLoad.SettingsManager.get_default_value("config_password"))
 		if world_info != OK:
 			return
 		var seed = world_config.get_value("world", "seed", "1241999312")
@@ -1435,7 +1257,7 @@ func request_for_update_chunk(client_peer_id, is_init, x_chunk, y_chunk):
 		no_reach_blocks = chunk[1]
 		back_blocks = chunk[2]
 		set_mca_value(mca, value_dict)
-		mca.save_encrypted_pass(region_path+"/r."+str(x_chunk)+"."+str(y_chunk)+".mca", CONFIG_PASSWORD)
+		mca.save_encrypted_pass(region_path+"/r."+str(x_chunk)+"."+str(y_chunk)+".mca", SettingsManager.get_default_value("config_password"))
 		game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)] = Chunk.new()
 		game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)].is_to_save = false
 		game.loaded_chunks_timer[str(x_chunk)+"."+str(y_chunk)] = StaticLoad.CHUNK_FREE_TIME
@@ -1620,7 +1442,7 @@ func request_for_connect_state_check(client_peer_id, player_name, version_tmp):
 		if player_peer_dict[id].player_name.to_lower() == player_name.to_lower():
 			rpc_id(client_peer_id, "reply_for_connect_state_check", "same_player_name")
 			return
-	if version_tmp != options["version"]:
+	if version_tmp != settings["version"]:
 		rpc_id(client_peer_id, "reply_for_connect_state_check", "version_conflict")
 		return
 	if player_name.length() > MAX_NAME_LENGTH:
@@ -1659,12 +1481,12 @@ func request_for_player_info(client_peer_id, player_name):
 	if FileAccess.file_exists(player_path+"/"+player_name.to_lower()+".dat"):
 		var worlds_path = "user://worlds"
 		var world_config = ConfigFile.new()
-		var world_info = world_config.load_encrypted_pass(worlds_path+"/"+StaticLoad.select_world+"/level.dat", StaticLoad.CONFIG_PASSWORD)
+		var world_info = world_config.load_encrypted_pass(worlds_path+"/"+StaticLoad.select_world+"/level.dat", StaticLoad.SettingsManager.get_default_value("config_password"))
 		var gamemode
 		if world_info == OK:
 			gamemode = world_config.get_value("world", "gamemode", "survival")
 		var player_config = ConfigFile.new()
-		var player_result = player_config.load_encrypted_pass(StaticLoad.player_path+"/"+player_name.to_lower()+".dat", StaticLoad.CONFIG_PASSWORD)
+		var player_result = player_config.load_encrypted_pass(StaticLoad.player_path+"/"+player_name.to_lower()+".dat", StaticLoad.SettingsManager.get_default_value("config_password"))
 		if player_result != OK:
 			return
 		var player_position = player_config.get_value("player", "position", DEFAULT_PLAYER_SPAWN_POS)
@@ -1722,7 +1544,7 @@ func broadcast_player_join_game(got_name_tag):
 	if is_dedicated_server:
 		var text = "["+get_time_string(false)+" INFO]: "+got_name_tag+" joined the game"
 		print(text)
-		record_server_log(Time.get_date_string_from_system(), text)
+		ServerManager.record_server_log(Time.get_date_string_from_system(), text)
 
 @rpc("any_peer", "call_remote", "reliable", 1)
 func request_for_world_info(client_peer_id, is_fresh):
@@ -1748,7 +1570,7 @@ func request_for_update_player_inventory(client_peer_id, player_name):
 	if FileAccess.file_exists(player_path+"/"+player_name.to_lower()+".dat"):
 		var worlds_path = "user://worlds"
 		var player_config = ConfigFile.new()
-		var player_result = player_config.load_encrypted_pass(StaticLoad.player_path+"/"+player_name.to_lower()+".dat", StaticLoad.CONFIG_PASSWORD)
+		var player_result = player_config.load_encrypted_pass(StaticLoad.player_path+"/"+player_name.to_lower()+".dat", StaticLoad.SettingsManager.get_default_value("config_password"))
 		if player_result != OK:
 			return
 		var item_bar_names = player_config.get_value("player", "item_bar_names", default_item_bar_names)

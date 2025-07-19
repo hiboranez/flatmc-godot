@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://birqfkol7jwgq"
-path="res://.godot/imported/planks_oak.png-fe7987f17873a6c2cc219d3e6cdc7f46.ctex"
+path="res://.godot/imported/planks_oak.png-7740d051e8ec463a7273f6ecedd12135.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_new/ModelBlocks/planks_oak.png"
-dest_files=["res://.godot/imported/planks_oak.png-fe7987f17873a6c2cc219d3e6cdc7f46.ctex"]
+source_file="res://assets/ResourcePacks/official_new/ModelBlocks/planks_oak.png"
+dest_files=["res://.godot/imported/planks_oak.png-7740d051e8ec463a7273f6ecedd12135.ctex"]
 
 [params]
 

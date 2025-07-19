@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ciub83n243h2n"
-path="res://.godot/imported/wheat_stage_2.png-93179b5f596ff88794854443ef285203.ctex"
+path="res://.godot/imported/wheat_stage_2.png-3913291a30bfef9bf3132dcae354d9b6.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ResourcePacks/official_new/Items/wheat_stage_2.png"
-dest_files=["res://.godot/imported/wheat_stage_2.png-93179b5f596ff88794854443ef285203.ctex"]
+source_file="res://assets/ResourcePacks/official_new/Items/wheat_stage_2.png"
+dest_files=["res://.godot/imported/wheat_stage_2.png-3913291a30bfef9bf3132dcae354d9b6.ctex"]
 
 [params]
 
