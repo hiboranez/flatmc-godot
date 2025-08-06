@@ -13,9 +13,10 @@ config_version=5
 config/name="FlatMC"
 config/description="我的世界2D版"
 config/version="Alpha v0.2.0"
-run/main_scene="res://assets/scenes/menu.tscn"
+run/main_scene="res://assets/scenes/game_init_menu.tscn"
 run/disable_stderr=true
 config/features=PackedStringArray("4.3", "Mobile")
+boot_splash/bg_color=Color(0.894118, 0.211765, 0.243137, 1)
 boot_splash/show_image=false
 boot_splash/image="res://assets/textures/ui/fmc_author_page.png"
 config/icon="res://assets/textures/ui/fmc_icon.png"
@@ -30,7 +31,9 @@ SceneManager="*res://assets/scripts/scene_manager.gd"
 AudioManager="*res://assets/scenes/audio_manager.tscn"
 SettingsManager="*res://assets/scripts/settings_manager.gd"
 ServerManager="*res://assets/scripts/server_manager.gd"
+WorldManager="*res://assets/scripts/world_manager.gd"
 DataManager="*res://assets/scripts/data_manager.gd"
+GameLoader="*res://assets/scenes/GameLoader.tscn"
 
 [display]
 

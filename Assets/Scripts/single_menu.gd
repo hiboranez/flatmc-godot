@@ -7,31 +7,40 @@ var selected_world: String = ""
 func _ready() -> void:
 	update_world_list()
 
-func update_world_list():
-	var current_worlds = world_list_vboxcontainer.get_children()
-	for world in current_worlds:
-		world.queue_free()
-	var worlds_path = "user://worlds"
-	if not DirAccess.dir_exists_absolute(worlds_path):
-		DirAccess.make_dir_recursive_absolute(worlds_path)
-	var world_list = DirAccess.get_directories_at(worlds_path)
-	for world in world_list:
-		var world_config = ConfigFile.new()
-		var world_info = world_config.load_encrypted_pass(worlds_path+"/"+world+"/level.dat", SettingsManager.get_default_value("config_password"))
-		if world_info != OK:
-			continue
-		var selection_button = SceneManager.get_scene("selection_button").instantiate()
-		world_list_vboxcontainer.add_child(selection_button)
-		selection_button.init("single_menu")
-		selection_button.icon = ImageTexture.create_from_image(Image.load_from_file(worlds_path+"/"+world+"/icon.png"))
-		selection_button.last_modified_label.text = tr("LAST_MODIFIED")+" : "+tr(world_config.get_value("world", "last_modified", "UNKNOWN"))
-		selection_button.version_label.text = tr("VERSION")+" : "+tr(world_config.get_value("world", "version", "UNKNOWN"))
-		selection_button.text = "   "+world
-
 func _notification(what):
 	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
 		AudioManager.play_static_audio("sound/ui/click")
 		SceneManager.change_scene("menu")
+
+func update_world_list():
+	var current_worlds = world_list_vboxcontainer.get_children()
+	for world in current_worlds:
+		world.queue_free()
+	var world_list_path = SettingsManager.get_default_value("world_list_path")
+	if not DirAccess.dir_exists_absolute(world_list_path):
+		DirAccess.make_dir_recursive_absolute(world_list_path)
+	var world_list = DirAccess.get_directories_at(world_list_path)
+	for world in world_list:
+		var world_config = ConfigFile.new()
+		var world_info = world_config.load_encrypted_pass(world_list_path+world+"/level.dat", SettingsManager.get_default_value("config_password"))
+		if world_info != OK:
+			continue
+		var world_button = SceneManager.get_scene("world_button").instantiate()
+		world_list_vboxcontainer.add_child(world_button)
+		var icon = ImageTexture.create_from_image(Image.load_from_file(world_list_path+world+"/icon.png"))
+		var update_dict = {
+			"world_name" : world,
+			"last_modified" : tr("LAST_MODIFIED")+" : "+tr(world_config.get_value("world", "last_modified", "UNKNOWN")),
+			"version" : tr("VERSION")+" : "+tr(world_config.get_value("world", "version", "UNKNOWN"))
+		}
+		if icon is ImageTexture:
+			update_dict["icon"] = icon
+		world_button.update_info(update_dict)
+
+func clear_selected_background():
+	var current_worlds = world_list_vboxcontainer.get_children()
+	for world in current_worlds:
+		world.selected_background.visible = false
 
 func enter_world():
 	#AudioManager.bgm_audio_player.set_process(false)
@@ -86,7 +95,6 @@ func _on_single_menu_edit_world_button_pressed() -> void:
 		return
 	var edit_world_menu = SceneManager.get_scene("edit_world_menu").instantiate()
 	add_child(edit_world_menu)
-	edit_world_menu.init(selected_world)
 
 func _on_single_menu_back_to_menu_button_pressed() -> void:
 	AudioManager.play_static_audio("sound/ui/click")

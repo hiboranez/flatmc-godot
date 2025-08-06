@@ -1,17 +1,43 @@
 extends Node
 
 var default_data_dict: Dictionary
+var default_block_id_dict: Dictionary
 
-func _ready() -> void:
+var block_id_dict: Dictionary
+
+func get_resource_amount() -> int:
+	return 1
+
+func update_resource() -> void:
 	var default_data_read_type_dict = {
 		"default_item_bar_amounts" : "int",
 		"item_model_types" : "int",
 		"item_max_amounts" : "int"
 	}
-	var default_data_dict = DataManager.load_json_file("res://assets/data/default_data.json", default_data_read_type_dict)
+	GameLoader.call_deferred("set_loading_info", "res://assets/data/default_data.json")
+	default_data_dict = load_json_file("res://assets/data/default_data.json", default_data_read_type_dict)
+	default_block_id_dict = load_json_file("res://assets/data/block_ids.json", {"all" : "int"})
+	GameLoader.add_loaded_amount()
+
+func update_block_id_dict() -> void:
+	var version = SettingsManager.get_default_setting("version")
+	var splits = version.split(".")
+	var version_range = splits[0]+"."+splits[1]+".x"
+	block_id_dict = default_block_id_dict[version_range]
 
 func get_default_data(default_data):
 	return default_data_dict[default_data]
+
+func get_block_id(got_name: String) -> int:
+	if not block_id_dict.has(got_name):
+		return -1
+	return block_id_dict[got_name]
+
+func get_block_name(got_id: int) -> String:
+	var found_name = block_id_dict.find_key(got_id)
+	if found_name == null:
+		return "NULL"
+	return found_name
 
 func load_json_file(file_path, data_type_dict) -> Dictionary:
 	if FileAccess.file_exists(file_path):

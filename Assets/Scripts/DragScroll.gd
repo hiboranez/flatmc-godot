@@ -4,7 +4,7 @@ var isDrag = false
 var startPos = 0
 var dragDir = 0
 
-func _on_scrollcontainer_gui_input(event):
+func _gui_input(event: InputEvent) -> void:
 	if StaticLoad.is_on_mobile_platform:
 		return
 	if event is InputEventMouseButton and event.pressed:

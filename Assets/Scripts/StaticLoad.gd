@@ -1,19 +1,6 @@
 extends Control
 
 # 预加载数据
-@onready var empty_heart_texture = load("res://Assets/Textures/GUI/empty_heart.png") as Texture2D
-@onready var flash_heart_texture = load("res://Assets/Textures/GUI/flash_heart.png") as Texture2D
-@onready var empty_hunger_texture = load("res://Assets/Textures/GUI/empty_hunger.png") as Texture2D
-@onready var flash_hunger_texture = load("res://Assets/Textures/GUI/flash_hunger.png") as Texture2D
-@onready var attack_button_texture = load("res://Assets/Textures/GUI/oreui_attack_button.png") as Texture2D
-@onready var attack_button_pressed_texture = load("res://Assets/Textures/GUI/oreui_attack_button_pressed.png") as Texture2D
-@onready var run_button_texture = load("res://Assets/Textures/GUI/oreui_sprint_button.png") as Texture2D
-@onready var run_button_pressed_texture = load("res://Assets/Textures/GUI/oreui_sprint_button_pressed.png") as Texture2D
-@onready var sneak_button_texture = load("res://Assets/Textures/GUI/sneak.png") as Texture2D
-@onready var sneak_button_pressed_texture = load("res://Assets/Textures/GUI/sneak_pressed.png") as Texture2D
-@onready var switch_layer_button_texture = load("res://Assets/Textures/GUI/switch_layer.png") as Texture2D
-@onready var switch_layer_button_pressed_texture = load("res://Assets/Textures/GUI/switch_layer_pressed.png") as Texture2D
-@onready var achievement_get_scene = load("res://Assets/Scenes/AchievementGet.tscn") as PackedScene
 @onready var achievement_info_scene = load("res://Assets/Scenes/AchievementInfo.tscn") as PackedScene
 @onready var ping_scene = load("res://Assets/Scenes/Ping.tscn") as PackedScene
 @onready var online_info_scene = load("res://Assets/Scenes/OnlineInfo.tscn") as PackedScene
@@ -336,29 +323,6 @@ func update_select_world_path():
 		region_path = world_path+"/regions"
 		player_path = world_path+"/players"
 
-func save_level_dat(world_config, change_value: Dictionary):
-	for key in world_level_infos.keys():
-		var current_value = world_config.get_value("world", key, world_level_infos[key])
-		world_config.set_value("world", key, current_value)
-	for key in change_value.keys():
-		world_config.set_value("world", key, change_value[key])
-
-func set_mca_value(got_mca, got_value_dict):
-	got_mca.set_value("chunk", "blocks", [])
-	got_mca.set_value("chunk", "no_reach_blocks", [])
-	got_mca.set_value("chunk", "back_blocks", [])
-	got_mca.set_value("chunk", "entity_list", [])
-	got_mca.set_value("chunk", "dirt_list", [])
-	got_mca.set_value("chunk", "grass_block_list", [])
-	got_mca.set_value("chunk", "seed_list", [])
-	got_mca.set_value("chunk", "sapling_list", [])
-	got_mca.set_value("chunk", "leaves_list", [])
-	got_mca.set_value("chunk", "farm_land_list", [])
-	got_mca.set_value("chunk", "sugar_cane_list", [])
-	got_mca.set_value("chunk", "sign_dict", {})
-	for key in got_value_dict:
-		got_mca.set_value("chunk", key, got_value_dict[key])
-
 func get_mca_value(got_chunk_pos):
 	var chunk_config = ConfigFile.new()
 	var x_chunk = got_chunk_pos[0]
@@ -487,7 +451,7 @@ func convert_world_version(world_name, old_version):
 		"last_modified": current_time,
 		"version": StaticLoad.settings["version"]
 	}
-	save_level_dat(level, level_change_value)
+	WorldManager.save_level_dat(level, level_change_value)
 	level.save_encrypted_pass(world_path_tmp+"/level.dat", StaticLoad.SettingsManager.get_default_value("config_password"))
 
 func convert_blocks_version(blocks, block_ids_old):
@@ -531,193 +495,7 @@ func process_stored_rpc():
 			process_reply_for_entity_func_by_uuid(stored_rpc[2], stored_rpc[3], stored_rpc[4])
 			stored_entity_rpc_list.erase(stored_rpc)
 
-func generate_chunk(pos: Vector2i, got_seed, world_type):
-	var seed = int(got_seed)
-	var blocks = []
-	var no_reach_blocks = []
-	var back_blocks = []
-	if world_type == "flat":
-		var x = pos[0]
-		var y = pos[1]
-		for i in range(16):
-			var row = []
-			for j in range(16):
-				row.append(block_ids["AIR"])
-			no_reach_blocks.append(row)
-		for i in range(16):
-			var row = []
-			for j in range(16):
-				row.append(block_ids["AIR"])
-			back_blocks.append(row)
-		if y <= -1:
-			for i in range(16):
-				var row = []
-				for j in range(16):
-					row.append(block_ids["AIR"])
-				blocks.append(row)
-		elif y == 0:
-			for i in range(16):
-				var row = []
-				for j in range(16):
-					if i == 0:
-						row.append(block_ids["GRASS_BLOCK"])
-					elif i > 0 and i<=3:
-						row.append(block_ids["DIRT"])
-						back_blocks[i][j] = block_ids["DIRT"]
-					else:
-						row.append(block_ids["STONE"])
-						back_blocks[i][j] = block_ids["STONE"]
-				blocks.append(row)
-		else:
-			for i in range(16):
-				var row = []
-				for j in range(16):
-					row.append(block_ids["STONE"])
-					back_blocks[i][j] = block_ids["STONE"]
-				blocks.append(row)
-	else:
-		var noise = FastNoiseLite.new()
-		noise.noise_type = FastNoiseLite.TYPE_PERLIN
-		noise.frequency = 0.005
-		noise.seed = seed  # 随机种子
-		var trees = []
-		#var caves = []
-		for i in range(16):
-			var row = []
-			for j in range(16):
-				row.append(block_ids["AIR"])
-			no_reach_blocks.append(row)
-		for i in range(16):
-			var row = []
-			for j in range(16):
-				row.append(block_ids["AIR"])
-			back_blocks.append(row)
-		for i in range(16):
-			var row = []
-			for j in range(16):
-				var noise_value = noise.get_noise_2d(pos[0]*16+j, 0)  # 使用2D噪声
-				var normalized = (noise_value) / 2  # 噪声值范围 [-1, 1] 转为 [-0.5, 0.5]
-				if pos[1]*16+i < int(normalized*40):
-					row.append(block_ids["AIR"])
-				elif pos[1]*16+i == int(normalized*40):
-					var rng = RandomNumberGenerator.new()
-					rng.seed = int(str(seed%12419)+str(pos[0])+str(j))
-					var num = rng.randf()
-					if num > 0.7 and i-5 >= 0 and j-2 >=0 and j+2 <= 15:
-						trees.append(Vector2i(j, i-1))
-					#if num < 0.1 and i-5 >= 0 and j-2 >=0 and j+2 <= 15:
-						#caves.append(Vector2i(j, i))
-					row.append(block_ids["GRASS_BLOCK"])
-				elif pos[1]*16+i > int(normalized*40):
-					var noise_value2 = noise.get_noise_2d(pos[0]*16+j, pos[1]*16+i)  # 使用2D噪声
-					var normalized2 = (noise_value2 + 1) / 2
-					if pos[1]*16+i < int(normalized*40)+12*normalized2:
-						row.append(block_ids["DIRT"])
-						back_blocks[i][j] = block_ids["DIRT"]
-					else:
-						var rng = RandomNumberGenerator.new()
-						rng.seed = int(str(seed%12419)+str(pos[0])+str(pos[1])+str(i)+str(j))
-						var num = rng.randf()
-						if num > 0 and num <= 0.05:	
-							row.append(block_ids["COAL_ORE"])
-						elif num > 0.05 and num <= 0.08:	
-							row.append(block_ids["IRON_ORE"])
-						elif num > 0.08 and num <= 0.085 and pos[1] > 2:	
-							row.append(block_ids["GOLD_ORE"])
-						elif num > 0.085 and num <= 0.09 and pos[1] > 2:	
-							row.append(block_ids["LAPIS_ORE"])
-						elif num > 0.09 and num <= 0.0925 and pos[1] > 3:	
-							row.append(block_ids["DIAMOND_ORE"])
-						else:
-							row.append(block_ids["STONE"])
-						back_blocks[i][j] = block_ids["STONE"]
-			blocks.append(row)
-		var cave_noise = FastNoiseLite.new()
-		cave_noise.noise_type = FastNoiseLite.TYPE_PERLIN
-		cave_noise.frequency = 0.005
-		cave_noise.seed = seed
-		for i in range(16):
-			for j in range(16):
-				var noise_value = cave_noise.get_noise_2d(pos[0]*16+j, pos[1]*16+i)
-				if noise_value < 0 and noise_value > -0.04:
-					if trees.has(Vector2i(j, i-1)):
-						trees.erase(Vector2i(j, i-1))
-					if blocks[i][j] != block_ids["AIR"]:
-						blocks[i][j] = block_ids["AIR"]
-		var gravel_noise = FastNoiseLite.new()
-		gravel_noise.noise_type = FastNoiseLite.TYPE_PERLIN
-		gravel_noise.frequency = 0.5
-		gravel_noise.seed = seed
-		for i in range(16):
-			for j in range(16):
-				var noise_value = gravel_noise.get_noise_2d(pos[0]*16+j, pos[1]*16+i)
-				if noise_value < -0.15:
-					#if trees.has(Vector2i(j-1, i)):
-						#trees.erase(Vector2i(j-1, i))
-					if blocks[i][j] == block_ids["STONE"]:
-						blocks[i][j] = block_ids["GRAVEL"]
-		var sand_noise = FastNoiseLite.new()
-		sand_noise.noise_type = FastNoiseLite.TYPE_PERLIN
-		sand_noise.frequency = 0.001
-		sand_noise.seed = seed
-		for i in range(16):
-			for j in range(16):
-				var noise_value = sand_noise.get_noise_2d(pos[0]*16+j, pos[1]*16+i)
-				if noise_value < -0.01:
-					#if trees.has(Vector2i(j-1, i)):
-						#trees.erase(Vector2i(j-1, i))
-					if blocks[i][j] == block_ids["GRASS_BLOCK"] or blocks[i][j] == block_ids["DIRT"]:
-						blocks[i][j] = block_ids["SAND"]
-		for i in range(16):
-			for j in range(15,0,-1):
-				var is_planted = false
-				if blocks[j][i] == block_ids["SAND"] and blocks[j-1][i] == block_ids["AIR"]:
-					var rng = RandomNumberGenerator.new()
-					rng.seed = int(str(seed%12419)+str(pos[0])+str(i))
-					var num = rng.randf()
-					if num > 0.95:
-						if trees.has(Vector2i(i, j)):
-							trees.erase(Vector2i(i, j))
-						is_planted = true
-						for k in range(3):
-							if j-1-k >= 0 and blocks[j-1-k][i] == block_ids["AIR"]:
-								blocks[j-1-k][i] = block_ids["REEDS"]
-								if trees.has(Vector2i(i, j-1-k)):
-									trees.erase(Vector2i(i, j-1-k))
-				if is_planted:
-					break
-		#for cave in caves:
-			#for depth in range(cave[1], 16):
-				#var rng = RandomNumberGenerator.new()
-				#rng.seed = int(str(seed%12419)+str(cave[0])+str(cave[1])+str(depth))
-				#var num = int(rng.randf()*6)
-				#for i in range(num):
-					#if cave[1]%2==0:
-						#if blocks[depth][cave[0]+i-num/2] == block_ids["GRASS_BLOCK"] or blocks[depth][cave[0]+i-num/2] == block_ids["DIRT"]:
-							#blocks[depth][cave[0]+i-num/2] = block_ids["AIR"]
-							#if trees.has(Vector2i(depth, cave[0]+i-num/2)):
-								#trees.erase(Vector2i(depth, cave[0]+i-num/2))
-					#else:
-						#if blocks[depth][cave[0]+i-num/2] == block_ids["GRASS_BLOCK"] or blocks[depth][cave[0]+i-num/2] == block_ids["DIRT"]:
-							#blocks[depth][cave[0]-i+num/2] = block_ids["AIR"]
-							#if trees.has(Vector2i(depth, cave[0]-i-num/2)):
-								#trees.erase(Vector2i(depth, cave[0]-i-num/2))
-		for tree in trees:
-			for i in range(3):
-				no_reach_blocks[tree[1]-i][tree[0]] = block_ids["LOG_OAK"]
-			for j in range(-2,3):
-				if no_reach_blocks[tree[1]-3][tree[0]+j] == block_ids["LOG_OAK"]:
-					continue
-				no_reach_blocks[tree[1]-3][tree[0]+j] = block_ids["LEAVES"]
-				if blocks[tree[1]-3][tree[0]+j] == block_ids["REEDS"]:
-					blocks[tree[1]-3][tree[0]+j] = block_ids["AIR"]
-			for j in range(-1,2):
-				if no_reach_blocks[tree[1]-4][tree[0]+j] == block_ids["LOG_OAK"]:
-					continue
-				no_reach_blocks[tree[1]-4][tree[0]+j] = block_ids["LEAVES"]
-				if blocks[tree[1]-4][tree[0]+j] == block_ids["REEDS"]:
-					blocks[tree[1]-4][tree[0]+j] = block_ids["AIR"]
-	return [blocks, no_reach_blocks, back_blocks]
+
 
 #func generate_chunk(pos: Vector2i):
 	#@warning_ignore("unused_variable")
@@ -1027,7 +805,7 @@ func dedicated_server_create_world():
 		"world_type": "default",
 		"gamemode": "survival"
 	}
-	save_level_dat(level, level_change_value)
+	WorldManager.save_level_dat(level, level_change_value)
 	level.save_encrypted_pass(world_path+"/level.dat", StaticLoad.SettingsManager.get_default_value("config_password"))
 	for x in range(-1,1):
 		for y in range(-1,1):
@@ -1038,7 +816,7 @@ func dedicated_server_create_world():
 				"no_reach_blocks" : chunk[1],
 				"back_blocks" : chunk[2]
 			}
-			set_mca_value(mca, value_dict)
+			WorldManager.set_mca_value(mca, value_dict)
 			mca.save_encrypted_pass(region_path+"/r."+str(x)+"."+str(y)+".mca", StaticLoad.SettingsManager.get_default_value("config_password"))
 
 func get_random_available_port():
@@ -1246,7 +1024,7 @@ func request_for_update_chunk(client_peer_id, is_init, x_chunk, y_chunk):
 			return
 		var seed = world_config.get_value("world", "seed", "1241999312")
 		var world_type = world_config.get_value("world", "world_type", "default")
-		var chunk = generate_chunk(Vector2i(x_chunk, y_chunk), seed, world_type)
+		var chunk = WorldManager.generate_chunk(Vector2i(x_chunk, y_chunk), seed, world_type)
 		game.loaded_chunk_num += 1
 		var value_dict = {
 				"blocks" : chunk[0],
@@ -1256,7 +1034,7 @@ func request_for_update_chunk(client_peer_id, is_init, x_chunk, y_chunk):
 		blocks = chunk[0]
 		no_reach_blocks = chunk[1]
 		back_blocks = chunk[2]
-		set_mca_value(mca, value_dict)
+		WorldManager.set_mca_value(mca, value_dict)
 		mca.save_encrypted_pass(region_path+"/r."+str(x_chunk)+"."+str(y_chunk)+".mca", SettingsManager.get_default_value("config_password"))
 		game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)] = Chunk.new()
 		game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)].is_to_save = false

@@ -1,36 +1,17 @@
-[gd_scene load_steps=14 format=3 uid="uid://cwib6bsmo0amg"]
+[gd_scene load_steps=8 format=3 uid="uid://cwib6bsmo0amg"]
 
 [ext_resource type="Texture2D" uid="uid://bd725jipoa84m" path="res://assets/textures/backgrounds/dirt_wall.png" id="1_5lbsg"]
 [ext_resource type="Script" path="res://assets/scripts/create_world_menu.gd" id="1_hf1a3"]
 [ext_resource type="FontVariation" uid="uid://ck7gxbgy6ry6b" path="res://assets/fonts/fmcles.tres" id="3_6xbvv"]
-[ext_resource type="Texture2D" uid="uid://caueuwmlcmeot" path="res://assets/textures/ui/game_button_disabled.png" id="3_u2tbj"]
-[ext_resource type="Theme" uid="uid://do1xfdxltcv20" path="res://assets/themes/ui_theme.tres" id="4_j46n6"]
+[ext_resource type="PackedScene" uid="uid://ddk2ss7f7nlyx" path="res://assets/scenes/ui_line_edit.tscn" id="4_80h1p"]
 [ext_resource type="PackedScene" uid="uid://df6k4i6hb4a6p" path="res://assets/scenes/ui_button.tscn" id="5_6yv2j"]
+[ext_resource type="PackedScene" uid="uid://d18x5l5dfq0qt" path="res://assets/scenes/ui_option_button.tscn" id="5_wekvw"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_u6nnc"]
 content_margin_left = 30.0
 content_margin_top = 50.0
 content_margin_right = 30.0
 content_margin_bottom = 30.0
-
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_t8c5e"]
-content_margin_left = 25.0
-texture = ExtResource("3_u2tbj")
-
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_rqwwl"]
-content_margin_left = 30.0
-
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_yxggf"]
-content_margin_left = 30.0
-
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_f80m2"]
-content_margin_left = 30.0
-
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_jhep8"]
-content_margin_left = 30.0
-
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_chwc8"]
-content_margin_left = 30.0
 
 [node name="CreateWorldMenu" type="CanvasLayer"]
 layer = 2
@@ -53,10 +34,15 @@ offset_right = 237.5
 offset_bottom = 106.0
 grow_horizontal = 2
 size_flags_horizontal = 4
+theme_override_colors/font_color = Color(0.878431, 0.878431, 0.878431, 1)
+theme_override_colors/font_shadow_color = Color(0.243137, 0.243137, 0.243137, 1)
+theme_override_constants/shadow_offset_x = 5
+theme_override_constants/shadow_offset_y = 5
 theme_override_fonts/font = ExtResource("3_6xbvv")
 theme_override_font_sizes/font_size = 50
 text = "CREATE_WORLD"
 horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="Content" type="ColorRect" parent="."]
 anchors_preset = 15
@@ -87,224 +73,41 @@ size_flags_horizontal = 3
 size_flags_vertical = 2
 theme_override_constants/separation = 30
 
-[node name="WorldName" type="HSplitContainer" parent="Content/ScrollContainer/VBoxContainer"]
+[node name="WorldName" parent="Content/ScrollContainer/VBoxContainer" instance=ExtResource("4_80h1p")]
 layout_mode = 2
+setting_name = "world_name"
+title = "WORLD_NAME"
+default_text = "DEFAULT_WORLD_NAME"
 
-[node name="Title" type="Label" parent="Content/ScrollContainer/VBoxContainer/WorldName"]
+[node name="Seed" parent="Content/ScrollContainer/VBoxContainer" instance=ExtResource("4_80h1p")]
 layout_mode = 2
-size_flags_horizontal = 0
-theme_override_fonts/font = ExtResource("3_6xbvv")
-theme_override_font_sizes/font_size = 40
-text = "WORLD_NAME"
+setting_name = "seed"
+title = "SEED_TEXT"
 
-[node name="LineEdit" type="LineEdit" parent="Content/ScrollContainer/VBoxContainer/WorldName"]
-custom_minimum_size = Vector2(0, 70)
+[node name="WorldType" parent="Content/ScrollContainer/VBoxContainer" instance=ExtResource("5_wekvw")]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_constants/caret_width = 5
-theme_override_constants/minimum_character_width = 0
-theme_override_fonts/font = ExtResource("3_6xbvv")
-theme_override_font_sizes/font_size = 40
-theme_override_styles/normal = SubResource("StyleBoxTexture_t8c5e")
-text = "DEFAULT_WORLD_NAME"
-caret_blink = true
+setting_name = "world_type"
+title = "WORLD_TYPE"
+option_type = "world_type"
+default_option = "default"
 
-[node name="Seed" type="HSplitContainer" parent="Content/ScrollContainer/VBoxContainer"]
+[node name="Gamemode" parent="Content/ScrollContainer/VBoxContainer" instance=ExtResource("5_wekvw")]
 layout_mode = 2
+setting_name = "gamemode"
+title = "GAMEMODE"
+option_type = "gamemode"
+default_option = "survival"
 
-[node name="Title" type="Label" parent="Content/ScrollContainer/VBoxContainer/Seed"]
+[node name="AllowCheat" parent="Content/ScrollContainer/VBoxContainer" instance=ExtResource("5_wekvw")]
 layout_mode = 2
-size_flags_horizontal = 0
-theme_override_fonts/font = ExtResource("3_6xbvv")
-theme_override_font_sizes/font_size = 40
-text = "SEED_TEXT"
+setting_name = "allow_cheat"
+title = "ALLOW_CHEAT"
+default_option = "off"
 
-[node name="LineEdit" type="LineEdit" parent="Content/ScrollContainer/VBoxContainer/Seed"]
-custom_minimum_size = Vector2(0, 70)
+[node name="Achievement" parent="Content/ScrollContainer/VBoxContainer" instance=ExtResource("5_wekvw")]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_constants/caret_width = 5
-theme_override_constants/minimum_character_width = 0
-theme_override_fonts/font = ExtResource("3_6xbvv")
-theme_override_font_sizes/font_size = 40
-theme_override_styles/normal = SubResource("StyleBoxTexture_t8c5e")
-caret_blink = true
-
-[node name="WorldType" type="HSplitContainer" parent="Content/ScrollContainer/VBoxContainer"]
-layout_mode = 2
-collapsed = true
-
-[node name="Title" type="Label" parent="Content/ScrollContainer/VBoxContainer/WorldType"]
-layout_mode = 2
-size_flags_horizontal = 0
-theme_override_fonts/font = ExtResource("3_6xbvv")
-theme_override_font_sizes/font_size = 40
-text = "WORLD_TYPE"
-
-[node name="OptionButton" type="OptionButton" parent="Content/ScrollContainer/VBoxContainer/WorldType"]
-custom_minimum_size = Vector2(0, 70)
-layout_mode = 2
-size_flags_horizontal = 3
-theme = ExtResource("4_j46n6")
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_constants/h_separation = 10
-theme_override_fonts/font = ExtResource("3_6xbvv")
-theme_override_font_sizes/font_size = 40
-theme_override_styles/focus = SubResource("StyleBoxEmpty_rqwwl")
-theme_override_styles/hover = SubResource("StyleBoxEmpty_yxggf")
-theme_override_styles/pressed = SubResource("StyleBoxEmpty_f80m2")
-theme_override_styles/normal = SubResource("StyleBoxEmpty_jhep8")
-theme_override_constants/arrow_margin = 30
-flat = true
-selected = 0
-item_count = 2
-popup/item_0/text = "DEFAULT"
-popup/item_1/text = "FLAT"
-popup/item_1/id = 1
-
-[node name="TextureRect" type="TextureRect" parent="Content/ScrollContainer/VBoxContainer/WorldType/OptionButton"]
-show_behind_parent = true
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-texture = ExtResource("3_u2tbj")
-expand_mode = 1
-
-[node name="Gamemode" type="HSplitContainer" parent="Content/ScrollContainer/VBoxContainer"]
-layout_mode = 2
-collapsed = true
-
-[node name="Title" type="Label" parent="Content/ScrollContainer/VBoxContainer/Gamemode"]
-layout_mode = 2
-size_flags_horizontal = 0
-theme_override_fonts/font = ExtResource("3_6xbvv")
-theme_override_font_sizes/font_size = 40
-text = "GAMEMODE"
-
-[node name="OptionButton" type="OptionButton" parent="Content/ScrollContainer/VBoxContainer/Gamemode"]
-custom_minimum_size = Vector2(0, 70)
-layout_mode = 2
-size_flags_horizontal = 3
-theme = ExtResource("4_j46n6")
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_constants/h_separation = 10
-theme_override_fonts/font = ExtResource("3_6xbvv")
-theme_override_font_sizes/font_size = 40
-theme_override_styles/focus = SubResource("StyleBoxEmpty_rqwwl")
-theme_override_styles/hover = SubResource("StyleBoxEmpty_yxggf")
-theme_override_styles/pressed = SubResource("StyleBoxEmpty_f80m2")
-theme_override_styles/normal = SubResource("StyleBoxEmpty_jhep8")
-theme_override_constants/arrow_margin = 30
-flat = true
-selected = 0
-item_count = 2
-popup/item_0/text = "SURVIVAL"
-popup/item_1/text = "CREATIVE"
-popup/item_1/id = 1
-
-[node name="TextureRect" type="TextureRect" parent="Content/ScrollContainer/VBoxContainer/Gamemode/OptionButton"]
-show_behind_parent = true
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme = ExtResource("4_j46n6")
-texture = ExtResource("3_u2tbj")
-expand_mode = 1
-
-[node name="AllowCheat" type="HSplitContainer" parent="Content/ScrollContainer/VBoxContainer"]
-layout_mode = 2
-collapsed = true
-
-[node name="Title" type="Label" parent="Content/ScrollContainer/VBoxContainer/AllowCheat"]
-layout_mode = 2
-size_flags_horizontal = 0
-theme_override_fonts/font = ExtResource("3_6xbvv")
-theme_override_font_sizes/font_size = 40
-text = "ALLOW_CHEAT"
-
-[node name="OptionButton" type="OptionButton" parent="Content/ScrollContainer/VBoxContainer/AllowCheat"]
-custom_minimum_size = Vector2(0, 70)
-layout_mode = 2
-size_flags_horizontal = 3
-theme = ExtResource("4_j46n6")
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_constants/h_separation = 10
-theme_override_fonts/font = ExtResource("3_6xbvv")
-theme_override_font_sizes/font_size = 40
-theme_override_styles/focus = SubResource("StyleBoxEmpty_rqwwl")
-theme_override_styles/hover = SubResource("StyleBoxEmpty_yxggf")
-theme_override_styles/pressed = SubResource("StyleBoxEmpty_f80m2")
-theme_override_styles/normal = SubResource("StyleBoxEmpty_jhep8")
-theme_override_constants/arrow_margin = 30
-flat = true
-selected = 1
-item_count = 2
-popup/item_0/text = "ON"
-popup/item_1/text = "OFF"
-popup/item_1/id = 1
-
-[node name="TextureRect" type="TextureRect" parent="Content/ScrollContainer/VBoxContainer/AllowCheat/OptionButton"]
-show_behind_parent = true
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme = ExtResource("4_j46n6")
-texture = ExtResource("3_u2tbj")
-expand_mode = 1
-
-[node name="Achievement" type="HSplitContainer" parent="Content/ScrollContainer/VBoxContainer"]
-layout_mode = 2
-collapsed = true
-
-[node name="Title" type="Label" parent="Content/ScrollContainer/VBoxContainer/Achievement"]
-layout_mode = 2
-size_flags_horizontal = 0
-theme_override_fonts/font = ExtResource("3_6xbvv")
-theme_override_font_sizes/font_size = 40
-text = "ACHIEVEMENT"
-
-[node name="OptionButton" type="OptionButton" parent="Content/ScrollContainer/VBoxContainer/Achievement"]
-custom_minimum_size = Vector2(0, 70)
-layout_mode = 2
-size_flags_horizontal = 3
-theme = ExtResource("4_j46n6")
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_constants/h_separation = 10
-theme_override_fonts/font = ExtResource("3_6xbvv")
-theme_override_font_sizes/font_size = 40
-theme_override_styles/focus = SubResource("StyleBoxEmpty_rqwwl")
-theme_override_styles/disabled = SubResource("StyleBoxEmpty_chwc8")
-theme_override_styles/hover = SubResource("StyleBoxEmpty_yxggf")
-theme_override_styles/pressed = SubResource("StyleBoxEmpty_f80m2")
-theme_override_styles/normal = SubResource("StyleBoxEmpty_jhep8")
-theme_override_constants/arrow_margin = 30
-flat = true
-selected = 0
-item_count = 2
-popup/item_0/text = "ON"
-popup/item_1/text = "OFF"
-popup/item_1/id = 1
-
-[node name="TextureRect" type="TextureRect" parent="Content/ScrollContainer/VBoxContainer/Achievement/OptionButton"]
-show_behind_parent = true
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme = ExtResource("4_j46n6")
-texture = ExtResource("3_u2tbj")
-expand_mode = 1
+setting_name = "achievement"
+title = "ACHIEVEMENT"
 
 [node name="BottomButtons" type="GridContainer" parent="Content"]
 layout_mode = 1

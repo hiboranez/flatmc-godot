@@ -21,6 +21,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 texture = ExtResource("2_8pf3c")
 
 [node name="Title" type="Label" parent="."]
@@ -32,10 +33,15 @@ offset_right = 211.5
 offset_bottom = 106.0
 grow_horizontal = 2
 size_flags_horizontal = 4
+theme_override_colors/font_color = Color(0.878431, 0.878431, 0.878431, 1)
+theme_override_colors/font_shadow_color = Color(0.243137, 0.243137, 0.243137, 1)
+theme_override_constants/shadow_offset_x = 5
+theme_override_constants/shadow_offset_y = 5
 theme_override_fonts/font = ExtResource("3_kbemf")
 theme_override_font_sizes/font_size = 50
 text = "SINGLE_MODE"
 horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="Content" type="ColorRect" parent="."]
 anchors_preset = 15
@@ -47,6 +53,7 @@ offset_right = -160.0
 offset_bottom = -225.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 color = Color(0, 0, 0, 0.686275)
 
 [node name="ScrollContainer" type="ScrollContainer" parent="Content"]
@@ -56,6 +63,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 0
 theme_override_styles/panel = SubResource("StyleBoxEmpty_67wvm")
 vertical_scroll_mode = 3
 script = ExtResource("3_myig5")
@@ -63,6 +71,7 @@ script = ExtResource("3_myig5")
 [node name="VBoxContainer" type="VBoxContainer" parent="Content/ScrollContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
+mouse_filter = 2
 
 [node name="BottomButtons" type="GridContainer" parent="Content"]
 layout_mode = 1
@@ -75,10 +84,12 @@ offset_right = 1.0
 offset_bottom = 212.0
 grow_horizontal = 2
 grow_vertical = 0
+mouse_filter = 2
 
 [node name="GridContainer1" type="GridContainer" parent="Content/BottomButtons"]
 layout_mode = 2
 size_flags_horizontal = 3
+mouse_filter = 2
 columns = 3
 
 [node name="EnterWorldButton" parent="Content/BottomButtons/GridContainer1" instance=ExtResource("4_s1d6y")]
@@ -102,6 +113,7 @@ text = "BACK_TO_MENU"
 [node name="GridContainer2" type="GridContainer" parent="Content/BottomButtons"]
 layout_mode = 2
 size_flags_horizontal = 3
+mouse_filter = 2
 columns = 2
 
 [node name="CreateWorldButton" parent="Content/BottomButtons/GridContainer2" instance=ExtResource("4_s1d6y")]
@@ -116,7 +128,6 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "DELETE_WORLD"
 
-[connection signal="gui_input" from="Content/ScrollContainer" to="Content/ScrollContainer" method="_on_scrollcontainer_gui_input"]
 [connection signal="pressed" from="Content/BottomButtons/GridContainer1/EnterWorldButton" to="." method="_on_single_menu_enter_world_button_pressed"]
 [connection signal="pressed" from="Content/BottomButtons/GridContainer1/EditWorldButton" to="." method="_on_single_menu_edit_world_button_pressed"]
 [connection signal="pressed" from="Content/BottomButtons/GridContainer1/BackToMenuButton" to="." method="_on_single_menu_back_to_menu_button_pressed"]

@@ -42,7 +42,7 @@
 [ext_resource type="Texture2D" uid="uid://bl0xpo1luvy7i" path="res://assets/textures/ui/white_background.png" id="17_ud88f"]
 [ext_resource type="Texture2D" uid="uid://bn78hs0omgltt" path="res://assets/textures/ui/slider_box_default.png" id="17_wst6d"]
 [ext_resource type="Texture2D" uid="uid://cknufva8e2vcv" path="res://assets/textures/ui/panel.png" id="18_1usby"]
-[ext_resource type="Material" uid="uid://xffbfmc4nkjq" path="res://assets/Materials/PlayerSkin.tres" id="18_11ax2"]
+[ext_resource type="Material" uid="uid://xffbfmc4nkjq" path="res://assets/materials/player_skin.tres" id="18_11ax2"]
 [ext_resource type="Texture2D" uid="uid://bquvercx5u4ap" path="res://assets/textures/ui/oreui_sprint_button.png" id="18_irgfn"]
 [ext_resource type="Texture2D" uid="uid://dpshcvcyt856e" path="res://assets/textures/ui/slider_box_hover.png" id="18_pg3nf"]
 [ext_resource type="Texture2D" uid="uid://d0y2isr3jncsw" path="res://assets/textures/ui/full_heart.png" id="18_sscm7"]

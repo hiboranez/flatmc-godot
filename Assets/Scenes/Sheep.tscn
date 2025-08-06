@@ -1,8 +1,8 @@
 [gd_scene load_steps=62 format=4 uid="uid://dxwpajvsyua0x"]
 
 [ext_resource type="Script" path="res://assets/scripts/Sheep.gd" id="1_qgsj0"]
-[ext_resource type="Material" uid="uid://cof4bjt7jgu3p" path="res://assets/Materials/Sheep.tres" id="2_8tk1m"]
-[ext_resource type="Material" uid="uid://drqk55f32s807" path="res://assets/Materials/SheepWool.tres" id="3_wck8t"]
+[ext_resource type="Material" uid="uid://cof4bjt7jgu3p" path="res://assets/materials/Sheep.tres" id="2_8tk1m"]
+[ext_resource type="Material" uid="uid://drqk55f32s807" path="res://assets/materials/SheepWool.tres" id="3_wck8t"]
 [ext_resource type="Shader" path="res://assets/Shaders/Blink.gdshader" id="4_yjplg"]
 [ext_resource type="FontFile" uid="uid://dahei608a1d0f" path="res://assets/fonts/MinecraftAE.ttf" id="5_t5u3q"]
 [ext_resource type="Texture2D" uid="uid://boxi6tixm5lhw" path="res://assets/textures/Blocks/fire_layer_1.png" id="6_mtqr5"]

@@ -1,5 +1,7 @@
 extends Node
 
+@onready var language_list_vboxcontainer = $ColorRect/ScrollContainer/VBoxContainer
+
 var select_language: String = SettingsManager.get_current_setting("language")
 
 func _notification(what):
@@ -10,6 +12,11 @@ func _notification(what):
 			self.visible = false
 		else:
 			SceneManager.change_scene("menu")
+
+func clear_selected_background():
+	var current_languages = language_list_vboxcontainer.get_children()
+	for language in current_languages:
+		language.selected_background.visible = false
 
 func _on_languages_menu_confirm_button_pressed() -> void:
 	AudioManager.play_static_audio("sound/ui/click")

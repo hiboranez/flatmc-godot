@@ -22,8 +22,6 @@ func _ready() -> void:
 		change_skin_file_dialog.current_dir = "/storage/emulated/0/"
 	StaticLoad.select_server = null
 	StaticLoad.select_world = null
-	
-	await get_tree().create_timer(0.05).timeout
 	update_player_model_skin()
 
 func _notification(what):
@@ -46,11 +44,11 @@ func update_background_camera():
 
 func update_player_model_skin():
 	var player_texture = TextureManager.get_texture("skins/steve_"+SettingsManager.get_current_setting("resource_pack").replace("official_", ""))
-	var player_material = load("res://assets/Materials/PlayerSkin.tres").duplicate(true)
+	var player_material = load("res://assets/materials/player_skin.tres").duplicate(true)
 	var config = ConfigFile.new()
 	var result = config.load("user://configs.cfg")
 	if result == OK:
-		var skin_path = config.get_value("settings", "skin_path")
+		var skin_path = config.get_value("settings", "skin_path", "null")
 		if skin_path != "null":	
 			var player_texture_tmp = ImageTexture.create_from_image(Image.load_from_file(skin_path))
 			if player_texture_tmp != null:
@@ -112,5 +110,4 @@ func _on_change_skin_file_dialog_file_selected(path: String) -> void:
 		"skin_path": path
 	}
 	SettingsManager.save_settings(change_value)
-	await get_tree().create_timer(0.01).timeout
 	update_player_model_skin()

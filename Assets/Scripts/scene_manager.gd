@@ -2,14 +2,25 @@ extends Node
 
 var scene_dict: Dictionary
 
-func _ready() -> void:
+func get_resource_amount() -> int:
+	var amount: int = 0
+	var scene_list = DirAccess.get_files_at("res://assets/scenes")
+	for scene_file_name in scene_list:
+		if scene_file_name.contains(".import"):
+			continue
+		amount += 1
+	return amount
+
+func update_resource() -> void:
 	var scene_list = DirAccess.get_files_at("res://assets/scenes")
 	for scene_file_name in scene_list:
 		if scene_file_name.contains(".import"):
 			continue
 		var splits = scene_file_name.split(".")
 		var scene_name = splits[0]
+		GameLoader.call_deferred("set_loading_info", "res://assets/scenes/"+scene_file_name)
 		scene_dict[scene_name.to_lower()] = load("res://assets/scenes/"+scene_file_name) as PackedScene
+		GameLoader.add_loaded_amount()
 
 func get_scene(scene_name) -> PackedScene:
 	return scene_dict[scene_name.to_lower()]

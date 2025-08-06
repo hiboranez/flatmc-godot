@@ -3,8 +3,8 @@
 [ext_resource type="Script" path="res://assets/scripts/Language.gd" id="1_0bto2"]
 [ext_resource type="Texture2D" uid="uid://bd725jipoa84m" path="res://assets/textures/backgrounds/dirt_wall.png" id="2_4cdn6"]
 [ext_resource type="Script" path="res://assets/scripts/DragScroll.gd" id="3_446l6"]
-[ext_resource type="Script" path="res://assets/scripts/selection_button.gd" id="3_r2ov0"]
 [ext_resource type="FontVariation" uid="uid://ck7gxbgy6ry6b" path="res://assets/fonts/fmcles.tres" id="4_ebqra"]
+[ext_resource type="PackedScene" uid="uid://bfte2i14yv7ud" path="res://assets/scenes/language_button.tscn" id="5_ygn25"]
 [ext_resource type="PackedScene" uid="uid://df6k4i6hb4a6p" path="res://assets/scenes/ui_button.tscn" id="6_nycih"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_s88m8"]
@@ -13,7 +13,7 @@ content_margin_top = 30.0
 content_margin_right = 30.0
 content_margin_bottom = 30.0
 
-[node name="Language" type="CanvasLayer"]
+[node name="LanguagesMenu" type="CanvasLayer"]
 script = ExtResource("1_0bto2")
 
 [node name="Background" type="TextureRect" parent="."]
@@ -33,10 +33,15 @@ offset_right = 200.0
 offset_bottom = 106.0
 grow_horizontal = 2
 size_flags_horizontal = 4
+theme_override_colors/font_color = Color(0.878431, 0.878431, 0.878431, 1)
+theme_override_colors/font_shadow_color = Color(0.243137, 0.243137, 0.243137, 1)
+theme_override_constants/shadow_offset_x = 5
+theme_override_constants/shadow_offset_y = 5
 theme_override_fonts/font = ExtResource("4_ebqra")
 theme_override_font_sizes/font_size = 50
 text = "LANGUAGE"
 horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="ColorRect" type="ColorRect" parent="."]
 anchors_preset = 15
@@ -65,148 +70,60 @@ script = ExtResource("3_446l6")
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="zh" type="Button" parent="ColorRect/ScrollContainer/VBoxContainer"]
-custom_minimum_size = Vector2(1400, 108)
+[node name="zh" parent="ColorRect/ScrollContainer/VBoxContainer" instance=ExtResource("5_ygn25")]
 layout_mode = 2
-focus_mode = 1
-mouse_filter = 1
-theme_override_fonts/font = ExtResource("4_ebqra")
-theme_override_font_sizes/font_size = 40
-text = "中文（简体）"
-flat = true
-icon_alignment = 1
-expand_icon = true
-script = ExtResource("3_r2ov0")
+display_language = "中文"
+language = "zh"
 
-[node name="en" type="Button" parent="ColorRect/ScrollContainer/VBoxContainer"]
-custom_minimum_size = Vector2(1400, 108)
+[node name="en" parent="ColorRect/ScrollContainer/VBoxContainer" instance=ExtResource("5_ygn25")]
 layout_mode = 2
-focus_mode = 1
-mouse_filter = 1
-theme_override_fonts/font = ExtResource("4_ebqra")
-theme_override_font_sizes/font_size = 40
-text = "English"
-flat = true
-icon_alignment = 1
-expand_icon = true
-script = ExtResource("3_r2ov0")
+display_language = "English"
+language = "en"
 
-[node name="ja" type="Button" parent="ColorRect/ScrollContainer/VBoxContainer"]
-custom_minimum_size = Vector2(1400, 108)
+[node name="ja" parent="ColorRect/ScrollContainer/VBoxContainer" instance=ExtResource("5_ygn25")]
 layout_mode = 2
-focus_mode = 1
-mouse_filter = 1
-theme_override_fonts/font = ExtResource("4_ebqra")
-theme_override_font_sizes/font_size = 40
-text = "日本語"
-flat = true
-icon_alignment = 1
-expand_icon = true
-script = ExtResource("3_r2ov0")
+display_language = "日本語"
+language = "ja"
 
-[node name="ko" type="Button" parent="ColorRect/ScrollContainer/VBoxContainer"]
-custom_minimum_size = Vector2(1400, 108)
+[node name="ko" parent="ColorRect/ScrollContainer/VBoxContainer" instance=ExtResource("5_ygn25")]
 layout_mode = 2
-focus_mode = 1
-mouse_filter = 1
-theme_override_fonts/font = ExtResource("4_ebqra")
-theme_override_font_sizes/font_size = 40
-text = "한국어"
-flat = true
-icon_alignment = 1
-expand_icon = true
-script = ExtResource("3_r2ov0")
+display_language = "한국어"
+language = "ko"
 
-[node name="es" type="Button" parent="ColorRect/ScrollContainer/VBoxContainer"]
-custom_minimum_size = Vector2(1400, 108)
+[node name="es" parent="ColorRect/ScrollContainer/VBoxContainer" instance=ExtResource("5_ygn25")]
 layout_mode = 2
-focus_mode = 1
-mouse_filter = 1
-theme_override_fonts/font = ExtResource("4_ebqra")
-theme_override_font_sizes/font_size = 40
-text = "Español"
-flat = true
-icon_alignment = 1
-expand_icon = true
-script = ExtResource("3_r2ov0")
+display_language = "Español"
+language = "es"
 
-[node name="fr" type="Button" parent="ColorRect/ScrollContainer/VBoxContainer"]
-custom_minimum_size = Vector2(1400, 108)
+[node name="fr" parent="ColorRect/ScrollContainer/VBoxContainer" instance=ExtResource("5_ygn25")]
 layout_mode = 2
-focus_mode = 1
-mouse_filter = 1
-theme_override_fonts/font = ExtResource("4_ebqra")
-theme_override_font_sizes/font_size = 40
-text = "Français"
-flat = true
-icon_alignment = 1
-expand_icon = true
-script = ExtResource("3_r2ov0")
+display_language = "Français"
+language = "fr"
 
-[node name="de" type="Button" parent="ColorRect/ScrollContainer/VBoxContainer"]
-custom_minimum_size = Vector2(1400, 108)
+[node name="de" parent="ColorRect/ScrollContainer/VBoxContainer" instance=ExtResource("5_ygn25")]
 layout_mode = 2
-focus_mode = 1
-mouse_filter = 1
-theme_override_fonts/font = ExtResource("4_ebqra")
-theme_override_font_sizes/font_size = 40
-text = "Deutsch"
-flat = true
-icon_alignment = 1
-expand_icon = true
-script = ExtResource("3_r2ov0")
+display_language = "Deutsch"
+language = "de"
 
-[node name="ru" type="Button" parent="ColorRect/ScrollContainer/VBoxContainer"]
-custom_minimum_size = Vector2(1400, 108)
+[node name="ru" parent="ColorRect/ScrollContainer/VBoxContainer" instance=ExtResource("5_ygn25")]
 layout_mode = 2
-focus_mode = 1
-mouse_filter = 1
-theme_override_fonts/font = ExtResource("4_ebqra")
-theme_override_font_sizes/font_size = 40
-text = "Русский"
-flat = true
-icon_alignment = 1
-expand_icon = true
-script = ExtResource("3_r2ov0")
+display_language = "Русский"
+language = "ru"
 
-[node name="hi" type="Button" parent="ColorRect/ScrollContainer/VBoxContainer"]
-custom_minimum_size = Vector2(1400, 108)
+[node name="hi" parent="ColorRect/ScrollContainer/VBoxContainer" instance=ExtResource("5_ygn25")]
 layout_mode = 2
-focus_mode = 1
-mouse_filter = 1
-theme_override_fonts/font = ExtResource("4_ebqra")
-theme_override_font_sizes/font_size = 40
-text = "हिन्दी"
-flat = true
-icon_alignment = 1
-expand_icon = true
-script = ExtResource("3_r2ov0")
+display_language = "हिन्दी"
+language = "hi"
 
-[node name="vi" type="Button" parent="ColorRect/ScrollContainer/VBoxContainer"]
-custom_minimum_size = Vector2(1400, 108)
+[node name="vi" parent="ColorRect/ScrollContainer/VBoxContainer" instance=ExtResource("5_ygn25")]
 layout_mode = 2
-focus_mode = 1
-mouse_filter = 1
-theme_override_fonts/font = ExtResource("4_ebqra")
-theme_override_font_sizes/font_size = 40
-text = "Tiếng Việt"
-flat = true
-icon_alignment = 1
-expand_icon = true
-script = ExtResource("3_r2ov0")
+display_language = "Tiếng Việt"
+language = "vi"
 
-[node name="th" type="Button" parent="ColorRect/ScrollContainer/VBoxContainer"]
-custom_minimum_size = Vector2(1400, 108)
+[node name="th" parent="ColorRect/ScrollContainer/VBoxContainer" instance=ExtResource("5_ygn25")]
 layout_mode = 2
-focus_mode = 1
-mouse_filter = 1
-theme_override_fonts/font = ExtResource("4_ebqra")
-theme_override_font_sizes/font_size = 40
-text = "ไทย"
-flat = true
-icon_alignment = 1
-expand_icon = true
-script = ExtResource("3_r2ov0")
+display_language = "ภาษาไทย"
+language = "th"
 
 [node name="GridContainer" type="GridContainer" parent="ColorRect"]
 layout_mode = 1
@@ -235,16 +152,5 @@ size_flags_horizontal = 3
 text = "CANCEL"
 
 [connection signal="gui_input" from="ColorRect/ScrollContainer" to="ColorRect/ScrollContainer" method="_on_scrollcontainer_gui_input"]
-[connection signal="pressed" from="ColorRect/ScrollContainer/VBoxContainer/zh" to="ColorRect/ScrollContainer/VBoxContainer/zh" method="_on_selection_language_pressed"]
-[connection signal="pressed" from="ColorRect/ScrollContainer/VBoxContainer/en" to="ColorRect/ScrollContainer/VBoxContainer/en" method="_on_selection_language_pressed"]
-[connection signal="pressed" from="ColorRect/ScrollContainer/VBoxContainer/ja" to="ColorRect/ScrollContainer/VBoxContainer/ja" method="_on_selection_language_pressed"]
-[connection signal="pressed" from="ColorRect/ScrollContainer/VBoxContainer/ko" to="ColorRect/ScrollContainer/VBoxContainer/ko" method="_on_selection_language_pressed"]
-[connection signal="pressed" from="ColorRect/ScrollContainer/VBoxContainer/es" to="ColorRect/ScrollContainer/VBoxContainer/es" method="_on_selection_language_pressed"]
-[connection signal="pressed" from="ColorRect/ScrollContainer/VBoxContainer/fr" to="ColorRect/ScrollContainer/VBoxContainer/fr" method="_on_selection_language_pressed"]
-[connection signal="pressed" from="ColorRect/ScrollContainer/VBoxContainer/de" to="ColorRect/ScrollContainer/VBoxContainer/de" method="_on_selection_language_pressed"]
-[connection signal="pressed" from="ColorRect/ScrollContainer/VBoxContainer/ru" to="ColorRect/ScrollContainer/VBoxContainer/ru" method="_on_selection_language_pressed"]
-[connection signal="pressed" from="ColorRect/ScrollContainer/VBoxContainer/hi" to="ColorRect/ScrollContainer/VBoxContainer/hi" method="_on_selection_language_pressed"]
-[connection signal="pressed" from="ColorRect/ScrollContainer/VBoxContainer/vi" to="ColorRect/ScrollContainer/VBoxContainer/vi" method="_on_selection_language_pressed"]
-[connection signal="pressed" from="ColorRect/ScrollContainer/VBoxContainer/th" to="ColorRect/ScrollContainer/VBoxContainer/th" method="_on_selection_language_pressed"]
 [connection signal="pressed" from="ColorRect/GridContainer/ConfirmButton" to="." method="_on_languages_menu_confirm_button_pressed"]
 [connection signal="pressed" from="ColorRect/GridContainer/CancelButton" to="." method="_on_languages_menu_cancel_button_pressed"]

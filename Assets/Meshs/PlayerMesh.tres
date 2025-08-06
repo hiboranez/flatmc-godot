@@ -1,6 +1,6 @@
 [gd_resource type="ArrayMesh" load_steps=2 format=4 uid="uid://qqj2hnw1sjrm"]
 
-[ext_resource type="Material" uid="uid://xffbfmc4nkjq" path="res://assets/Materials/PlayerSkin.tres" id="1_rg15t"]
+[ext_resource type="Material" uid="uid://xffbfmc4nkjq" path="res://assets/materials/player_skin.tres" id="1_rg15t"]
 
 [resource]
 resource_local_to_scene = true

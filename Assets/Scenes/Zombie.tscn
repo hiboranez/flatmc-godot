@@ -1,7 +1,7 @@
 [gd_scene load_steps=64 format=4 uid="uid://bgqa5sr3s01uy"]
 
 [ext_resource type="Script" path="res://assets/scripts/Zombie.gd" id="1_vxmk1"]
-[ext_resource type="Material" uid="uid://paeswhiik3iy" path="res://assets/Materials/Zombie.tres" id="2_y0fqq"]
+[ext_resource type="Material" uid="uid://paeswhiik3iy" path="res://assets/materials/Zombie.tres" id="2_y0fqq"]
 [ext_resource type="Shader" path="res://assets/Shaders/Blink.gdshader" id="3_e3fpa"]
 [ext_resource type="FontFile" uid="uid://dahei608a1d0f" path="res://assets/fonts/MinecraftAE.ttf" id="4_t00om"]
 [ext_resource type="Texture2D" uid="uid://boxi6tixm5lhw" path="res://assets/textures/Blocks/fire_layer_1.png" id="5_vreui"]

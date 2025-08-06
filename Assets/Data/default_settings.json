@@ -1,13 +1,13 @@
 {
 	"settings" : {
-		"version": "0.2.0",
+		"version": "0.2.1",
 		"updated": "false",
 		"player_name": "Steve",
 		"language": "zh",
-		"render_chunk": 2,
-		"fov_zoom" : 20,
-		"bgm_volume": 50,
-		"sound_volume": 50,
+		"render_chunk": "2",
+		"fov_zoom" : "20",
+		"bgm_volume": "50",
+		"sound_volume": "50",
 		"block_selection_box": "show_when_changing",
 		"full_screen": "off",
 		"auto_jump": "on",
@@ -16,17 +16,17 @@
 		"particle_effect": "off",
 		"v_sync": "on",
 		"mini_map": "on",
-		"mini_map_zoom": 30,
+		"mini_map_zoom": "30",
 		"skin_path": "res://Assets/ResourcePacks/official_old/Skins/Steve.png",
 		"resource_pack": "official_new"
 	},
 	
 	"values": {
-		"screenshot_path": "user://screenshots",
-		"world_list_path": "user://worlds",
-		"server_list_path": "user://servers",
-		"server_root_path": "user://local_server",
-		"server_log_path": "user://local_server/logs",
+		"screenshot_path": "user://screenshots/",
+		"world_list_path": "user://worlds/",
+		"server_list_path": "user://servers/",
+		"server_root_path": "user://local_server/",
+		"server_log_path": "user://local_server/logs/",
 		"config_password": "QQ1241999312",
 		"max_name_length": "16"
 	},

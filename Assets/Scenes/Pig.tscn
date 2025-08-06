@@ -1,7 +1,7 @@
 [gd_scene load_steps=61 format=4 uid="uid://cylm5wpxdj3ts"]
 
 [ext_resource type="Script" path="res://assets/scripts/Pig.gd" id="1_3y6qj"]
-[ext_resource type="Material" uid="uid://clu2q1fgwxctw" path="res://assets/Materials/Pig.tres" id="2_fe1ay"]
+[ext_resource type="Material" uid="uid://clu2q1fgwxctw" path="res://assets/materials/Pig.tres" id="2_fe1ay"]
 [ext_resource type="Shader" path="res://assets/Shaders/Blink.gdshader" id="3_8py10"]
 [ext_resource type="FontFile" uid="uid://dahei608a1d0f" path="res://assets/fonts/MinecraftAE.ttf" id="4_5iyuf"]
 [ext_resource type="Texture2D" uid="uid://boxi6tixm5lhw" path="res://assets/textures/Blocks/fire_layer_1.png" id="5_y0ova"]

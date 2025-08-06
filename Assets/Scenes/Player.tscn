@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://assets/scripts/Player.gd" id="1_dne4j"]
 [ext_resource type="PackedScene" uid="uid://dx77wbim6mom7" path="res://assets/scenes/ItemInHand.tscn" id="3_ly0ea"]
 [ext_resource type="Shader" path="res://assets/Shaders/Blink.gdshader" id="3_nde70"]
-[ext_resource type="Material" uid="uid://xffbfmc4nkjq" path="res://assets/Materials/PlayerSkin.tres" id="3_r5p52"]
+[ext_resource type="Material" uid="uid://xffbfmc4nkjq" path="res://assets/materials/player_skin.tres" id="3_r5p52"]
 [ext_resource type="FontFile" uid="uid://dahei608a1d0f" path="res://assets/fonts/MinecraftAE.ttf" id="4_07vdp"]
 [ext_resource type="Texture2D" uid="uid://c4lqoelj6yui3" path="res://assets/textures/Entities/sweep_0.png" id="6_jsr5v"]
 [ext_resource type="Texture2D" uid="uid://boxi6tixm5lhw" path="res://assets/textures/Blocks/fire_layer_1.png" id="6_ytoke"]

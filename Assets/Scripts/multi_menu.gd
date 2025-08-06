@@ -28,13 +28,18 @@ func _notification(what):
 		StaticLoad.select_world = null
 		SceneManager.change_scene("menu")
 
+func clear_selected_background():
+	var current_servers = server_list_vboxcontainer.get_children()
+	for server in current_servers:
+		server.selected_background.visible = false
+
 func detect_all_server():
 	await get_tree().create_timer(0.01).timeout
 	var server_list = DirAccess.get_files_at(SettingsManager.get_default_value("server_list_path"))
 	for server in server_list:
 		var splits = server.split(".")
 		var server_config = ConfigFile.new()
-		var server_info = server_config.load_encrypted_pass(SettingsManager.get_default_value("server_list_path")+"/"+splits[0]+".srv", SettingsManager.get_default_value("config_password"))
+		var server_info = server_config.load_encrypted_pass(SettingsManager.get_default_value("server_list_path")+splits[0]+".srv", SettingsManager.get_default_value("config_password"))
 		if server_info != OK:
 			var server_selection = server_list_vboxcontainer.get_node(splits[0])
 			server_selection.animation.animation = "disconnect"
@@ -58,22 +63,21 @@ func update_server_list():
 		server.free()
 	var server_list = DirAccess.get_files_at(SettingsManager.get_default_value("server_list_path"))
 	for server in server_list:
-		var selection = SceneManager.get_scene("selection_button").instantiate()
-		selection.init("muti_menu")
-		server_list_vboxcontainer.add_child(selection)
+		var server_button = SceneManager.get_scene("server_button").instantiate()
+		server_list_vboxcontainer.add_child(server_button)
 		var splits = server.split(".")
-		selection.text = "   "+splits[0]
-		selection.name = splits[0]
+		var update_dict = {
+			"server_name" : splits[0]
+		}
 		var server_config = ConfigFile.new()
-		var server_info = server_config.load_encrypted_pass(SettingsManager.get_default_value("server_list_path")+"/"+splits[0]+".srv", SettingsManager.get_default_value("config_password"))
-		if server_info != OK:
-			continue
-		var icon_buffer = server_config.get_value("server", "icon")
-		if icon_buffer == null:
-			continue
-		var icon_image = Image.new()
-		icon_image.load_png_from_buffer(icon_buffer)
-		selection.icon = ImageTexture.create_from_image(icon_image)
+		var server_info = server_config.load_encrypted_pass(SettingsManager.get_default_value("server_list_path")+splits[0]+".srv", SettingsManager.get_default_value("config_password"))
+		if server_info == OK:
+			var icon_buffer = server_config.get_value("server", "icon")
+			if icon_buffer != null:
+				var icon_image = Image.new()
+				icon_image.load_png_from_buffer(icon_buffer)
+				update_dict["icon"] = ImageTexture.create_from_image(icon_image)
+		server_button.update_info(update_dict)
 	var searching_lan_instance = SceneManager.get_scene("searching_lan").instantiate()
 	server_list_vboxcontainer.add_child(searching_lan_instance)
 	ServiceDiscovery.scan_lan_servers()
@@ -167,7 +171,7 @@ func _on_muti_menu_edit_server_button_pressed() -> void:
 	if StaticLoad.select_server == null:
 		return
 	var server_config = ConfigFile.new()
-	var server_info = server_config.load_encrypted_pass(SettingsManager.get_default_value("server_list_path")+"/"+StaticLoad.select_server+".srv", SettingsManager.get_default_value("config_password"))
+	var server_info = server_config.load_encrypted_pass(SettingsManager.get_default_value("server_list_path")+StaticLoad.select_server+".srv", SettingsManager.get_default_value("config_password"))
 	if server_info != OK:
 		return
 	edit_server_name_line_edit.text = StaticLoad.select_server

@@ -1467,7 +1467,7 @@ func screenshot():
 	await RenderingServer.frame_post_draw
 	var image = get_viewport().get_texture().get_image()
 	var screenshot_name = Time.get_datetime_string_from_system(false, true).replace(":","-")
-	var save_path = StaticLoad.screenshot_path+"/"+screenshot_name+".png"
+	var save_path = StaticLoad.screenshot_path+screenshot_name+".png"
 	image.save_png(save_path)
 	broadcast_to_person(player.player_name, tr("SCREENSHOT_SAVED")+screenshot_name+".png")
 
@@ -2684,7 +2684,7 @@ func init_game_as_dedicated_server():
 	tick_timer = int(world_info_dictionary["tick_timer"])
 	world_day = int(world_info_dictionary["world_day"])
 	calculate_current_sky_light(true)
-	var file_read = FileAccess.open(StaticLoad.server_root_path+"/ops.txt", FileAccess.READ)
+	var file_read = FileAccess.open(StaticLoad.server_root_path+"ops.txt", FileAccess.READ)
 	var content_read = file_read.get_as_text()
 	content_read = content_read.replace(" ", "")
 	var properties_splits = content_read.split("\n")
@@ -2692,7 +2692,7 @@ func init_game_as_dedicated_server():
 		op_list.append(op.to_lower())
 	file_read.close()
 	var properties_config = ConfigFile.new()
-	var properties_info = properties_config.load(StaticLoad.server_root_path+"/server.properties")
+	var properties_info = properties_config.load(StaticLoad.server_root_path+"server.properties")
 	if properties_info != OK:
 		return
 	var spawn_protection_x_size = properties_config.get_value("server", "spawn_protection_x_size", "0")
@@ -3453,7 +3453,7 @@ func update_new_chunk(is_pre_load: bool):
 									"no_reach_blocks" : chunk[1],
 									"back_blocks" : chunk[2]
 								}
-							StaticLoad.set_mca_value(mca, value_dict)
+							WorldManager.set_mca_value(mca, value_dict)
 							mca.save_encrypted_pass(StaticLoad.region_path+"/r."+str(x)+"."+str(y)+".mca", SettingsManager.get_default_value("config_password"))
 							if not loaded_chunks.has(str(x)+"."+str(y)):
 								loaded_chunks[str(x)+"."+str(y)] = StaticLoad.Chunk.new()
@@ -3968,7 +3968,7 @@ func save_world():
 		"allow_cheat": world_info_dictionary["allow_cheat"],
 		"achievement": world_info_dictionary["achievement"]
 	}
-	StaticLoad.save_level_dat(level, level_change_value)
+	WorldManager.save_level_dat(level, level_change_value)
 	level.save_encrypted_pass(StaticLoad.world_path+"/level.dat", SettingsManager.get_default_value("config_password"))
 
 func save_player(peer_id = 0):
@@ -4039,7 +4039,7 @@ func save_chunk(chunk_pos: Vector2i):
 	value_dict["back_blocks"] = back_blocks
 	for para in StaticLoad.Chunk.para_list:
 		value_dict[para] = chunk.get(para)
-	StaticLoad.set_mca_value(mca, value_dict)
+	WorldManager.set_mca_value(mca, value_dict)
 	for uuid in chunk.entity_list.duplicate():
 		if not entities.has(uuid):
 			chunk.entity_list.erase(uuid)
@@ -4075,7 +4075,7 @@ func save_chunk(chunk_pos: Vector2i):
 		"allow_cheat": world_info_dictionary["allow_cheat"],
 		"achievement": world_info_dictionary["achievement"]
 	}
-	StaticLoad.save_level_dat(level, level_change_value)
+	WorldManager.save_level_dat(level, level_change_value)
 	level.save_encrypted_pass(StaticLoad.world_path+"/level.dat", SettingsManager.get_default_value("config_password"))
 
 func select_item_grid(grid_name) -> void:
