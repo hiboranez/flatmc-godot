@@ -1,0 +1,209 @@
+[gd_scene load_steps=17 format=3 uid="uid://cw018jkknxq6f"]
+
+[ext_resource type="Script" path="res://assets/scripts/ui_server_button.gd" id="1_brp8u"]
+[ext_resource type="Texture2D" uid="uid://bvtu8ithtvsc3" path="res://assets/textures/ui/default_offline_server_icon.png" id="2_ipyl2"]
+[ext_resource type="FontVariation" uid="uid://ck7gxbgy6ry6b" path="res://assets/fonts/fmcles.tres" id="3_rpd2u"]
+[ext_resource type="Texture2D" uid="uid://eb2hdkojpck2" path="res://assets/textures/ui/icons.png" id="4_1lhk2"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0hjob"]
+atlas = ExtResource("4_1lhk2")
+region = Rect2(0, 217, 10, 7)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_q35rn"]
+atlas = ExtResource("4_1lhk2")
+region = Rect2(10, 177, 10, 7)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_motim"]
+atlas = ExtResource("4_1lhk2")
+region = Rect2(10, 185, 10, 7)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2ibxa"]
+atlas = ExtResource("4_1lhk2")
+region = Rect2(10, 193, 10, 7)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_75cdx"]
+atlas = ExtResource("4_1lhk2")
+region = Rect2(10, 201, 10, 7)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_38f5y"]
+atlas = ExtResource("4_1lhk2")
+region = Rect2(10, 209, 10, 7)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_dg6b6"]
+atlas = ExtResource("4_1lhk2")
+region = Rect2(0, 209, 10, 7)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ujmhx"]
+atlas = ExtResource("4_1lhk2")
+region = Rect2(0, 201, 10, 7)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_8vejl"]
+atlas = ExtResource("4_1lhk2")
+region = Rect2(0, 193, 10, 7)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cljy4"]
+atlas = ExtResource("4_1lhk2")
+region = Rect2(0, 185, 10, 7)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hlxpp"]
+atlas = ExtResource("4_1lhk2")
+region = Rect2(0, 177, 10, 7)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_a0yru"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_0hjob")
+}],
+"loop": false,
+"name": &"disconnect",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_q35rn")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_motim")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2ibxa")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_75cdx")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_38f5y")
+}],
+"loop": true,
+"name": &"ping",
+"speed": 3.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_dg6b6")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ujmhx")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_8vejl")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_cljy4")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hlxpp")
+}],
+"loop": false,
+"name": &"signal",
+"speed": 5.0
+}]
+
+[node name="UIServerButton" type="Control"]
+self_modulate = Color(1, 1, 1, 0)
+custom_minimum_size = Vector2(1540, 200)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 1540.0
+offset_bottom = 200.0
+focus_mode = 1
+mouse_filter = 1
+script = ExtResource("1_brp8u")
+
+[node name="SelectedBackground" type="ColorRect" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.501961, 0.501961, 0.501961, 1)
+
+[node name="ColorRect" type="ColorRect" parent="SelectedBackground"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 6.0
+offset_top = 6.0
+offset_right = -6.0
+offset_bottom = -6.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
+
+[node name="HSplitContainer" type="HSplitContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 19.0
+offset_top = 19.0
+offset_right = -12.0
+offset_bottom = -19.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 40
+
+[node name="Icon" type="TextureRect" parent="HSplitContainer"]
+layout_mode = 2
+texture = ExtResource("2_ipyl2")
+expand_mode = 3
+
+[node name="HSplitContainer" type="HSplitContainer" parent="HSplitContainer"]
+layout_mode = 2
+size_flags_vertical = 0
+theme_override_constants/separation = 0
+
+[node name="ServerName" type="Label" parent="HSplitContainer/HSplitContainer"]
+custom_minimum_size = Vector2(1000, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.878431, 0.878431, 0.878431, 1)
+theme_override_colors/font_shadow_color = Color(0.247059, 0.247059, 0.247059, 1)
+theme_override_constants/shadow_offset_x = 4
+theme_override_constants/shadow_offset_y = 4
+theme_override_fonts/font = ExtResource("3_rpd2u")
+theme_override_font_sizes/font_size = 40
+text = "Text"
+vertical_alignment = 1
+
+[node name="Signal" type="Control" parent="HSplitContainer/HSplitContainer"]
+layout_mode = 2
+size_flags_horizontal = 10
+size_flags_vertical = 4
+
+[node name="Animation" type="AnimatedSprite2D" parent="HSplitContainer/HSplitContainer/Signal"]
+position = Vector2(-66, -5)
+scale = Vector2(6, 6.648)
+sprite_frames = SubResource("SpriteFrames_a0yru")
+animation = &"ping"
+autoplay = "ping"
+frame_progress = 0.774612
+
+[node name="OnlineInfo" type="Label" parent="HSplitContainer/HSplitContainer/Signal"]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -310.0
+offset_top = 19.0
+offset_right = -35.0
+offset_bottom = 109.0
+grow_horizontal = 0
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.878431, 0.878431, 0.878431, 1)
+theme_override_colors/font_shadow_color = Color(0.247059, 0.247059, 0.247059, 1)
+theme_override_constants/shadow_offset_x = 4
+theme_override_constants/shadow_offset_y = 4
+theme_override_fonts/font = ExtResource("3_rpd2u")
+theme_override_font_sizes/font_size = 30
+text = "SEARCHING"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[connection signal="pressed" from="." to="." method="_on_server_button_pressed"]

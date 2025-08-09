@@ -1,0 +1,120 @@
+[gd_scene load_steps=8 format=3 uid="uid://11mrepw1wqq1"]
+
+[ext_resource type="Script" path="res://assets/scripts/notice.gd" id="1_suugf"]
+[ext_resource type="Texture2D" uid="uid://bd725jipoa84m" path="res://assets/textures/backgrounds/dirt_wall.png" id="2_t72mw"]
+[ext_resource type="FontVariation" uid="uid://ck7gxbgy6ry6b" path="res://assets/fonts/fmcles.tres" id="3_bpb6e"]
+[ext_resource type="Script" path="res://assets/scripts/drag_scroll.gd" id="4_watdm"]
+[ext_resource type="PackedScene" uid="uid://df6k4i6hb4a6p" path="res://assets/scenes/ui/ui_normal_button.tscn" id="5_402v5"]
+
+[sub_resource type="Theme" id="Theme_laolw"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_85q1v"]
+content_margin_left = 20.0
+content_margin_top = 20.0
+content_margin_right = 20.0
+content_margin_bottom = 20.0
+
+[node name="BigNotice" type="CanvasLayer"]
+layer = 3
+script = ExtResource("1_suugf")
+
+[node name="Background" type="TextureRect" parent="."]
+custom_minimum_size = Vector2(800, 450)
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+texture = ExtResource("2_t72mw")
+
+[node name="Title" type="Label" parent="Background"]
+custom_minimum_size = Vector2(1, 1)
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -170.0
+offset_top = 77.0
+offset_right = 170.0
+offset_bottom = 157.0
+grow_horizontal = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(0.878431, 0.878431, 0.878431, 1)
+theme_override_colors/font_shadow_color = Color(0.215686, 0.215686, 0.215686, 1)
+theme_override_constants/shadow_offset_x = 5
+theme_override_constants/shadow_offset_y = 5
+theme_override_fonts/font = ExtResource("3_bpb6e")
+theme_override_font_sizes/font_size = 60
+text = "NOTICE"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Background"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 160.0
+offset_top = 225.0
+offset_right = -160.0
+offset_bottom = -255.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+theme = SubResource("Theme_laolw")
+horizontal_scroll_mode = 0
+script = ExtResource("4_watdm")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Background/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="RichTextLabel" type="RichTextLabel" parent="Background/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+theme_override_colors/default_color = Color(0.878431, 0.878431, 0.878431, 1)
+theme_override_colors/font_shadow_color = Color(0.215686, 0.215686, 0.215686, 1)
+theme_override_constants/shadow_offset_y = 4
+theme_override_constants/shadow_offset_x = 4
+theme_override_constants/line_separation = 10
+theme_override_fonts/normal_font = ExtResource("3_bpb6e")
+theme_override_font_sizes/normal_font_size = 40
+theme_override_styles/normal = SubResource("StyleBoxEmpty_85q1v")
+text = "TEXT"
+fit_content = true
+
+[node name="ColorRect" type="ColorRect" parent="Background/ScrollContainer/VBoxContainer/RichTextLabel"]
+show_behind_parent = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -2.0
+offset_bottom = -2.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 0.509804)
+
+[node name="CloseButton" parent="Background" instance=ExtResource("5_402v5")]
+custom_minimum_size = Vector2(1200, 120)
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -500.0
+offset_top = -186.0
+offset_right = 500.0
+offset_bottom = -76.0
+grow_horizontal = 2
+grow_vertical = 0
+text = "CLOSE"
+font_size = 40
+
+[connection signal="gui_input" from="Background/ScrollContainer" to="Background/ScrollContainer" method="_on_scrollcontainer_gui_input"]

@@ -1,0 +1,58 @@
+[gd_scene load_steps=3 format=3 uid="uid://bfte2i14yv7ud"]
+
+[ext_resource type="FontVariation" uid="uid://ck7gxbgy6ry6b" path="res://assets/fonts/fmcles.tres" id="1_f3jen"]
+[ext_resource type="Script" path="res://assets/scripts/language_button.gd" id="1_wk4lp"]
+
+[node name="LanguageButton" type="Control"]
+self_modulate = Color(1, 1, 1, 0)
+custom_minimum_size = Vector2(1400, 108)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 1400.0
+offset_bottom = 108.0
+focus_mode = 1
+mouse_filter = 1
+script = ExtResource("1_wk4lp")
+
+[node name="SelectedBackground" type="ColorRect" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.501961, 0.501961, 0.501961, 1)
+
+[node name="ColorRect" type="ColorRect" parent="SelectedBackground"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 6.0
+offset_top = 6.0
+offset_right = -6.0
+offset_bottom = -6.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
+
+[node name="LanguageName" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.878431, 0.878431, 0.878431, 1)
+theme_override_colors/font_shadow_color = Color(0.247059, 0.247059, 0.247059, 1)
+theme_override_constants/shadow_offset_x = 4
+theme_override_constants/shadow_offset_y = 4
+theme_override_fonts/font = ExtResource("1_f3jen")
+theme_override_font_sizes/font_size = 40
+text = "Text"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[connection signal="pressed" from="." to="." method="_on_language_button_pressed"]

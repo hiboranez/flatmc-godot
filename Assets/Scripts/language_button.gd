@@ -13,11 +13,13 @@ func _ready() -> void:
 
 func _gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
-		if event.button_index == 1 and event.pressed:
-			pressed.emit()
+		if event.button_index == 1 and not event.pressed:
+			if Rect2(Vector2(), size).has_point(event.position):
+				pressed.emit()
 	elif event is InputEventScreenTouch:
-		if event.pressed:
-			pressed.emit()
+		if not event.pressed:
+			if Rect2(Vector2(), size).has_point(event.position):
+				pressed.emit()
 
 func _on_language_button_pressed() -> void:
 	if has_node("/root/LanguagesMenu"):

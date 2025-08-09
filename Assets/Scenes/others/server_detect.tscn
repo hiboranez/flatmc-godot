@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3 uid="uid://g1sm4t2ceg7"]
+
+[ext_resource type="Script" path="res://assets/scripts/server_detect.gd" id="1_25piu"]
+
+[node name="ServerDetect" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("1_25piu")

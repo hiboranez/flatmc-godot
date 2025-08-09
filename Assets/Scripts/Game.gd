@@ -3453,7 +3453,7 @@ func update_new_chunk(is_pre_load: bool):
 									"no_reach_blocks" : chunk[1],
 									"back_blocks" : chunk[2]
 								}
-							WorldManager.set_mca_value(mca, value_dict)
+							get_node("/root/WorldManager").set_mca_value(mca, value_dict)
 							mca.save_encrypted_pass(StaticLoad.region_path+"/r."+str(x)+"."+str(y)+".mca", SettingsManager.get_default_value("config_password"))
 							if not loaded_chunks.has(str(x)+"."+str(y)):
 								loaded_chunks[str(x)+"."+str(y)] = StaticLoad.Chunk.new()
@@ -3968,7 +3968,7 @@ func save_world():
 		"allow_cheat": world_info_dictionary["allow_cheat"],
 		"achievement": world_info_dictionary["achievement"]
 	}
-	WorldManager.save_level_dat(level, level_change_value)
+	get_node("/root/WorldManager").save_level_dat(level, level_change_value)
 	level.save_encrypted_pass(StaticLoad.world_path+"/level.dat", SettingsManager.get_default_value("config_password"))
 
 func save_player(peer_id = 0):
@@ -4039,7 +4039,7 @@ func save_chunk(chunk_pos: Vector2i):
 	value_dict["back_blocks"] = back_blocks
 	for para in StaticLoad.Chunk.para_list:
 		value_dict[para] = chunk.get(para)
-	WorldManager.set_mca_value(mca, value_dict)
+	get_node("/root/WorldManager").set_mca_value(mca, value_dict)
 	for uuid in chunk.entity_list.duplicate():
 		if not entities.has(uuid):
 			chunk.entity_list.erase(uuid)
@@ -4075,7 +4075,7 @@ func save_chunk(chunk_pos: Vector2i):
 		"allow_cheat": world_info_dictionary["allow_cheat"],
 		"achievement": world_info_dictionary["achievement"]
 	}
-	WorldManager.save_level_dat(level, level_change_value)
+	get_node("/root/WorldManager").save_level_dat(level, level_change_value)
 	level.save_encrypted_pass(StaticLoad.world_path+"/level.dat", SettingsManager.get_default_value("config_password"))
 
 func select_item_grid(grid_name) -> void:
@@ -4307,7 +4307,7 @@ func _on_pause_button_6_pressed() -> void:
 	SettingsManager.save_settings(change_value)
 	StaticLoad.is_in_game = false
 	AudioManager.bgm_audio_player.refresh_bgm()
-	SceneManager.change_scene("menu")
+	SceneManager.change_scene("menus/main_menu")
 	
 func _on_pause_button_7_pressed() -> void:
 	if StaticLoad.is_on_mobile_platform:
@@ -4317,7 +4317,7 @@ func _on_pause_button_7_pressed() -> void:
 	StaticLoad.is_muti_mode = false
 	StaticLoad.is_in_game = false
 	AudioManager.bgm_audio_player.refresh_bgm()
-	SceneManager.change_scene("menu")
+	SceneManager.change_scene("menus/main_menu")
 
 func _on_death_button_1_pressed() -> void:
 	AudioManager.play_static_audio("sound/ui/click")
@@ -4346,7 +4346,7 @@ func _on_death_button_2_pressed() -> void:
 	}
 	SettingsManager.save_settings(change_value)
 	StaticLoad.is_in_game = false
-	SceneManager.change_scene("menu")
+	SceneManager.change_scene("menus/main_menu")
 	
 func _on_death_button_3_pressed() -> void:
 	AudioManager.play_static_audio("sound/ui/click")
@@ -4354,7 +4354,7 @@ func _on_death_button_3_pressed() -> void:
 	StaticLoad.clear_connections()
 	StaticLoad.is_muti_mode = false
 	StaticLoad.is_in_game = false
-	SceneManager.change_scene("menu")
+	SceneManager.change_scene("menus/main_menu")
 
 @warning_ignore("unused_parameter")
 func _on_chat_line_edit_text_submitted(new_text: String) -> void:

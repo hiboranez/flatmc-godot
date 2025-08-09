@@ -1,0 +1,76 @@
+[gd_scene load_steps=6 format=3 uid="uid://b6xpmcn8ertif"]
+
+[ext_resource type="Script" path="res://assets/scripts/AchievementInfo.gd" id="1_jmvu5"]
+[ext_resource type="Texture2D" uid="uid://dvoodft1mp4d0" path="res://assets/textures/ui/achievement_background_big.png" id="1_uniqf"]
+[ext_resource type="PackedScene" uid="uid://dpnk4w3vgwyft" path="res://assets/scenes/others/ItemIcon.tscn" id="2_mxv5q"]
+[ext_resource type="FontFile" uid="uid://dahei608a1d0f" path="res://assets/fonts/MinecraftAE.ttf" id="3_ul55m"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ucy4j"]
+content_margin_left = 20.0
+content_margin_top = 20.0
+content_margin_right = 20.0
+content_margin_bottom = 20.0
+
+[node name="AchievementInfo" type="PanelContainer"]
+self_modulate = Color(1, 1, 1, 0)
+size_flags_horizontal = 3
+script = ExtResource("1_jmvu5")
+
+[node name="NinePatchRect" type="NinePatchRect" parent="."]
+custom_minimum_size = Vector2(0, 200)
+layout_mode = 2
+size_flags_horizontal = 3
+texture = ExtResource("1_uniqf")
+region_rect = Rect2(0, 0, 800, 160)
+patch_margin_left = 20
+patch_margin_top = 20
+patch_margin_right = 15
+patch_margin_bottom = 20
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = 40
+
+[node name="HSplitContainer" type="HSplitContainer" parent="MarginContainer"]
+custom_minimum_size = Vector2(800, 0)
+layout_mode = 2
+theme_override_constants/separation = 0
+split_offset = 120
+
+[node name="ItemIcon" parent="MarginContainer/HSplitContainer" instance=ExtResource("2_mxv5q")]
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/HSplitContainer"]
+layout_mode = 2
+theme_override_constants/margin_top = 45
+theme_override_constants/margin_right = 15
+theme_override_constants/margin_bottom = 20
+
+[node name="VSplitContainer" type="VSplitContainer" parent="MarginContainer/HSplitContainer/MarginContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+split_offset = 805
+
+[node name="AchievementName" type="Label" parent="MarginContainer/HSplitContainer/MarginContainer/VSplitContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.0405029, 0.0223527, 1)
+theme_override_fonts/font = ExtResource("3_ul55m")
+theme_override_font_sizes/font_size = 35
+text = "  Title"
+text_overrun_behavior = 1
+
+[node name="Description" type="RichTextLabel" parent="MarginContainer/HSplitContainer/MarginContainer/VSplitContainer"]
+custom_minimum_size = Vector2(0, 81)
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 1
+theme_override_constants/line_separation = 10
+theme_override_fonts/normal_font = ExtResource("3_ul55m")
+theme_override_font_sizes/normal_font_size = 35
+theme_override_styles/normal = SubResource("StyleBoxEmpty_ucy4j")
+text = "description"
+fit_content = true
+
+[node name="DarkMask" type="ColorRect" parent="."]
+layout_mode = 2
+color = Color(0, 0, 0, 0.431373)

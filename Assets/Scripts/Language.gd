@@ -11,7 +11,7 @@ func _notification(what):
 		if StaticLoad.is_in_game:
 			self.visible = false
 		else:
-			SceneManager.change_scene("menu")
+			SceneManager.change_scene("menus/main_menu")
 
 func clear_selected_background():
 	var current_languages = language_list_vboxcontainer.get_children()
@@ -31,7 +31,7 @@ func _on_languages_menu_confirm_button_pressed() -> void:
 		$"..".update_game_details(true)
 		$"..".refresh_achievement_info()
 	else:
-		SceneManager.change_scene("menu")
+		SceneManager.change_scene("menus/main_menu")
 
 func _on_languages_menu_cancel_button_pressed() -> void:
 	AudioManager.play_static_audio("sound/ui/click")
@@ -39,4 +39,4 @@ func _on_languages_menu_cancel_button_pressed() -> void:
 	if StaticLoad.is_in_game:
 		self.visible = false
 	else:
-		SceneManager.change_scene("menu")
+		SceneManager.change_scene("menus/main_menu")

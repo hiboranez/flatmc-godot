@@ -2,6 +2,8 @@ id;zh;en;ja;ko;es;fr;de;ru;hi;vi;th
 TITLE;我的世界2D版;Flat Minecraft;フラットマインクラフト;플랫 마인크래프트;Minecraft Plano;Minecraft Plat;Flaches Minecraft;Плоский Minecraft;फ्लैट माइनक्राफ्ट;Minecraft Phẳng;ไมน์คราฟต์แบบแบน
 AUTHOR;薄言EZ;HiBoranez;HiBoranez;HiBoranez;HiBoranez;HiBoranez;HiBoranez;HiBoranez;HiBoranez;HiBoranez;HiBoranez
 RELEASE_NOTE;版本说明;Release Note;リリースノート;릴리즈 노트;Notas de versión;Notes de version;Versionshinweis;Примечания к выпуску;रिलीज नोट;Ghi chú phát hành;บันทึกประจำรุ่น
+START_GAME;开始游戏;start game;ゲーム開始;게임 시작;Iniciar juego;Commencer le jeu;Spiel starten;Начать игру;खेल शुरू करें;Bắt đầu trò chơi;เริ่มเกม
+VERSION_SELECT;版本选择;version select;バージョン選択;버전 선택;Selección de versión;Sélection de version;Version auswählen;Выбор версии;संस्करण चयन;Chọn phiên bản;เลือกเวอร์ชัน
 HELP;帮助;Help;ヘルプ;도움말;Ayuda;Aide;Hilfe;Помощь;मदद;Trợ giúp;ความช่วยเหลือ
 VERSION;版本;version;バージョン;버전;Versión;Version;Version;Версия;संस्करण;Phiên bản;เวอร์ชัน00
 REQUIRED_VERSION;所需版本;required version;必要バージョン;필요 버전;versión requerida;version requise;erforderliche Version;требуемая версия;आवश्यक संस्करण;phiên bản yêu cầu;เวอร์ชันที่ต้องการ
@@ -31,9 +33,9 @@ SETTINGS;设置;settings;設定;설정;opciones;options;Einstellungen;настр
 DISCONNECT;断开连接;disconnect;切断;연결 끊기;desconectar;déconnecter;trennen;отключиться;डिस्कनेक्ट;ngắt kết nối;ตัดการเชื่อมต่อ  
 SAVE_AND_QUIT;保存并退出;save and quit;保存して終了;저장 후 종료;guardar y salir;sauvegarder et quitter;speichern und beenden;сохранить и выйти;सहेजें और बाहर निकलें;lưu và thoát;บันทึกและออก  
 PLAYER_NAME;玩家名;player name;プレイヤー名;플레이어 이름;nombre del jugador;nom du joueur;Spielername;имя игрока;खिलाड़ी का नाम;tên người chơi;ชื่อผู้เล่น  
-RENDER_CHUNK;渲染区块;render chunk;チャンク描画;청크 렌더링;renderizar chunk;rendu des chunks;Chunks rendern;рендер чанков;चंक प्रस्तुत करना;kết xuất chunk;เรนเดอร์ชังก์  
-FOV_ZOOM;视野缩放;zoom of viewing field;視野ズーム;시야 확대/축소;zoom de campo visual;zoom du champ de vision;Sichtfeld-Zoom;масштабирование поля зрения;दृश्य क्षेत्र ज़ूम;phóng to tầm nhìn;ซูมมุมมอง  
-BGM_VOLUME;背景音乐;bgm volume;BGM音量;BGM 볼륨;volumen de música;volume de la musique;Hintergrundmusik-Lautstärke;громкость фоновой музыки;बीजीएम वॉल्यूम;âm lượng nhạc nền;ระดับเสียงเพลง  
+RENDER_CHUNK;渲染距离;render distance;描画距離;렌더링 거리;distancia de renderizado;distance de rendu;Renderdistanze;дистанция рендеринга;प्रदर्शन दूरी;khoảng cách kết xuất;ระยะเรนเดอร์
+FOV_ZOOM;视野缩放;zoom of viewing field;視野ズーム;시야 확대/축소;zoom de campo visual;zoom du champ de vision;Sichtfeld-Zoom;FOV;दृश्य क्षेत्र ज़ूम;phóng to tầm nhìn;ซูมมุมมอง  
+BGM_VOLUME;背景音乐;bgm volume;BGM音量;BGM 볼륨;volumen de música;volume de la musique;Hintergrundmusik-Lautstärke;ромкость BGM;बीजीएम वॉल्यूम;âm lượng nhạc nền;ระดับเสียงเพลง  
 SOUND_VOLUME;游戏音效;sound volume;効果音音量;효과음 볼륨;volumen de sonido;volume du son;Soundlautstärke;громкость звуков;ध्वनि वॉल्यूम;âm lượng hiệu ứng;ระดับเสียงเอฟเฟกต์  
 TIP_0;按F键可以切换交互方块图层哦;Press the F key to switch between interactive block layers;Fキーでインタラクティブブロックのレイヤーを切り替えられます;F 키로 상호작용 블록 레이어 전환;Presiona F para cambiar entre capas de bloques interactivos;Appuyez sur F pour basculer entre les couches de blocs interactifs;Drücke F, um zwischen interaktiven Blockebenen zu wechseln;Нажмите F для переключения слоев интерактивных блоков;F दबाकर इंटरैक्टिव ब्लॉक परतों को बदलें;Nhấn F để chuyển đổi giữa các lớp khối tương tác;กด F เพื่อสลับเลเยอร์บล็อกแบบโต้ตอบ  
 TIP_1;直接点击实体可以用手攻击，但有冷却时间;Click on entities to attack them with your hands, but there is a cooldown period;エンティティを直接クリックで手攻撃可能（クールダウンあり）;엔티티 클릭으로 손 공격 가능 (쿨타임 있음);Haz clic en entidades para atacarlas con tus manos, pero hay un tiempo de espera;Cliquez sur les entités pour les attaquer à mains nues, mais il y a un délai de récupération;Klicke auf Entitäten, um sie mit den Händen anzugreifen, aber es gibt eine Abklingzeit;Кликните по существам, чтобы атаковать их руками, но есть время перезарядки;इकाइयों पर हाथ से हमला करने के लिए क्लिक करें, लेकिन कोल्डाउन अवधि है;Nhấp vào thực thể để tấn công bằng tay, nhưng có thời gian hồi chiêu;คลิกที่สิ่งมีชีวิตเพื่อโจมตีด้วยมือ แต่มีเวลาคูลดาวน์  
@@ -44,7 +46,7 @@ FLAT;超平坦;flat;フラット;플랫;plano;plat;flach;плоский;सप�
 GAMEMODE;游戏模式;gamemode;ゲームモード;게임 모ード;modo de juego;mode de jeu;Spielmodus;игровой режим;गेम मोड;chế độ trò chơi;โหมดเกม  
 SURVIVAL;生存;survival;サバイバル;생존;supervivencia;survie;Überleben;выживание;सर्वाइवल;sinh tồn;เอาชีวิตรอด  
 CREATIVE;创造;creative;クリエイティブ;크리에이티브;creativo;créatif;Kreativ;творческий;क्रिएटिव;sáng tạo;สร้างสรรค์ 
-BLOCK_SELECTION_BOX;方块选中框;block selection box;ブロック選択枠;블록 선택 상자;cuadro de selección de bloques;boîte de sélection de blocs;Blockauswahlrahmen;рамка выбора блока;ब्लॉक चयन बॉक्स;khung chọn khối;กล่องเลือกบล็อก
+BLOCK_SELECTION_BOX;选中框;selection box;選択枠;선택 상자;cuadro de selección;boîte de sélection;Auswahlrahmen;рамка выбора;चयन बॉक्स;khung chọn;กล่องเลือก
 ALWAYS_SHOW;总是显示;always show;常に表示;항상 표시;mostrar siempre;toujours afficher;immer anzeigen;всегда показывать;हमेशा दिखाएं;luôn hiển thị;แสดงเสมอ
 SHOW_WHEN_CHANGING;变动时显示;show when changing;変更時表示;변경 시 표시;mostrar al cambiar;afficher lors du changement;bei Änderung anzeigen;показывать при изменении;बदलते समय दिखाएं;hiển thị khi thay đổi;แสดงเมื่อมีการเปลี่ยนแปลง
 NEVER_SHOW;从不显示;never show;表示しない;표시 안 함;nunca mostrar;ne jamais afficher;nie anzeigen;никогда не показывать;कभी न दिखाएं;không bao giờ hiển thị;ไม่แสดงเลย

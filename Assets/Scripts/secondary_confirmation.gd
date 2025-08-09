@@ -7,6 +7,7 @@ extends CanvasLayer
 
 func _on_secondary_confirmation_confirm_button_pressed(function: Callable):
 	AudioManager.play_static_audio("sound/ui/click")
+	SceneManager.is_secondary_confirmation_popped = false
 	function.call()
 	queue_free()
 
@@ -18,7 +19,7 @@ func connect_secondary_confirmation_confirm_button(function: Callable):
 
 func close():
 	AudioManager.play_static_audio("sound/ui/click")
-	StaticLoad.is_secondary_confirmation_poped = false
+	SceneManager.is_secondary_confirmation_popped = false
 	queue_free()
 
 func set_title(title):

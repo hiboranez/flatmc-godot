@@ -17,8 +17,16 @@
 		"v_sync": "on",
 		"mini_map": "on",
 		"mini_map_zoom": "30",
-		"skin_path": "res://Assets/ResourcePacks/official_old/Skins/Steve.png",
+		"skin_path": "null",
 		"resource_pack": "official_new"
+	},
+	
+	"official_server_infos": {
+		"server_name": "FlatMC",
+		"server_type": "official",
+		"server_ip": "flatmc.hiboranez.work",
+		"server_port": "12419",
+		"server_icon_path": "ui/fmc_icon"
 	},
 	
 	"values": {

@@ -6,7 +6,6 @@ extends Control
 @onready var online_info_scene = load("res://Assets/Scenes/OnlineInfo.tscn") as PackedScene
 @onready var mouse_item_name_label_scene = load("res://Assets/Scenes/MouseItemNameLabel.tscn") as PackedScene
 @onready var player_icon_scene = load("res://Assets/Scenes/PlayerIcon.tscn") as PackedScene
-@onready var server_detect_scene = load("res://Assets/Scenes/ServerDetect.tscn") as PackedScene
 @onready var sign_info_scene = load("res://Assets/Scenes/SignInfo.tscn") as PackedScene
 @onready var item_scene = load("res://Assets/Scenes/Item.tscn") as PackedScene
 @onready var arrow_scene = load("res://Assets/Scenes/Arrow.tscn") as PackedScene
@@ -172,7 +171,6 @@ var multiplayer_peer = ENetMultiplayerPeer.new()
 var player_peer_dict: Dictionary
 var ping_peer_dict: Dictionary
 var stored_entity_rpc_list: Array
-var is_secondary_confirmation_poped = false
 var is_dedicated_server = false
 var is_on_mobile_platform = false
 var is_muti_mode = false
@@ -309,7 +307,7 @@ func _ready() -> void:
 		#if not FileAccess.file_exists(server_root_path+"/ops.txt"):
 			#var config = ConfigFile.new()
 			#config.save(server_root_path+"/ops.txt")
-		#SceneManager.change_scene("loading_world_menu")
+		#SceneManager.change_scene("menus/loading_world_menu")
 
 func _process(delta: float) -> void:
 	process_stored_rpc()
@@ -327,7 +325,7 @@ func get_mca_value(got_chunk_pos):
 	var chunk_config = ConfigFile.new()
 	var x_chunk = got_chunk_pos[0]
 	var y_chunk = got_chunk_pos[1]
-	var chunk_result = chunk_config.load_encrypted_pass(StaticLoad.region_path+"/r."+str(x_chunk)+"."+str(y_chunk)+".mca", SettingsManager.get_default_value("config_password"))
+	var chunk_result = chunk_config.load_encrypted_pass(region_path+"/r."+str(x_chunk)+"."+str(y_chunk)+".mca", SettingsManager.get_default_value("config_password"))
 	if chunk_result != OK:
 		return [false]
 	var blocks = chunk_config.get_value("chunk", "blocks", [])
@@ -365,115 +363,8 @@ func get_mca_value(got_chunk_pos):
 	game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)].farm_land_list = chunk_farm_land_list
 	game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)].sugar_cane_list = chunk_sugar_cane_list
 	game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)].sign_dict = chunk_sign_dict
-	game.loaded_chunks_timer[str(x_chunk)+"."+str(y_chunk)] = StaticLoad.CHUNK_FREE_TIME
+	game.loaded_chunks_timer[str(x_chunk)+"."+str(y_chunk)] = CHUNK_FREE_TIME
 	return [true, chunk_config, chunk_block_list, chunk_info_dict]
-
-func compare_version(version_1: String, version_2: String):
-	var splits_1
-	var splits_2
-	if version_1 == "unknown":
-		splits_1 = ["0", "1", "0"]
-	else:
-		splits_1 = version_1.split(".")
-	if version_2 == "unknown":
-		splits_2 = ["0", "1", "0"]
-	else:
-		splits_2 = version_2.split(".")
-	var i = 0
-	while i < 3:
-		if int(splits_1[i]) > int(splits_2[i]):
-			return "higher"
-		elif int(splits_1[i]) < int(splits_2[i]):
-			return "lower"
-		i += 1
-	return "equal"
-
-func convert_world_version(world_name, old_version):
-	var block_ids_old = block_ids_initial
-	var old_version_splits = old_version.split(".")
-	if old_version_splits[0] == "0":
-		if old_version_splits[1] == "1":
-			if int(old_version_splits[2]) >= 1:
-				block_ids_old = block_ids_0_1
-		if old_version_splits[1] == "2":
-			block_ids_old = block_ids_0_2
-	var region_path_tmp = "user://worlds/"+world_name+"/regions"
-	var regions = DirAccess.get_files_at(ProjectSettings.globalize_path(region_path_tmp))
-	if regions.is_empty():
-		return
-	for region in regions:
-		var splits = region.split(".")
-		var chunk_config = ConfigFile.new()
-		var chunk_result = chunk_config.load_encrypted_pass(region_path_tmp+"/"+region, StaticLoad.SettingsManager.get_default_value("config_password"))
-		if chunk_result != OK:
-			return
-		var blocks = "null"
-		var no_reach_blocks = "null"
-		var back_blocks = "null"
-		if old_version_splits[0] == "0" and old_version_splits[1] == "1":
-			blocks = chunk_config.get_value("chunck", "blocks", "null")
-			no_reach_blocks = chunk_config.get_value("chunck", "no_reach_blocks", "null")
-			back_blocks = chunk_config.get_value("chunck", "back_blocks", "null")
-			if blocks == "null":
-				blocks = chunk_config.get_value("chunk", "blocks", "null")
-				no_reach_blocks = chunk_config.get_value("chunk", "no_reach_blocks", "null")
-				back_blocks = chunk_config.get_value("chunk", "back_blocks", "null")
-		else:
-			blocks = chunk_config.get_value("chunk", "blocks", "null")
-			no_reach_blocks = chunk_config.get_value("chunk", "no_reach_blocks", "null")
-			back_blocks = chunk_config.get_value("chunk", "back_blocks", "null")
-		if no_reach_blocks == "null":
-			no_reach_blocks = []
-			for i in range(16):
-				var row = []
-				for j in range(16):
-					row.append(block_ids["AIR"])
-				no_reach_blocks.append(row)
-		if back_blocks == "null":
-			back_blocks = []
-			for i in range(16):
-				var row = []
-				for j in range(16):
-					row.append(block_ids["AIR"])
-				back_blocks.append(row)
-		blocks = convert_blocks_version(blocks, block_ids_old)
-		no_reach_blocks = convert_blocks_version(no_reach_blocks, block_ids_old)
-		back_blocks = convert_blocks_version(back_blocks, block_ids_old)
-		var mca = ConfigFile.new()
-		mca.set_value("chunk", "blocks", blocks)
-		mca.set_value("chunk", "no_reach_blocks", no_reach_blocks)
-		mca.set_value("chunk", "back_blocks", back_blocks)
-		mca.save_encrypted_pass(region_path_tmp+"/r."+splits[1]+"."+splits[2]+".mca", StaticLoad.SettingsManager.get_default_value("config_password"))
-	var world_path_tmp = "user://worlds/"+world_name
-	var level = ConfigFile.new()
-	var current_time = Time.get_datetime_string_from_system(false, true).replace(" ", "  ").replace("-", "/")
-	var level_change_value = {
-		"last_modified": current_time,
-		"version": StaticLoad.settings["version"]
-	}
-	WorldManager.save_level_dat(level, level_change_value)
-	level.save_encrypted_pass(world_path_tmp+"/level.dat", StaticLoad.SettingsManager.get_default_value("config_password"))
-
-func convert_blocks_version(blocks, block_ids_old):
-	for i in range(16):
-		for j in range(16):
-			var old_id = blocks[i][j]
-			var new_id = blocks[i][j]
-			if block_ids_old.find_key(old_id) != null:
-				var block_name_tmp = block_ids_old.find_key(old_id)
-				if block_ids.has(block_name_tmp):
-					new_id = block_ids[block_name_tmp]
-				else:
-					var is_alternative_found = false
-					for alternative in block_name_alternatives:
-						if alternative.has(block_name_tmp):
-							block_name_tmp = alternative[0]
-							is_alternative_found = true
-							break
-					if is_alternative_found:
-						new_id = block_ids[block_name_tmp]
-			blocks[i][j] = new_id
-	return blocks
 
 func process_stored_rpc():
 	if not is_muti_mode:
@@ -540,8 +431,8 @@ func calculate_sight_is_blocked(pos1, pos2):
 		var pos_tmp2 = pos_tmp1+orthogonal_relative_to_pos1
 		var pos_tmp3 = pos_tmp1-orthogonal_relative_to_pos1
 		for pos_tmp in [pos_tmp1, pos_tmp2, pos_tmp3]:
-			var block_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer_tmp.get_cell_atlas_coords(tile_map_layer_tmp.local_to_map(pos_tmp)))
-			if block_id != 0 and not StaticLoad.get_is_untouchable_by_id(block_id):
+			var block_id = get_block_id_by_atlas_coords(tile_map_layer_tmp.get_cell_atlas_coords(tile_map_layer_tmp.local_to_map(pos_tmp)))
+			if block_id != 0 and not get_is_untouchable_by_id(block_id):
 				return true
 	return false
 
@@ -800,24 +691,24 @@ func dedicated_server_create_world():
 	var current_time = Time.get_datetime_string_from_system(false, true).replace(" ", "  ").replace("-", "/")
 	var level_change_value = {
 		"last_modified": current_time,
-		"version": StaticLoad.settings["version"],
+		"version": settings["version"],
 		"seed": "1241999312",
 		"world_type": "default",
 		"gamemode": "survival"
 	}
-	WorldManager.save_level_dat(level, level_change_value)
-	level.save_encrypted_pass(world_path+"/level.dat", StaticLoad.SettingsManager.get_default_value("config_password"))
+	get_node("/root/WorldManager").save_level_dat(level, level_change_value)
+	level.save_encrypted_pass(world_path+"/level.dat", SettingsManager.get_default_value("config_password"))
 	for x in range(-1,1):
 		for y in range(-1,1):
 			var mca = ConfigFile.new()
-			var chunk = StaticLoad.generate_chunk(Vector2i(x, y), seed, "default")
+			var chunk = WorldManager.generate_chunk(Vector2i(x, y), seed, "default")
 			var value_dict = {
 				"blocks" : chunk[0],
 				"no_reach_blocks" : chunk[1],
 				"back_blocks" : chunk[2]
 			}
-			WorldManager.set_mca_value(mca, value_dict)
-			mca.save_encrypted_pass(region_path+"/r."+str(x)+"."+str(y)+".mca", StaticLoad.SettingsManager.get_default_value("config_password"))
+			get_node("/root/WorldManager").set_mca_value(mca, value_dict)
+			mca.save_encrypted_pass(region_path+"/r."+str(x)+"."+str(y)+".mca", SettingsManager.get_default_value("config_password"))
 
 func get_random_available_port():
 	var port_range_start = 1024
@@ -834,14 +725,6 @@ func get_random_available_port():
 		server.close()  # 关闭服务器
 
 	return -1  # 如果没有找到可用端口，返回 -1
-
-func check_server_version(check_version):
-	var splits_1 = check_version.split(".")
-	var splits_2 = settings["version"].split(".")
-	for i in range(3):
-		if splits_1[i] != splits_2[i]:
-			return false
-	return true
 
 func clear_connections():
 	multiplayer.multiplayer_peer.close()
@@ -901,7 +784,7 @@ func server_got_peer_disconnected(client_peer_id):
 		call_deferred("rpc", "peer_disconnect_broadcast", client_peer_id)
 
 func server_got_peer_connected(client_peer_id):
-	var server_detect = server_detect_scene.instantiate()
+	var server_detect = SceneManager.get_scene("others/server_detect").instantiate()
 	server_detect.name = str(client_peer_id)
 	server_detects.add_child(server_detect)
 	game.save_world()
@@ -912,7 +795,7 @@ func client_got_server_disconnected():
 	is_in_game = false
 	is_muti_mode = false
 	force_quit_reason = "connection_interrupted"
-	SceneManager.change_scene("force_quit_menu")
+	SceneManager.change_scene("menus/force_quit_menu")
 
 func client_got_connected_to_server():
 	#print(multiplayer.get_unique_id()," : connected to server")
@@ -952,10 +835,10 @@ func peer_disconnect_broadcast(client_peer_id):
 		return
 	var left_player = player_peer_dict[client_peer_id]
 	game.broadcast_to_all(left_player.player_name+tr("LEFT_GAME"), "gold")
-	if StaticLoad.is_dedicated_server:
+	if is_dedicated_server:
 		var text = "["+get_time_string(false)+" INFO]: "+player_peer_dict[client_peer_id].player_name+" left the game"
 		print(text)
-		ServerManager.record_server_log(Time.get_date_string_from_system(), text)
+		get_node("/root/ServerManager").record_server_log(Time.get_date_string_from_system(), text)
 	destroy_peer(client_peer_id)
 
 @rpc("any_peer", "call_remote", "reliable", 1)
@@ -987,17 +870,17 @@ func request_for_update_chunk(client_peer_id, is_init, x_chunk, y_chunk):
 				var id = 0
 				if game.tile_map_layer.get_cell_source_id(block_pos) != -1:
 					var atlas_coords = game.tile_map_layer.get_cell_atlas_coords(block_pos)
-					id = StaticLoad.get_block_id_by_atlas_coords(atlas_coords)
+					id = get_block_id_by_atlas_coords(atlas_coords)
 				row.append(id)
 				var no_reach_id = 0
 				if game.no_reach_tile_map_layer.get_cell_source_id(block_pos) != -1:
 					var atlas_coords = game.no_reach_tile_map_layer.get_cell_atlas_coords(block_pos)
-					no_reach_id = StaticLoad.get_block_id_by_atlas_coords(atlas_coords)
+					no_reach_id = get_block_id_by_atlas_coords(atlas_coords)
 				no_reach_row.append(no_reach_id)
 				var back_id = 0
 				if game.back_tile_map_layer.get_cell_source_id(block_pos) != -1:
 					var atlas_coords = game.back_tile_map_layer.get_cell_atlas_coords(block_pos)
-					back_id = StaticLoad.get_block_id_by_atlas_coords(atlas_coords)
+					back_id = get_block_id_by_atlas_coords(atlas_coords)
 				back_row.append(back_id)
 			blocks.append(row)
 			no_reach_blocks.append(no_reach_row)
@@ -1019,12 +902,12 @@ func request_for_update_chunk(client_peer_id, is_init, x_chunk, y_chunk):
 		var mca = ConfigFile.new()
 		var worlds_path = "user://worlds"
 		var world_config = ConfigFile.new()
-		var world_info = world_config.load_encrypted_pass(worlds_path+"/"+StaticLoad.select_world+"/level.dat", StaticLoad.SettingsManager.get_default_value("config_password"))
+		var world_info = world_config.load_encrypted_pass(worlds_path+"/"+select_world+"/level.dat", SettingsManager.get_default_value("config_password"))
 		if world_info != OK:
 			return
 		var seed = world_config.get_value("world", "seed", "1241999312")
 		var world_type = world_config.get_value("world", "world_type", "default")
-		var chunk = WorldManager.generate_chunk(Vector2i(x_chunk, y_chunk), seed, world_type)
+		var chunk = get_node("/root/WorldManager").generate_chunk(Vector2i(x_chunk, y_chunk), seed, world_type)
 		game.loaded_chunk_num += 1
 		var value_dict = {
 				"blocks" : chunk[0],
@@ -1034,19 +917,19 @@ func request_for_update_chunk(client_peer_id, is_init, x_chunk, y_chunk):
 		blocks = chunk[0]
 		no_reach_blocks = chunk[1]
 		back_blocks = chunk[2]
-		WorldManager.set_mca_value(mca, value_dict)
+		get_node("/root/WorldManager").set_mca_value(mca, value_dict)
 		mca.save_encrypted_pass(region_path+"/r."+str(x_chunk)+"."+str(y_chunk)+".mca", SettingsManager.get_default_value("config_password"))
 		game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)] = Chunk.new()
 		game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)].is_to_save = false
-		game.loaded_chunks_timer[str(x_chunk)+"."+str(y_chunk)] = StaticLoad.CHUNK_FREE_TIME
+		game.loaded_chunks_timer[str(x_chunk)+"."+str(y_chunk)] = CHUNK_FREE_TIME
 		game.database_chunks.push_back(str(x_chunk)+"."+str(y_chunk))
 		game.set_chunk(Vector2i(x_chunk, y_chunk), [blocks, no_reach_blocks, back_blocks])
 	var entities_to_transfer = []
-	for uuid in StaticLoad.game.entities:
-		var entity = StaticLoad.game.entities[uuid]
+	for uuid in game.entities:
+		var entity = game.entities[uuid]
 		if entity == null:
 			continue
-		var entity_block_pos = StaticLoad.game.tile_map_layer.local_to_map(entity.position)
+		var entity_block_pos = game.tile_map_layer.local_to_map(entity.position)
 		if entity_block_pos.x >= x_chunk*16 and entity_block_pos.x < x_chunk*16+16:
 			if entity_block_pos.y >= y_chunk*16 and entity_block_pos.y < y_chunk*16+16:
 				if entity.entity_type == "item":
@@ -1095,7 +978,7 @@ func reply_for_update_chunk(is_init, x_chunk, y_chunk, blocks_list, entities_to_
 		game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)] = Chunk.new()
 	game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)].is_to_save = false
 	game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)].sign_dict = sign_dict
-	game.loaded_chunks_timer[str(x_chunk)+"."+str(y_chunk)] = StaticLoad.CHUNK_FREE_TIME
+	game.loaded_chunks_timer[str(x_chunk)+"."+str(y_chunk)] = CHUNK_FREE_TIME
 	game.loaded_chunk_num += 1
 	for entity in entities_to_transfer:
 		if game.entities.has(entity["uuid"]):
@@ -1154,14 +1037,14 @@ func create_entity(args):
 			return
 		var amount = args[3]
 		var x_velocity = args[4]
-		if StaticLoad.is_muti_mode and not multiplayer.get_unique_id() == 1:
+		if is_muti_mode and not multiplayer.get_unique_id() == 1:
 			x_velocity = 0
 		var no_collect_time = args[5]
 		var uuid = args[6]
-		var item = StaticLoad.game.item_scene.instantiate()
-		StaticLoad.game.items.add_child(item)
+		var item = game.item_scene.instantiate()
+		game.items.add_child(item)
 		item.init([uuid, droppped_item_name, pos, amount, no_collect_time, x_velocity])
-		StaticLoad.game.entities[item.get_uuid()] = item
+		game.entities[item.get_uuid()] = item
 	elif args[0] == "arrow":
 		var uuid = args[1]
 		var entity_name = args[2]
@@ -1180,11 +1063,11 @@ func create_entity(args):
 		var entity_scene = entity_scene_dict[args[0]]
 		var entity = entity_scene.instantiate()
 		if undead_mob_list.has(args[0]):
-			StaticLoad.game.undead_mobs.add_child(entity)
+			game.undead_mobs.add_child(entity)
 		else:
-			StaticLoad.game.mobs.add_child(entity)
+			game.mobs.add_child(entity)
 		entity.init([uuid, entity_name, pos, velocity, current_velocity, shooter_type, shooter_uuid, shooter_name, is_undead_damage])
-		StaticLoad.game.entities[entity.get_uuid()] = entity
+		game.entities[entity.get_uuid()] = entity
 	else:
 		var uuid = args[1]
 		var entity_name = args[2]
@@ -1197,11 +1080,11 @@ func create_entity(args):
 		var entity_scene = entity_scene_dict[args[0]]
 		var entity = entity_scene.instantiate()
 		if undead_mob_list.has(args[0]):
-			StaticLoad.game.undead_mobs.add_child(entity)
+			game.undead_mobs.add_child(entity)
 		else:
-			StaticLoad.game.mobs.add_child(entity)
+			game.mobs.add_child(entity)
 		entity.init([uuid, entity_name, pos, health])
-		StaticLoad.game.entities[entity.get_uuid()] = entity
+		game.entities[entity.get_uuid()] = entity
 
 @rpc("authority", "call_remote", "reliable", 1)
 func set_block(args):
@@ -1259,12 +1142,12 @@ func request_for_player_info(client_peer_id, player_name):
 	if FileAccess.file_exists(player_path+"/"+player_name.to_lower()+".dat"):
 		var worlds_path = "user://worlds"
 		var world_config = ConfigFile.new()
-		var world_info = world_config.load_encrypted_pass(worlds_path+"/"+StaticLoad.select_world+"/level.dat", StaticLoad.SettingsManager.get_default_value("config_password"))
+		var world_info = world_config.load_encrypted_pass(worlds_path+"/"+select_world+"/level.dat", SettingsManager.get_default_value("config_password"))
 		var gamemode
 		if world_info == OK:
 			gamemode = world_config.get_value("world", "gamemode", "survival")
 		var player_config = ConfigFile.new()
-		var player_result = player_config.load_encrypted_pass(StaticLoad.player_path+"/"+player_name.to_lower()+".dat", StaticLoad.SettingsManager.get_default_value("config_password"))
+		var player_result = player_config.load_encrypted_pass(player_path+"/"+player_name.to_lower()+".dat", SettingsManager.get_default_value("config_password"))
 		if player_result != OK:
 			return
 		var player_position = player_config.get_value("player", "position", DEFAULT_PLAYER_SPAWN_POS)
@@ -1322,7 +1205,7 @@ func broadcast_player_join_game(got_name_tag):
 	if is_dedicated_server:
 		var text = "["+get_time_string(false)+" INFO]: "+got_name_tag+" joined the game"
 		print(text)
-		ServerManager.record_server_log(Time.get_date_string_from_system(), text)
+		get_node("/root/ServerManager").record_server_log(Time.get_date_string_from_system(), text)
 
 @rpc("any_peer", "call_remote", "reliable", 1)
 func request_for_world_info(client_peer_id, is_fresh):
@@ -1348,7 +1231,7 @@ func request_for_update_player_inventory(client_peer_id, player_name):
 	if FileAccess.file_exists(player_path+"/"+player_name.to_lower()+".dat"):
 		var worlds_path = "user://worlds"
 		var player_config = ConfigFile.new()
-		var player_result = player_config.load_encrypted_pass(StaticLoad.player_path+"/"+player_name.to_lower()+".dat", StaticLoad.SettingsManager.get_default_value("config_password"))
+		var player_result = player_config.load_encrypted_pass(player_path+"/"+player_name.to_lower()+".dat", SettingsManager.get_default_value("config_password"))
 		if player_result != OK:
 			return
 		var item_bar_names = player_config.get_value("player", "item_bar_names", default_item_bar_names)

@@ -1,0 +1,52 @@
+[gd_scene load_steps=5 format=3 uid="uid://ddk2ss7f7nlyx"]
+
+[ext_resource type="FontVariation" uid="uid://ck7gxbgy6ry6b" path="res://assets/fonts/fmcles.tres" id="1_aemtk"]
+[ext_resource type="Script" path="res://assets/scripts/ui_line_edit.gd" id="1_wsyc3"]
+[ext_resource type="Texture2D" uid="uid://ciujo1nm3h45y" path="res://assets/textures/ui/ui_button_disabled.png" id="3_5lt08"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_p58p3"]
+content_margin_left = 25.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+texture = ExtResource("3_5lt08")
+texture_margin_left = 21.0
+texture_margin_top = 21.0
+texture_margin_right = 21.0
+texture_margin_bottom = 21.0
+axis_stretch_horizontal = 1
+axis_stretch_vertical = 1
+
+[node name="UILineEdit" type="HSplitContainer"]
+custom_minimum_size = Vector2(750, 100)
+offset_right = 750.0
+offset_bottom = 100.0
+size_flags_horizontal = 3
+collapsed = true
+script = ExtResource("1_wsyc3")
+
+[node name="Title" type="Label" parent="."]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_colors/font_color = Color(0.878431, 0.878431, 0.878431, 1)
+theme_override_colors/font_shadow_color = Color(0.243137, 0.243137, 0.243137, 1)
+theme_override_constants/shadow_offset_x = 4
+theme_override_constants/shadow_offset_y = 4
+theme_override_fonts/font = ExtResource("1_aemtk")
+theme_override_font_sizes/font_size = 35
+text = "TITLE"
+vertical_alignment = 1
+
+[node name="LineEdit" type="LineEdit" parent="."]
+custom_minimum_size = Vector2(0, 100)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_colors/font_color = Color(0.878431, 0.878431, 0.878431, 1)
+theme_override_constants/caret_width = 5
+theme_override_constants/minimum_character_width = 0
+theme_override_fonts/font = ExtResource("1_aemtk")
+theme_override_font_sizes/font_size = 40
+theme_override_styles/normal = SubResource("StyleBoxTexture_p58p3")
+caret_blink = true
+
+[connection signal="gui_input" from="LineEdit" to="." method="_on_line_edit_gui_input"]
