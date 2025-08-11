@@ -1,13 +1,18 @@
-extends Node
+extends Menu
 
-@onready var setting_single_gridcontainer = $MenuControl/Content/MarginContainer/ScrollContainer/VBoxContainer/SingleMarginContainer/SingleGridContainer
-@onready var setting_double_gridcontainer = $MenuControl/Content/MarginContainer/ScrollContainer/VBoxContainer/DoubleMarginContainer/DoubleGridContainer
 @onready var menu_control = $MenuControl
-
-var is_changing_menu: bool = false
+@onready var base_content_panel = $MenuControl/BaseContentPanel
 
 func _ready() -> void:
-	load_settings()
+	menu_controller = $MenuController
+	menu_control.visible = false
+	menu_controller.set_menu_control(menu_control)
+	var settings_panel = SceneManager.get_scene("panels/settings_panel").instantiate()
+	settings_panel.menu = self
+	scale_factor = 0.8
+	base_content_panel.set_content(settings_panel)
+	await settings_panel.load_settings()
+	menu_controller.appear()
 
 func _notification(what):
 	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
@@ -15,85 +20,11 @@ func _notification(what):
 		if StaticLoad.is_in_game:
 			self.visible = false
 		else:
-			SceneManager.change_scene("menus/main_menu")
+			await menu_control.menu_controller.vanish()
+			if has_node("/root/MainMenu"):
+				get_node("/root/MainMenu").menu_controller.appear()
+			queue_free()
 
-func load_settings():
-	var config = ConfigFile.new()
-	var result = config.load("user://configs.cfg")
-	if result != OK:
-		return
-	for setting_node in setting_single_gridcontainer.get_children():
-		if setting_node.has_method("load_setting"):
-			setting_node.load_setting(config)
-	for setting_node in setting_double_gridcontainer.get_children():
-		if setting_node.has_method("load_setting"):
-			setting_node.load_setting(config)
-
-func change_menu() -> void:
-	if StaticLoad.is_in_game:
-		self.visible = false
-	else:
-		is_changing_menu = true
-		var tween = create_tween()
-		tween.tween_property(menu_control, "modulate", Color(1,1,1,0), 0.15)
-		if get_tree() != null:
-			await get_tree().create_timer(0.15).timeout
-		if has_node("/root/MainMenu"):
-			var main_menu = get_node("/root/MainMenu")
-			main_menu.is_changing_menu = true
-			main_menu.menu_control.visible = true
-			create_tween().tween_property(main_menu.menu_control, "modulate", Color(1,1,1,1), 0.15)
-			if get_tree() != null:
-				await get_tree().create_timer(0.15).timeout
-			main_menu.is_changing_menu = false
-		queue_free()
-
-func _on_settings_menu_save_button_pressed() -> void:
-	if is_changing_menu:
-		return
-	AudioManager.play_static_audio("sound/ui/click")
-	if setting_double_gridcontainer.has_node("PlayerName"):
-		var player_name = setting_double_gridcontainer.get_node("PlayerName").get_line_edit_text()
-		if player_name == "":
-			SceneManager.pop_notification(self, "WARNING", "WARNING_2")
-			return
-		if player_name.length() > int(SettingsManager.get_default_value("max_name_length")):
-			SceneManager.pop_notification(self, "WARNING", "WARNING_9")
-			return
-		if player_name.contains(" "):
-			SceneManager.pop_notification(self, "WARNING", "WARNING_10")
-			return
-	var change_dict = {}
-	for setting_node in setting_single_gridcontainer.get_children():
-		if setting_node.has_method("save_setting"):
-			setting_node.save_setting(change_dict)
-	for setting_node in setting_double_gridcontainer.get_children():
-		if setting_node.has_method("save_setting"):
-			setting_node.save_setting(change_dict)
-	var is_bgm_refresh_required = false
-	if SettingsManager.get_current_setting("new_music") != change_dict["new_music"]:
-		is_bgm_refresh_required = true
-	SettingsManager.save_settings(change_dict)
-	if SettingsManager.get_current_setting("full_screen") == "on" and DisplayServer.window_get_mode() != DisplayServer.WINDOW_MODE_FULLSCREEN:
-		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
-	elif SettingsManager.get_current_setting("full_screen") == "off" and DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_FULLSCREEN:
-		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
-	if SettingsManager.get_current_setting("v_sync") == "on" and DisplayServer.window_get_vsync_mode() != DisplayServer.VSYNC_ENABLED:
-		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_ENABLED)
-	elif SettingsManager.get_current_setting("v_sync") == "off" and DisplayServer.window_get_mode() != DisplayServer.VSYNC_DISABLED:
-		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
-	if is_bgm_refresh_required:
-		AudioManager.refresh_bgm()
-	AudioManager.set_bgm_volume(int(SettingsManager.get_current_setting("bgm_volume"))/50.0)
-	AudioManager.set_sound_volume(int(SettingsManager.get_current_setting("sound_volume"))/50.0)
-	change_menu()
-
-func _on_settings_menu_cancel_button_pressed() -> void:
-	if is_changing_menu:
-		return
-	AudioManager.play_static_audio("sound/ui/click")
-	change_menu()
-		
 #func on_settings_menu_save_button_pressed() -> void:
 	#var stored_full_screen = SettingsManager.get_default_setting("full_screen")
 	#var stored_v_sync = SettingsManager.get_default_setting("v_sync")

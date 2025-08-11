@@ -18,6 +18,7 @@ var prev_scroll_state = ButtonState.NORMAL
 
 func _ready() -> void:
 	value = default_value
+	get_viewport().size_changed.connect(update_display)
 	update_display()
 
 func _process(delta: float) -> void:
@@ -34,7 +35,7 @@ func _process(delta: float) -> void:
 func _gui_input(event: InputEvent) -> void:
 	if not is_dragging:
 		return
-	if event is InputEventMouseMotion:
+	if event is InputEventMouseMotion or event is InputEventScreenDrag:
 		var value_linear = (event.position.x)/size.x
 		value_linear = min(value_linear, 1)
 		value_linear = max(value_linear, 0)
@@ -46,37 +47,6 @@ func _gui_input(event: InputEvent) -> void:
 			else:
 				value=value-remainder			
 		update_display()
-
-func _on_scroll_gui_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton:
-		if event.button_index == 1:
-			if not event.pressed and is_dragging:
-				if not Rect2(Vector2(), scroll.size).has_point(event.position):
-					if scroll_state == ButtonState.HOVERD:
-						scroll_state = ButtonState.NORMAL
-			if event.pressed:
-				is_dragging = true
-			else:
-				is_dragging = false
-	if event is InputEventScreenTouch:
-		if event.pressed:
-			if scroll_state == ButtonState.NORMAL:
-				scroll_state = ButtonState.HOVERD
-		else:
-			if scroll_state == ButtonState.HOVERD:
-				scroll_state = ButtonState.NORMAL
-		if event.pressed:
-			is_dragging = true
-		else:
-			is_dragging = false
-
-func _on_scroll_mouse_entered() -> void:
-	if not is_dragging and scroll_state == ButtonState.NORMAL:
-		scroll_state = ButtonState.HOVERD
-
-func _on_scroll_mouse_exited() -> void:
-	if not is_dragging and scroll_state == ButtonState.HOVERD:
-		scroll_state = ButtonState.NORMAL
 
 func update_display():
 	scroll.position.x = (size.x-scroll.size.x)*((value-min_value)/(max_value-min_value))
@@ -105,3 +75,36 @@ func set_scroll_bar_value(got_value: float) -> void:
 
 func get_scroll_bar_value() -> float:
 	return value
+
+func _on_scroll_gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton:
+		if event.button_index == 1:
+			if not event.pressed and is_dragging:
+				if not Rect2(Vector2(), scroll.size).has_point(event.position):
+					if scroll_state == ButtonState.HOVERD:
+						scroll_state = ButtonState.NORMAL
+			if event.pressed:
+				is_dragging = true
+				grab_focus()
+			else:
+				is_dragging = false
+	if event is InputEventScreenTouch:
+		if event.pressed:
+			if scroll_state == ButtonState.NORMAL:
+				scroll_state = ButtonState.HOVERD
+		else:
+			if scroll_state == ButtonState.HOVERD:
+				scroll_state = ButtonState.NORMAL
+		if event.pressed:
+			is_dragging = true
+			grab_focus()
+		else:
+			is_dragging = false
+
+func _on_scroll_mouse_entered() -> void:
+	if not is_dragging and scroll_state == ButtonState.NORMAL:
+		scroll_state = ButtonState.HOVERD
+
+func _on_scroll_mouse_exited() -> void:
+	if not is_dragging and scroll_state == ButtonState.HOVERD:
+		scroll_state = ButtonState.NORMAL

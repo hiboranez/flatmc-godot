@@ -696,7 +696,7 @@ func dedicated_server_create_world():
 		"world_type": "default",
 		"gamemode": "survival"
 	}
-	get_node("/root/WorldManager").save_level_dat(level, level_change_value)
+	WorldManager.save_level_dat(level, level_change_value)
 	level.save_encrypted_pass(world_path+"/level.dat", SettingsManager.get_default_value("config_password"))
 	for x in range(-1,1):
 		for y in range(-1,1):
@@ -707,7 +707,7 @@ func dedicated_server_create_world():
 				"no_reach_blocks" : chunk[1],
 				"back_blocks" : chunk[2]
 			}
-			get_node("/root/WorldManager").set_mca_value(mca, value_dict)
+			WorldManager.set_mca_value(mca, value_dict)
 			mca.save_encrypted_pass(region_path+"/r."+str(x)+"."+str(y)+".mca", SettingsManager.get_default_value("config_password"))
 
 func get_random_available_port():
@@ -907,7 +907,7 @@ func request_for_update_chunk(client_peer_id, is_init, x_chunk, y_chunk):
 			return
 		var seed = world_config.get_value("world", "seed", "1241999312")
 		var world_type = world_config.get_value("world", "world_type", "default")
-		var chunk = get_node("/root/WorldManager").generate_chunk(Vector2i(x_chunk, y_chunk), seed, world_type)
+		var chunk = WorldManager.generate_chunk(Vector2i(x_chunk, y_chunk), seed, world_type)
 		game.loaded_chunk_num += 1
 		var value_dict = {
 				"blocks" : chunk[0],
@@ -917,7 +917,7 @@ func request_for_update_chunk(client_peer_id, is_init, x_chunk, y_chunk):
 		blocks = chunk[0]
 		no_reach_blocks = chunk[1]
 		back_blocks = chunk[2]
-		get_node("/root/WorldManager").set_mca_value(mca, value_dict)
+		WorldManager.set_mca_value(mca, value_dict)
 		mca.save_encrypted_pass(region_path+"/r."+str(x_chunk)+"."+str(y_chunk)+".mca", SettingsManager.get_default_value("config_password"))
 		game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)] = Chunk.new()
 		game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)].is_to_save = false

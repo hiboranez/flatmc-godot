@@ -1,0 +1,216 @@
+[gd_scene load_steps=7 format=3 uid="uid://bluljfdoe066n"]
+
+[ext_resource type="Script" path="res://assets/scripts/panels/settings_panel.gd" id="1_fqbgn"]
+[ext_resource type="PackedScene" uid="uid://ddk2ss7f7nlyx" path="res://assets/scenes/ui/ui_line_edit.tscn" id="2_21sfg"]
+[ext_resource type="PackedScene" uid="uid://t7ibude322ee" path="res://assets/scenes/ui/drag_scroll_container.tscn" id="2_qm2q4"]
+[ext_resource type="PackedScene" uid="uid://d18x5l5dfq0qt" path="res://assets/scenes/ui/ui_switch_button.tscn" id="3_8kejv"]
+[ext_resource type="PackedScene" uid="uid://cskv5wkprj7p0" path="res://assets/scenes/ui/ui_scroll_bar.tscn" id="4_mwu8u"]
+[ext_resource type="PackedScene" uid="uid://df6k4i6hb4a6p" path="res://assets/scenes/ui/ui_normal_button.tscn" id="5_chgu6"]
+
+[node name="SettingsPanel" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_fqbgn")
+
+[node name="DragScrollContainer" parent="." instance=ExtResource("2_qm2q4")]
+layout_mode = 1
+
+[node name="VBoxContainer" type="VBoxContainer" parent="DragScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 2
+focus_mode = 2
+theme_override_constants/separation = 20
+
+[node name="SingleColumnCenterContainer" type="CenterContainer" parent="DragScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+focus_mode = 2
+
+[node name="SingleColumnGridContainer" type="GridContainer" parent="DragScrollContainer/VBoxContainer/SingleColumnCenterContainer"]
+layout_mode = 2
+focus_mode = 2
+theme_override_constants/v_separation = 20
+
+[node name="PlayerName" parent="DragScrollContainer/VBoxContainer/SingleColumnCenterContainer/SingleColumnGridContainer" instance=ExtResource("2_21sfg")]
+custom_minimum_size = Vector2(1552, 100)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 2
+setting_name = "player_name"
+title = "PLAYER_NAME"
+default_text = "Steve"
+
+[node name="BlockSelectionBox" parent="DragScrollContainer/VBoxContainer/SingleColumnCenterContainer/SingleColumnGridContainer" instance=ExtResource("3_8kejv")]
+custom_minimum_size = Vector2(1552, 100)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 2
+setting_name = "block_selection_box"
+title = "BLOCK_SELECTION_BOX"
+option_type = "block_selection_box"
+default_option = "show_when_changing"
+
+[node name="SmoothLighting" parent="DragScrollContainer/VBoxContainer/SingleColumnCenterContainer/SingleColumnGridContainer" instance=ExtResource("3_8kejv")]
+custom_minimum_size = Vector2(1552, 100)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 2
+setting_name = "smooth_lighting"
+title = "SMOOTH_LIGHTING"
+
+[node name="VSync" parent="DragScrollContainer/VBoxContainer/SingleColumnCenterContainer/SingleColumnGridContainer" instance=ExtResource("3_8kejv")]
+custom_minimum_size = Vector2(1552, 100)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 2
+setting_name = "v_sync"
+title = "V_SYNC"
+
+[node name="ParticleEffect" parent="DragScrollContainer/VBoxContainer/SingleColumnCenterContainer/SingleColumnGridContainer" instance=ExtResource("3_8kejv")]
+custom_minimum_size = Vector2(1552, 100)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 2
+setting_name = "particle_effect"
+title = "PARTICLE_EFFECT"
+
+[node name="DoubleColumnCenterContainer" type="CenterContainer" parent="DragScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+focus_mode = 2
+
+[node name="DoubleColumnGridContainer" type="GridContainer" parent="DragScrollContainer/VBoxContainer/DoubleColumnCenterContainer"]
+layout_mode = 2
+focus_mode = 2
+theme_override_constants/h_separation = 20
+theme_override_constants/v_separation = 20
+columns = 2
+
+[node name="RenderChunk" parent="DragScrollContainer/VBoxContainer/DoubleColumnCenterContainer/DoubleColumnGridContainer" instance=ExtResource("4_mwu8u")]
+custom_minimum_size = Vector2(750, 100)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 2
+setting_name = "render_chunk"
+title = "RENDER_CHUNK"
+min_value = 1.0
+max_value = 4.0
+default_value = 2.0
+step = 1.0
+
+[node name="AutoJump" parent="DragScrollContainer/VBoxContainer/DoubleColumnCenterContainer/DoubleColumnGridContainer" instance=ExtResource("3_8kejv")]
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 2
+setting_name = "auto_jump"
+title = "AUTO_JUMP"
+
+[node name="FovZoom" parent="DragScrollContainer/VBoxContainer/DoubleColumnCenterContainer/DoubleColumnGridContainer" instance=ExtResource("4_mwu8u")]
+custom_minimum_size = Vector2(750, 100)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 2
+setting_name = "fov_zoom"
+title = "FOV_ZOOM"
+value_type = "percent"
+max_value = 100.0
+default_value = 50.0
+step = 1.0
+
+[node name="NewMusic" parent="DragScrollContainer/VBoxContainer/DoubleColumnCenterContainer/DoubleColumnGridContainer" instance=ExtResource("3_8kejv")]
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 2
+setting_name = "new_music"
+title = "NEW_MUSIC"
+default_option = "off"
+
+[node name="MiniMapZoom" parent="DragScrollContainer/VBoxContainer/DoubleColumnCenterContainer/DoubleColumnGridContainer" instance=ExtResource("4_mwu8u")]
+custom_minimum_size = Vector2(750, 100)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 2
+setting_name = "mini_map_zoom"
+title = "MINI_MAP_ZOOM"
+value_type = "percent"
+max_value = 100.0
+default_value = 20.0
+step = 1.0
+
+[node name="MiniMap" parent="DragScrollContainer/VBoxContainer/DoubleColumnCenterContainer/DoubleColumnGridContainer" instance=ExtResource("3_8kejv")]
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 2
+setting_name = "mini_map"
+title = "MINI_MAP"
+
+[node name="BgmVolume" parent="DragScrollContainer/VBoxContainer/DoubleColumnCenterContainer/DoubleColumnGridContainer" instance=ExtResource("4_mwu8u")]
+custom_minimum_size = Vector2(750, 100)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 2
+setting_name = "bgm_volume"
+title = "BGM_VOLUME"
+value_type = "percent-switch"
+max_value = 100.0
+default_value = 50.0
+step = 1.0
+
+[node name="FullScreen" parent="DragScrollContainer/VBoxContainer/DoubleColumnCenterContainer/DoubleColumnGridContainer" instance=ExtResource("3_8kejv")]
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 2
+setting_name = "full_screen"
+title = "FULL_SCREEN"
+default_option = "off"
+
+[node name="SoundVolume" parent="DragScrollContainer/VBoxContainer/DoubleColumnCenterContainer/DoubleColumnGridContainer" instance=ExtResource("4_mwu8u")]
+custom_minimum_size = Vector2(750, 100)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 2
+setting_name = "sound_volume"
+title = "SOUND_VOLUME"
+value_type = "percent-switch"
+max_value = 100.0
+default_value = 50.0
+step = 1.0
+
+[node name="BottomButtons" type="GridContainer" parent="."]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -760.0
+offset_top = 41.0
+offset_right = 760.0
+offset_bottom = 141.0
+grow_horizontal = 2
+grow_vertical = 0
+focus_mode = 2
+theme_override_constants/h_separation = 20
+columns = 2
+
+[node name="SaveButton" parent="BottomButtons" instance=ExtResource("5_chgu6")]
+custom_minimum_size = Vector2(750, 100)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 2
+text = "SAVE"
+
+[node name="CancelButton" parent="BottomButtons" instance=ExtResource("5_chgu6")]
+custom_minimum_size = Vector2(750, 100)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 2
+text = "CANCEL"
+
+[connection signal="pressed" from="BottomButtons/SaveButton" to="." method="_on_save_button_pressed"]
+[connection signal="pressed" from="BottomButtons/CancelButton" to="." method="_on_cancel_button_pressed"]

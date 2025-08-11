@@ -1,7 +1,7 @@
-extends HSplitContainer
+extends Control
 
-@onready var title_label = $Title
-@onready var line_edit = $LineEdit
+@onready var title_label = $HSplitContainer/Title
+@onready var line_edit = $HSplitContainer/LineEdit
 
 @export var setting_name: String = ""
 @export var title: String = ""
@@ -14,8 +14,11 @@ func _ready() -> void:
 func _on_line_edit_gui_input(event: InputEvent) -> void:
 	if event is InputEventScreenTouch:
 		if not event.pressed and Rect2(Vector2(), size).has_point(event.position):
-			line_edit.grab_focus()
-			line_edit.select_all()
+			if line_edit.has_focus():
+				line_edit.release_focus()
+			else:
+				line_edit.grab_focus()
+				line_edit.select_all()
 
 func load_setting(config: ConfigFile):
 	line_edit.text = config.get_value("settings", setting_name, SettingsManager.get_default_setting(setting_name))	

@@ -19,7 +19,6 @@ offset_right = 375.0
 offset_bottom = 50.0
 grow_horizontal = 2
 grow_vertical = 2
-size_flags_horizontal = 3
 script = ExtResource("1_bdyol")
 
 [node name="Title" type="Label" parent="."]
@@ -44,12 +43,12 @@ theme_override_constants/shadow_offset_x = 4
 theme_override_constants/shadow_offset_y = 4
 theme_override_fonts/font = ExtResource("1_4yt71")
 theme_override_font_sizes/font_size = 35
-text = "TITLE"
+text = "Text"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="Background" type="NinePatchRect" parent="."]
-custom_minimum_size = Vector2(750, 100)
+self_modulate = Color(0.589096, 0.589096, 0.589096, 1)
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -58,24 +57,23 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 1
 texture = ExtResource("3_a62mi")
-patch_margin_left = 21
-patch_margin_top = 21
-patch_margin_right = 21
-patch_margin_bottom = 21
+patch_margin_left = 5
+patch_margin_top = 5
+patch_margin_right = 5
+patch_margin_bottom = 5
 axis_stretch_horizontal = 1
 axis_stretch_vertical = 1
 
 [node name="Scroll" type="NinePatchRect" parent="Background"]
-custom_minimum_size = Vector2(100, 100)
 layout_mode = 0
-offset_right = 100.0
+offset_right = 50.0
 offset_bottom = 100.0
 mouse_filter = 1
 texture = ExtResource("4_6p46b")
-patch_margin_left = 21
-patch_margin_top = 21
-patch_margin_right = 21
-patch_margin_bottom = 21
+patch_margin_left = 10
+patch_margin_top = 10
+patch_margin_right = 10
+patch_margin_bottom = 15
 axis_stretch_horizontal = 1
 axis_stretch_vertical = 1
 

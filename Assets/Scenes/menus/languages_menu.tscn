@@ -140,11 +140,13 @@ grow_vertical = 0
 columns = 2
 
 [node name="ConfirmButton" parent="ColorRect/GridContainer" instance=ExtResource("6_6b03n")]
+custom_minimum_size = Vector2(0, 100)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "CONFIRM"
 
 [node name="CancelButton" parent="ColorRect/GridContainer" instance=ExtResource("6_6b03n")]
+custom_minimum_size = Vector2(0, 100)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "CANCEL"

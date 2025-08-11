@@ -1,7 +1,8 @@
-[gd_scene load_steps=4 format=3 uid="uid://drgv6xikr0wxq"]
+[gd_scene load_steps=5 format=3 uid="uid://drgv6xikr0wxq"]
 
 [ext_resource type="Script" path="res://assets/scripts/ui_world_button.gd" id="1_g4cby"]
 [ext_resource type="Texture2D" uid="uid://bmk3gvhnhpvqp" path="res://assets/textures/ui/default_world_icon.png" id="2_1hep8"]
+[ext_resource type="Texture2D" uid="uid://rwn5mc2as2oo" path="res://assets/textures/ui/ui_button_hovered.png" id="2_onamo"]
 [ext_resource type="FontVariation" uid="uid://ck7gxbgy6ry6b" path="res://assets/fonts/fmcles.tres" id="3_ng511"]
 
 [node name="UIWorldButton" type="Control"]
@@ -10,66 +11,69 @@ custom_minimum_size = Vector2(1540, 256)
 layout_mode = 3
 anchors_preset = 0
 offset_right = 1540.0
-offset_bottom = 280.0
+offset_bottom = 256.0
+size_flags_horizontal = 3
 focus_mode = 1
 mouse_filter = 1
 script = ExtResource("1_g4cby")
 
-[node name="SelectedBackground" type="ColorRect" parent="."]
+[node name="SelectedBackground" type="NinePatchRect" parent="."]
 visible = false
+self_modulate = Color(1, 1, 1, 0.662745)
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.501961, 0.501961, 0.501961, 1)
+mouse_filter = 1
+texture = ExtResource("2_onamo")
+draw_center = false
+patch_margin_left = 5
+patch_margin_top = 5
+patch_margin_right = 10
+patch_margin_bottom = 5
 
 [node name="ColorRect" type="ColorRect" parent="SelectedBackground"]
+show_behind_parent = true
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 5.0
-offset_top = 5.0
-offset_right = -6.0
-offset_bottom = -6.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 1)
+mouse_filter = 1
+color = Color(0, 0, 0, 0.529412)
 
-[node name="HSplitContainer" type="HSplitContainer" parent="."]
+[node name="GridContainer" type="GridContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 12.0
-offset_top = 12.0
-offset_right = -12.0
-offset_bottom = -12.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 40
+columns = 2
 
-[node name="MarginContainer" type="MarginContainer" parent="HSplitContainer"]
+[node name="IconMarginContainer" type="MarginContainer" parent="GridContainer"]
 layout_mode = 2
 theme_override_constants/margin_left = 20
 theme_override_constants/margin_top = 20
-theme_override_constants/margin_right = 20
+theme_override_constants/margin_right = 50
 theme_override_constants/margin_bottom = 20
 
-[node name="Icon" type="TextureRect" parent="HSplitContainer/MarginContainer"]
+[node name="Icon" type="TextureRect" parent="GridContainer/IconMarginContainer"]
 layout_mode = 2
 texture = ExtResource("2_1hep8")
 expand_mode = 3
 
-[node name="GridContainer" type="GridContainer" parent="HSplitContainer"]
+[node name="GridContainer" type="GridContainer" parent="GridContainer"]
 layout_mode = 2
 theme_override_constants/v_separation = 0
 
-[node name="WorldName" type="Label" parent="HSplitContainer/GridContainer"]
+[node name="WorldName" type="Label" parent="GridContainer/GridContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
+mouse_filter = 1
 theme_override_colors/font_color = Color(0.878431, 0.878431, 0.878431, 1)
 theme_override_colors/font_shadow_color = Color(0.247059, 0.247059, 0.247059, 1)
 theme_override_constants/shadow_offset_x = 4
@@ -79,11 +83,12 @@ theme_override_font_sizes/font_size = 40
 text = "Text"
 vertical_alignment = 1
 
-[node name="Version" type="Label" parent="HSplitContainer/GridContainer"]
+[node name="Version" type="Label" parent="GridContainer/GridContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 1
-theme_override_colors/font_color = Color(0.501961, 0.501961, 0.501961, 1)
+mouse_filter = 1
+theme_override_colors/font_color = Color(0.878431, 0.878431, 0.878431, 1)
 theme_override_colors/font_shadow_color = Color(0.12549, 0.12549, 0.12549, 1)
 theme_override_constants/shadow_offset_x = 4
 theme_override_constants/shadow_offset_y = 4
@@ -92,10 +97,11 @@ theme_override_font_sizes/font_size = 35
 text = "version : 2024/11/7"
 vertical_alignment = 1
 
-[node name="LastModified" type="Label" parent="HSplitContainer/GridContainer"]
+[node name="LastModified" type="Label" parent="GridContainer/GridContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.501961, 0.501961, 0.501961, 1)
+mouse_filter = 1
+theme_override_colors/font_color = Color(0.878431, 0.878431, 0.878431, 1)
 theme_override_colors/font_shadow_color = Color(0.12549, 0.12549, 0.12549, 1)
 theme_override_constants/shadow_offset_x = 4
 theme_override_constants/shadow_offset_y = 4

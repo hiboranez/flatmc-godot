@@ -1,17 +1,17 @@
-extends CanvasLayer
+extends Menu
 
-@onready var background_camera = $Background/SubViewportContainer/SubViewport/Camera3D
-@onready var player_model = $MenuControl/Player/SubViewportContainer/SubViewport/PlayerModel
-@onready var player_model_mesh = $MenuControl/Player/SubViewportContainer/SubViewport/PlayerModel/Root/Skeleton3D/Mesh
-@onready var change_skin_file_dialog = $MenuControl/ChangeSkinFileDialog
-@onready var title_video_rect = $MenuControl/TitleVideo
-@onready var title_picture_rect = $MenuControl/TitlePicture
-@onready var title_video_player = $MenuControl/TitleVideo/VideoStreamPlayer
 @onready var menu_control = $MenuControl
+@onready var base_panel = $MenuControl/BasePanel
+@onready var background_camera = $MenuControl/Background/SubViewportContainer/SubViewport/Camera3D
+@onready var player_model = $MenuControl/BasePanel/Player/SubViewportContainer/SubViewport/PlayerModel
+@onready var player_model_mesh = $MenuControl/BasePanel/Player/SubViewportContainer/SubViewport/PlayerModel/Root/Skeleton3D/Mesh
+@onready var change_skin_file_dialog = $MenuControl/BasePanel/ChangeSkinFileDialog
+@onready var title_video_rect = $MenuControl/BasePanel/TitleVideo
+@onready var title_picture_rect = $MenuControl/BasePanel/TitlePicture
+@onready var title_video_player = $MenuControl/BasePanel/TitleVideo/VideoStreamPlayer
 
 var curr_mouse_pos: Vector2
 var prev_mouse_pos: Vector2
-var is_changing_menu: bool = false
 
 func _ready() -> void:
 	if OS.has_feature("dedicated_server"):
@@ -24,8 +24,10 @@ func _ready() -> void:
 		#if get_tree() != null:
 			#await get_tree().create_timer(0.2).timeout
 		#title_video_player.visible = true
+	menu_controller = $MenuController
 	StaticLoad.select_server = null
 	StaticLoad.select_world = null
+	menu_controller.set_menu_control(base_panel)
 	update_player_model_skin()
 
 func _process(delta: float) -> void:
@@ -40,23 +42,6 @@ func _notification(what):
 		await audio_player.finished
 		get_tree().quit()
 
-func change_menu(path: String) -> void:
-	if path != "menus/main_menu":
-		is_changing_menu = true
-		create_tween().tween_property(menu_control, "modulate", Color(1,1,1,0), 0.15)
-		if get_tree() != null:
-			await get_tree().create_timer(0.15).timeout
-		menu_control.visible = false
-		is_changing_menu = false
-		var new_menu = SceneManager.get_scene(path).instantiate()
-		add_child(new_menu)
-		new_menu.menu_control.modulate = Color(1,1,1,0)
-		new_menu.is_changing_menu = true
-		create_tween().tween_property(new_menu.menu_control, "modulate", Color(1,1,1,1), 0.15)
-		if get_tree() != null:
-			await get_tree().create_timer(0.15).timeout
-		new_menu.is_changing_menu = false
-
 func update_mouse_position():
 	curr_mouse_pos = get_viewport().get_mouse_position()
 	if prev_mouse_pos != curr_mouse_pos:
@@ -67,7 +52,7 @@ func update_background_camera_rotation():
 	background_camera.rotate(Vector3.UP, -0.0001)
 
 func update_player_model_rotation(viewport_pos):
-	var viewport_size = $Background.get_viewport_rect().size
+	var viewport_size = menu_control.get_viewport_rect().size
 	var viewport_half_size = viewport_size/2.0
 	var target_pos = viewport_pos-viewport_half_size-Vector2(viewport_size[0]*0.375, 0)
 	player_model.look_at(Vector3(target_pos[0], -target_pos[1], 3250), Vector3.UP, true)
@@ -88,17 +73,21 @@ func update_player_model_skin():
 			
 func _on_single_mode_button_pressed() -> void:
 	AudioManager.play_static_audio("sound/ui/click")
-	SceneManager.change_scene("menus/single_menu")
+	await menu_controller.vanish()
+	var single_game_menu = SceneManager.get_scene("menus/single_game_menu").instantiate()
+	add_child(single_game_menu)
 	
 func _on_multi_mode_button_pressed() -> void:
 	AudioManager.play_static_audio("sound/ui/click")
-	SceneManager.change_scene("menus/multi_menu")
+	await menu_controller.vanish()
+	var multi_game_menu = SceneManager.get_scene("menus/multi_game_menu").instantiate()
+	add_child(multi_game_menu)
 
 func _on_settings_button_pressed() -> void:
-	if is_changing_menu:
-		return
 	AudioManager.play_static_audio("sound/ui/click")
-	change_menu("menus/settings_menu")
+	await menu_controller.vanish()
+	var settings_menu = SceneManager.get_scene("menus/settings_menu").instantiate()
+	add_child(settings_menu)
 	
 func _on_language_button_pressed() -> void:
 	AudioManager.play_static_audio("sound/ui/click")
@@ -122,11 +111,9 @@ func _on_change_skin_button_pressed() -> void:
 
 func _on_clear_skin_button_pressed() -> void:
 	AudioManager.play_static_audio("sound/ui/click")
-	var change_value = {
-		"skin_path": "null"
-	}
-	SettingsManager.save_settings(change_value)
-	await SettingsManager.settings_saved
+	await SettingsManager.save_settings({
+		"skin_path": "null",
+	})
 	update_player_model_skin()
 
 func _on_help_button_pressed() -> void:
@@ -144,7 +131,7 @@ func _on_change_skin_file_dialog_file_selected(path: String) -> void:
 	SettingsManager.save_settings(change_value)
 	update_player_model_skin()
 
-func _on_background_gui_input(event: InputEvent) -> void:
+func _on_menu_control_gui_input(event: InputEvent) -> void:
 	if event is InputEventScreenTouch or event is InputEventScreenDrag:
 		update_player_model_rotation(event.position)
 

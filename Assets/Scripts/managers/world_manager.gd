@@ -273,7 +273,7 @@ func convert_world_version(world_name, old_version):
 		"last_modified": current_time,
 		"version": StaticLoad.settings["version"]
 	}
-	get_node("/root/WorldManager").save_level_dat(level, level_change_value)
+	WorldManager.save_level_dat(level, level_change_value)
 	level.save_encrypted_pass(world_path_tmp+"/level.dat", StaticLoad.SettingsManager.get_default_value("config_password"))
 
 func convert_blocks_version(blocks, block_ids_old):

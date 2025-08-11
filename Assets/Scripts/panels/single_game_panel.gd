@@ -1,19 +1,32 @@
-extends Node
+extends Control
 
-@onready var world_list_vboxcontainer = $Content/ScrollContainer/VBoxContainer
+@onready var margin_container = $DragScrollContainer/VBoxContainer/MarginContainer
+@onready var world_list_container = $DragScrollContainer/VBoxContainer/MarginContainer/GridContainer
 
+var menu: Node = null
 var selected_world_name: String = ""
+var middle_size: float = 1600
 
 func _ready() -> void:
-	update_world_list()
+	refresh_size()
+	get_viewport().size_changed.connect(refresh_size)
 
-func _notification(what):
-	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
-		AudioManager.play_static_audio("sound/ui/click")
-		SceneManager.change_scene("menus/main_menu")
+func _gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton:
+		if event.button_index == 1 and event.pressed:
+			grab_focus()
+	elif event is InputEventScreenTouch:
+		if event.pressed:
+			grab_focus()
+
+func refresh_size() -> void:
+	var canvas_width = (get_global_transform_with_canvas().affine_inverse()*get_viewport().get_screen_transform().affine_inverse()*Vector2(get_viewport().size)).x
+	var margin = (canvas_width*0.97-(get_global_transform_with_canvas().affine_inverse()*Vector2(middle_size, middle_size)).x)/2
+	margin_container.set("theme_override_constants/margin_left", margin)
+	margin_container.set("theme_override_constants/margin_right", margin)
 
 func update_world_list():
-	var current_worlds = world_list_vboxcontainer.get_children()
+	var current_worlds = world_list_container.get_children()
 	for world in current_worlds:
 		world.queue_free()
 	var world_list_path = SettingsManager.get_default_value("world_list_path")
@@ -26,19 +39,22 @@ func update_world_list():
 		if world_info != OK:
 			continue
 		var world_button = SceneManager.get_scene("ui/ui_world_button").instantiate()
-		world_list_vboxcontainer.add_child(world_button)
+		world_list_container.add_child(world_button)
 		var icon = ImageTexture.create_from_image(Image.load_from_file(world_list_path+world+"/icon.png"))
 		var update_dict = {
 			"world_name" : world,
 			"last_modified" : tr("LAST_MODIFIED")+" : "+tr(world_config.get_value("world", "last_modified", "UNKNOWN")),
-			"version" : tr("VERSION")+" : "+tr(world_config.get_value("world", "version", "UNKNOWN"))
+			"version" : tr("VERSION")+" : "+tr(world_config.get_value("world", "version", "UNKNOWN")),
+			"panel": self
 		}
 		if icon is ImageTexture:
 			update_dict["icon"] = icon
 		world_button.update_info(update_dict)
+		if get_tree() != null:
+			await get_tree().process_frame
 
 func clear_selected_background():
-	var current_worlds = world_list_vboxcontainer.get_children()
+	var current_worlds = world_list_container.get_children()
 	for world in current_worlds:
 		if world.has_method("set_selected_background_visible"):
 			world.set_selected_background_visible(false)
@@ -62,11 +78,11 @@ func convert_world_version(old_version):
 		final_old_version = "0.1.0.0"
 	else:
 		final_old_version = old_version
-	get_node("/root/WorldManager").convert_world_version(selected_world_name, final_old_version)
+	WorldManager.convert_world_version(selected_world_name, final_old_version)
 	update_world_list()
 	selected_world_name = ""
 
-func _on_single_menu_enter_world_button_pressed() -> void:
+func _on_enter_world_button_pressed() -> void:
 	AudioManager.play_static_audio("sound/ui/click")
 	if selected_world_name == "":
 		return
@@ -84,23 +100,28 @@ func _on_single_menu_enter_world_button_pressed() -> void:
 	elif compare == "equal":
 		enter_world()
 
-func _on_single_menu_edit_world_button_pressed() -> void:
+func _on_edit_world_button_pressed() -> void:
 	AudioManager.play_static_audio("sound/ui/click")
 	if selected_world_name == "":
 		return
 	var edit_world_menu = SceneManager.get_scene("menus/edit_world_menu").instantiate()
 	add_child(edit_world_menu)
 
-func _on_single_menu_back_to_menu_button_pressed() -> void:
+func _on_back_to_menu_button_pressed() -> void:
 	AudioManager.play_static_audio("sound/ui/click")
-	SceneManager.change_scene("menus/main_menu")
+	if menu != null:
+		await menu.menu_controller.vanish()
+	if has_node("/root/MainMenu"):
+		get_node("/root/MainMenu").menu_controller.appear()
+	if menu != null:
+		menu.queue_free()
 
-func _on_single_menu_create_world_button_pressed() -> void:
+func _on_create_world_button_pressed() -> void:
 	AudioManager.play_static_audio("sound/ui/click")
 	var create_world_menu = SceneManager.get_scene("menus/create_world_menu").instantiate()
 	add_child(create_world_menu)
 
-func _on_single_menu_delete_world_button_pressed() -> void:
+func _on_delete_world_button_pressed() -> void:
 	AudioManager.play_static_audio("sound/ui/click")
 	if selected_world_name == "":
 		return

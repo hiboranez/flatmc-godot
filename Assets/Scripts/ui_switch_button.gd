@@ -57,6 +57,7 @@ func get_option_button_text() -> String:
 
 func _on_ui_button_pressed() -> void:
 	AudioManager.play_static_audio("sound/ui/click")
+	grab_focus()
 	var curr_option_index = option_list.find(curr_option_name)
 	var next_option_index = curr_option_index + 1
 	if next_option_index >= option_list.size():

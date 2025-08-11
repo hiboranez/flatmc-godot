@@ -1,12 +1,14 @@
-extends NinePatchRect
+extends Control
 
-@onready var text_label = $HSplitContainer/Text
-@onready var icon_texture_rect = $HSplitContainer/Icon
+@onready var background_rect = $Background
+@onready var text_label = $Background/GridContainer/Text
+@onready var icon_texture_rect = $Background/GridContainer/MarginContainer/Icon
+@onready var icon_margin_container = $Background/GridContainer/MarginContainer
 
 @export var text: String = "text"
 @export var font_size: int = 35
-@export var button_type: String = "normal"
-@export var icon_path: String = "null"
+@export var button_type: String = "text"
+@export var icon_path: String = ""
 
 signal pressed
 
@@ -16,12 +18,23 @@ var prev_state = ButtonState.NORMAL
 func _ready() -> void:
 	text_label.text = tr(text)
 	text_label.set("theme_override_font_sizes/font_size", font_size)
-	if (button_type == "normal" or button_type == "icon") and icon_path.contains("/"):
-		if button_type == "icon":
-			text_label.visible = false
+	if (button_type == "all" or button_type == "icon") and icon_path.contains("/"):
 		icon_texture_rect.texture = TextureManager.get_texture(icon_path)
-	else:
-		icon_texture_rect.visible = false
+		if icon_texture_rect.texture == null:
+			icon_margin_container.visile = false
+	if button_type == "icon":
+		text_label.visible = false
+	elif button_type == "text":
+		icon_margin_container.visible = false
+		var background_size = background_rect.size
+		if text_label.size.x > background_size.x:
+			text_label.text_overrun_behavior = TextServer.OverrunBehavior.OVERRUN_TRIM_CHAR
+			text_label.custom_minimum_size.x = background_size.x
+	elif button_type == "all":
+		var background_size = background_rect.size
+		if text_label.size.x > background_size.x-background_size.y:
+			text_label.text_overrun_behavior = TextServer.OverrunBehavior.OVERRUN_TRIM_CHAR
+			text_label.custom_minimum_size.x = background_size.x-background_size.y
 
 func _process(delta: float) -> void:
 	if text != text_label.text:
@@ -29,17 +42,18 @@ func _process(delta: float) -> void:
 	if state != prev_state:
 		match state:
 			ButtonState.NORMAL:
-				texture = TextureManager.get_texture("ui/ui_button")
+				background_rect.texture = TextureManager.get_texture("ui/ui_button")
 			ButtonState.HOVERD:
-				texture = TextureManager.get_texture("ui/ui_button_hovered")
+				background_rect.texture = TextureManager.get_texture("ui/ui_button_hovered")
 			ButtonState.DISABLED:
-				texture = TextureManager.get_texture("ui/ui_button_disabled")
+				background_rect.texture = TextureManager.get_texture("ui/ui_button_disabled")
 		prev_state = state
 
 func _gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		if event.button_index == 1 and not event.pressed:
 			if Rect2(Vector2(), size).has_point(event.position):
+				grab_focus()
 				pressed.emit()
 	elif event is InputEventScreenTouch:
 		if event.pressed:
@@ -47,6 +61,7 @@ func _gui_input(event: InputEvent) -> void:
 				state = ButtonState.HOVERD
 		else:
 			if Rect2(Vector2(), size).has_point(event.position):
+				grab_focus()
 				pressed.emit()
 				if state == ButtonState.HOVERD:
 					state = ButtonState.NORMAL
