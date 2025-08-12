@@ -1653,6 +1653,7 @@ offset_top = 87.0
 offset_right = 567.0
 offset_bottom = 388.0
 grow_horizontal = 2
+pivot_offset = Vector2(567, 400)
 texture = ExtResource("7_248lx")
 expand_mode = 1
 
@@ -1688,6 +1689,7 @@ offset_left = 24.0
 offset_top = -135.0
 offset_right = 1920.0
 grow_vertical = 0
+pivot_offset = Vector2(0, 67)
 theme_override_fonts/font = ExtResource("8_a7nim")
 theme_override_font_sizes/font_size = 20
 text = "Alpha v0.2.1
@@ -1718,12 +1720,13 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -457.0
+offset_left = -458.0
 offset_top = -70.0
-offset_right = 458.0
+offset_right = 457.0
 offset_bottom = 385.0
 grow_horizontal = 2
 grow_vertical = 2
+pivot_offset = Vector2(457, 0)
 theme_override_constants/v_separation = 15
 
 [node name="SingleMode" parent="MenuControl/BasePanel/MainButtons" instance=ExtResource("10_weoar")]
@@ -1734,7 +1737,7 @@ text = "SINGLE_MODE"
 [node name="MultiMode" parent="MenuControl/BasePanel/MainButtons" instance=ExtResource("10_weoar")]
 custom_minimum_size = Vector2(450, 100)
 layout_mode = 2
-text = "MUTI_MODE"
+text = "MULTI_MODE"
 
 [node name="ResourcePack" parent="MenuControl/BasePanel/MainButtons" instance=ExtResource("10_weoar")]
 custom_minimum_size = Vector2(450, 100)
@@ -1756,7 +1759,7 @@ custom_minimum_size = Vector2(450, 100)
 layout_mode = 2
 text = "SETTINGS"
 
-[node name="Language" parent="MenuControl/BasePanel/MainButtons/MarginContainer/GridContainer/Settings" instance=ExtResource("10_weoar")]
+[node name="Languages" parent="MenuControl/BasePanel/MainButtons/MarginContainer/GridContainer/Settings" instance=ExtResource("10_weoar")]
 custom_minimum_size = Vector2(100, 100)
 layout_mode = 1
 anchors_preset = 4
@@ -1765,7 +1768,7 @@ anchor_right = 0.0
 offset_left = -117.0
 offset_right = -17.0
 grow_horizontal = 1
-text = "LANGUAGE"
+text = "LANGUAGES"
 button_type = "icon"
 icon_path = "ui/language_icon"
 
@@ -1785,6 +1788,7 @@ offset_left = -234.0
 offset_top = -123.0
 grow_horizontal = 0
 grow_vertical = 0
+pivot_offset = Vector2(117, 61)
 theme_override_constants/h_separation = 15
 
 [node name="Help" parent="MenuControl/BasePanel/CornerButtons" instance=ExtResource("10_weoar")]
@@ -1812,6 +1816,7 @@ offset_right = -102.0
 offset_bottom = 219.0
 grow_horizontal = 0
 grow_vertical = 2
+pivot_offset = Vector2(300, 199)
 color = Color(0.25098, 0.25098, 0.25098, 0)
 
 [node name="TextureRect" type="TextureRect" parent="MenuControl/BasePanel/Player"]
@@ -2072,7 +2077,7 @@ use_native_dialog = true
 [connection signal="pressed" from="MenuControl/BasePanel/MainButtons/MultiMode" to="." method="_on_multi_mode_button_pressed"]
 [connection signal="pressed" from="MenuControl/BasePanel/MainButtons/ResourcePack" to="." method="_on_resource_pack_button_pressed"]
 [connection signal="pressed" from="MenuControl/BasePanel/MainButtons/MarginContainer/GridContainer/Settings" to="." method="_on_settings_button_pressed"]
-[connection signal="pressed" from="MenuControl/BasePanel/MainButtons/MarginContainer/GridContainer/Settings/Language" to="." method="_on_language_button_pressed"]
+[connection signal="pressed" from="MenuControl/BasePanel/MainButtons/MarginContainer/GridContainer/Settings/Languages" to="." method="_on_language_button_pressed"]
 [connection signal="pressed" from="MenuControl/BasePanel/MainButtons/MarginContainer/GridContainer/QuitGame" to="." method="_on_quit_game_button_pressed"]
 [connection signal="pressed" from="MenuControl/BasePanel/CornerButtons/Help" to="." method="_on_help_button_pressed"]
 [connection signal="pressed" from="MenuControl/BasePanel/CornerButtons/Info" to="." method="_on_info_button_pressed"]

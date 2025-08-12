@@ -9,6 +9,10 @@ extends Menu
 @onready var title_video_rect = $MenuControl/BasePanel/TitleVideo
 @onready var title_picture_rect = $MenuControl/BasePanel/TitlePicture
 @onready var title_video_player = $MenuControl/BasePanel/TitleVideo/VideoStreamPlayer
+@onready var copyright_label = $MenuControl/BasePanel/Copyright
+@onready var main_buttons = $MenuControl/BasePanel/MainButtons
+@onready var corner_buttons = $MenuControl/BasePanel/CornerButtons
+@onready var player_rect = $MenuControl/BasePanel/Player
 
 var curr_mouse_pos: Vector2
 var prev_mouse_pos: Vector2
@@ -24,10 +28,18 @@ func _ready() -> void:
 		#if get_tree() != null:
 			#await get_tree().create_timer(0.2).timeout
 		#title_video_player.visible = true
+	size_control_list = [
+		title_picture_rect,
+		copyright_label,
+		main_buttons,
+		corner_buttons,
+		player_rect,
+	]
 	menu_controller = $MenuController
 	StaticLoad.select_server = null
 	StaticLoad.select_world = null
 	menu_controller.set_menu_control(base_panel)
+	refresh_size()
 	update_player_model_skin()
 
 func _process(delta: float) -> void:
@@ -41,6 +53,11 @@ func _notification(what):
 		audio_player.play()
 		await audio_player.finished
 		get_tree().quit()
+
+func refresh_size():
+	var scale_factor = SettingsManager.get_menu_scale_factor(SettingsManager.get_current_setting("gui_scale"))
+	for control in size_control_list:
+		control.scale = Vector2(scale_factor, scale_factor)
 
 func update_mouse_position():
 	curr_mouse_pos = get_viewport().get_mouse_position()
@@ -91,7 +108,9 @@ func _on_settings_button_pressed() -> void:
 	
 func _on_language_button_pressed() -> void:
 	AudioManager.play_static_audio("sound/ui/click")
-	SceneManager.change_scene("menus/languages_menu")
+	await menu_controller.vanish()
+	var languages_menu = SceneManager.get_scene("menus/languages_menu").instantiate()
+	add_child(languages_menu)
 
 func _on_resource_pack_button_pressed() -> void:
 	AudioManager.play_static_audio("sound/ui/click")

@@ -1,29 +1,20 @@
 extends Control
 
-@onready var margin_container = $DragScrollContainer/VBoxContainer/MarginContainer
-@onready var world_list_container = $DragScrollContainer/VBoxContainer/MarginContainer/GridContainer
+@onready var world_list_container = $DragScrollContainer/VBoxContainer/CenterContainer/GridContainer
 
 var menu: Node = null
-var selected_world_name: String = ""
 var middle_size: float = 1600
+var margin_size: float = 320
+
+var selected_world_name: String = ""
 
 func _ready() -> void:
-	refresh_size()
 	get_viewport().size_changed.connect(refresh_size)
 
-func _gui_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton:
-		if event.button_index == 1 and event.pressed:
-			grab_focus()
-	elif event is InputEventScreenTouch:
-		if event.pressed:
-			grab_focus()
-
 func refresh_size() -> void:
-	var canvas_width = (get_global_transform_with_canvas().affine_inverse()*get_viewport().get_screen_transform().affine_inverse()*Vector2(get_viewport().size)).x
-	var margin = (canvas_width*0.97-(get_global_transform_with_canvas().affine_inverse()*Vector2(middle_size, middle_size)).x)/2
-	margin_container.set("theme_override_constants/margin_left", margin)
-	margin_container.set("theme_override_constants/margin_right", margin)
+	var canvas_size = get_viewport().get_screen_transform().affine_inverse()*Vector2(get_viewport().size)
+	scale = Vector2(menu.scale_factor, menu.scale_factor)
+	set_deferred("size", Vector2(canvas_size.x/menu.scale_factor, (canvas_size.y-(margin_size*menu.scale_factor))/menu.scale_factor))
 
 func update_world_list():
 	var current_worlds = world_list_container.get_children()
@@ -60,7 +51,6 @@ func clear_selected_background():
 			world.set_selected_background_visible(false)
 
 func enter_world():
-	#AudioManager.bgm_audio_player.set_process(false)
 	AudioManager.bgm_audio_player.stop()
 	SceneManager.change_scene("menus/loading_world_menu")
 

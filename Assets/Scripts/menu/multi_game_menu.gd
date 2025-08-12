@@ -10,17 +10,25 @@ func _ready() -> void:
 	scale_factor = SettingsManager.get_menu_scale_factor(SettingsManager.get_current_setting("gui_scale"))
 	
 	base_content_panel.menu = self
-	var single_game_panel = SceneManager.get_scene("panels/single_game_panel").instantiate()
-	base_content_panel.set_content(single_game_panel)
-	single_game_panel.menu = self
-	single_game_panel.margin_size = base_content_panel.content_top_margin+base_content_panel.content_bottom_margin
+	var multi_game_panel = SceneManager.get_scene("panels/multi_game_panel").instantiate()
+	base_content_panel.set_content(multi_game_panel)
+	multi_game_panel.menu = self
+	multi_game_panel.margin_size = base_content_panel.content_top_margin+base_content_panel.content_bottom_margin
 	size_control_list = [
 		base_content_panel,
-		single_game_panel
+		multi_game_panel
 	]
 	refresh_size()
 	
-	await single_game_panel.update_world_list()
+	await multi_game_panel.update_server_list()
+	if get_tree() != null:
+		await get_tree().process_frame
+	await multi_game_panel.rectify_official_server()
+	if get_tree() != null:
+		await get_tree().process_frame
+	await multi_game_panel.detect_all_server()
+	if get_tree() != null:
+		await get_tree().process_frame
 	menu_controller.appear()
 
 func _notification(what):

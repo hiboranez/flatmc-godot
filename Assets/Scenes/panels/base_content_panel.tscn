@@ -24,14 +24,13 @@ color = Color(0, 0, 0, 0.509804)
 
 [node name="Title" type="Label" parent="."]
 layout_mode = 1
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -152.0
-offset_top = 23.0
-offset_right = 152.0
-offset_bottom = 129.0
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 27.0
+offset_bottom = 133.0
 grow_horizontal = 2
+scale = Vector2(0.8, 0.8)
+pivot_offset = Vector2(960, 0)
 size_flags_horizontal = 4
 focus_mode = 2
 mouse_filter = 1
@@ -44,6 +43,7 @@ theme_override_font_sizes/font_size = 50
 text = "Title"
 horizontal_alignment = 1
 vertical_alignment = 1
+text_overrun_behavior = 1
 
 [node name="Content" type="ColorRect" parent="."]
 layout_mode = 1

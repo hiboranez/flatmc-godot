@@ -7,10 +7,19 @@ func _ready() -> void:
 	menu_controller = $MenuController
 	menu_control.visible = false
 	menu_controller.set_menu_control(menu_control)
+	scale_factor = SettingsManager.get_menu_scale_factor(SettingsManager.get_current_setting("gui_scale"))
+	
+	base_content_panel.menu = self
 	var settings_panel = SceneManager.get_scene("panels/settings_panel").instantiate()
 	settings_panel.menu = self
-	scale_factor = 0.8
+	settings_panel.margin_size = base_content_panel.content_top_margin+base_content_panel.content_bottom_margin
 	base_content_panel.set_content(settings_panel)
+	size_control_list = [
+		base_content_panel,
+		settings_panel
+	]
+	refresh_size()
+	
 	await settings_panel.load_settings()
 	menu_controller.appear()
 
@@ -24,6 +33,10 @@ func _notification(what):
 			if has_node("/root/MainMenu"):
 				get_node("/root/MainMenu").menu_controller.appear()
 			queue_free()
+
+func refresh_size():
+	for control in size_control_list:
+		control.refresh_size()
 
 #func on_settings_menu_save_button_pressed() -> void:
 	#var stored_full_screen = SettingsManager.get_default_setting("full_screen")

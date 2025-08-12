@@ -40,7 +40,7 @@ func set_selected_background_visible(got_visible: bool) -> void:
 	selected_background.visible = got_visible
 
 func _on_button_pressed() -> void:
-	get_node("/root/ServerManager").update_data({
+	ServerManager.update_data({
 		"server_name": server_name,
 		"server_type": server_type, 
 		"server_ip": server_ip,

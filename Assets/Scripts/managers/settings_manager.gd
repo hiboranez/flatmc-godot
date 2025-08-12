@@ -2,6 +2,7 @@ extends Node
 
 var default_value_dict: Dictionary
 var default_setting_dict: Dictionary
+var default_language_dict: Dictionary
 var default_world_info_dict: Dictionary
 var default_official_server_info_dict: Dictionary
 
@@ -18,6 +19,7 @@ func update_resource() -> void:
 	var default_settings_json = DataManager.load_json_file("res://assets/data/default_settings.json", {})
 	default_setting_dict = default_settings_json["settings"]
 	default_value_dict = default_settings_json["values"]
+	default_language_dict = default_settings_json["languages"]
 	default_world_info_dict = default_settings_json["world_infos"]
 	default_official_server_info_dict = default_settings_json["official_server_infos"]
 	setting_dict = default_setting_dict.duplicate()
@@ -144,6 +146,9 @@ func compare_version(version_1: String, version_2: String):
 func get_default_official_server_info(info_name) -> String:
 	return default_official_server_info_dict[info_name]
 
+func get_default_language_name(language_abbr) -> String:
+	return default_language_dict[language_abbr]
+
 func get_default_world_info(info_name) -> String:
 	return default_world_info_dict[info_name]
 
@@ -164,3 +169,13 @@ func get_selection_by_on_or_off(on_or_off, default="on"):
 		return 0
 	elif on_or_off == "off":
 		return 1
+
+func get_menu_scale_factor(scale_text: String) -> float:
+	match scale_text:
+		"big":
+			return 1.0
+		"middle":
+			return 0.8
+		"small":
+			return 0.6
+	return 1.0

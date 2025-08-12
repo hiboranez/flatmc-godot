@@ -67,8 +67,8 @@ func connection_timeout():
 	return
 
 func connect_server():
-	ip = get_node("/root/ServerManager").server_ip
-	port = get_node("/root/ServerManager").server_port
+	ip = ServerManager.server_ip
+	port = ServerManager.server_port
 	StaticLoad.reset_signals(false)
 	var err = StaticLoad.multiplayer_peer.create_client(ip, port)
 	if OK != err:

@@ -8,6 +8,8 @@ extends Control
 
 signal pressed
 
+var panel: Node = null
+
 var server_name: String = ""
 var server_type: String = ""
 var server_ip: String = ""
@@ -32,6 +34,8 @@ func update_data(args: Dictionary) -> void:
 		online_info_label.text = args["online_info"]
 	if args.has("animation") and args["animation"] is String:
 		animation_sprite.animation = args["animation"]
+	if args.has("panel") and args["panel"] is Node:
+		panel = args["panel"]
 	if args.has("refresh") and args["refresh"] is bool and args["refresh"]:
 		var server_config = ConfigFile.new()
 		var server_info = server_config.load_encrypted_pass(SettingsManager.get_default_value("server_list_path")+"/"+server_name+".srv", SettingsManager.get_default_value("config_password"))
@@ -48,13 +52,12 @@ func set_selected_background_visible(got_visible: bool) -> void:
 	selected_background_rect.visible = got_visible
 
 func _on_server_button_pressed() -> void:
-	if has_node("/root/MultiMenu"):
-		var multi_menu = get_node("/root/MultiMenu")
-		multi_menu.clear_selected_background()
+	if panel != null:
+		panel.clear_selected_background()
 		selected_background_rect.visible = true
-	get_node("/root/ServerManager").update_data({
-		"server_name": server_name,
-		"server_type": server_type, 
-		"server_ip": server_ip,
-		"server_port": server_port
-	})
+		ServerManager.update_data({
+			"server_name": server_name,
+			"server_type": server_type, 
+			"server_ip": server_ip,
+			"server_port": server_port
+		})

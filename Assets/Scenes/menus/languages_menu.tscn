@@ -1,156 +1,24 @@
-[gd_scene load_steps=8 format=3 uid="uid://dgk4c6ipagqa4"]
+[gd_scene load_steps=4 format=3 uid="uid://dgk4c6ipagqa4"]
 
-[ext_resource type="Script" path="res://assets/scripts/Language.gd" id="1_fkyiv"]
-[ext_resource type="Texture2D" uid="uid://bd725jipoa84m" path="res://assets/textures/backgrounds/dirt_wall.png" id="2_f02vu"]
-[ext_resource type="FontVariation" uid="uid://ck7gxbgy6ry6b" path="res://assets/fonts/fmcles.tres" id="3_n62k0"]
-[ext_resource type="Script" path="res://assets/scripts/drag_scroll.gd" id="4_kj3i5"]
-[ext_resource type="PackedScene" uid="uid://bfte2i14yv7ud" path="res://assets/scenes/ui/language_button.tscn" id="5_m7nqb"]
-[ext_resource type="PackedScene" uid="uid://df6k4i6hb4a6p" path="res://assets/scenes/ui/ui_normal_button.tscn" id="6_6b03n"]
-
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_s88m8"]
-content_margin_left = 30.0
-content_margin_top = 30.0
-content_margin_right = 30.0
-content_margin_bottom = 30.0
+[ext_resource type="Script" path="res://assets/scripts/languages_menu.gd" id="1_fkyiv"]
+[ext_resource type="Script" path="res://assets/scripts/controllers/menu_controller.gd" id="2_42hyp"]
+[ext_resource type="PackedScene" uid="uid://drjcxql1q3ha5" path="res://assets/scenes/panels/base_content_panel.tscn" id="2_vjku5"]
 
 [node name="LanguagesMenu" type="CanvasLayer"]
+layer = 2
 script = ExtResource("1_fkyiv")
 
-[node name="Background" type="TextureRect" parent="."]
+[node name="MenuController" type="Node" parent="."]
+script = ExtResource("2_42hyp")
+
+[node name="MenuControl" type="Control" parent="."]
+layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-texture = ExtResource("2_f02vu")
 
-[node name="Title" type="Label" parent="."]
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -200.0
-offset_right = 200.0
-offset_bottom = 106.0
-grow_horizontal = 2
-size_flags_horizontal = 4
-theme_override_colors/font_color = Color(0.878431, 0.878431, 0.878431, 1)
-theme_override_colors/font_shadow_color = Color(0.243137, 0.243137, 0.243137, 1)
-theme_override_constants/shadow_offset_x = 5
-theme_override_constants/shadow_offset_y = 5
-theme_override_fonts/font = ExtResource("3_n62k0")
-theme_override_font_sizes/font_size = 50
-text = "LANGUAGE"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="ColorRect" type="ColorRect" parent="."]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 160.0
-offset_top = 100.0
-offset_right = -160.0
-offset_bottom = -180.0
-grow_horizontal = 2
-grow_vertical = 2
-color = Color(0, 0, 0, 0.686275)
-
-[node name="ScrollContainer" type="ScrollContainer" parent="ColorRect"]
+[node name="BaseContentPanel" parent="MenuControl" instance=ExtResource("2_vjku5")]
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxEmpty_s88m8")
-vertical_scroll_mode = 3
-script = ExtResource("4_kj3i5")
-
-[node name="VBoxContainer" type="VBoxContainer" parent="ColorRect/ScrollContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="zh" parent="ColorRect/ScrollContainer/VBoxContainer" instance=ExtResource("5_m7nqb")]
-layout_mode = 2
-display_language = "中文"
-language = "zh"
-
-[node name="en" parent="ColorRect/ScrollContainer/VBoxContainer" instance=ExtResource("5_m7nqb")]
-layout_mode = 2
-display_language = "English"
-language = "en"
-
-[node name="ja" parent="ColorRect/ScrollContainer/VBoxContainer" instance=ExtResource("5_m7nqb")]
-layout_mode = 2
-display_language = "日本語"
-language = "ja"
-
-[node name="ko" parent="ColorRect/ScrollContainer/VBoxContainer" instance=ExtResource("5_m7nqb")]
-layout_mode = 2
-display_language = "한국어"
-language = "ko"
-
-[node name="es" parent="ColorRect/ScrollContainer/VBoxContainer" instance=ExtResource("5_m7nqb")]
-layout_mode = 2
-display_language = "Español"
-language = "es"
-
-[node name="fr" parent="ColorRect/ScrollContainer/VBoxContainer" instance=ExtResource("5_m7nqb")]
-layout_mode = 2
-display_language = "Français"
-language = "fr"
-
-[node name="de" parent="ColorRect/ScrollContainer/VBoxContainer" instance=ExtResource("5_m7nqb")]
-layout_mode = 2
-display_language = "Deutsch"
-language = "de"
-
-[node name="ru" parent="ColorRect/ScrollContainer/VBoxContainer" instance=ExtResource("5_m7nqb")]
-layout_mode = 2
-display_language = "Русский"
-language = "ru"
-
-[node name="hi" parent="ColorRect/ScrollContainer/VBoxContainer" instance=ExtResource("5_m7nqb")]
-layout_mode = 2
-display_language = "हिन्दी"
-language = "hi"
-
-[node name="vi" parent="ColorRect/ScrollContainer/VBoxContainer" instance=ExtResource("5_m7nqb")]
-layout_mode = 2
-display_language = "Tiếng Việt"
-language = "vi"
-
-[node name="th" parent="ColorRect/ScrollContainer/VBoxContainer" instance=ExtResource("5_m7nqb")]
-layout_mode = 2
-display_language = "ภาษาไทย"
-language = "th"
-
-[node name="GridContainer" type="GridContainer" parent="ColorRect"]
-layout_mode = 1
-anchors_preset = 12
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -2.0
-offset_top = 36.0
-offset_right = 2.0
-offset_bottom = 136.0
-grow_horizontal = 2
-grow_vertical = 0
-columns = 2
-
-[node name="ConfirmButton" parent="ColorRect/GridContainer" instance=ExtResource("6_6b03n")]
-custom_minimum_size = Vector2(0, 100)
-layout_mode = 2
-size_flags_horizontal = 3
-text = "CONFIRM"
-
-[node name="CancelButton" parent="ColorRect/GridContainer" instance=ExtResource("6_6b03n")]
-custom_minimum_size = Vector2(0, 100)
-layout_mode = 2
-size_flags_horizontal = 3
-text = "CANCEL"
-
-[connection signal="gui_input" from="ColorRect/ScrollContainer" to="ColorRect/ScrollContainer" method="_on_scrollcontainer_gui_input"]
-[connection signal="pressed" from="ColorRect/GridContainer/ConfirmButton" to="." method="_on_languages_menu_confirm_button_pressed"]
-[connection signal="pressed" from="ColorRect/GridContainer/CancelButton" to="." method="_on_languages_menu_cancel_button_pressed"]
+title = "LANGUAGES"

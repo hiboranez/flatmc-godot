@@ -53,7 +53,6 @@ func _gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		if event.button_index == 1 and not event.pressed:
 			if Rect2(Vector2(), size).has_point(event.position):
-				grab_focus()
 				pressed.emit()
 	elif event is InputEventScreenTouch:
 		if event.pressed:
@@ -61,7 +60,6 @@ func _gui_input(event: InputEvent) -> void:
 				state = ButtonState.HOVERD
 		else:
 			if Rect2(Vector2(), size).has_point(event.position):
-				grab_focus()
 				pressed.emit()
 				if state == ButtonState.HOVERD:
 					state = ButtonState.NORMAL

@@ -1,6 +1,10 @@
-extends Node
+extends Control
 
-@onready var server_list_vboxcontainer = $ColorRect/ScrollContainer/VBoxContainer
+@onready var server_list_gridcontainer = $DragScrollContainer/VBoxContainer/CenterContainer/GridContainer
+
+var menu: Node = null
+var middle_size: float = 1600
+var margin_size: float = 320
 
 var server_detect_list: Array
 
@@ -8,17 +12,15 @@ func _ready() -> void:
 	ServiceDiscovery.port = 4040
 	ServiceDiscovery.scanned_server.connect(_on_scan_server)
 	ServiceDiscovery.scanned.connect(_on_scan_scanned)
-	rectify_official_server()
-	update_server_list()
-	detect_all_server()
+	get_viewport().size_changed.connect(refresh_size)
 
-func _notification(what):
-	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
-		AudioManager.play_static_audio("sound/ui/click")
-		SceneManager.change_scene("menus/main_menu")
+func refresh_size() -> void:
+	var canvas_size = get_viewport().get_screen_transform().affine_inverse()*Vector2(get_viewport().size)
+	scale = Vector2(menu.scale_factor, menu.scale_factor)
+	set_deferred("size", Vector2(canvas_size.x/menu.scale_factor, (canvas_size.y-(margin_size*menu.scale_factor))/menu.scale_factor))
 
 func clear_selected_background():
-	for server in server_list_vboxcontainer.get_children():
+	for server in server_list_gridcontainer.get_children():
 		if server.has_method("set_selected_background_visible"):
 			server.set_selected_background_visible(false)
 
@@ -54,7 +56,7 @@ func detect_all_server():
 		var server_config = ConfigFile.new()
 		var server_info = server_config.load_encrypted_pass(SettingsManager.get_default_value("server_list_path")+splits[0]+".srv", SettingsManager.get_default_value("config_password"))
 		if server_info != OK:
-			var server_button = server_list_vboxcontainer.get_node(splits[0])
+			var server_button = server_list_gridcontainer.get_node(splits[0])
 			server_button.update_info({
 				"animation": "disconnect",
 				"online_info": tr("CANNOT_CONNECT")
@@ -66,7 +68,8 @@ func detect_all_server():
 		server_detect.update_info({
 			"server_name": splits[0],
 			"server_ip": server_config.get_value("server", "server_ip", ""),
-			"server_port":  int(server_config.get_value("server", "server_port", "-1"))
+			"server_port":  int(server_config.get_value("server", "server_port", "-1")),
+			"panel": self
 		})
 		server_detect_list.append(server_detect)
 	if not server_detect_list.is_empty():
@@ -75,7 +78,7 @@ func detect_all_server():
 	#thread.wait_to_finish()
 
 func update_server_list():
-	var current_servers = server_list_vboxcontainer.get_children()
+	var current_servers = server_list_gridcontainer.get_children()
 	for server_detect in StaticLoad.server_detects.get_children():
 		server_detect.disconnect_and_free()
 	for server in current_servers:
@@ -83,15 +86,18 @@ func update_server_list():
 	var server_list = DirAccess.get_files_at(SettingsManager.get_default_value("server_list_path"))
 	for server in server_list:
 		var server_button = SceneManager.get_scene("ui/ui_server_button").instantiate()
-		server_list_vboxcontainer.add_child(server_button)
+		server_list_gridcontainer.add_child(server_button)
 		var splits = server.split(".")
 		server_button.update_data({
+			"refresh": true,
 			"server_name" : splits[0],
-			"refresh": true
+			"panel": self
 		})
+		if get_tree() != null:
+			await get_tree().process_frame
 	var searching_lan_instance = SceneManager.get_scene("others/searching_lan").instantiate()
-	server_list_vboxcontainer.add_child(searching_lan_instance)
-	get_node("/root/ServerManager").update_data({
+	server_list_gridcontainer.add_child(searching_lan_instance)
+	ServerManager.update_data({
 		"server_name": "",
 		"server_type": "", 
 		"server_ip": "",
@@ -109,7 +115,7 @@ func delete_server(server_name: String):
 
 func add_lan_server(data):
 	var lan_server = SceneManager.get_scene("ui/ui_lan_server_button").instantiate()
-	server_list_vboxcontainer.add_child(lan_server)
+	server_list_gridcontainer.add_child(lan_server)
 	var splits = str(data.server_data.Name).split("|")
 	var player_name = str(data.server_data.Name).substr(splits[0].length()+1)
 	lan_server.init({
@@ -124,51 +130,56 @@ func _on_scan_server(data):
 func _on_scan_scanned():
 	pass
 
-func _on_muti_menu_join_server_button_pressed() -> void:
+func _on_join_server_button_pressed() -> void:
 	AudioManager.play_static_audio("sound/ui/click")
-	if get_node("/root/ServerManager").server_name == "":
+	if ServerManager.server_name == "":
 		return
 	for server_detect in StaticLoad.server_detects.get_children():
 		server_detect.disconnect_and_free()
 	SceneManager.change_scene("menus/loading_server_menu")
 
-func _on_muti_menu_refresh_button_pressed() -> void:
+func _on_refresh_button_pressed() -> void:
 	AudioManager.play_static_audio("sound/ui/click")
 	update_server_list()
 	detect_all_server()
 	
-func _on_muti_menu_back_to_menu_button_pressed() -> void:
+func _on_back_to_menu_button_pressed() -> void:
 	AudioManager.play_static_audio("sound/ui/click")
 	for server_detect in StaticLoad.server_detects.get_children():
 		server_detect.disconnect_and_free()
-	get_node("/root/ServerManager").update_data({
+	ServerManager.update_data({
 		"server_name": "",
 		"server_type": "", 
 		"server_ip": "",
 		"server_port": -1
 	})
-	SceneManager.change_scene("menus/main_menu")
+	if menu != null:
+		await menu.menu_controller.vanish()
+	if has_node("/root/MainMenu"):
+		get_node("/root/MainMenu").menu_controller.appear()
+	if menu != null:
+		menu.queue_free()
 
-func _on_muti_menu_add_server_button_pressed() -> void:
+func _on_add_server_button_pressed() -> void:
 	AudioManager.play_static_audio("sound/ui/click")
 	var add_server_menu = SceneManager.get_scene("menus/add_server_menu").instantiate()
 	add_child(add_server_menu)
 
-func _on_muti_menu_edit_server_button_pressed() -> void:
+func _on_edit_server_button_pressed() -> void:
 	AudioManager.play_static_audio("sound/ui/click")
-	if get_node("/root/ServerManager").server_name == "":
+	if ServerManager.server_name == "":
 		return
-	if get_node("/root/ServerManager").server_type == "official":
+	if ServerManager.server_type == "official":
 		SceneManager.pop_notification(self, tr("WARNING"), tr("OFFICIAL_SERVER_EDIT"))
 		return
 	var edit_server_menu = SceneManager.get_scene("menus/edit_server_menu").instantiate()
 	add_child(edit_server_menu)
 	
-func _on_muti_menu_delete_server_button_pressed() -> void:
+func _on_delete_server_button_pressed() -> void:
 	AudioManager.play_static_audio("sound/ui/click")
-	if get_node("/root/ServerManager").server_name == "":
+	if ServerManager.server_name == "":
 		return
-	if get_node("/root/ServerManager").server_type == "official":
+	if ServerManager.server_type == "official":
 		SceneManager.pop_notification(self, tr("WARNING"), tr("OFFICIAL_SERVER_DELETE"))
 		return
-	SceneManager.pop_secondary_confirmation(self, get_node("/root/ServerManager").server_name + tr("SECONDARY_CONFIRMATION_1"), Callable(self, "delete_server").bind(get_node("/root/ServerManager").server_name))
+	SceneManager.pop_secondary_confirmation(self, ServerManager.server_name + tr("SECONDARY_CONFIRMATION_1"), Callable(self, "delete_server").bind(ServerManager.server_name))

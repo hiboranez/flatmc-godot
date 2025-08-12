@@ -6,10 +6,10 @@ func _ready() -> void:
 	if not has_node("/root/MultiMenu"):
 		return
 	if server_vboxcontainer.has_node("ServerName"):
-		server_vboxcontainer.get_node("ServerName").set_line_edit_text(get_node("/root/ServerManager").server_name)
+		server_vboxcontainer.get_node("ServerName").set_line_edit_text(ServerManager.server_name)
 	var server_list_path = SettingsManager.get_default_value("server_list_path")
 	var server_config = ConfigFile.new()
-	var server_info = server_config.load_encrypted_pass(SettingsManager.get_default_value("server_list_path")+get_node("/root/ServerManager").server_name+".srv", SettingsManager.get_default_value("config_password"))
+	var server_info = server_config.load_encrypted_pass(SettingsManager.get_default_value("server_list_path")+ServerManager.server_name+".srv", SettingsManager.get_default_value("config_password"))
 	if server_info != OK:
 		return
 	var read_ip = server_config.get_value("server", "server_ip", "")
@@ -24,7 +24,7 @@ func edit_server(server_name: String, server_ip: String, server_port: String):
 		return
 	var multi_menu = get_node("/root/MultiMenu")
 	var server_list_path = SettingsManager.get_default_value("server_list_path")
-	var old_server_path = server_list_path+get_node("/root/ServerManager").server_name+".srv"
+	var old_server_path = server_list_path+ServerManager.server_name+".srv"
 	var server_config = ConfigFile.new()
 	var server_info = server_config.load_encrypted_pass(old_server_path, SettingsManager.get_default_value("config_password"))
 	if server_info != OK:
@@ -53,7 +53,7 @@ func _on_confirm_button_pressed() -> void:
 	if server_name == "":
 		SceneManager.pop_notification(self, "WARNING", "WARNING_4")
 		return
-	if server_name != get_node("/root/ServerManager").server_name and FileAccess.file_exists(server_path):
+	if server_name != ServerManager.server_name and FileAccess.file_exists(server_path):
 		SceneManager.pop_notification(self, "WARNING", "WARNING_5")
 		return
 	if server_ip == "":

@@ -23,5 +23,5 @@ grow_vertical = 2
 layout_mode = 1
 mouse_filter = 1
 title = "SINGLE_MODE"
-content_top_margin = 100.0
+content_top_margin = 120.0
 content_bottom_margin = 250.0

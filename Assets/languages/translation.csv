@@ -8,8 +8,8 @@ HELP;帮助;Help;ヘルプ;도움말;Ayuda;Aide;Hilfe;Помощь;मदद;Tr�
 VERSION;版本;version;バージョン;버전;Versión;Version;Version;Версия;संस्करण;Phiên bản;เวอร์ชัน00
 REQUIRED_VERSION;所需版本;required version;必要バージョン;필요 버전;versión requerida;version requise;erforderliche Version;требуемая версия;आवश्यक संस्करण;phiên bản yêu cầu;เวอร์ชันที่ต้องการ
 SINGLE_MODE;单人模式;single-player;シングルプレイ;싱글 플레이;un jugador;un joueur;Einzelspieler;одиночная игра;सिंगल-प्लेयर;chơi đơn;โหมดผู้เล่นเดี่ยว
-MUTI_MODE;多人模式;multi-player;マルチプレイ;멀티 플레이;multijugador;multijoueur;Mehrspieler;мультиплеер;मल्टी-प्लेयर;chơi nhiều người;โหมดผู้เล่นหลายคน
-LANGUAGE;语言;language;言語;언어;idioma;langue;Sprache;язык;भाषा;ngôn ngữ;ภาษา
+MULTI_MODE;多人模式;multi-player;マルチプレイ;멀티 플레이;multijugador;multijoueur;Mehrspieler;мультиплеер;मल्टी-प्लेयर;chơi nhiều người;โหมดผู้เล่นหลายคน
+LANGUAGES;语言;language;言語;언어;idioma;langue;Sprache;язык;भाषा;ngôn ngữ;ภาษา
 ACHIEVEMENT;成就;achievement;実績;업적;logro;succès;Erfolg;достижение;उपलब्धि;thành tích;ความสำเร็จ
 ACHIEVEMENT_TITLE;成就;Achievement;実績;업적;Logro;Succès;Erfolg;Достижение;उपलब्धि;Thành Tựu;ความสำเร็จ
 RESOURCE_PACK;资源包;resource pack;リソースパック;리소스 팩;paquete de recursos;pack de ressources;Ressourcenpaket;ресурс-пак;संसाधन पैक;gói tài nguyên;ชุดทรัพยากร
@@ -126,6 +126,10 @@ MINI_MAP;小地图;mini map;ミニマップ;미니맵;Minimapa;Mini-carte;Minika
 ON;开;on;オン;켜짐;Encendido;Activé;An;Вкл;चालू;Bật;เปิด
 OFF;关;off;オフ;꺼짐;Apagado;Désactivé;Aus;Выкл;बंद;Tắt;ปิด
 MINI_MAP_ZOOM;小地图缩放;mini map zoom;ミニマップズーム;미니맵 확대/축소;Zoom del minimapa;Zoom de la mini-carte;Minikarten-Zoom;Масштаб мини-карты;मिनी मैप ज़ूम;Thu phóng bản đồ nhỏ;ซูมแผนที่ย่อ
+GUI_SCALE;GUI缩放;GUI scale;GUIスケール;GUI스케일;escala GUI;échelle GUI;GUI-Skalierung;масштаб GUI;GUI स्केल;tỷ lệ GUI;มาตราส่วน GUI
+BIG;大;big;大;큰;grande;grand;Groß;большой;बड़ा;lớn;ใหญ่
+MIDDLE;中;middle;中;중;medio;moyen;Mittel;средний;मध्यम;trung bình;กลาง
+SMALL;小;small;小;작은;pequeño;petit;Klein;маленький;छोटा;nhỏ;เล็ก
 FPS;帧率;fps;フレームレート;프레임 레이트;FPS;FPS;FPS;FPS;एफपीएस;FPS;อัตราเฟรม
 SLOGAN_1;多人测试！;Muti-player test!;マルチプレイヤーテスト！;멀티플레이어 테스트！;¡Prueba multijugador!;Test multijoueur !;Mehrspieler-Test!;Мультиплеер тест!;मल्टी-प्लेयर परीक्षण!;Thử nghiệm nhiều người chơi!;ทดสอบผู้เล่นหลายคน!
 SLOGAN_2;薄言EZ制作;Made by HiBoranez;HiBoranez 制作;HiBoranez 제작;Hecho por HiBoranez;Fabriqué par HiBoranez;Hergestellt von HiBoranez;Сделано HiBoranez;HiBoranez द्वारा निर्मित;Được tạo bởi HiBoranez;สร้างโดย HiBoranez

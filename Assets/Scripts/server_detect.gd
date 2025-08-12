@@ -9,7 +9,9 @@ var connect_thread = Thread.new()
 var server_name: String = ""
 var server_ip: String = ""
 var server_port: int = -1
-var server_list_vboxcontainer
+var server_list_gridcontainer
+
+var panel: Node = null
 
 func update_info(args: Dictionary) -> void:
 	if args.has("server_name") and args["server_name"] is String:
@@ -19,19 +21,20 @@ func update_info(args: Dictionary) -> void:
 		server_ip = args["server_ip"]
 	if args.has("server_port") and args["server_port"] is int:
 		server_port = args["server_port"]
+	if args.has("panel") and args["panel"] is Node:
+		panel = args["panel"]
 
 func start() -> void:
-	if not has_node("/root/MultiMenu"):
+	if panel == null:
 		disconnect_and_free()
 		return
-	server_list_vboxcontainer = get_node("/root/MultiMenu").server_list_vboxcontainer
+	server_list_gridcontainer = panel.server_list_gridcontainer
 	get_tree().set_multiplayer(multiplayer_tmp, "/root")
 	multiplayer.connected_to_server.connect(client_got_connected_to_server)
 	#print(server_name, " ", get_tree().get_multiplayer(get_path()).multiplayer_peer, StaticLoad.multiplayer.multiplayer_peer)
 	await detect_server()
-	var multi_menu = get_node("/root/MultiMenu")
-	if not multi_menu.server_detect_list.is_empty():
-		var server_detect_info = multi_menu.server_detect_list.pop_front()
+	if not panel.server_detect_list.is_empty():
+		var server_detect_info = panel.server_detect_list.pop_front()
 		server_detect_info[0].init(server_detect_info[1],server_detect_info[2],server_detect_info[3])
 	#connect_thread.start(detect_server)
 
@@ -41,7 +44,7 @@ func detect_server():
 	await get_tree().create_timer(0.01).timeout
 	if OK != err:
 		@warning_ignore("confusable_local_declaration")
-		var server_button = server_list_vboxcontainer.get_node(server_name)
+		var server_button = server_list_gridcontainer.get_node(server_name)
 		server_button.animation_sprite.animation = "disconnect"
 		server_button.online_info_label.text = tr("CANNOT_CONNECT")
 		if multiplayer_peer != null and multiplayer_peer.get_connection_status() != multiplayer_peer.CONNECTION_DISCONNECTED:
@@ -59,7 +62,7 @@ func detect_server():
 	while not is_server_connected:
 		if connecting_timer > 0.5:
 			@warning_ignore("confusable_local_declaration")
-			var server_button = server_list_vboxcontainer.get_node(server_name)
+			var server_button = server_list_gridcontainer.get_node(server_name)
 			server_button.animation_sprite.animation = "disconnect"
 			server_button.online_info_label.text = tr("CANNOT_CONNECT")
 			if multiplayer_peer != null and multiplayer_peer.get_connection_status() != multiplayer_peer.CONNECTION_DISCONNECTED:
@@ -79,7 +82,7 @@ func detect_server():
 	while not is_server_info_received:
 		if connecting_timer > 0.5 or is_server_version_conflict:
 			@warning_ignore("confusable_local_declaration")
-			var server_button = server_list_vboxcontainer.get_node(server_name)
+			var server_button = server_list_gridcontainer.get_node(server_name)
 			server_button.animation_sprite.animation = "disconnect"
 			if not is_server_version_conflict:
 				server_button.online_info_label.text = tr("CANNOT_CONNECT")
@@ -96,7 +99,7 @@ func detect_server():
 	if multiplayer_peer != null and multiplayer_peer.get_connection_status() != multiplayer_peer.CONNECTION_DISCONNECTED:
 		clear_connections()
 	var ping = int(connecting_timer*1000)
-	var server_button = server_list_vboxcontainer.get_node(server_name)
+	var server_button = server_list_gridcontainer.get_node(server_name)
 	server_button.animation_sprite.animation = "signal"
 	server_button.animation_sprite.frame = StaticLoad.get_level_by_ping(ping)
 	is_server_connected = false
@@ -128,9 +131,9 @@ func request_for_server_state(client_peer_id):
 
 @rpc("authority", "call_remote", "reliable", 2)
 func reply_for_server_state(online_player_number, world_icon_buffer_tmp, version_tmp):
-	if has_node("/root/MultiMenu"):
+	if panel != null:
 		#await get_tree().create_timer(0.1).timeout
-		var server_button = server_list_vboxcontainer.get_node(server_name)
+		var server_button = server_list_gridcontainer.get_node(server_name)
 		if server_button == null:
 			disconnect_and_free()
 			return
@@ -159,7 +162,7 @@ func reply_for_server_state(online_player_number, world_icon_buffer_tmp, version
 			world_icon_buffer_tmp = world_icon_image.save_png_to_buffer()
 		server.set_value("server", "server_icon", world_icon_buffer_tmp)
 		server.save_encrypted_pass(server_path_tmp, SettingsManager.get_default_value("config_password"))
-		if get_node("/root/ServerManager").check_server_version(version_tmp):
+		if ServerManager.check_server_version(version_tmp):
 			server_button.online_info_label.text = tr("ONLINE_PLAYERS")+" : "+str(online_player_number)
 			is_server_info_received = true
 		else:

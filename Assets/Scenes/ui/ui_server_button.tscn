@@ -1,7 +1,8 @@
-[gd_scene load_steps=17 format=3 uid="uid://cw018jkknxq6f"]
+[gd_scene load_steps=18 format=3 uid="uid://cw018jkknxq6f"]
 
 [ext_resource type="Script" path="res://assets/scripts/ui_server_button.gd" id="1_brp8u"]
 [ext_resource type="Texture2D" uid="uid://bvtu8ithtvsc3" path="res://assets/textures/ui/default_offline_server_icon.png" id="2_ipyl2"]
+[ext_resource type="Texture2D" uid="uid://rwn5mc2as2oo" path="res://assets/textures/ui/ui_button_hovered.png" id="2_s8jfb"]
 [ext_resource type="FontVariation" uid="uid://ck7gxbgy6ry6b" path="res://assets/fonts/fmcles.tres" id="3_rpd2u"]
 [ext_resource type="Texture2D" uid="uid://eb2hdkojpck2" path="res://assets/textures/ui/icons.png" id="4_1lhk2"]
 
@@ -111,28 +112,33 @@ focus_mode = 1
 mouse_filter = 1
 script = ExtResource("1_brp8u")
 
-[node name="SelectedBackground" type="ColorRect" parent="."]
+[node name="SelectedBackground" type="NinePatchRect" parent="."]
 visible = false
+self_modulate = Color(1, 1, 1, 0.662745)
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.501961, 0.501961, 0.501961, 1)
+mouse_filter = 1
+texture = ExtResource("2_s8jfb")
+draw_center = false
+patch_margin_left = 5
+patch_margin_top = 5
+patch_margin_right = 10
+patch_margin_bottom = 5
 
 [node name="ColorRect" type="ColorRect" parent="SelectedBackground"]
+show_behind_parent = true
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 6.0
-offset_top = 6.0
-offset_right = -6.0
-offset_bottom = -6.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 1)
+mouse_filter = 1
+color = Color(0, 0, 0, 0.529412)
 
 [node name="HSplitContainer" type="HSplitContainer" parent="."]
 layout_mode = 1

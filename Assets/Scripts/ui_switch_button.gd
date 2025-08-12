@@ -12,6 +12,8 @@ var option_dict: Dictionary
 var option_list: Array
 var curr_option_name: String = ""
 
+signal changed
+
 func _ready() -> void:
 	if option_type == "switch":
 		option_dict = {
@@ -39,6 +41,12 @@ func _ready() -> void:
 			"official_new": "OFFICIAL_NEW",
 			"official_old": "OFFICIAL_OLD",
 		}
+	elif option_type == "gui_scale":
+		option_dict = {
+			"big": "BIG",
+			"middle": "MIDDLE",
+			"small": "SMALL",
+		}
 	option_list = option_dict.keys()
 
 func load_setting(config: ConfigFile):
@@ -65,3 +73,4 @@ func _on_ui_button_pressed() -> void:
 	var next_option_name = option_list[next_option_index]
 	curr_option_name = next_option_name
 	text_label.text = tr(title)+" : "+tr(option_dict[next_option_name])
+	changed.emit()

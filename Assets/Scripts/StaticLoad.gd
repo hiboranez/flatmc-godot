@@ -838,7 +838,7 @@ func peer_disconnect_broadcast(client_peer_id):
 	if is_dedicated_server:
 		var text = "["+get_time_string(false)+" INFO]: "+player_peer_dict[client_peer_id].player_name+" left the game"
 		print(text)
-		get_node("/root/ServerManager").record_server_log(Time.get_date_string_from_system(), text)
+		ServerManager.record_server_log(Time.get_date_string_from_system(), text)
 	destroy_peer(client_peer_id)
 
 @rpc("any_peer", "call_remote", "reliable", 1)
@@ -1205,7 +1205,7 @@ func broadcast_player_join_game(got_name_tag):
 	if is_dedicated_server:
 		var text = "["+get_time_string(false)+" INFO]: "+got_name_tag+" joined the game"
 		print(text)
-		get_node("/root/ServerManager").record_server_log(Time.get_date_string_from_system(), text)
+		ServerManager.record_server_log(Time.get_date_string_from_system(), text)
 
 @rpc("any_peer", "call_remote", "reliable", 1)
 func request_for_world_info(client_peer_id, is_fresh):

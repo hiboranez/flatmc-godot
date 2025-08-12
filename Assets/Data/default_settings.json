@@ -18,7 +18,8 @@
 		"mini_map": "on",
 		"mini_map_zoom": "30",
 		"skin_path": "null",
-		"resource_pack": "official_new"
+		"resource_pack": "official_new",
+		"gui_scale": "big"
 	},
 	
 	"official_server_infos": {
@@ -50,4 +51,18 @@
 		"allow_cheat": "off",
 		"achievement": "on"
 	},
+	
+	"languages": {
+		"zh": "中文",
+		"en": "English",
+		"ja": "日本語",
+		"ko": "한국어",
+		"es": "Español",
+		"fr": "Français",
+		"de": "Deutsch",
+		"ru": "Русский",
+		"hi": "हिन्दी",
+		"vi": "Tiếng Việt",
+		"th": "ภาษาไทย"
+	}
 }
