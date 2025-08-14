@@ -1,0 +1,100 @@
+[gd_scene load_steps=6 format=3 uid="uid://cqj8tomwl4no4"]
+
+[ext_resource type="Script" path="res://assets/scripts/menus/create_world_panel.gd" id="1_g7wq8"]
+[ext_resource type="PackedScene" uid="uid://t7ibude322ee" path="res://assets/scenes/ui/drag_scroll_container.tscn" id="1_jn4l7"]
+[ext_resource type="PackedScene" uid="uid://ddk2ss7f7nlyx" path="res://assets/scenes/ui/ui_line_edit.tscn" id="2_vxq8n"]
+[ext_resource type="PackedScene" uid="uid://d18x5l5dfq0qt" path="res://assets/scenes/ui/ui_switch_button.tscn" id="3_uc3jq"]
+[ext_resource type="PackedScene" uid="uid://df6k4i6hb4a6p" path="res://assets/scenes/ui/ui_normal_button.tscn" id="4_0s50l"]
+
+[node name="CreateWorldPanel" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_g7wq8")
+
+[node name="DragScrollContainer" parent="." instance=ExtResource("1_jn4l7")]
+layout_mode = 1
+
+[node name="CenterContainer" type="CenterContainer" parent="DragScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="GridContainer" type="GridContainer" parent="DragScrollContainer/CenterContainer"]
+layout_mode = 2
+theme_override_constants/v_separation = 20
+
+[node name="WorldName" parent="DragScrollContainer/CenterContainer/GridContainer" instance=ExtResource("2_vxq8n")]
+custom_minimum_size = Vector2(1200, 100)
+layout_mode = 2
+setting_name = "world_name"
+title = "WORLD_NAME"
+default_text = "DEFAULT_WORLD_NAME"
+
+[node name="Seed" parent="DragScrollContainer/CenterContainer/GridContainer" instance=ExtResource("2_vxq8n")]
+custom_minimum_size = Vector2(1200, 100)
+layout_mode = 2
+setting_name = "seed"
+title = "SEED_TEXT"
+
+[node name="WorldType" parent="DragScrollContainer/CenterContainer/GridContainer" instance=ExtResource("3_uc3jq")]
+custom_minimum_size = Vector2(1200, 100)
+layout_mode = 2
+setting_name = "world_type"
+title = "WORLD_TYPE"
+option_type = "world_type"
+default_option = "default"
+
+[node name="Gamemode" parent="DragScrollContainer/CenterContainer/GridContainer" instance=ExtResource("3_uc3jq")]
+custom_minimum_size = Vector2(1200, 100)
+layout_mode = 2
+setting_name = "gamemode"
+title = "GAMEMODE"
+option_type = "gamemode"
+default_option = "survival"
+
+[node name="AllowCheat" parent="DragScrollContainer/CenterContainer/GridContainer" instance=ExtResource("3_uc3jq")]
+custom_minimum_size = Vector2(1200, 100)
+layout_mode = 2
+setting_name = "allow_cheat"
+title = "ALLOW_CHEAT"
+default_option = "off"
+
+[node name="Achievement" parent="DragScrollContainer/CenterContainer/GridContainer" instance=ExtResource("3_uc3jq")]
+custom_minimum_size = Vector2(1200, 100)
+layout_mode = 2
+setting_name = "achievement"
+title = "ACHIEVEMENT"
+
+[node name="BottomButtons" type="GridContainer" parent="."]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -760.0
+offset_top = 31.0
+offset_right = 760.0
+offset_bottom = 131.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/h_separation = 20
+columns = 2
+
+[node name="CreateWorldButton" parent="BottomButtons" instance=ExtResource("4_0s50l")]
+custom_minimum_size = Vector2(750, 100)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "CREATE_WORLD"
+
+[node name="CancelButton" parent="BottomButtons" instance=ExtResource("4_0s50l")]
+custom_minimum_size = Vector2(750, 100)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "CANCEL"
+
+[connection signal="pressed" from="BottomButtons/CreateWorldButton" to="." method="_on_create_world_button_pressed"]
+[connection signal="pressed" from="BottomButtons/CancelButton" to="." method="_on_cancel_button_pressed"]

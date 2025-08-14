@@ -48,6 +48,8 @@ func _ready() -> void:
 			"small": "SMALL",
 		}
 	option_list = option_dict.keys()
+	curr_option_name = option_list[0]
+	text_label.text = tr(title)+" : "+tr(option_dict[curr_option_name])
 
 func load_setting(config: ConfigFile):
 	var text = config.get_value("settings", setting_name, SettingsManager.get_default_setting(setting_name))
@@ -59,13 +61,13 @@ func save_setting(change_dict: Dictionary):
 
 func set_option_button_text(got_text: String) -> void:
 	text_label.text = tr(title)+" : "+tr(option_dict[got_text])
+	curr_option_name = got_text
 
 func get_option_button_text() -> String:
 	return curr_option_name
 
 func _on_ui_button_pressed() -> void:
 	AudioManager.play_static_audio("sound/ui/click")
-	grab_focus()
 	var curr_option_index = option_list.find(curr_option_name)
 	var next_option_index = curr_option_index + 1
 	if next_option_index >= option_list.size():

@@ -191,6 +191,18 @@ title = "GUI_SCALE"
 option_type = "gui_scale"
 default_option = "BIG"
 
+[node name="MenuScroll" parent="DragScrollContainer/VBoxContainer/DoubleColumnCenterContainer/DoubleColumnGridContainer" instance=ExtResource("4_mwu8u")]
+custom_minimum_size = Vector2(750, 100)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 2
+setting_name = "menu_scroll"
+title = "MENU_SCROLL"
+value_type = "percent-switch"
+max_value = 100.0
+default_value = 50.0
+step = 1.0
+
 [node name="BottomButtons" type="GridContainer" parent="."]
 layout_mode = 1
 anchors_preset = 7

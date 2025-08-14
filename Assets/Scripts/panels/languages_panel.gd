@@ -3,8 +3,9 @@ extends Control
 @onready var language_list_gridcontainer = $DragScrollContainer/VBoxContainer/CenterContainer/GridContainer
 
 var menu: Node = null
-var middle_size: float = 1200
-var margin_size: float = 320
+var title: String = "LANGUAGES"
+var content_top_margin: float = 120
+var content_bottom_margin: float = 160
 
 var select_language: String = SettingsManager.get_current_setting("language")
 
@@ -15,7 +16,7 @@ func _ready() -> void:
 func refresh_size() -> void:
 	var canvas_size = get_viewport().get_screen_transform().affine_inverse()*Vector2(get_viewport().size)
 	scale = Vector2(menu.scale_factor, menu.scale_factor)
-	set_deferred("size", Vector2(canvas_size.x/menu.scale_factor, (canvas_size.y-(margin_size*menu.scale_factor))/menu.scale_factor))
+	set_deferred("size", Vector2(canvas_size.x/menu.scale_factor, (canvas_size.y-((content_top_margin+content_bottom_margin)*menu.scale_factor))/menu.scale_factor))
 
 func update_language_list():
 	for language_abbr in SettingsManager.default_language_dict.keys():
@@ -48,9 +49,9 @@ func _on_confirm_button_pressed() -> void:
 		$"..".refresh_achievement_info()
 	else:
 		if menu != null:
-			await menu.menu_controller.vanish()
+			await menu.menu_controller.vanish("menu")
 		if has_node("/root/MainMenu"):
-			get_node("/root/MainMenu").menu_controller.appear()
+			get_node("/root/MainMenu").menu_controller.appear("menu")
 		if menu != null:
 			menu.queue_free()
 
@@ -60,8 +61,8 @@ func _on_cancel_button_pressed() -> void:
 		self.visible = false
 	else:
 		if menu != null:
-			await menu.menu_controller.vanish()
+			await menu.menu_controller.vanish("menu")
 		if has_node("/root/MainMenu"):
-			get_node("/root/MainMenu").menu_controller.appear()
+			get_node("/root/MainMenu").menu_controller.appear("menu")
 		if menu != null:
 			menu.queue_free()

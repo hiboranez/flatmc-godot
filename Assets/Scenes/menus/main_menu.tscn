@@ -1,6 +1,6 @@
 [gd_scene load_steps=35 format=4 uid="uid://cncuuwqbjeqqm"]
 
-[ext_resource type="Script" path="res://assets/scripts/menu/main_menu.gd" id="1_66xcn"]
+[ext_resource type="Script" path="res://assets/scripts/menus/main_menu.gd" id="1_66xcn"]
 [ext_resource type="Script" path="res://assets/scripts/controllers/menu_controller.gd" id="2_sb85c"]
 [ext_resource type="Texture2D" uid="uid://bpicfs0othad7" path="res://assets/textures/ui/landscape.png" id="2_xwd25"]
 [ext_resource type="Shader" path="res://assets/Shaders/Blur.gdshader" id="3_xmoo7"]

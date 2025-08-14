@@ -1,6 +1,6 @@
 [gd_scene load_steps=5 format=3 uid="uid://o3e2ocp5m003"]
 
-[ext_resource type="Script" path="res://assets/scripts/menu/force_quit_menu.gd" id="1_7taxl"]
+[ext_resource type="Script" path="res://assets/scripts/menus/force_quit_menu.gd" id="1_7taxl"]
 [ext_resource type="Texture2D" uid="uid://bd725jipoa84m" path="res://assets/textures/backgrounds/dirt_wall.png" id="2_8rlye"]
 [ext_resource type="FontVariation" uid="uid://ck7gxbgy6ry6b" path="res://assets/fonts/fmcles.tres" id="3_3ecys"]
 [ext_resource type="PackedScene" uid="uid://df6k4i6hb4a6p" path="res://assets/scenes/ui/ui_normal_button.tscn" id="4_0wnyq"]

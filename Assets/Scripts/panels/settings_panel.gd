@@ -6,8 +6,9 @@ extends Control
 @onready var double_column_center_container = $DragScrollContainer/VBoxContainer/DoubleColumnCenterContainer
 
 var menu: Node = null
-var middle_size: float = 1522
-var margin_size: float = 320
+var title: String = "SETTINGS"
+var content_top_margin: float = 120
+var content_bottom_margin: float = 160
 
 func _ready() -> void:
 	get_viewport().size_changed.connect(refresh_size)
@@ -28,7 +29,7 @@ func refresh_size() -> void:
 	#var margin = (canvas_size.x*0.96-(get_global_transform_with_canvas().affine_inverse()*Vector2(middle_size, middle_size)).x)/(2*menu.scale_factor)
 	var canvas_size = get_viewport().get_screen_transform().affine_inverse()*Vector2(get_viewport().size)
 	scale = Vector2(menu.scale_factor, menu.scale_factor)
-	set_deferred("size", Vector2(canvas_size.x/menu.scale_factor, (canvas_size.y-(margin_size*menu.scale_factor))/menu.scale_factor))
+	set_deferred("size", Vector2(canvas_size.x/menu.scale_factor, (canvas_size.y-((content_top_margin+content_bottom_margin)*menu.scale_factor))/menu.scale_factor))
 	#var center_size = (get_global_transform_with_canvas().affine_inverse()*Vector2(middle_size, middle_size))
 	#single_column_center_container.custom_minimum_size.x = center_size.x
 	#double_column_center_container.custom_minimum_size.x = center_size.x
@@ -90,11 +91,12 @@ func _on_save_button_pressed() -> void:
 	if last_setting_dict.has("saving_state") and not last_setting_dict["saving_state"]:
 		return
 	if menu != null:
-		await menu.menu_controller.vanish()
+		await menu.menu_controller.vanish("menu")
 	if has_node("/root/MainMenu"):
 		var main_menu = get_node("/root/MainMenu")
+		main_menu.menu_scroll_speed = float(SettingsManager.get_current_setting("menu_scroll"))/100.0
 		main_menu.refresh_size()
-		main_menu.menu_controller.appear()
+		main_menu.menu_controller.appear("menu")
 	if menu != null:
 		get_viewport().size_changed.disconnect(refresh_size)
 		menu.queue_free()
@@ -102,11 +104,11 @@ func _on_save_button_pressed() -> void:
 func _on_cancel_button_pressed() -> void:
 	AudioManager.play_static_audio("sound/ui/click")
 	if menu != null:
-		await menu.menu_controller.vanish()
+		await menu.menu_controller.vanish("menu")
 	if has_node("/root/MainMenu"):
 		var main_menu = get_node("/root/MainMenu")
 		main_menu.refresh_size()
-		main_menu.menu_controller.appear()
+		main_menu.menu_controller.appear("menu")
 	if menu != null:
 		get_viewport().size_changed.disconnect(refresh_size)
 		menu.queue_free()

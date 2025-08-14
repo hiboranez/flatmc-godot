@@ -1,0 +1,84 @@
+[gd_scene load_steps=6 format=3 uid="uid://crun3hqdilpoy"]
+
+[ext_resource type="PackedScene" uid="uid://t7ibude322ee" path="res://assets/scenes/ui/drag_scroll_container.tscn" id="1_gif6e"]
+[ext_resource type="Script" path="res://assets/scripts/panels/edit_world_panel.gd" id="1_vuwxp"]
+[ext_resource type="PackedScene" uid="uid://ddk2ss7f7nlyx" path="res://assets/scenes/ui/ui_line_edit.tscn" id="2_vi54p"]
+[ext_resource type="PackedScene" uid="uid://d18x5l5dfq0qt" path="res://assets/scenes/ui/ui_switch_button.tscn" id="3_rjlqq"]
+[ext_resource type="PackedScene" uid="uid://df6k4i6hb4a6p" path="res://assets/scenes/ui/ui_normal_button.tscn" id="4_l041x"]
+
+[node name="EditWorldPanel" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_vuwxp")
+
+[node name="DragScrollContainer" parent="." instance=ExtResource("1_gif6e")]
+layout_mode = 1
+
+[node name="VBoxContainer" type="VBoxContainer" parent="DragScrollContainer"]
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 2
+theme_override_constants/separation = 30
+
+[node name="CenterContainer" type="CenterContainer" parent="DragScrollContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="GridContainer" type="GridContainer" parent="DragScrollContainer/VBoxContainer/CenterContainer"]
+layout_mode = 2
+theme_override_constants/v_separation = 20
+
+[node name="WorldName" parent="DragScrollContainer/VBoxContainer/CenterContainer/GridContainer" instance=ExtResource("2_vi54p")]
+custom_minimum_size = Vector2(1200, 100)
+layout_mode = 2
+setting_name = "world_name"
+title = "WORLD_NAME"
+default_text = "DEFAULT_WORLD_NAME"
+
+[node name="AllowCheat" parent="DragScrollContainer/VBoxContainer/CenterContainer/GridContainer" instance=ExtResource("3_rjlqq")]
+custom_minimum_size = Vector2(1200, 100)
+layout_mode = 2
+setting_name = "allow_cheat"
+title = "ALLOW_CHEAT"
+default_option = "off"
+
+[node name="Achievement" parent="DragScrollContainer/VBoxContainer/CenterContainer/GridContainer" instance=ExtResource("3_rjlqq")]
+custom_minimum_size = Vector2(1200, 100)
+layout_mode = 2
+setting_name = "achievement"
+title = "ACHIEVEMENT"
+
+[node name="BottomButtons" type="GridContainer" parent="."]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -760.0
+offset_top = 34.0
+offset_right = 760.0
+offset_bottom = 144.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/h_separation = 20
+columns = 2
+
+[node name="ConfirmButton" parent="BottomButtons" instance=ExtResource("4_l041x")]
+custom_minimum_size = Vector2(750, 110)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "CONFIRM"
+
+[node name="CancelButton" parent="BottomButtons" instance=ExtResource("4_l041x")]
+custom_minimum_size = Vector2(750, 110)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "CANCEL"
+
+[connection signal="pressed" from="BottomButtons/ConfirmButton" to="." method="_on_confirm_button_pressed"]
+[connection signal="pressed" from="BottomButtons/CancelButton" to="." method="_on_cancel_button_pressed"]

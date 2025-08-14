@@ -17,6 +17,8 @@ extends Menu
 var curr_mouse_pos: Vector2
 var prev_mouse_pos: Vector2
 
+var menu_scroll_speed: float = 0.5
+
 func _ready() -> void:
 	if OS.has_feature("dedicated_server"):
 		return
@@ -36,9 +38,13 @@ func _ready() -> void:
 		player_rect,
 	]
 	menu_controller = $MenuController
+	menu_controller.menu = self
 	StaticLoad.select_server = null
 	StaticLoad.select_world = null
-	menu_controller.set_menu_control(base_panel)
+	panel_control_dict = {
+		"menu": base_panel
+	}
+	menu_scroll_speed = float(SettingsManager.get_current_setting("menu_scroll"))/100.0
 	refresh_size()
 	update_player_model_skin()
 
@@ -66,7 +72,7 @@ func update_mouse_position():
 		update_player_model_rotation(curr_mouse_pos)
 
 func update_background_camera_rotation():
-	background_camera.rotate(Vector3.UP, -0.0001)
+	background_camera.rotate(Vector3.UP, -0.0833*get_process_delta_time()*menu_scroll_speed)
 
 func update_player_model_rotation(viewport_pos):
 	var viewport_size = menu_control.get_viewport_rect().size
@@ -90,31 +96,33 @@ func update_player_model_skin():
 			
 func _on_single_mode_button_pressed() -> void:
 	AudioManager.play_static_audio("sound/ui/click")
-	await menu_controller.vanish()
+	await menu_controller.vanish("menu")
 	var single_game_menu = SceneManager.get_scene("menus/single_game_menu").instantiate()
 	add_child(single_game_menu)
 	
 func _on_multi_mode_button_pressed() -> void:
 	AudioManager.play_static_audio("sound/ui/click")
-	await menu_controller.vanish()
+	await menu_controller.vanish("menu")
 	var multi_game_menu = SceneManager.get_scene("menus/multi_game_menu").instantiate()
 	add_child(multi_game_menu)
 
 func _on_settings_button_pressed() -> void:
 	AudioManager.play_static_audio("sound/ui/click")
-	await menu_controller.vanish()
+	await menu_controller.vanish("menu")
 	var settings_menu = SceneManager.get_scene("menus/settings_menu").instantiate()
 	add_child(settings_menu)
 	
 func _on_language_button_pressed() -> void:
 	AudioManager.play_static_audio("sound/ui/click")
-	await menu_controller.vanish()
+	await menu_controller.vanish("menu")
 	var languages_menu = SceneManager.get_scene("menus/languages_menu").instantiate()
 	add_child(languages_menu)
 
 func _on_resource_pack_button_pressed() -> void:
 	AudioManager.play_static_audio("sound/ui/click")
-	SceneManager.change_scene("menus/resource_pack_menu")
+	await menu_controller.vanish("menu")
+	var resource_pack_menu = SceneManager.get_scene("menus/resource_pack_menu").instantiate()
+	add_child(resource_pack_menu)
 
 func _on_quit_game_button_pressed() -> void:
 	var audio_stream_player = StaticLoad.click_audio_player

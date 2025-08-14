@@ -62,7 +62,7 @@
 [ext_resource type="Texture2D" uid="uid://b6wbqichdrhpr" path="res://assets/textures/ui/game_button_normal.png" id="60_u6c54"]
 [ext_resource type="Texture2D" uid="uid://b14xkgu1d1omr" path="res://assets/textures/backgrounds/stone_wall.png" id="61_ogfed"]
 [ext_resource type="Texture2D" uid="uid://ovfrn8y2usm7" path="res://assets/textures/ui/achievement_background.png" id="62_q7440"]
-[ext_resource type="Script" path="res://assets/scripts/menu/settings_menu.gd" id="63_4pbcv"]
+[ext_resource type="Script" path="res://assets/scripts/menus/settings_menu.gd" id="63_4pbcv"]
 [ext_resource type="Texture2D" uid="uid://bd725jipoa84m" path="res://assets/textures/backgrounds/dirt_wall.png" id="64_rjgst"]
 [ext_resource type="Texture2D" uid="uid://caueuwmlcmeot" path="res://assets/textures/ui/game_button_disabled.png" id="65_f68iq"]
 [ext_resource type="Texture2D" uid="uid://bn78hs0omgltt" path="res://assets/textures/ui/slider_box_default.png" id="66_7o5mh"]

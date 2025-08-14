@@ -1,6 +1,6 @@
 [gd_scene load_steps=6 format=3 uid="uid://cu3jvcsxmx5r"]
 
-[ext_resource type="Script" path="res://assets/scripts/menu/loading_world_menu.gd" id="1_hb7ua"]
+[ext_resource type="Script" path="res://assets/scripts/menus/loading_world_menu.gd" id="1_hb7ua"]
 [ext_resource type="Texture2D" uid="uid://bd725jipoa84m" path="res://assets/textures/backgrounds/dirt_wall.png" id="2_xct4k"]
 [ext_resource type="FontFile" uid="uid://dahei608a1d0f" path="res://assets/fonts/MinecraftAE.ttf" id="3_c7d5o"]
 

@@ -1,0 +1,70 @@
+[gd_scene load_steps=5 format=3 uid="uid://r7lveoxwgcvm"]
+
+[ext_resource type="Script" path="res://assets/scripts/panels/resource_pack_panel.gd" id="1_bkod4"]
+[ext_resource type="PackedScene" uid="uid://t7ibude322ee" path="res://assets/scenes/ui/drag_scroll_container.tscn" id="1_dxpg4"]
+[ext_resource type="PackedScene" uid="uid://d18x5l5dfq0qt" path="res://assets/scenes/ui/ui_switch_button.tscn" id="2_8wply"]
+[ext_resource type="PackedScene" uid="uid://df6k4i6hb4a6p" path="res://assets/scenes/ui/ui_normal_button.tscn" id="3_ivoqr"]
+
+[node name="ResourcePackPanel" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_bkod4")
+
+[node name="DragScrollContainer" parent="." instance=ExtResource("1_dxpg4")]
+layout_mode = 1
+
+[node name="VBoxContainer" type="VBoxContainer" parent="DragScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 2
+theme_override_constants/separation = 60
+
+[node name="CenterContainer" type="CenterContainer" parent="DragScrollContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="GridContainer" type="GridContainer" parent="DragScrollContainer/VBoxContainer/CenterContainer"]
+layout_mode = 2
+theme_override_constants/v_separation = 20
+
+[node name="ResourcePack" parent="DragScrollContainer/VBoxContainer/CenterContainer/GridContainer" instance=ExtResource("2_8wply")]
+custom_minimum_size = Vector2(1200, 100)
+layout_mode = 2
+setting_name = "resource_pack"
+title = "RESOURCE_PACK"
+option_type = "resource_pack"
+default_option = "official_new"
+
+[node name="BottomButtons" type="GridContainer" parent="."]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -760.0
+offset_top = 47.0
+offset_right = 760.0
+offset_bottom = 147.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/h_separation = 20
+columns = 2
+
+[node name="SaveButton" parent="BottomButtons" instance=ExtResource("3_ivoqr")]
+custom_minimum_size = Vector2(750, 100)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "SAVE"
+
+[node name="CancelButton" parent="BottomButtons" instance=ExtResource("3_ivoqr")]
+custom_minimum_size = Vector2(750, 100)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "CANCEL"
+
+[connection signal="pressed" from="BottomButtons/SaveButton" to="." method="_on_save_button_pressed"]
+[connection signal="pressed" from="BottomButtons/CancelButton" to="." method="_on_cancel_button_pressed"]

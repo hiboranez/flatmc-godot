@@ -19,7 +19,8 @@
 		"mini_map_zoom": "30",
 		"skin_path": "null",
 		"resource_pack": "official_new",
-		"gui_scale": "big"
+		"gui_scale": "big",
+		"menu_scroll": "0.5"
 	},
 	
 	"official_server_infos": {

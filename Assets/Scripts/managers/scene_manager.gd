@@ -52,25 +52,46 @@ func get_scene(path):
 func pop_notification(root, title: String, info: String, is_destroying = true):
 	var notice = get_scene("ui/notice").instantiate()
 	root.add_child(notice)
-	notice.set_title(title)
-	notice.set_text(info)
+	var scale_factor = SettingsManager.get_menu_scale_factor(SettingsManager.get_current_setting("gui_scale"))
+	notice.set_scale_factor(0.001)
+	notice.title_label.text = title
+	notice.rich_text_label.text = info
+	var tween = create_tween()
+	tween.set_ease(Tween.EASE_OUT)
+	tween.set_trans(Tween.TRANS_QUAD)
+	tween.tween_method(notice.set_scale_factor, 0.001, scale_factor, 0.15)
+	tween.parallel().tween_method(notice.set_blur_value, 0.001, 2, 0.15)
 	if is_destroying:
 		notice.destroy_count_down()
 
 func pop_big_notification(root, title: String, info: String, button_text: String):
 	var notice = get_scene("ui/big_notice").instantiate()
 	root.add_child(notice)
-	notice.set_title(title)
-	notice.set_text(info)
-	notice.set_button_text(button_text)
+	var scale_factor = SettingsManager.get_menu_scale_factor(SettingsManager.get_current_setting("gui_scale"))
+	notice.set_scale_factor(0.001)
+	notice.title_label.text = title
+	notice.rich_text_label.text = info
+	notice.close_button.text = button_text
+	var tween = create_tween()
+	tween.set_ease(Tween.EASE_OUT)
+	tween.set_trans(Tween.TRANS_QUAD)
+	tween.tween_method(notice.set_scale_factor, 0.001, scale_factor, 0.3)
+	tween.parallel().tween_method(notice.set_blur_value, 0.001, 2, 0.3)
 
 func pop_secondary_confirmation(root, info: String, function: Callable):
 	if is_secondary_confirmation_popped:
 		return
-	var secondary_confirmation = get_scene("secondary_confirmation").instantiate()
+	var secondary_confirmation = get_scene("ui/secondary_confirmation").instantiate()
 	root.add_child(secondary_confirmation)
-	secondary_confirmation.set_text(info)
+	var scale_factor = SettingsManager.get_menu_scale_factor(SettingsManager.get_current_setting("gui_scale"))
 	secondary_confirmation.connect_secondary_confirmation_confirm_button(function)
+	secondary_confirmation.set_scale_factor(0.001)
+	secondary_confirmation.rich_text_label.text = info
+	var tween = create_tween()
+	tween.set_ease(Tween.EASE_OUT)
+	tween.set_trans(Tween.TRANS_QUAD)
+	tween.tween_method(secondary_confirmation.set_scale_factor, 0.001, scale_factor, 0.15)
+	tween.parallel().tween_method(secondary_confirmation.set_blur_value, 0.001, 2, 0.15)
 
 #func change_scene(path):
 	#if typeof(path) == TYPE_STRING:

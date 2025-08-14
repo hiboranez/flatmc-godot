@@ -3,8 +3,9 @@ extends Control
 @onready var world_list_container = $DragScrollContainer/VBoxContainer/CenterContainer/GridContainer
 
 var menu: Node = null
-var middle_size: float = 1600
-var margin_size: float = 320
+var title: String = "SINGLE_MODE"
+var content_top_margin: float = 120
+var content_bottom_margin: float = 250
 
 var selected_world_name: String = ""
 
@@ -14,7 +15,7 @@ func _ready() -> void:
 func refresh_size() -> void:
 	var canvas_size = get_viewport().get_screen_transform().affine_inverse()*Vector2(get_viewport().size)
 	scale = Vector2(menu.scale_factor, menu.scale_factor)
-	set_deferred("size", Vector2(canvas_size.x/menu.scale_factor, (canvas_size.y-(margin_size*menu.scale_factor))/menu.scale_factor))
+	set_deferred("size", Vector2(canvas_size.x/menu.scale_factor, (canvas_size.y-((content_top_margin+content_bottom_margin)*menu.scale_factor))/menu.scale_factor))
 
 func update_world_list():
 	var current_worlds = world_list_container.get_children()
@@ -59,7 +60,7 @@ func delete_world(world_name: String):
 	if not DirAccess.dir_exists_absolute(delete_path):
 		return
 	OS.move_to_trash(ProjectSettings.globalize_path(delete_path))
-	update_world_list()
+	await update_world_list()
 	selected_world_name = ""
 
 func convert_world_version(old_version):
@@ -94,23 +95,44 @@ func _on_edit_world_button_pressed() -> void:
 	AudioManager.play_static_audio("sound/ui/click")
 	if selected_world_name == "":
 		return
-	var edit_world_menu = SceneManager.get_scene("menus/edit_world_menu").instantiate()
-	add_child(edit_world_menu)
+	if menu == null:
+		return
+	await menu.menu_controller.vanish("single_game_panel")
+	var edit_world_panel = SceneManager.get_scene("panels/edit_world_panel").instantiate()
+	menu.panel_control_dict["edit_world_panel"] = edit_world_panel
+	menu.base_content_panel.set_content(edit_world_panel)
+	edit_world_panel.menu = menu
+	await edit_world_panel.load_world_info()
+	menu.base_content_panel.title = edit_world_panel.title
+	menu.base_content_panel.content_top_margin = edit_world_panel.content_top_margin
+	menu.base_content_panel.content_bottom_margin = edit_world_panel.content_bottom_margin
+	menu.base_content_panel.animated_refresh_size(edit_world_panel)
+	menu.menu_controller.appear("edit_world_panel")
 
 func _on_back_to_menu_button_pressed() -> void:
 	AudioManager.play_static_audio("sound/ui/click")
 	if menu != null:
-		await menu.menu_controller.vanish()
+		await menu.menu_controller.vanish("menu")
 	if has_node("/root/MainMenu"):
-		get_node("/root/MainMenu").menu_controller.appear()
+		get_node("/root/MainMenu").menu_controller.appear("menu")
 	if menu != null:
 		menu.queue_free()
 
 func _on_create_world_button_pressed() -> void:
 	AudioManager.play_static_audio("sound/ui/click")
-	var create_world_menu = SceneManager.get_scene("menus/create_world_menu").instantiate()
-	add_child(create_world_menu)
-
+	if menu == null:
+		return
+	await menu.menu_controller.vanish("single_game_panel")
+	var create_world_panel = SceneManager.get_scene("panels/create_world_panel").instantiate()
+	menu.panel_control_dict["create_world_panel"] = create_world_panel
+	menu.base_content_panel.set_content(create_world_panel)
+	create_world_panel.menu = menu
+	menu.base_content_panel.title = create_world_panel.title
+	menu.base_content_panel.content_top_margin = create_world_panel.content_top_margin
+	menu.base_content_panel.content_bottom_margin = create_world_panel.content_bottom_margin
+	menu.base_content_panel.animated_refresh_size(create_world_panel)
+	menu.menu_controller.appear("create_world_panel")
+	
 func _on_delete_world_button_pressed() -> void:
 	AudioManager.play_static_audio("sound/ui/click")
 	if selected_world_name == "":
