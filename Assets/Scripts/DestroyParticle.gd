@@ -9,7 +9,7 @@ func init(got_position, type, item_name):
 	position = got_position
 	var texture
 	if type == "item":
-		texture = load("res://Assets/ResourcePacks/"+str(StaticLoad.game.resource_pack)+"/Items/"+item_name.to_lower()+".png") as Texture2D
+		texture = load("res://assets/ResourcePacks/"+str(SettingsManager.get_current_setting("resource_pack"))+"/Items/"+item_name.to_lower()+".png") as Texture2D
 		if StaticLoad.food_dict.has(item_name):
 			particle1.texture.set_region(Rect2(10, 1, 3, 3))
 			particle2.texture.set_region(Rect2(4, 1, 3, 3))
@@ -17,7 +17,7 @@ func init(got_position, type, item_name):
 			particle4.texture.set_region(Rect2(4, 7, 3, 3))
 			particle5.visible = false
 	elif type == "block":
-		texture = load("res://Assets/ResourcePacks/"+str(StaticLoad.game.resource_pack)+"/Blocks/"+item_name.to_lower()+".png") as Texture2D
+		texture = load("res://assets/ResourcePacks/"+str(SettingsManager.get_current_setting("resource_pack"))+"/Blocks/"+item_name.to_lower()+".png") as Texture2D
 		particle1.texture.set_region(Rect2(10, 1, 2, 2))
 		particle2.texture.set_region(Rect2(4, 1, 2, 2))
 		particle3.texture.set_region(Rect2(10, 7, 2, 2))

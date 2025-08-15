@@ -3,12 +3,12 @@
 importer="mp3"
 type="AudioStreamMP3"
 uid="uid://djl6gpf1iwpf5"
-path="res://.godot/imported/fallsmall.mp3-46f7519d843cda8cf2352afe95040383.mp3str"
+path="res://.godot/imported/fallsmall.mp3-bac6810ecae8b2325b70f12a6c343fb4.mp3str"
 
 [deps]
 
-source_file="res://assets/audios/sound/Damage/fallsmall.mp3"
-dest_files=["res://.godot/imported/fallsmall.mp3-46f7519d843cda8cf2352afe95040383.mp3str"]
+source_file="res://assets/audios/sound/damage/fallsmall.mp3"
+dest_files=["res://.godot/imported/fallsmall.mp3-bac6810ecae8b2325b70f12a6c343fb4.mp3str"]
 
 [params]
 

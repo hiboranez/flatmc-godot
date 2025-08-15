@@ -3,12 +3,12 @@
 importer="oggvorbisstr"
 type="AudioStreamOggVorbis"
 uid="uid://depg33xdmknlm"
-path="res://.godot/imported/say1classic.ogg-620df6415cc4516afb1cffbef5e956ed.oggvorbisstr"
+path="res://.godot/imported/say1classic.ogg-785fccb34b0bd379ed735dbf87e93e25.oggvorbisstr"
 
 [deps]
 
-source_file="res://assets/audios/sound/Sheep/say1classic.ogg"
-dest_files=["res://.godot/imported/say1classic.ogg-620df6415cc4516afb1cffbef5e956ed.oggvorbisstr"]
+source_file="res://assets/audios/sound/sheep/say1classic.ogg"
+dest_files=["res://.godot/imported/say1classic.ogg-785fccb34b0bd379ed735dbf87e93e25.oggvorbisstr"]
 
 [params]
 

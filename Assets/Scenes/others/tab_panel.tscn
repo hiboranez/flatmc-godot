@@ -2,7 +2,7 @@
 
 [ext_resource type="Texture2D" uid="uid://bjr2jg6ujussw" path="res://assets/textures/ui/tab_panel.png" id="1_v6iqh"]
 [ext_resource type="Script" path="res://assets/scripts/TabPanel.gd" id="2_775pb"]
-[ext_resource type="PackedScene" uid="uid://dpnk4w3vgwyft" path="res://assets/scenes/others/ItemIcon.tscn" id="2_g0dfk"]
+[ext_resource type="PackedScene" uid="uid://dpnk4w3vgwyft" path="res://assets/scenes/others/item_icon.tscn" id="2_g0dfk"]
 
 [node name="TabPanel" type="TextureRect"]
 custom_minimum_size = Vector2(150.4, 150.4)

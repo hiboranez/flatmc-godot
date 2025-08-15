@@ -20,7 +20,7 @@
 		"skin_path": "null",
 		"resource_pack": "official_new",
 		"gui_scale": "big",
-		"menu_scroll": "0.5"
+		"menu_scroll": "50"
 	},
 	
 	"official_server_infos": {
@@ -38,12 +38,13 @@
 		"server_root_path": "user://local_server/",
 		"server_log_path": "user://local_server/logs/",
 		"config_password": "QQ1241999312",
+		"game_spt": "0.05",
 		"max_name_length": "16"
 	},
 	
 	"world_infos": {
 		"last_modified": "UNKNOWN",
-		"version": "0.2.0",
+		"version": "unknown",
 		"seed": "1241999312",
 		"world_type": "default",
 		"gamemode": "survival",

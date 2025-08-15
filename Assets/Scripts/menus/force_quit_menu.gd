@@ -13,7 +13,7 @@ func _ready() -> void:
 	StaticLoad.force_quit_reason = "null"
 	if StaticLoad.is_on_mobile_platform:
 		Input.emulate_mouse_from_touch = true
-	AudioManager.bgm_audio_player.refresh_bgm()
+	AudioManager.refresh_bgm()
 
 func _on_force_quit_back_button_pressed() -> void:
 	AudioManager.play_static_audio("sound/ui/click")

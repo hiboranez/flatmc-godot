@@ -3,12 +3,12 @@
 importer="mp3"
 type="AudioStreamMP3"
 uid="uid://dsvp1l2fxkrup"
-path="res://.godot/imported/explode3.mp3-0172905291371783223ccef2d08f1911.mp3str"
+path="res://.godot/imported/explode3.mp3-daffb92723a2e316a8406b370f76cb77.mp3str"
 
 [deps]
 
-source_file="res://assets/audios/sound/Random/explode3.mp3"
-dest_files=["res://.godot/imported/explode3.mp3-0172905291371783223ccef2d08f1911.mp3str"]
+source_file="res://assets/audios/sound/random/explode3.mp3"
+dest_files=["res://.godot/imported/explode3.mp3-daffb92723a2e316a8406b370f76cb77.mp3str"]
 
 [params]
 

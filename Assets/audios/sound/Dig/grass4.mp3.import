@@ -3,12 +3,12 @@
 importer="mp3"
 type="AudioStreamMP3"
 uid="uid://darflabo8sqv4"
-path="res://.godot/imported/grass4.mp3-2dd51aa50d2e133c96679668f4b5c3e4.mp3str"
+path="res://.godot/imported/grass4.mp3-6c7775786f726b4fc413a27287010237.mp3str"
 
 [deps]
 
-source_file="res://assets/audios/sound/Dig/grass4.mp3"
-dest_files=["res://.godot/imported/grass4.mp3-2dd51aa50d2e133c96679668f4b5c3e4.mp3str"]
+source_file="res://assets/audios/sound/dig/grass4.mp3"
+dest_files=["res://.godot/imported/grass4.mp3-6c7775786f726b4fc413a27287010237.mp3str"]
 
 [params]
 

@@ -3,12 +3,12 @@
 importer="mp3"
 type="AudioStreamMP3"
 uid="uid://bpsrgb6hhn6ks"
-path="res://.godot/imported/say3.mp3-aadb2b4f13af804221e3c29d2ff22d20.mp3str"
+path="res://.godot/imported/say3.mp3-a044bac5b109389d03cdfcd98fbc19e6.mp3str"
 
 [deps]
 
-source_file="res://assets/audios/sound/Chicken/say3.mp3"
-dest_files=["res://.godot/imported/say3.mp3-aadb2b4f13af804221e3c29d2ff22d20.mp3str"]
+source_file="res://assets/audios/sound/chicken/say3.mp3"
+dest_files=["res://.godot/imported/say3.mp3-a044bac5b109389d03cdfcd98fbc19e6.mp3str"]
 
 [params]
 

@@ -1,11 +1,11 @@
 extends GridContainer
 
-@onready var empty_hunger_tres = load("res://Assets/Textures/GUI/empty_hunger.tres")
-@onready var half_hunger_tres = load("res://Assets/Textures/GUI/half_hunger.tres")
-@onready var full_hunger_tres = load("res://Assets/Textures/GUI/full_hunger.tres")
-@onready var hungry_empty_hunger_tres = load("res://Assets/Textures/GUI/hungry_empty_hunger.tres")
-@onready var hungry_half_hunger_tres = load("res://Assets/Textures/GUI/hungry_half_hunger.tres")
-@onready var hungry_full_hunger_tres = load("res://Assets/Textures/GUI/hungry_full_hunger.tres")
+@onready var empty_hunger_tres = load("res://assets/textures/ui/empty_hunger.tres")
+@onready var half_hunger_tres = load("res://assets/textures/ui/half_hunger.tres")
+@onready var full_hunger_tres = load("res://assets/textures/ui/full_hunger.tres")
+@onready var hungry_empty_hunger_tres = load("res://assets/textures/ui/hungry_empty_hunger.tres")
+@onready var hungry_half_hunger_tres = load("res://assets/textures/ui/hungry_half_hunger.tres")
+@onready var hungry_full_hunger_tres = load("res://assets/textures/ui/hungry_full_hunger.tres")
 
 var empty_hungers
 var last_hunger = StaticLoad.DEFAULT_PLAYER_HEALTH

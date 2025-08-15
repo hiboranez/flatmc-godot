@@ -58,7 +58,13 @@ func _on_confirm_button_pressed() -> void:
 		read_allow_cheat = world_info_gridcontainer.get_node("AllowCheat").get_option_button_text()
 	if world_info_gridcontainer.has_node("Achievement"):
 		read_achievement = world_info_gridcontainer.get_node("Achievement").get_option_button_text()
+	var world_config = ConfigFile.new()
+	var world_info = world_config.load_encrypted_pass(world_list_path+menu.panel_control_dict["single_game_panel"].selected_world_name+"/level.dat", SettingsManager.get_default_value("config_password"))
+	if world_info != OK:
+		return
+	var read_version = world_config.get_value("world", "version", SettingsManager.get_default_world_info("version"))
 	var level_change_value = {
+		"version": read_version,
 		"last_modified": current_time,
 		"allow_cheat": read_allow_cheat,
 		"achievement": read_achievement

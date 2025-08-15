@@ -1,21 +1,6 @@
 extends Control
 
-# 预加载数据
-@onready var achievement_info_scene = load("res://Assets/Scenes/AchievementInfo.tscn") as PackedScene
-@onready var ping_scene = load("res://Assets/Scenes/Ping.tscn") as PackedScene
-@onready var online_info_scene = load("res://Assets/Scenes/OnlineInfo.tscn") as PackedScene
-@onready var mouse_item_name_label_scene = load("res://Assets/Scenes/MouseItemNameLabel.tscn") as PackedScene
-@onready var player_icon_scene = load("res://Assets/Scenes/PlayerIcon.tscn") as PackedScene
-@onready var sign_info_scene = load("res://Assets/Scenes/SignInfo.tscn") as PackedScene
-@onready var item_scene = load("res://Assets/Scenes/Item.tscn") as PackedScene
-@onready var arrow_scene = load("res://Assets/Scenes/Arrow.tscn") as PackedScene
-@onready var pig_scene = load("res://Assets/Scenes/Pig.tscn") as PackedScene
-@onready var cow_scene = load("res://Assets/Scenes/Cow.tscn") as PackedScene
-@onready var sheep_scene = load("res://Assets/Scenes/Sheep.tscn") as PackedScene
-@onready var chicken_scene = load("res://Assets/Scenes/Chicken.tscn") as PackedScene
-@onready var zombie_scene = load("res://Assets/Scenes/Zombie.tscn") as PackedScene
-@onready var skeleton_scene = load("res://Assets/Scenes/Skeleton.tscn") as PackedScene
-@onready var animation:AnimationPlayer = $AnimationPlayer
+@onready var animation = $AnimationPlayer
 @onready var click_audio_player = $ClickAudioPlayer
 @onready var server_detects = $ServerDetects
 
@@ -162,7 +147,6 @@ var crafting_recipe_dict: Dictionary
 var commands: Dictionary
 var clinging_block_dict: Dictionary
 var special_place_dict: Dictionary
-var entity_scene_dict: Dictionary
 var moon_phase_dict: Dictionary
 var food_dict: Dictionary
 
@@ -203,25 +187,15 @@ var texture_dict = {}
 func _ready() -> void:
 	# 隐藏自身
 	self.hide()
-	return
 	# 加载数据
-	var block_id_dict = DataManager.load_json_file("res://Assets/Data/block_id.json", {"all" : "int"})
-	block_ids_initial = block_id_dict["initial"]
-	block_ids_0_1 = block_id_dict["0.1.x"]
-	block_ids_0_2 = block_id_dict["0.2.x"]
-	var settings_dict = DataManager.load_json_file("res://Assets/Data/settings.json", {})
-	settings = settings_dict["settings"]
-	world_level_infos = settings_dict["world_level_infos"]
-	var current_time = Time.get_datetime_string_from_system(false, true).replace(" ", "  ").replace("-", "/")
-	world_level_infos["last_modified"] = current_time
 	var game_data_type_dict = {
 		"default_item_bar_amounts" : "int",
 		"item_model_types" : "int",
 		"item_max_amounts" : "int"
 	}
-	var recipe_dict = DataManager.load_json_file("res://Assets/Data/recipe.json", {})
+	var recipe_dict = DataManager.load_json_file("res://assets/data/crafting_recipes.json", {})
 	crafting_recipe_dict = recipe_dict["crafting_recipe_dict"]
-	var game_dict = DataManager.load_json_file("res://Assets/Data/game.json", game_data_type_dict)
+	var game_dict = DataManager.load_json_file("res://assets/data/default_data.json", game_data_type_dict)
 	default_item_bar_names = game_dict["default_item_bar_names"]
 	default_item_bar_amounts = game_dict["default_item_bar_amounts"]
 	transparent_block_names = game_dict["transparent_block_names"]
@@ -252,30 +226,14 @@ func _ready() -> void:
 	for key in game_dict["moon_phase_dict"]:
 		var splits = game_dict["moon_phase_dict"][key].split("-")
 		moon_phase_dict[int(key)] = Vector3(12+32*int(splits[0]), 12+32*int(splits[1]), float(splits[2]))
-	entity_scene_dict = {
-		"pig": pig_scene,
-		"cow": cow_scene,
-		"sheep": sheep_scene,
-		"chicken": chicken_scene,
-		"zombie": zombie_scene,
-		"skeleton": skeleton_scene,
-		"arrow": arrow_scene,
-	}
 	for achievement in achievement_progress_dict:
 		default_achievement_progress_dict[achievement] = {}
 		for progress in achievement_progress_dict[achievement]:
 			default_achievement_progress_dict[achievement][progress] = false
 	for i in range(8):
-		destroy_light_textures[i+1] = load("res://Assets/Textures/GUI/destroy"+str(i+1)+".png") as Texture2D
-	button_chosen = load("res://Assets/Textures/GUI/small_button_chosen.png") as Texture2D
-	button_disabled = load("res://Assets/Textures/GUI/game_button_disabled.png") as Texture2D
-	button_normal = load("res://Assets/Textures/GUI/small_button.png") as Texture2D
-	small_button_chosen = load("res://Assets/Textures/GUI/small_button_chosen.png") as Texture2D
-	small_button_normal = load("res://Assets/Textures/GUI/small_button.png") as Texture2D
-	middle_button_chosen = load("res://Assets/Textures/GUI/middle_button_chosen.png") as Texture2D
-	middle_button_normal = load("res://Assets/Textures/GUI/middle_button.png") as Texture2D
-	default_icon_gray_image = load("res://Assets/Textures/GUI/default_icon_gray.png").get_image()
-	game_icon_image = load("res://Assets/Textures/GUI/icon.png").get_image()
+		destroy_light_textures[i+1] = load("res://assets/textures/ui/destroy"+str(i+1)+".png") as Texture2D
+	default_icon_gray_image = load("res://assets/textures/ui/default_offline_server_icon.png").get_image()
+	game_icon_image = load("res://assets/textures/ui/fmc_icon.png").get_image()
 	
 	# 判断平台
 	if OS.has_feature("android"):
@@ -285,9 +243,8 @@ func _ready() -> void:
 		is_dedicated_server = true
 	
 	# 初始化据
-	block_ids = block_ids_0_2
 	for transparent_block_name in transparent_block_names:
-		transparent_block_ids.append(get_block_id_by_name(transparent_block_name))
+		transparent_block_ids.append(DataManager.get_block_id(transparent_block_name))
 	
 	# 如果是专用服务器，直接开服
 	#if is_dedicated_server:
@@ -447,11 +404,11 @@ func get_time_string(is_return_day: bool = true):
 
 func get_destroy_total_time(block_id, tool):
 	var block_type = get_block_type_by_id(block_id)
-	var original_time = block_destroy_times[block_type]
+	var original_time = DataManager.get_default_data_dict("block_destroy_times")[block_type]
 	if not tools_type.has(tool):
 		return original_time
 	if block_type == "stone" and tools_type[tool].has("pickaxe"):
-		var block_name = get_block_name_by_id(block_id)
+		var block_name = DataManager.get_block_name(block_id)
 		if dropped_items.has(block_name):
 			var tool_type_dict = get_tools_type_by_name(tool)
 			var tool_type = tool_type_dict.keys()[0]
@@ -490,20 +447,9 @@ func get_dig_type_by_block_type(block_type) -> String:
 		value = dig_types[block_type]
 	return value
 
-func get_block_id_by_name(block_name: String) -> int:
-	var value = 0
-	if block_ids.has(block_name):
-		value = block_ids[block_name]
-	return value
-
-func get_block_name_by_id(block_id: int):
-	var value = "null"
-	value = block_ids.find_key(block_id)
-	return value
-
 func get_block_type_by_id(id: int) -> String:
 	var value = "stone"
-	var block_name = get_block_name_by_id(id)
+	var block_name = DataManager.get_block_name(id)
 	if block_types.has(block_name):
 		value = block_types[block_name]
 	return value
@@ -582,13 +528,13 @@ func get_dropped_item_by_name(find_type, block_name, tool_name):
 			return {"AIR":1}
 
 func get_light_color_by_id(id: int):
-	var block_name = get_block_name_by_id(id)
+	var block_name = DataManager.get_block_name(id)
 	if light_colors.has(block_name):
 		return [true, light_colors[block_name]]
 	return [false, null]
 
 func get_is_untouchable_by_id(id: int):
-	var block_name = get_block_name_by_id(id)
+	var block_name = DataManager.get_block_name(id)
 	if untouchable_blocks.has(block_name):
 		return true
 	return false
@@ -685,7 +631,7 @@ func dedicated_server_create_world():
 	player_path = "user://worlds/"+world_name+"/players"
 	DirAccess.make_dir_recursive_absolute(region_path)
 	DirAccess.make_dir_recursive_absolute(player_path)
-	var image = load("res://Assets/Textures/GUI/default_icon.png").get_image()
+	var image = load("res://assets/textures/ui/default_icon.png").get_image()
 	image.save_png(world_path+"/icon.png")
 	var level = ConfigFile.new()
 	var current_time = Time.get_datetime_string_from_system(false, true).replace(" ", "  ").replace("-", "/")
@@ -984,26 +930,26 @@ func reply_for_update_chunk(is_init, x_chunk, y_chunk, blocks_list, entities_to_
 		if game.entities.has(entity["uuid"]):
 			continue
 		if entity["type"] == "item":
-			var item = item_scene.instantiate()
+			var item = SceneManager.get_scene("entities/item").instantiate()
 			game.items.add_child(item)
 			item.init([UUID.v4(), entity["item_name"], entity["position"], entity["item_amount"], 1, 0])
 			item.uuid = entity["uuid"]
 			item.name = entity["uuid"]
 			game.entities[item.get_uuid()] = item
 		elif entity["type"] == "arrow":
-			var arrow = arrow_scene.instantiate()
+			var arrow = SceneManager.get_scene("entities/arrow").instantiate()
 			game.arrows.add_child(arrow)
 			arrow.init([UUID.v4(), entity["entity_name"], entity["position"], Vector2(0, 0), entity["current_velocity"], "null", "null", "null", false])
 			arrow.uuid = entity["uuid"]
 			arrow.name = entity["uuid"]
 			game.entities[arrow.get_uuid()] = arrow
 		elif undead_mob_list.has(entity["type"]):
-			var entity_instance = entity_scene_dict[entity["type"]].instantiate()
+			var entity_instance = SceneManager.get_scene("entities/"+entity["type"]).instantiate()
 			game.undead_mobs.add_child(entity_instance)
 			entity_instance.init([entity["uuid"], entity["entity_name"], entity["position"], entity["health"]])
 			game.entities[entity_instance.get_uuid()] = entity_instance
 		else:
-			var entity_instance = entity_scene_dict[entity["type"]].instantiate()
+			var entity_instance = SceneManager.get_scene("entities/"+entity["type"]).instantiate()
 			game.mobs.add_child(entity_instance)
 			entity_instance.init([entity["uuid"], entity["entity_name"], entity["position"], entity["health"]])
 			game.entities[entity_instance.get_uuid()] = entity_instance
@@ -1041,7 +987,7 @@ func create_entity(args):
 			x_velocity = 0
 		var no_collect_time = args[5]
 		var uuid = args[6]
-		var item = game.item_scene.instantiate()
+		var item = SceneManager.get_scene("entities/item").instantiate()
 		game.items.add_child(item)
 		item.init([uuid, droppped_item_name, pos, amount, no_collect_time, x_velocity])
 		game.entities[item.get_uuid()] = item
@@ -1060,8 +1006,7 @@ func create_entity(args):
 		if not game.loaded_chunks.has(str(chunk_pos[0])+"."+str(chunk_pos[1])):
 			return
 		var health = args[4]
-		var entity_scene = entity_scene_dict[args[0]]
-		var entity = entity_scene.instantiate()
+		var entity = SceneManager.get_scene("entities/"+args[0]).instantiate()
 		if undead_mob_list.has(args[0]):
 			game.undead_mobs.add_child(entity)
 		else:
@@ -1077,8 +1022,7 @@ func create_entity(args):
 		if not game.loaded_chunks.has(str(chunk_pos[0])+"."+str(chunk_pos[1])):
 			return
 		var health = args[4]
-		var entity_scene = entity_scene_dict[args[0]]
-		var entity = entity_scene.instantiate()
+		var entity = SceneManager.get_scene("entities/"+args[0]).instantiate()
 		if undead_mob_list.has(args[0]):
 			game.undead_mobs.add_child(entity)
 		else:
@@ -1133,7 +1077,7 @@ func request_for_player_info(client_peer_id, player_name):
 	player_peer_dict[client_peer_id] = game.players.get_node(str(client_peer_id))
 	var new_player = player_peer_dict[client_peer_id]
 	if multiplayer.get_unique_id() == 1:
-		var ping_instance = ping_scene.instantiate()
+		var ping_instance = SceneManager.get_scene("others/ping").instantiate()
 		ping_instance.target_peer_id = client_peer_id
 		ping_peer_dict[client_peer_id] = ping_instance
 		ping_instance.start_ping()

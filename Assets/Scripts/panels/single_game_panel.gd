@@ -52,8 +52,20 @@ func clear_selected_background():
 			world.set_selected_background_visible(false)
 
 func enter_world():
-	AudioManager.bgm_audio_player.stop()
-	SceneManager.change_scene("menus/loading_world_menu")
+	AudioManager.stop_bgm()
+	await menu.menu_controller.vanish("single_game_panel")
+	StaticLoad.select_world = selected_world_name
+	var loading_world_panel = SceneManager.get_scene("panels/loading_world_panel").instantiate()
+	menu.panel_control_dict["loading_world_panel"] = loading_world_panel
+	menu.base_content_panel.set_content(loading_world_panel)
+	loading_world_panel.menu = menu
+	menu.base_content_panel.title = loading_world_panel.title
+	menu.base_content_panel.content_top_margin = loading_world_panel.content_top_margin
+	menu.base_content_panel.content_bottom_margin = loading_world_panel.content_bottom_margin
+	menu.base_content_panel.animated_refresh_size(loading_world_panel)
+	await menu.menu_controller.appear("loading_world_panel")
+	await loading_world_panel.load_icon()
+	SceneManager.change_scene("others/game")
 
 func delete_world(world_name: String):
 	var delete_path = "user://worlds/"+world_name
@@ -77,9 +89,8 @@ func _on_enter_world_button_pressed() -> void:
 	AudioManager.play_static_audio("sound/ui/click")
 	if selected_world_name == "":
 		return
-	var worlds_path = "user://worlds"
 	var world_config = ConfigFile.new()
-	var world_info = world_config.load_encrypted_pass(worlds_path+"/"+selected_world_name+"/level.dat", SettingsManager.get_default_value("config_password"))
+	var world_info = world_config.load_encrypted_pass(SettingsManager.get_default_value("world_list_path")+selected_world_name+"/level.dat", SettingsManager.get_default_value("config_password"))
 	if world_info != OK:
 		return
 	var version_tmp = world_config.get_value("world", "version", "unknown")

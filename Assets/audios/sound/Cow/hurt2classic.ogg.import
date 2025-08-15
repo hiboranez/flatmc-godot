@@ -3,12 +3,12 @@
 importer="oggvorbisstr"
 type="AudioStreamOggVorbis"
 uid="uid://csopgmynvkrvp"
-path="res://.godot/imported/hurt2classic.ogg-d4e9677c6b5a79ae8b80cc88013309d2.oggvorbisstr"
+path="res://.godot/imported/hurt2classic.ogg-4f87d4e2bb666c86a015a75cf9cc4fb6.oggvorbisstr"
 
 [deps]
 
-source_file="res://assets/audios/sound/Cow/hurt2classic.ogg"
-dest_files=["res://.godot/imported/hurt2classic.ogg-d4e9677c6b5a79ae8b80cc88013309d2.oggvorbisstr"]
+source_file="res://assets/audios/sound/cow/hurt2classic.ogg"
+dest_files=["res://.godot/imported/hurt2classic.ogg-4f87d4e2bb666c86a015a75cf9cc4fb6.oggvorbisstr"]
 
 [params]
 

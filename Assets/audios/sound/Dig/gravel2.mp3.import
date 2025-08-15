@@ -3,12 +3,12 @@
 importer="mp3"
 type="AudioStreamMP3"
 uid="uid://b5c1xd0i0vs4x"
-path="res://.godot/imported/gravel2.mp3-a963779c5458c1601c8e99dfccd7ca0f.mp3str"
+path="res://.godot/imported/gravel2.mp3-0cfe178e029f4259496dc17a1ab69b71.mp3str"
 
 [deps]
 
-source_file="res://assets/audios/sound/Dig/gravel2.mp3"
-dest_files=["res://.godot/imported/gravel2.mp3-a963779c5458c1601c8e99dfccd7ca0f.mp3str"]
+source_file="res://assets/audios/sound/dig/gravel2.mp3"
+dest_files=["res://.godot/imported/gravel2.mp3-0cfe178e029f4259496dc17a1ab69b71.mp3str"]
 
 [params]
 

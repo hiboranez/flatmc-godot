@@ -3,12 +3,12 @@
 importer="mp3"
 type="AudioStreamMP3"
 uid="uid://bino7bxiuqwi0"
-path="res://.godot/imported/anvil_use.mp3-f0ccd45855a3e66341c7874773e801cd.mp3str"
+path="res://.godot/imported/anvil_use.mp3-fa0389df2de870fcab98afb3041b18a5.mp3str"
 
 [deps]
 
-source_file="res://assets/audios/sound/Random/anvil_use.mp3"
-dest_files=["res://.godot/imported/anvil_use.mp3-f0ccd45855a3e66341c7874773e801cd.mp3str"]
+source_file="res://assets/audios/sound/random/anvil_use.mp3"
+dest_files=["res://.godot/imported/anvil_use.mp3-fa0389df2de870fcab98afb3041b18a5.mp3str"]
 
 [params]
 

@@ -3,12 +3,12 @@
 importer="mp3"
 type="AudioStreamMP3"
 uid="uid://bm8alybnju2g3"
-path="res://.godot/imported/hiccup.mp3-81a7c1eb3a99fc1580799ac8e9b141e5.mp3str"
+path="res://.godot/imported/hiccup.mp3-5cd444b088b34017216ebe0359c08cf9.mp3str"
 
 [deps]
 
-source_file="res://assets/audios/sound/Player/hiccup.mp3"
-dest_files=["res://.godot/imported/hiccup.mp3-81a7c1eb3a99fc1580799ac8e9b141e5.mp3str"]
+source_file="res://assets/audios/sound/player/hiccup.mp3"
+dest_files=["res://.godot/imported/hiccup.mp3-5cd444b088b34017216ebe0359c08cf9.mp3str"]
 
 [params]
 

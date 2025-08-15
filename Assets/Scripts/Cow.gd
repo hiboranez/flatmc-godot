@@ -114,7 +114,7 @@ func init(args):
 	else:
 		StaticLoad.rpc_id(1, "request_for_mark_revised_chunk", chunk_pos)
 	update_target_pos()
-	StaticLoad.game.sound_audio_manager.play_random_audio_at_position("cow", "say", position, 1)
+	AudioManager.play_random_audio_at_position("sound/cow/say", position, 1)
 
 func update_sound_by_data():
 	var delta = get_process_delta_time()
@@ -124,17 +124,17 @@ func update_sound_by_data():
 		var rng = RandomNumberGenerator.new()
 		var num = rng.randf()
 		if num < 0.6:
-			StaticLoad.game.sound_audio_manager.play_random_audio_at_position("cow", "say", position, 1)
+			AudioManager.play_random_audio_at_position("sound/cow/say", position, 1)
 		say_timer = 8
 	if abs(current_velocity.y) < StaticLoad.FLOAT_DELTA and last_velocity.y > 1100:
 		if last_velocity.y > 1300:
-			StaticLoad.game.sound_audio_manager.play_random_audio_at_position("damage", "fallbig", position, 1)
+			AudioManager.play_random_audio_at_position("sound/damage/fallbig", position, 1)
 		else:
-			StaticLoad.game.sound_audio_manager.play_random_audio_at_position("damage", "fallsmall", position, 1)
+			AudioManager.play_random_audio_at_position("sound/damage/fallsmall", position, 1)
 	if not is_flying and is_on_ladder:
 		if step_sound_timer <= 0 and current_velocity.y != 0:
 			step_sound_timer = walk_period
-			StaticLoad.game.sound_audio_manager.play_random_audio_at_position("step", "ladder", position, 1)
+			AudioManager.play_random_audio_at_position("sound/step/ladder", position, 1)
 	elif move_state != "idle":
 		var block_pos = StaticLoad.game.tile_map_layer.local_to_map(position+Vector2(0, 30))
 		var block_id = StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.tile_map_layer.get_cell_atlas_coords(block_pos))
@@ -142,10 +142,10 @@ func update_sound_by_data():
 			if not StaticLoad.get_is_untouchable_by_id(block_id):
 				if move_state == "walk":
 					step_sound_timer = walk_period
-					StaticLoad.game.sound_audio_manager.play_random_audio_at_position("step", StaticLoad.get_step_type_by_name(StaticLoad.get_block_name_by_id(block_id)), position, 1)
+					AudioManager.play_random_audio_at_position("sound/step/"+StaticLoad.get_step_type_by_name(DataManager.get_block_name(block_id)), position, 1)
 				elif move_state == "run":
 					step_sound_timer = run_period
-					StaticLoad.game.sound_audio_manager.play_random_audio_at_position("step", StaticLoad.get_step_type_by_name(StaticLoad.get_block_name_by_id(block_id)), position, 1)
+					AudioManager.play_random_audio_at_position("sound/step/"+StaticLoad.get_step_type_by_name(DataManager.get_block_name(block_id)), position, 1)
 	elif step_sound_timer > 0:
 		step_sound_timer = 0
 	if step_sound_timer > 0:
@@ -380,7 +380,7 @@ func update_local_is_on_ladder():
 		ladder_repeat_timer -= get_process_delta_time()
 	elif ladder_repeat_timer < 0:
 		ladder_repeat_timer = 0
-	if StaticLoad.get_block_name_by_id(foot_block_id) == "LADDER":
+	if DataManager.get_block_name(foot_block_id) == "LADDER":
 		if not is_on_ladder:
 			is_on_ladder = true
 	elif is_on_ladder:
@@ -634,7 +634,7 @@ func get_damage(args):
 	else:
 		hurt_tween = get_tree().create_tween()
 		hurt_tween.tween_method(set_shader_blink_intensity, 0.6, 0, StaticLoad.HURT_TIME)
-		StaticLoad.game.sound_audio_manager.play_random_audio_at_position("cow", "hurt", position, 1)
+		AudioManager.play_random_audio_at_position("sound/cow/hurt", position, 1)
 
 func set_z_rotation(got_rotation):
 	entity_model.rotation.z = deg_to_rad(got_rotation)
@@ -650,7 +650,7 @@ func die(reason, object):
 	set_shader_blink_intensity(0.6)
 	var tween1 = get_tree().create_tween()
 	tween1.tween_method(set_name_label_modulate, Color(1,1,1,1), Color(1,1,1,0), StaticLoad.DISSOLVE_TIME)
-	StaticLoad.game.sound_audio_manager.play_random_audio_at_position("cow", "hurt", position, 1)
+	AudioManager.play_random_audio_at_position("sound/cow/hurt", position, 1)
 	var tween2 = get_tree().create_tween()
 	tween2.tween_method(set_z_rotation, 0, 90, StaticLoad.DISSOLVE_TIME)
 	await get_tree().create_timer(StaticLoad.DISSOLVE_TIME*3).timeout
@@ -669,7 +669,7 @@ func die(reason, object):
 	destroy_entity([])
 
 func set_entity_model_skin_by_texture(got_skin_texture):
-	var entity_material = load("res://Assets/Materials/Cow.tres").duplicate(true)
+	var entity_material = load("res://assets/Materials/Cow.tres").duplicate(true)
 	entity_material.albedo_texture = got_skin_texture
 	entity_model_mesh.mesh.surface_set_material(0, entity_material)
 

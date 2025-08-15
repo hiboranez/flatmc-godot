@@ -3,12 +3,12 @@
 importer="oggvorbisstr"
 type="AudioStreamOggVorbis"
 uid="uid://dyom7eoc6130l"
-path="res://.godot/imported/death.ogg-574d628fdd14e0612f42eba2f406d483.oggvorbisstr"
+path="res://.godot/imported/death.ogg-5649c1fb9141d8342875c6f3349a51b5.oggvorbisstr"
 
 [deps]
 
-source_file="res://assets/audios/sound/Skeleton/death.ogg"
-dest_files=["res://.godot/imported/death.ogg-574d628fdd14e0612f42eba2f406d483.oggvorbisstr"]
+source_file="res://assets/audios/sound/skeleton/death.ogg"
+dest_files=["res://.godot/imported/death.ogg-5649c1fb9141d8342875c6f3349a51b5.oggvorbisstr"]
 
 [params]
 

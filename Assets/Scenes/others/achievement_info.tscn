@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://assets/scripts/AchievementInfo.gd" id="1_jmvu5"]
 [ext_resource type="Texture2D" uid="uid://dvoodft1mp4d0" path="res://assets/textures/ui/achievement_background_big.png" id="1_uniqf"]
-[ext_resource type="PackedScene" uid="uid://dpnk4w3vgwyft" path="res://assets/scenes/others/ItemIcon.tscn" id="2_mxv5q"]
+[ext_resource type="PackedScene" uid="uid://dpnk4w3vgwyft" path="res://assets/scenes/others/item_icon.tscn" id="2_mxv5q"]
 [ext_resource type="FontFile" uid="uid://dahei608a1d0f" path="res://assets/fonts/MinecraftAE.ttf" id="3_ul55m"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ucy4j"]

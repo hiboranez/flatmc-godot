@@ -3,12 +3,12 @@
 importer="mp3"
 type="AudioStreamMP3"
 uid="uid://dqvukl4bvukts"
-path="res://.godot/imported/sand3.mp3-7fb04bde5e772dd942885b58ac6b816c.mp3str"
+path="res://.godot/imported/sand3.mp3-ceae7745e09275a51e9d0c43afa02f74.mp3str"
 
 [deps]
 
-source_file="res://assets/audios/sound/Dig/sand3.mp3"
-dest_files=["res://.godot/imported/sand3.mp3-7fb04bde5e772dd942885b58ac6b816c.mp3str"]
+source_file="res://assets/audios/sound/dig/sand3.mp3"
+dest_files=["res://.godot/imported/sand3.mp3-ceae7745e09275a51e9d0c43afa02f74.mp3str"]
 
 [params]
 

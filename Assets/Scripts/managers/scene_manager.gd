@@ -60,7 +60,8 @@ func pop_notification(root, title: String, info: String, is_destroying = true):
 	tween.set_ease(Tween.EASE_OUT)
 	tween.set_trans(Tween.TRANS_QUAD)
 	tween.tween_method(notice.set_scale_factor, 0.001, scale_factor, 0.15)
-	tween.parallel().tween_method(notice.set_blur_value, 0.001, 2, 0.15)
+	tween.parallel().tween_method(notice.set_blur_value, 0.001, 2.0, 0.15)
+	tween.parallel().tween_method(notice.set_modulate_alpha, 0.0, 1.0, 0.15)
 	if is_destroying:
 		notice.destroy_count_down()
 
@@ -76,7 +77,8 @@ func pop_big_notification(root, title: String, info: String, button_text: String
 	tween.set_ease(Tween.EASE_OUT)
 	tween.set_trans(Tween.TRANS_QUAD)
 	tween.tween_method(notice.set_scale_factor, 0.001, scale_factor, 0.3)
-	tween.parallel().tween_method(notice.set_blur_value, 0.001, 2, 0.3)
+	tween.parallel().tween_method(notice.set_blur_value, 0.001, 2.0, 0.3)
+	tween.parallel().tween_method(notice.set_modulate_alpha, 0.0, 1.0, 0.3)
 
 func pop_secondary_confirmation(root, info: String, function: Callable):
 	if is_secondary_confirmation_popped:
@@ -91,7 +93,8 @@ func pop_secondary_confirmation(root, info: String, function: Callable):
 	tween.set_ease(Tween.EASE_OUT)
 	tween.set_trans(Tween.TRANS_QUAD)
 	tween.tween_method(secondary_confirmation.set_scale_factor, 0.001, scale_factor, 0.15)
-	tween.parallel().tween_method(secondary_confirmation.set_blur_value, 0.001, 2, 0.15)
+	tween.parallel().tween_method(secondary_confirmation.set_blur_value, 0.001, 2.0, 0.15)
+	tween.parallel().tween_method(secondary_confirmation.set_modulate_alpha, 0.0, 1.0, 0.15)
 
 #func change_scene(path):
 	#if typeof(path) == TYPE_STRING:

@@ -26,7 +26,7 @@ func got_ping():
 	#print(StaticLoad.multiplayer.get_unique_id(), " : got ping : ", ping)
 	if not StaticLoad.game.online_ui_vbox_container.has_node(str(target_peer_id)):
 		var player_tmp = StaticLoad.player_peer_dict[target_peer_id]
-		var online_info_instance = StaticLoad.online_info_scene.instantiate()
+		var online_info_instance = SceneManager.get_scene("others/online_info").instantiate()
 		StaticLoad.game.online_ui_vbox_container.add_child(online_info_instance)
 		online_info_instance.name = str(target_peer_id)
 		online_info_instance.player_name.text = player_tmp.player_name

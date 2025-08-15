@@ -3,12 +3,12 @@
 importer="mp3"
 type="AudioStreamMP3"
 uid="uid://cpuc5mcfp3y4x"
-path="res://.godot/imported/cloth2.mp3-3a875643a955411699ccbf22545531bf.mp3str"
+path="res://.godot/imported/cloth2.mp3-31634ae9e34be3b3dd3584fe53c111bc.mp3str"
 
 [deps]
 
-source_file="res://assets/audios/sound/Dig/cloth2.mp3"
-dest_files=["res://.godot/imported/cloth2.mp3-3a875643a955411699ccbf22545531bf.mp3str"]
+source_file="res://assets/audios/sound/dig/cloth2.mp3"
+dest_files=["res://.godot/imported/cloth2.mp3-31634ae9e34be3b3dd3584fe53c111bc.mp3str"]
 
 [params]
 

@@ -216,7 +216,7 @@ func destroy_entity(args):
 	queue_free()
 
 func hit_block(args):
-	StaticLoad.game.sound_audio_manager.play_random_audio_at_position("random", "bow_hit", position, 1)
+	AudioManager.play_random_audio_at_position("sound/random/bow_hit", position, 1)
 	is_block_attached = true
 	velocity = Vector2(0, 0)
 

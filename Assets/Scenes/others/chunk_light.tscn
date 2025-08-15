@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://b2ivqvn47qeb6"]
 
-[ext_resource type="Script" path="res://assets/scripts/ChunkLight.gd" id="1_kn2js"]
+[ext_resource type="Script" path="res://assets/scripts/chunk_light.gd" id="1_kn2js"]
 
 [node name="ChunkLight" type="PointLight2D"]
 enabled = false

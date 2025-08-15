@@ -3,12 +3,12 @@
 importer="mp3"
 type="AudioStreamMP3"
 uid="uid://p3vd0nqao41v"
-path="res://.godot/imported/wood3.mp3-180824c900bb8e65909b288ed98c32e2.mp3str"
+path="res://.godot/imported/wood3.mp3-b17b894632524e0cf563398b5a4bdd6b.mp3str"
 
 [deps]
 
-source_file="res://assets/audios/sound/Zombie/wood3.mp3"
-dest_files=["res://.godot/imported/wood3.mp3-180824c900bb8e65909b288ed98c32e2.mp3str"]
+source_file="res://assets/audios/sound/zombie/wood3.mp3"
+dest_files=["res://.godot/imported/wood3.mp3-b17b894632524e0cf563398b5a4bdd6b.mp3str"]
 
 [params]
 

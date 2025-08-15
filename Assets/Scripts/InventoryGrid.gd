@@ -11,23 +11,23 @@ var mouse_stay_timer = StaticLoad.INVENTORY_NAME_SHOW_STAY_TIME
 func _ready() -> void:
 	set_process(false)
 	if slot_function == "armor_helmet":
-		$BackIcon.texture = load("res://Assets/Textures/GUI/empty_slot_helmet.png")
+		$BackIcon.texture = TextureManager.get_texture("ui/empty_slot_helmet")
 		$BackIcon.visible = true
 		$ItemIcon.visible = false
 	elif slot_function == "armor_chestplate":
-		$BackIcon.texture = load("res://Assets/Textures/GUI/empty_slot_chestplate.png")
+		$BackIcon.texture = TextureManager.get_texture("ui/empty_slot_chestplate")
 		$BackIcon.visible = true
 		$ItemIcon.visible = false
 	elif slot_function == "armor_leggings":
-		$BackIcon.texture = load("res://Assets/Textures/GUI/empty_slot_leggings.png")
+		$BackIcon.texture = TextureManager.get_texture("ui/empty_slot_leggings")
 		$BackIcon.visible = true
 		$ItemIcon.visible = false
 	elif slot_function == "armor_boots":
-		$BackIcon.texture = load("res://Assets/Textures/GUI/empty_slot_boots.png")
+		$BackIcon.texture = TextureManager.get_texture("ui/empty_slot_boots")
 		$BackIcon.visible = true
 		$ItemIcon.visible = false
 	elif slot_function == "delete":
-		texture = load("res://Assets/Textures/GUI/delete_slot.png")
+		texture = TextureManager.get_texture("ui/delete_slot")
 		$ItemIcon.visible = false
 
 func _process(delta: float) -> void:
@@ -35,7 +35,7 @@ func _process(delta: float) -> void:
 		mouse_stay_timer -= delta
 	else:
 		if StaticLoad.game.mouse_item_name_label == null and item_name != null and item_name != "AIR":
-			StaticLoad.game.mouse_item_name_label = StaticLoad.mouse_item_name_label_scene.instantiate()
+			StaticLoad.game.mouse_item_name_label = SceneManager.get_scene("others/mouse_item_name_label").instantiate()
 			StaticLoad.game.game_ui.add_child(StaticLoad.game.mouse_item_name_label)
 			StaticLoad.game.mouse_item_name_label.text = tr(item_name)
 			StaticLoad.game.mouse_item_name_label.start_following()
@@ -322,7 +322,7 @@ func _on_gui_input(event: InputEvent) -> void:
 						StaticLoad.game.mouse_item_name_label.stop_following()
 						StaticLoad.game.mouse_item_name_label.queue_free()
 						if item_name != "AIR":
-							StaticLoad.game.mouse_item_name_label = StaticLoad.mouse_item_name_label_scene.instantiate()
+							StaticLoad.game.mouse_item_name_label = SceneManager.get_scene("others/mouse_item_name_label").instantiate()
 							StaticLoad.game.game_ui.add_child(StaticLoad.game.mouse_item_name_label)
 							StaticLoad.game.mouse_item_name_label.text = tr(item_name)
 							StaticLoad.game.mouse_item_name_label.start_following()
@@ -401,7 +401,7 @@ func _on_gui_input(event: InputEvent) -> void:
 					StaticLoad.game.mouse_item_name_label.stop_following()
 					StaticLoad.game.mouse_item_name_label.queue_free()
 					if item_name != "AIR":
-						StaticLoad.game.mouse_item_name_label = StaticLoad.mouse_item_name_label_scene.instantiate()
+						StaticLoad.game.mouse_item_name_label = SceneManager.get_scene("others/mouse_item_name_label").instantiate()
 						StaticLoad.game.game_ui.add_child(StaticLoad.game.mouse_item_name_label)
 						StaticLoad.game.mouse_item_name_label.text = tr(item_name)
 						StaticLoad.game.mouse_item_name_label.start_following()
@@ -456,7 +456,7 @@ func _on_gui_input(event: InputEvent) -> void:
 						StaticLoad.game.mouse_item_name_label.stop_following()
 						StaticLoad.game.mouse_item_name_label.queue_free()
 						if item_name != "AIR":
-							StaticLoad.game.mouse_item_name_label = StaticLoad.mouse_item_name_label_scene.instantiate()
+							StaticLoad.game.mouse_item_name_label = SceneManager.get_scene("others/mouse_item_name_label").instantiate()
 							StaticLoad.game.game_ui.add_child(StaticLoad.game.mouse_item_name_label)
 							StaticLoad.game.mouse_item_name_label.text = tr(item_name)
 							StaticLoad.game.mouse_item_name_label.start_following()
@@ -523,7 +523,7 @@ func _on_gui_input(event: InputEvent) -> void:
 					StaticLoad.game.mouse_item_name_label.stop_following()
 					StaticLoad.game.mouse_item_name_label.queue_free()
 					if item_name != "AIR":
-						StaticLoad.game.mouse_item_name_label = StaticLoad.mouse_item_name_label_scene.instantiate()
+						StaticLoad.game.mouse_item_name_label = SceneManager.get_scene("others/mouse_item_name_label").instantiate()
 						StaticLoad.game.game_ui.add_child(StaticLoad.game.mouse_item_name_label)
 						StaticLoad.game.mouse_item_name_label.text = tr(item_name)
 						StaticLoad.game.mouse_item_name_label.start_following()
@@ -583,7 +583,7 @@ func _on_gui_input(event: InputEvent) -> void:
 							StaticLoad.game.mouse_item_name_label.stop_following()
 							StaticLoad.game.mouse_item_name_label.queue_free()
 							if item_name != "AIR":
-								StaticLoad.game.mouse_item_name_label = StaticLoad.mouse_item_name_label_scene.instantiate()
+								StaticLoad.game.mouse_item_name_label = SceneManager.get_scene("others/mouse_item_name_label").instantiate()
 								StaticLoad.game.game_ui.add_child(StaticLoad.game.mouse_item_name_label)
 								StaticLoad.game.mouse_item_name_label.text = tr(item_name)
 								StaticLoad.game.mouse_item_name_label.start_following()
@@ -638,7 +638,7 @@ func _on_gui_input(event: InputEvent) -> void:
 							StaticLoad.game.mouse_item_name_label.stop_following()
 							StaticLoad.game.mouse_item_name_label.queue_free()
 							if item_name != "AIR":
-								StaticLoad.game.mouse_item_name_label = StaticLoad.mouse_item_name_label_scene.instantiate()
+								StaticLoad.game.mouse_item_name_label = SceneManager.get_scene("others/mouse_item_name_label").instantiate()
 								StaticLoad.game.game_ui.add_child(StaticLoad.game.mouse_item_name_label)
 								StaticLoad.game.mouse_item_name_label.text = tr(item_name)
 								StaticLoad.game.mouse_item_name_label.start_following()

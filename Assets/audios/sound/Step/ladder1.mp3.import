@@ -3,12 +3,12 @@
 importer="mp3"
 type="AudioStreamMP3"
 uid="uid://dp76ragcqtxfe"
-path="res://.godot/imported/ladder1.mp3-2f0b27e7bfd4c36a560dc0d7a28f8f25.mp3str"
+path="res://.godot/imported/ladder1.mp3-110603520ada1aa0ad5590b061886d3c.mp3str"
 
 [deps]
 
-source_file="res://assets/audios/sound/Step/ladder1.mp3"
-dest_files=["res://.godot/imported/ladder1.mp3-2f0b27e7bfd4c36a560dc0d7a28f8f25.mp3str"]
+source_file="res://assets/audios/sound/step/ladder1.mp3"
+dest_files=["res://.godot/imported/ladder1.mp3-110603520ada1aa0ad5590b061886d3c.mp3str"]
 
 [params]
 

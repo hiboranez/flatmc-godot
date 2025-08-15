@@ -3,12 +3,12 @@
 importer="mp3"
 type="AudioStreamMP3"
 uid="uid://bntnb2mklrq01"
-path="res://.godot/imported/wood click.mp3-6f9f7216d489d2418e9da03c880f09df.mp3str"
+path="res://.godot/imported/wood click.mp3-bb32f8b7d50dd013b8134d56be8d89a1.mp3str"
 
 [deps]
 
-source_file="res://assets/audios/sound/Random/wood click.mp3"
-dest_files=["res://.godot/imported/wood click.mp3-6f9f7216d489d2418e9da03c880f09df.mp3str"]
+source_file="res://assets/audios/sound/random/wood click.mp3"
+dest_files=["res://.godot/imported/wood click.mp3-bb32f8b7d50dd013b8134d56be8d89a1.mp3str"]
 
 [params]
 

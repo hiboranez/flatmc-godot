@@ -3,12 +3,12 @@
 importer="mp3"
 type="AudioStreamMP3"
 uid="uid://b4vjf5w205epk"
-path="res://.godot/imported/fuse.mp3-30c06baa9d14b71a8e5fb665b5ddaaa8.mp3str"
+path="res://.godot/imported/fuse.mp3-c1ed772e7145aa6ad6b00eac1386f10c.mp3str"
 
 [deps]
 
-source_file="res://assets/audios/sound/Random/fuse.mp3"
-dest_files=["res://.godot/imported/fuse.mp3-30c06baa9d14b71a8e5fb665b5ddaaa8.mp3str"]
+source_file="res://assets/audios/sound/random/fuse.mp3"
+dest_files=["res://.godot/imported/fuse.mp3-c1ed772e7145aa6ad6b00eac1386f10c.mp3str"]
 
 [params]
 

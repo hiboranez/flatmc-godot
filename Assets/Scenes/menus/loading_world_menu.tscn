@@ -1,84 +1,23 @@
-[gd_scene load_steps=6 format=3 uid="uid://cu3jvcsxmx5r"]
+[gd_scene load_steps=4 format=3 uid="uid://cu3jvcsxmx5r"]
 
 [ext_resource type="Script" path="res://assets/scripts/menus/loading_world_menu.gd" id="1_hb7ua"]
-[ext_resource type="Texture2D" uid="uid://bd725jipoa84m" path="res://assets/textures/backgrounds/dirt_wall.png" id="2_xct4k"]
-[ext_resource type="FontFile" uid="uid://dahei608a1d0f" path="res://assets/fonts/MinecraftAE.ttf" id="3_c7d5o"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ti8e8"]
-bg_color = Color(0.270222, 0.270222, 0.270222, 1)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_41h7p"]
-bg_color = Color(9.62615e-07, 0.72704, 0.134648, 1)
+[ext_resource type="PackedScene" uid="uid://drjcxql1q3ha5" path="res://assets/scenes/panels/base_content_panel.tscn" id="2_blfuk"]
+[ext_resource type="Script" path="res://assets/scripts/controllers/menu_controller.gd" id="2_ecaoh"]
 
 [node name="LoadingWorldMenu" type="CanvasLayer"]
 layer = 2
 script = ExtResource("1_hb7ua")
 
-[node name="TextureRect" type="TextureRect" parent="."]
+[node name="MenuController" type="Node" parent="."]
+script = ExtResource("2_ecaoh")
+
+[node name="MenuControl" type="Control" parent="."]
+layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-texture = ExtResource("2_xct4k")
 
-[node name="Title" type="Label" parent="."]
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -332.5
-offset_top = -253.0
-offset_right = 332.5
-offset_bottom = -182.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_colors/font_color = Color(0.878431, 0.878431, 0.878431, 1)
-theme_override_colors/font_shadow_color = Color(0.247059, 0.247059, 0.247059, 1)
-theme_override_constants/shadow_offset_x = 5
-theme_override_constants/shadow_offset_y = 5
-theme_override_fonts/font = ExtResource("3_c7d5o")
-theme_override_font_sizes/font_size = 70
-text = "LOADING_TERRAIN"
-horizontal_alignment = 1
-
-[node name="ProgressBar" type="ProgressBar" parent="."]
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -650.0
-offset_top = -25.0
-offset_right = 650.0
-offset_bottom = 25.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_colors/font_color = Color(0.878431, 0.878431, 0.878431, 1)
-theme_override_fonts/font = ExtResource("3_c7d5o")
-theme_override_font_sizes/font_size = 30
-theme_override_styles/background = SubResource("StyleBoxFlat_ti8e8")
-theme_override_styles/fill = SubResource("StyleBoxFlat_41h7p")
-
-[node name="Tip" type="Label" parent="ProgressBar"]
+[node name="BaseContentPanel" parent="MenuControl" instance=ExtResource("2_blfuk")]
 layout_mode = 1
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -960.0
-offset_top = 59.0
-offset_right = 960.0
-offset_bottom = 130.0
-grow_horizontal = 2
-grow_vertical = 0
-theme_override_colors/font_color = Color(0.878431, 0.878431, 0.878431, 1)
-theme_override_colors/font_shadow_color = Color(0.247059, 0.247059, 0.247059, 1)
-theme_override_constants/shadow_offset_x = 4
-theme_override_constants/shadow_offset_y = 4
-theme_override_fonts/font = ExtResource("3_c7d5o")
-theme_override_font_sizes/font_size = 40
-horizontal_alignment = 1
-vertical_alignment = 1

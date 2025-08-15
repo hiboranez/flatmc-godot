@@ -13,7 +13,7 @@ func init(got_achievement_name):
 	achievement_name = got_achievement_name
 	achievement_name_label.text = tr(got_achievement_name)
 	item_icon.init_icon(StaticLoad.achievement_icon_dict[got_achievement_name].to_lower())
-	StaticLoad.game.sound_audio_manager.play_audio_static("gui", "toast")
+	AudioManager.play_static_audio("ui/toast")
 	var tween1 = get_tree().create_tween()
 	tween1.tween_property(self, "position", Vector2(0, 0), 0.3)
 	await get_tree().create_timer(6).timeout

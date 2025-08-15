@@ -3,12 +3,12 @@
 importer="mp3"
 type="AudioStreamMP3"
 uid="uid://c5dbvx3rns6ou"
-path="res://.godot/imported/chestclosed.mp3-a75aa5f8de93e9fc2cf9231b416875f9.mp3str"
+path="res://.godot/imported/chestclosed.mp3-e62d9048c8dfb42781694313581c076a.mp3str"
 
 [deps]
 
-source_file="res://assets/audios/sound/Random/chestclosed.mp3"
-dest_files=["res://.godot/imported/chestclosed.mp3-a75aa5f8de93e9fc2cf9231b416875f9.mp3str"]
+source_file="res://assets/audios/sound/random/chestclosed.mp3"
+dest_files=["res://.godot/imported/chestclosed.mp3-e62d9048c8dfb42781694313581c076a.mp3str"]
 
 [params]
 

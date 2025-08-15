@@ -3,12 +3,12 @@
 importer="mp3"
 type="AudioStreamMP3"
 uid="uid://bxsvam5m71ffw"
-path="res://.godot/imported/snow3.mp3-17dad7d464e643cafa8dca40ff322547.mp3str"
+path="res://.godot/imported/snow3.mp3-60519861ebf8022790c9809d88e09ab6.mp3str"
 
 [deps]
 
-source_file="res://assets/audios/sound/Dig/snow3.mp3"
-dest_files=["res://.godot/imported/snow3.mp3-17dad7d464e643cafa8dca40ff322547.mp3str"]
+source_file="res://assets/audios/sound/dig/snow3.mp3"
+dest_files=["res://.godot/imported/snow3.mp3-60519861ebf8022790c9809d88e09ab6.mp3str"]
 
 [params]
 

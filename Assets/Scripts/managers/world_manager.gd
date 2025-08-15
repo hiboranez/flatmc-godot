@@ -226,7 +226,7 @@ func convert_world_version(world_name, old_version):
 	for region in regions:
 		var splits = region.split(".")
 		var chunk_config = ConfigFile.new()
-		var chunk_result = chunk_config.load_encrypted_pass(region_path_tmp+"/"+region, StaticLoad.SettingsManager.get_default_value("config_password"))
+		var chunk_result = chunk_config.load_encrypted_pass(region_path_tmp+"/"+region, SettingsManager.get_default_value("config_password"))
 		if chunk_result != OK:
 			return
 		var blocks = "null"
@@ -244,14 +244,14 @@ func convert_world_version(world_name, old_version):
 			blocks = chunk_config.get_value("chunk", "blocks", "null")
 			no_reach_blocks = chunk_config.get_value("chunk", "no_reach_blocks", "null")
 			back_blocks = chunk_config.get_value("chunk", "back_blocks", "null")
-		if no_reach_blocks == "null":
+		if not no_reach_blocks is Array:
 			no_reach_blocks = []
 			for i in range(16):
 				var row = []
 				for j in range(16):
 					row.append(DataManager.get_block_id("AIR"))
 				no_reach_blocks.append(row)
-		if back_blocks == "null":
+		if not back_blocks is Array:
 			back_blocks = []
 			for i in range(16):
 				var row = []
@@ -265,19 +265,19 @@ func convert_world_version(world_name, old_version):
 		mca.set_value("chunk", "blocks", blocks)
 		mca.set_value("chunk", "no_reach_blocks", no_reach_blocks)
 		mca.set_value("chunk", "back_blocks", back_blocks)
-		mca.save_encrypted_pass(region_path_tmp+"/r."+splits[1]+"."+splits[2]+".mca", StaticLoad.SettingsManager.get_default_value("config_password"))
+		mca.save_encrypted_pass(region_path_tmp+"/r."+splits[1]+"."+splits[2]+".mca", SettingsManager.get_default_value("config_password"))
 	var world_path_tmp = "user://worlds/"+world_name
 	var level = ConfigFile.new()
 	var current_time = Time.get_datetime_string_from_system(false, true).replace(" ", "  ").replace("-", "/")
 	var level_change_value = {
 		"last_modified": current_time,
-		"version": StaticLoad.settings["version"]
+		"version": SettingsManager.get_current_setting("version")
 	}
 	WorldManager.save_level_dat(level, level_change_value)
-	level.save_encrypted_pass(world_path_tmp+"/level.dat", StaticLoad.SettingsManager.get_default_value("config_password"))
+	level.save_encrypted_pass(world_path_tmp+"/level.dat", SettingsManager.get_default_value("config_password"))
 
 func convert_blocks_version(blocks, block_ids_old):
-	var block_name_alternatives = DataManager.get_default_data("block_name_alternatives")
+	var block_name_alternatives = DataManager.get_default_data_dict("block_name_alternatives")
 	for i in range(16):
 		for j in range(16):
 			var old_id = blocks[i][j]

@@ -6,28 +6,10 @@ extends Node2D
 @onready var death_ui = $DeathUI
 @onready var pause_ui = $PauseUI
 @onready var game_ui = $GameUI
-@onready var settings_ui = $settings
+@onready var settings_ui = $SettingsMenu
 @onready var online_ui = $OnlineUI
 @onready var sign_edit_ui = $SignEditUI
 @onready var online_ui_vbox_container = $OnlineUI/OnlineList/ScrollContainer/VBoxContainer
-@onready var item_scene = load("res://Assets/Scenes/Item.tscn") as PackedScene
-@onready var chunk_light_scene = load("res://Assets/Scenes/ChunkLight.tscn") as PackedScene
-@onready var message_scene = load("res://Assets/Scenes/Message.tscn") as PackedScene
-@onready var player_scene = load("res://Assets/Scenes/Player.tscn") as PackedScene
-@onready var loading_world_ui_scene = load("res://Assets/Scenes/LoadingWorldUI.tscn") as PackedScene
-@onready var loading_server_ui_scene = load("res://Assets/Scenes/LoadingServerUI.tscn") as PackedScene
-@onready var online_info_scene = load("res://Assets/Scenes/OnlineInfo.tscn") as PackedScene
-@onready var time_counter = load("res://Assets/Scenes/TimeCounter.tscn") as PackedScene
-@onready var inventory_grid_scene = load("res://Assets/Scenes/InventoryGrid.tscn") as PackedScene
-@onready var destory_light_scene = load("res://Assets/Scenes/DestroyLight.tscn") as PackedScene
-@onready var item_icon_scene = load("res://Assets/Scenes/ItemIcon.tscn") as PackedScene
-@onready var tab_panel_scene = load("res://Assets/Scenes/TabPanel.tscn") as PackedScene
-@onready var destroy_particle_scene = load("res://Assets/Scenes/DestroyParticle.tscn") as PackedScene
-@onready var death_particle_scene = load("res://Assets/Scenes/DeathParticle.tscn") as PackedScene
-@onready var move_center_button_normal = load("res://Assets/Textures/GUI/jump.png") as Texture2D
-@onready var jump_button_normal = load("res://Assets/Textures/GUI/jump.png") as Texture2D
-@onready var move_center_button_fly = load("res://Assets/Textures/GUI/oreui_flyingascend_button.png") as Texture2D
-#@onready var player_other_scene = load("res://Assets/Scenes/PlayerOther.tscn") as PackedScene
 @onready var achievement_get_control = $GameUI/AchievementGetControl
 @onready var health_bar = $GameUI/ItemBarPanel/HealthBar
 @onready var hunger_bar = $GameUI/ItemBarPanel/HungerBar
@@ -35,7 +17,6 @@ extends Node2D
 @onready var touch_time_counters = $TouchTimeCounters
 @onready var item_grids = $GameUI/ItemBarPanel/ItemBar.get_children()
 @onready var item_name_label = $GameUI/ItemBarPanel/ItemNameLabel
-@onready var sound_audio_manager = $SoundAudioManager
 @onready var block_selection_ui = $BlockSelectionUI
 @onready var chat_panel = $GameUI/ChatPanel
 @onready var chat_line_edit = $GameUI/ChatPanel/ChatLineEdit
@@ -49,7 +30,7 @@ extends Node2D
 @onready var details_selected_position = $GameUI/Details/SelectedPosition
 @onready var details_chunk = $GameUI/Details/Chunk
 @onready var details_fps = $GameUI/Details/Fps
-@onready var language_ui = $Language
+@onready var language_ui = $LanguagesMenu
 @onready var pause_button_4 = $PauseUI/FlowContainer/Button4
 @onready var pause_button_5 = $PauseUI/FlowContainer/Button5
 @onready var pause_button_6 = $PauseUI/FlowContainer/Button6
@@ -191,7 +172,6 @@ var last_left_time = 0.0
 var last_right_time = 0.0
 var last_jump_time = 0.0
 var drop_timer = 0.0
-var resource_pack = StaticLoad.default_resource_pack
 var tick_timer: int = 9000
 var world_day: int = 0
 var set_block_list = []
@@ -206,6 +186,7 @@ var drag_inventory_grid_amount_dict = {}
 var current_sky_light: int = 255
 var nearby_update_dict = {}
 var nearby_update_double_dict = {}
+var game_spt: float = float(SettingsManager.get_default_value("game_spt"))
 
 func _notification(what):
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
@@ -312,11 +293,11 @@ func _ready() -> void:
 		mobile_ui.visible = true
 		reset_touch(false)
 	if StaticLoad.is_muti_mode:
-		var loading_ui = loading_server_ui_scene.instantiate()
+		var loading_ui = SceneManager.get_scene("menus/loading_server_menu").instantiate()
 		add_child(loading_ui)
 	else:
 		freeze_game()
-		var loading_ui = loading_world_ui_scene.instantiate()
+		var loading_ui = SceneManager.get_scene("menus/loading_world_menu").instantiate()
 		add_child(loading_ui)
 		if StaticLoad.is_dedicated_server:
 			init_game_as_dedicated_server()
@@ -357,7 +338,7 @@ func _process(delta: float) -> void:
 
 func process_tick_cycle():
 	while(true):
-		await get_tree().create_timer(StaticLoad.spt).timeout
+		await get_tree().create_timer(game_spt).timeout
 		update_day_night_cycle()
 		update_nature_growth()
 		tick_timer += 1
@@ -448,7 +429,7 @@ func calculate_current_sky_light(is_init):
 
 func update_moon_phase():
 	var moon_phase = world_day % 8
-	var moon_phase_info = StaticLoad.moon_phase_dict[moon_phase]
+	var moon_phase_info = DataManager.get_moon_phase_info(moon_phase)
 	moon_path_texture.texture.set_region(Rect2(moon_phase_info[0], moon_phase_info[1], 8, 8))
 	var brightness = moon_phase_info[2]
 	moon_path_texture.modulate = Color(brightness, brightness, brightness)
@@ -498,9 +479,9 @@ func update_nature_growth():
 				var num = rng.randf()
 				if num > 0.999:
 					chunk.dirt_list.erase(dirt_pos)
-					set_block(dirt_block_pos, StaticLoad.get_block_id_by_name("GRASS_BLOCK"), "solid", true)
+					set_block(dirt_block_pos, DataManager.get_block_id("GRASS_BLOCK"), "solid", true)
 					if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1:
-						StaticLoad.rpc("set_block", [dirt_block_pos, StaticLoad.get_block_id_by_name("GRASS_BLOCK"), "solid", true])
+						StaticLoad.rpc("set_block", [dirt_block_pos, DataManager.get_block_id("GRASS_BLOCK"), "solid", true])
 			for grass_pos in chunk.grass_block_list.duplicate():
 				var up_block_pos = Vector2i(int(splits[0])*16,int(splits[1])*16-1)+grass_pos
 				var up_block_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(up_block_pos))
@@ -511,9 +492,9 @@ func update_nature_growth():
 				var num = rng.randf()
 				if num > 0.999:
 					chunk.grass_block_list.erase(grass_pos)
-					set_block(grass_block_pos, StaticLoad.get_block_id_by_name("DIRT"), "solid", true)
+					set_block(grass_block_pos, DataManager.get_block_id("DIRT"), "solid", true)
 					if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1:
-						StaticLoad.rpc("set_block", [grass_block_pos, StaticLoad.get_block_id_by_name("DIRT"), "solid", true])
+						StaticLoad.rpc("set_block", [grass_block_pos, DataManager.get_block_id("DIRT"), "solid", true])
 			for farm_land_pos in chunk.farm_land_list.duplicate():
 				var up_block_pos = Vector2i(int(splits[0])*16,int(splits[1])*16-1)+farm_land_pos
 				var up_block_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(up_block_pos))
@@ -524,9 +505,9 @@ func update_nature_growth():
 				var num = rng.randf()
 				if num > 0.999:
 					chunk.farm_land_list.erase(farm_land_pos)
-					set_block(farm_land_block_pos, StaticLoad.get_block_id_by_name("DIRT"), "solid", true)
+					set_block(farm_land_block_pos, DataManager.get_block_id("DIRT"), "solid", true)
 					if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1:
-						StaticLoad.rpc("set_block", [farm_land_block_pos, StaticLoad.get_block_id_by_name("DIRT"), "solid", true])
+						StaticLoad.rpc("set_block", [farm_land_block_pos, DataManager.get_block_id("DIRT"), "solid", true])
 			for leaves_pos in chunk.leaves_list.duplicate():
 				var rng = RandomNumberGenerator.new()
 				var num = rng.randf()
@@ -544,7 +525,7 @@ func update_nature_growth():
 				var num = rng.randf()
 				if num > 0.999:
 					var seed_block_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(seed_block_pos))
-					var seed_block_name = StaticLoad.get_block_name_by_id(seed_block_id)
+					var seed_block_name = DataManager.get_block_name(seed_block_id)
 					if seed_block_name.contains("STAGE"):
 						var seed_name_splits = seed_block_name.split("_")
 						var next_stage_num = int(seed_name_splits[-1])+1
@@ -555,11 +536,11 @@ func update_nature_growth():
 						for i in range(seed_name_splits.size()-1):
 							next_stage_name += seed_name_splits[i] + "_"
 						next_stage_name += str(next_stage_num)
-						set_block(seed_block_pos, StaticLoad.get_block_id_by_name(next_stage_name), "solid", true)
+						set_block(seed_block_pos, DataManager.get_block_id(next_stage_name), "solid", true)
 						if next_stage_num == 7:
 							chunk.seed_list.erase(seed_pos)
 						if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1:
-							StaticLoad.rpc("set_block", [seed_block_pos, StaticLoad.get_block_id_by_name(next_stage_name), "solid", true])
+							StaticLoad.rpc("set_block", [seed_block_pos, DataManager.get_block_id(next_stage_name), "solid", true])
 					else:
 						chunk.seed_list.erase(seed_pos)
 			for sapling_pos in chunk.sapling_list.duplicate():
@@ -571,19 +552,19 @@ func update_nature_growth():
 				for i in range(3):
 					var to_set_block_pos = Vector2i(int(splits[0])*16,int(splits[1])*16)+sapling_pos+Vector2i(0,-i)
 					var to_set_block_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(to_set_block_pos))
-					if to_set_block_id != 0 and not StaticLoad.get_block_name_by_id(to_set_block_id).contains("SAPLING"):
+					if to_set_block_id != 0 and not DataManager.get_block_name(to_set_block_id).contains("SAPLING"):
 						chunk.sapling_list.erase(sapling_pos)
 						continue
 				for j in range(-2,3):
 					var to_set_block_pos = Vector2i(int(splits[0])*16,int(splits[1])*16)+sapling_pos+Vector2i(j,-3)
 					var to_set_block_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(to_set_block_pos))
-					if to_set_block_id != 0 and not StaticLoad.get_block_name_by_id(to_set_block_id).contains("SAPLING"):
+					if to_set_block_id != 0 and not DataManager.get_block_name(to_set_block_id).contains("SAPLING"):
 						chunk.sapling_list.erase(sapling_pos)
 						continue
 				for j in range(-1,2):
 					var to_set_block_pos = Vector2i(int(splits[0])*16,int(splits[1])*16)+sapling_pos+Vector2i(j,-4)
 					var to_set_block_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(to_set_block_pos))
-					if to_set_block_id != 0 and not StaticLoad.get_block_name_by_id(to_set_block_id).contains("SAPLING"):
+					if to_set_block_id != 0 and not DataManager.get_block_name(to_set_block_id).contains("SAPLING"):
 						chunk.sapling_list.erase(sapling_pos)
 						continue
 				var rng = RandomNumberGenerator.new()
@@ -592,29 +573,29 @@ func update_nature_growth():
 					chunk.sapling_list.erase(sapling_pos)
 					for i in range(3):
 						var to_set_block_pos = Vector2i(int(splits[0])*16,int(splits[1])*16)+sapling_pos+Vector2i(0,-i)
-						set_block(to_set_block_pos, StaticLoad.get_block_id_by_name("LOG_OAK"), "no_reach", true)
+						set_block(to_set_block_pos, DataManager.get_block_id("LOG_OAK"), "no_reach", true)
 						if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1:
-							StaticLoad.rpc("set_block", [to_set_block_pos, StaticLoad.get_block_id_by_name("LOG_OAK"), "no_reach", true])
+							StaticLoad.rpc("set_block", [to_set_block_pos, DataManager.get_block_id("LOG_OAK"), "no_reach", true])
 						if i == 0:
-							set_block(to_set_block_pos, StaticLoad.get_block_id_by_name("AIR"), "solid", true)
+							set_block(to_set_block_pos, DataManager.get_block_id("AIR"), "solid", true)
 							if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1:
-								StaticLoad.rpc("set_block", [to_set_block_pos, StaticLoad.get_block_id_by_name("AIR"), "solid", true])
+								StaticLoad.rpc("set_block", [to_set_block_pos, DataManager.get_block_id("AIR"), "solid", true])
 					for j in range(-2,3):
 						var to_set_block_pos = Vector2i(int(splits[0])*16,int(splits[1])*16)+sapling_pos+Vector2i(j,-3)
 						var no_reach_block_id = StaticLoad.get_block_id_by_atlas_coords(no_reach_tile_map_layer.get_cell_atlas_coords(to_set_block_pos))
-						if no_reach_block_id == StaticLoad.get_block_id_by_name("LOG_OAK"):
+						if no_reach_block_id == DataManager.get_block_id("LOG_OAK"):
 							continue
-						set_block(to_set_block_pos, StaticLoad.get_block_id_by_name("LEAVES"), "no_reach", true)
+						set_block(to_set_block_pos, DataManager.get_block_id("LEAVES"), "no_reach", true)
 						if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1:
-							StaticLoad.rpc("set_block", [to_set_block_pos, StaticLoad.get_block_id_by_name("LEAVES"), "no_reach", true])
+							StaticLoad.rpc("set_block", [to_set_block_pos, DataManager.get_block_id("LEAVES"), "no_reach", true])
 					for j in range(-1,2):
 						var to_set_block_pos = Vector2i(int(splits[0])*16,int(splits[1])*16)+sapling_pos+Vector2i(j,-4)
 						var no_reach_block_id = StaticLoad.get_block_id_by_atlas_coords(no_reach_tile_map_layer.get_cell_atlas_coords(to_set_block_pos))
-						if no_reach_block_id == StaticLoad.get_block_id_by_name("LOG_OAK"):
+						if no_reach_block_id == DataManager.get_block_id("LOG_OAK"):
 							continue
-						set_block(to_set_block_pos, StaticLoad.get_block_id_by_name("LEAVES"), "no_reach", true)
+						set_block(to_set_block_pos, DataManager.get_block_id("LEAVES"), "no_reach", true)
 						if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1:
-							StaticLoad.rpc("set_block", [to_set_block_pos, StaticLoad.get_block_id_by_name("LEAVES"), "no_reach", true])
+							StaticLoad.rpc("set_block", [to_set_block_pos, DataManager.get_block_id("LEAVES"), "no_reach", true])
 					var chunk_pos = get_chunk_position(Vector2i(int(splits[0])*16,int(splits[1])*16)+sapling_pos)
 					await get_tree().process_frame
 					update_chunk_light_by_pos(chunk_pos)
@@ -626,7 +607,7 @@ func update_nature_growth():
 				var top_chunk_pos = get_chunk_position(top_block_pos)
 				if loaded_chunks.has(str(top_chunk_pos[0])+"."+str(top_chunk_pos[1])):
 					var top_block_id = StaticLoad.get_block_id_by_atlas_coords(no_reach_tile_map_layer.get_cell_atlas_coords(top_block_pos))
-					if StaticLoad.get_block_name_by_id(top_block_id) == "REEDS":
+					if DataManager.get_block_name(top_block_id) == "REEDS":
 						continue
 				var rng = RandomNumberGenerator.new()
 				var num = rng.randf()
@@ -642,9 +623,9 @@ func update_nature_growth():
 						var no_reach_block_id = StaticLoad.get_block_id_by_atlas_coords(no_reach_tile_map_layer.get_cell_atlas_coords(to_set_block_pos))
 						if no_reach_block_id != 0:
 							break
-						set_block(to_set_block_pos, StaticLoad.get_block_id_by_name("REEDS"), "solid", true)
+						set_block(to_set_block_pos, DataManager.get_block_id("REEDS"), "solid", true)
 						if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1:
-							StaticLoad.rpc("set_block", [to_set_block_pos, StaticLoad.get_block_id_by_name("REEDS"), "solid", true])
+							StaticLoad.rpc("set_block", [to_set_block_pos, DataManager.get_block_id("REEDS"), "solid", true])
 
 func check_has_nearby_grass_block(block_pos):
 	var is_has_nearby_grass_block = false
@@ -655,7 +636,7 @@ func check_has_nearby_grass_block(block_pos):
 				continue
 			for i in [-1, 0, 1]:
 				var left_block_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(block_pos+Vector2i(-1, i)))
-				if left_block_id == StaticLoad.get_block_id_by_name("GRASS_BLOCK"):
+				if left_block_id == DataManager.get_block_id("GRASS_BLOCK"):
 					is_has_nearby_grass_block = true
 					break
 		elif selection == "right":
@@ -664,7 +645,7 @@ func check_has_nearby_grass_block(block_pos):
 				continue
 			for i in [-1, 0, 1]:
 				var left_block_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(block_pos+Vector2i(1, i)))
-				if left_block_id == StaticLoad.get_block_id_by_name("GRASS_BLOCK"):
+				if left_block_id == DataManager.get_block_id("GRASS_BLOCK"):
 					is_has_nearby_grass_block = true
 					break
 		if is_has_nearby_grass_block:
@@ -883,7 +864,7 @@ func process_set_block():
 					if StaticLoad.tools_type.has(in_hand_item_name):
 						if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and uuid == player.get_uuid()):
 							var is_to_wear = true
-							var to_destroy_block_name = StaticLoad.get_block_name_by_id(block_to_destroy_id)
+							var to_destroy_block_name = DataManager.get_block_name(block_to_destroy_id)
 							if entity.gamemode == "creative":
 								is_to_wear = false
 							elif StaticLoad.special_block_destroy_time.has(to_destroy_block_name) and StaticLoad.special_block_destroy_time[to_destroy_block_name] < 0.1:
@@ -893,7 +874,7 @@ func process_set_block():
 							if is_to_wear:
 								entity.wear_and_update_in_hand_tool(1, false)
 									
-			var droppped_item_list = StaticLoad.get_dropped_item_by_name("block", StaticLoad.get_block_name_by_id(block_to_destroy_id), in_hand_item_name)
+			var droppped_item_list = StaticLoad.get_dropped_item_by_name("block", DataManager.get_block_name(block_to_destroy_id), in_hand_item_name)
 			if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1):
 				if uuid != "destroy":
 					#if not nearby_update_dict.has(set_block_pos):
@@ -901,7 +882,7 @@ func process_set_block():
 					#else:
 						#nearby_update_double_dict[set_block_pos] = "before"
 					update_nearby_block_state(set_block_pos, "before")
-			if StaticLoad.get_block_name_by_id(block_to_destroy_id) == "GRASS_BLOCK" and StaticLoad.get_block_name_by_id(set_block_id) == "FARM_LAND":
+			if DataManager.get_block_name(block_to_destroy_id) == "GRASS_BLOCK" and DataManager.get_block_name(set_block_id) == "FARM_LAND":
 				var rng = RandomNumberGenerator.new()
 				var num = rng.randf()
 				if num > 0.7:
@@ -917,7 +898,7 @@ func process_set_block():
 				if set_block_id == 0 and uuid != "destroy":
 					var entity = entities[uuid]
 					if entity.get_entity_type() == "player" and entity.gamemode != "creative":
-						summon_destroy_particle(tile_map_layer.map_to_local(set_block_pos), "block", StaticLoad.get_block_name_by_id(block_to_destroy_id))
+						summon_destroy_particle(tile_map_layer.map_to_local(set_block_pos), "block", DataManager.get_block_name(block_to_destroy_id))
 				update_chunk_light_by_pos(chunk_pos)
 				if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1:
 					rpc("update_chunk_light_by_pos", chunk_pos)
@@ -954,7 +935,7 @@ func process_set_block():
 							entity.face_state = 1
 						elif entity.face_state > 0 and tile_map_layer.local_to_map(entity.position).x > set_block_pos.x:
 							entity.face_state = -1
-						if StaticLoad.get_block_name_by_id(set_block_id) == "SIGN" and (not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1)):
+						if DataManager.get_block_name(set_block_id) == "SIGN" and (not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1)):
 							entity.place_sign([set_block_pos])
 						if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == entity.player_peer_id):
 							set_block_selection_pos(tile_map_layer.map_to_local(set_block_pos), true)
@@ -1075,7 +1056,7 @@ func process_drop_action():
 		player.item_bar_names[selected_item_grid_tmp] = "AIR"
 		StaticLoad.game.refresh_item_grid(selected_item_grid_tmp)
 		inventory_show_grids.get_node("InventoryGrid"+str(selected_item_grid_tmp)).init_inventory_grid(player.item_bar_names[selected_item_grid_tmp], player.item_bar_amounts[selected_item_grid_tmp])
-		sound_audio_manager.play_audio_static("player", "pop")
+		AudioManager.play_static_audio("player/pop")
 		drop_timer = 0
 
 func update_health_hunger_bar():
@@ -1112,7 +1093,7 @@ func process_light():
 					sky_light.fill(current_sky_light)
 					chunk_sky_light_datas[chunk_light_name] = sky_light
 				if chunk_light_to_process_tmp[chunk_light_name] == "create":
-					var chunk_light = chunk_light_scene.instantiate()
+					var chunk_light = SceneManager.get_scene("others/chunk_light").instantiate()
 					lights.add_child(chunk_light)
 					chunk_light.name = chunk_light_name.replace(".", "_")
 					chunk_light.chunk_pos = Vector2i(int(splits[0]), int(splits[1]))
@@ -1232,7 +1213,7 @@ func open_online_info_ui():
 			StaticLoad.rpc_id(1, "request_for_ping", multiplayer.get_unique_id(), peer_id)
 			continue
 		var player_tmp = StaticLoad.player_peer_dict[peer_id]
-		var online_info_instance = online_info_scene.instantiate()
+		var online_info_instance = SceneManager.get_scene("others/online_info").instantiate()
 		online_ui_vbox_container.add_child(online_info_instance)
 		online_info_instance.name = str(peer_id)
 		online_info_instance.player_name.text = player_tmp.player_name
@@ -1628,7 +1609,7 @@ func _input(event: InputEvent) -> void:
 				mouse_in_world_pos = tile_map_layer.get_local_mouse_position()
 			var mouse_to_block_pos = tile_map_layer.local_to_map(mouse_in_world_pos)
 			var original_block_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(mouse_to_block_pos))
-			if StaticLoad.get_block_name_by_id(original_block_id) == "CRAFTING_TABLE":
+			if DataManager.get_block_name(original_block_id) == "CRAFTING_TABLE":
 				if not is_crafting and not is_map and not is_pause and not is_chat and not is_inventory and not is_sign_edit:
 					refresh_crafting_inventory()
 					ui_freeze_timer = 0.3
@@ -1930,7 +1911,7 @@ func _input(event: InputEvent) -> void:
 		var selected_item_grid_tmp = player.selected_item_grid
 		var item_to_drop = player.item_bar_names[selected_item_grid_tmp]
 		if StaticLoad.get_is_durable_by_name(item_to_drop):
-			sound_audio_manager.play_audio_static("player", "pop")
+			AudioManager.play_static_audio("sound/player/pop")
 			player.drop_item(player.item_bar_names[selected_item_grid_tmp], player.item_bar_amounts[selected_item_grid_tmp])
 			player.item_bar_amounts[selected_item_grid_tmp] = 0
 			player.item_bar_names[selected_item_grid_tmp] = "AIR"
@@ -1938,7 +1919,7 @@ func _input(event: InputEvent) -> void:
 			inventory_show_grids.get_node("InventoryGrid"+str(selected_item_grid_tmp)).init_inventory_grid(player.item_bar_names[selected_item_grid_tmp], player.item_bar_amounts[selected_item_grid_tmp])
 			drop_timer = 0
 		elif drop_timer < StaticLoad.DROP_ALL_TIME and item_to_drop != "AIR":
-			sound_audio_manager.play_audio_static("player", "pop")
+			AudioManager.play_static_audio("sound/player/pop")
 			player.drop_item(item_to_drop, 1)
 			player.item_bar_amounts[selected_item_grid_tmp] -= 1
 			if player.item_bar_amounts[selected_item_grid_tmp] <= 0:
@@ -2139,7 +2120,7 @@ func process_touch_input():
 				else:
 					player.place_block(real_mouse_pos)
 			#var block_pos = tile_map_layer.local_to_map(camera_screen_pos_to_local_pos(player.camera, touch.position))
-			#if check_place_block_state(block_pos, StaticLoad.get_block_id_by_name(player.item_bar_names[player.selected_item_grid]), player.current_set_layer):
+			#if check_place_block_state(block_pos, DataManager.get_block_id(player.item_bar_names[player.selected_item_grid]), player.current_set_layer):
 				#player.place_block(block_pos)
 			#grab_item(block_pos)
 		else:
@@ -2294,7 +2275,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			if block_touch_index == -1:
 				block_touch_index = event.index
 			touch_list.push_back(event)
-			var time_counter_instance = time_counter.instantiate()
+			var time_counter_instance = SceneManager.get_scene("others/time_counter").instantiate()
 			touch_time_counters.add_child(time_counter_instance)
 			time_counter_instance.name = str(event.index)
 			time_counter_instance.start_counting()
@@ -2310,7 +2291,7 @@ func _unhandled_input(event: InputEvent) -> void:
 				var block_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(real_mouse_pos))
 				var no_reach_block_id = StaticLoad.get_block_id_by_atlas_coords(no_reach_tile_map_layer.get_cell_atlas_coords(real_mouse_pos))
 				var is_punched = false
-				if StaticLoad.get_block_name_by_id(original_block_id) == "CRAFTING_TABLE":
+				if DataManager.get_block_name(original_block_id) == "CRAFTING_TABLE":
 					if not is_crafting and not is_map and not is_pause and not is_chat and not is_inventory and not is_sign_edit:
 						refresh_crafting_inventory()
 						ui_freeze_timer = 0.3
@@ -2413,7 +2394,7 @@ func _unhandled_input(event: InputEvent) -> void:
 					else:
 						player.place_block(real_mouse_pos)
 				#var block_pos = tile_map_layer.local_to_map(camera_screen_pos_to_local_pos(player.camera, event.position))
-				#if check_place_block_state(block_pos, StaticLoad.get_block_id_by_name(player.item_bar_names[player.selected_item_grid]), player.current_set_layer):
+				#if check_place_block_state(block_pos, DataManager.get_block_id(player.item_bar_names[player.selected_item_grid]), player.current_set_layer):
 					#player.place_block(block_pos)
 			else:
 				if not Input.is_mouse_button_pressed(1) and not Input.is_mouse_button_pressed(2):
@@ -2455,18 +2436,19 @@ func _unhandled_input(event: InputEvent) -> void:
 		is_mouse_motion_updated = true
 
 func update_resource_pack():
-	tile_map_layer.tile_set = load("res://Assets/TileSets/"+str(resource_pack)+".tres") as TileSet
-	back_tile_map_layer.tile_set = load("res://Assets/TileSets/"+str(resource_pack)+".tres") as TileSet
-	no_reach_tile_map_layer.tile_set = load("res://Assets/TileSets/"+str(resource_pack)+".tres") as TileSet
-	mini_map_tile_map_layer.tile_set = load("res://Assets/TileSets/"+str(resource_pack)+".tres") as TileSet
-	mini_map_back_tile_map_layer.tile_set = load("res://Assets/TileSets/"+str(resource_pack)+".tres") as TileSet
-	mini_map_no_reach_tile_map_layer.tile_set = load("res://Assets/TileSets/"+str(resource_pack)+".tres") as TileSet
-	moon_path_texture.texture.atlas = load("res://Assets/ResourcePacks/"+str(resource_pack)+"/Environments/moon_phases.png") as Texture2D
-	sun_path_texture.texture.atlas = load("res://Assets/ResourcePacks/"+str(resource_pack)+"/Environments/sun.png") as Texture2D
+	var resource_pack = SettingsManager.get_current_setting("resource_pack")
+	tile_map_layer.tile_set = load("res://assets/TileSets/"+str(resource_pack)+".tres") as TileSet
+	back_tile_map_layer.tile_set = load("res://assets/TileSets/"+str(resource_pack)+".tres") as TileSet
+	no_reach_tile_map_layer.tile_set = load("res://assets/TileSets/"+str(resource_pack)+".tres") as TileSet
+	mini_map_tile_map_layer.tile_set = load("res://assets/TileSets/"+str(resource_pack)+".tres") as TileSet
+	mini_map_back_tile_map_layer.tile_set = load("res://assets/TileSets/"+str(resource_pack)+".tres") as TileSet
+	mini_map_no_reach_tile_map_layer.tile_set = load("res://assets/TileSets/"+str(resource_pack)+".tres") as TileSet
+	moon_path_texture.texture.atlas = load("res://assets/ResourcePacks/"+str(resource_pack)+"/Environments/moon_phases.png") as Texture2D
+	sun_path_texture.texture.atlas = load("res://assets/ResourcePacks/"+str(resource_pack)+"/Environments/sun.png") as Texture2D
 
 func init_inventory_tabs():
 	for tab_name in StaticLoad.tab_panels:
-		var tab_panel = tab_panel_scene.instantiate()
+		var tab_panel = SceneManager.get_scene("others/tab_panel").instantiate()
 		inventory_tabs.add_child(tab_panel)
 		tab_panel.name = tab_name+"Tab"
 		tab_panel.init_tab_panel(StaticLoad.tab_panels[tab_name], tab_name)
@@ -2505,7 +2487,7 @@ func update_destroy_ui():
 				player_tmp.face_state = -1
 		var tool = player.item_bar_names[player.selected_item_grid]
 		var destroy_total_time = StaticLoad.get_destroy_total_time(block_id, tool)
-		var block_name = StaticLoad.get_block_name_by_id(block_id)
+		var block_name = DataManager.get_block_name(block_id)
 		if StaticLoad.special_block_destroy_time.has(block_name):
 			destroy_total_time = StaticLoad.special_block_destroy_time[block_name]
 		if destroy_total_time < 0:
@@ -2526,7 +2508,7 @@ func update_destroy_ui():
 				#else:
 					#StaticLoad.rpc_entity_func_by_uuid(player_tmp.get_uuid(), "set_changed_state_dict", state_tmp, [], true)
 		if int((destroy_timer_tmp-0.08)*100) % int(StaticLoad.DIG_SOUND_DELTA*100) == 0:
-			sound_audio_manager.play_random_audio_at_position("dig", StaticLoad.get_block_type_by_id(block_id), tile_map_layer.map_to_local(player_selected_block_pos), 0.7)
+			AudioManager.play_random_audio_at_position("sound/dig/"+StaticLoad.get_block_type_by_id(block_id), tile_map_layer.map_to_local(player_selected_block_pos), 0.7)
 		if destroy_sort > 0 and destroy_sort < 9:
 			player_tmp.is_punching = true
 		if block_name == "BEDROCK":
@@ -2550,7 +2532,7 @@ func update_destroy_ui():
 					#lights.add_child(destroy_light)
 					#destroy_light.init_light(str(peer_id), player_selected_block_pos, destroy_sort)
 			else:
-				var destroy_light = destory_light_scene.instantiate()
+				var destroy_light = SceneManager.get_scene("others/destroy_light").instantiate()
 				destroy_light.init_light(str(peer_id), player_selected_block_pos, 0)
 				lights.add_child(destroy_light)
 				destroy_light.set_texture(null)
@@ -2569,7 +2551,7 @@ func init_light():
 		chunk_lights[chunk_light_name].queue_free()
 	chunk_lights.clear()
 	for chunk_light_name in loaded_chunks:
-		var chunk_light = chunk_light_scene.instantiate()
+		var chunk_light = SceneManager.get_scene("others/chunk_light").instantiate()
 		lights.add_child(chunk_light)
 		chunk_light.name = chunk_light_name.replace(".", "_")
 		var splits = chunk_light_name.split(".")
@@ -2580,7 +2562,7 @@ func init_light():
 func update_mini_map_chunk_light(chunk_pos, image):
 	var chunk_light_name = str(chunk_pos[0])+"."+str(chunk_pos[1])
 	if not mini_map_chunk_lights.has(chunk_light_name):
-		var chunk_light = chunk_light_scene.instantiate()
+		var chunk_light = SceneManager.get_scene("others/chunk_light").instantiate()
 		mini_map_lights.add_child(chunk_light)
 		chunk_light.name = chunk_light_name.replace(".", "_")
 		chunk_light.chunk_pos = chunk_pos
@@ -2597,11 +2579,11 @@ func grab_item(block_pos):
 	var player_select_sort = player.selected_item_grid
 	if block_id == 0:
 		return
-	if block_id == StaticLoad.get_block_id_by_name(player.item_bar_names[player.selected_item_grid]):
+	if block_id == DataManager.get_block_id(player.item_bar_names[player.selected_item_grid]):
 		return
 	var existed_item_grid_sort = -1
 	for i in range(9):
-		if StaticLoad.get_block_id_by_name(player.item_bar_names[i]) == block_id:
+		if DataManager.get_block_id(player.item_bar_names[i]) == block_id:
 			existed_item_grid_sort = i
 			break
 	if player_select_sort == existed_item_grid_sort:
@@ -2609,13 +2591,13 @@ func grab_item(block_pos):
 	if existed_item_grid_sort != -1:
 		select_item_grid(existed_item_grid_sort+1)
 	else:
-		player.item_bar_names[player_select_sort] = StaticLoad.get_block_name_by_id(block_id)
+		player.item_bar_names[player_select_sort] = DataManager.get_block_name(block_id)
 		player.item_bar_amounts[player_select_sort] = 1
 		refresh_item_grid(player_select_sort)
 		@warning_ignore("shadowed_variable")
 		var inventory_grid = inventory_show_grids.get_node("InventoryGrid"+str(player_select_sort))
 		inventory_grid.init_inventory_grid(player.item_bar_names[player_select_sort], player.item_bar_amounts[player_select_sort])
-		sound_audio_manager.play_audio_static("player", "pop")
+		AudioManager.play_static_audio("sound/player/pop")
 		var item_name = player.item_bar_names[player_select_sort]
 		if item_name != "AIR":
 			item_name_label.text = item_name
@@ -2729,9 +2711,6 @@ func init_game_as_single():
 		mini_map_on = config.get_value("settings", "mini_map", SettingsManager.get_default_setting("mini_map"))
 		mini_map_zoom = float(config.get_value("settings", "mini_map_zoom", SettingsManager.get_default_setting("mini_map_zoom")))
 		smooth_lighting_on = config.get_value("settings", "smooth_lighting", SettingsManager.get_default_setting("smooth_lighting"))
-		AudioManager.bgm_audio_player.volume_db = linear_to_db(int(config.get_value("settings", "bgm_volume", SettingsManager.get_default_setting("bgm_volume")))/50.0)
-		sound_audio_manager.volume_db = linear_to_db(int(config.get_value("settings", "sound_volume", SettingsManager.get_default_setting("sound_volume")))/50.0)
-		resource_pack = config.get_value("settings", "resource_pack")
 		var mini_map_zoom_tmp = mini_map_zoom/100
 		mini_map_camera.zoom = Vector2(mini_map_zoom_tmp, mini_map_zoom_tmp)
 		var icon_scale = StaticLoad.MINI_MAP_SCALE_FACTOR/mini_map_camera.zoom[0]
@@ -2858,13 +2837,12 @@ func init_game_as_client():
 		player.render_chunk = StaticLoad.RENDER_CHUNK_MAX
 	if player.render_chunk < StaticLoad.RENDER_CHUNK_MIN:
 		player.render_chunk = StaticLoad.RENDER_CHUNK_MIN
-	resource_pack = config.get_value("settings", "resource_pack")
 	block_selection_box = config.get_value("settings", "block_selection_box", SettingsManager.get_default_setting("block_selection_box"))
 	mini_map_on = config.get_value("settings", "mini_map", SettingsManager.get_default_setting("mini_map"))
 	mini_map_zoom = float(config.get_value("settings", "mini_map_zoom", SettingsManager.get_default_setting("mini_map_zoom")))
 	smooth_lighting_on = config.get_value("settings", "smooth_lighting", SettingsManager.get_default_setting("smooth_lighting"))
-	AudioManager.bgm_audio_player.volume_db = linear_to_db(int(config.get_value("settings", "bgm_volume", SettingsManager.get_default_setting("bgm_volume")))/50.0)
-	sound_audio_manager.volume_db = linear_to_db(int(config.get_value("settings", "sound_volume", SettingsManager.get_default_setting("sound_volume")))/50.0)
+	AudioManager.volume_db = linear_to_db(int(config.get_value("settings", "bgm_volume", SettingsManager.get_default_setting("bgm_volume")))/50.0)
+	AudioManager.volume_db = linear_to_db(int(config.get_value("settings", "sound_volume", SettingsManager.get_default_setting("sound_volume")))/50.0)
 	var mini_map_zoom_tmp = mini_map_zoom/100
 	mini_map_camera.zoom = Vector2(mini_map_zoom_tmp, mini_map_zoom_tmp)
 	var icon_scale = StaticLoad.MINI_MAP_SCALE_FACTOR/mini_map_camera.zoom[0]
@@ -2930,7 +2908,7 @@ func create_chunk_entities(chunk_name, chunk_config):
 			StaticLoad.create_entity([entity_info[0], uuid, entity_info[1], entity_info[2], entity_info[3]])
 
 func create_player(peer_id = 1):
-	var player_instance = player_scene.instantiate()
+	var player_instance = SceneManager.get_scene("entities/player").instantiate()
 	player_instance.name = str(peer_id)
 	players.add_child(player_instance)
 	if not StaticLoad.is_muti_mode:
@@ -3129,14 +3107,14 @@ func freeze_game():
 	set_process_unhandled_input(false)
 	set_process(false)
 	if not StaticLoad.is_dedicated_server:
-		#AudioManager.bgm_audio_player.set_process(false)
-		AudioManager.bgm_audio_player.stop()
+		#AudioManager.set_process(false)
+		AudioManager.stop_bgm()
 
 func unfreeze_game():
 	set_process_unhandled_input(true)
 	set_process(true)
 	if not StaticLoad.is_dedicated_server:
-		AudioManager.bgm_audio_player.refresh_bgm()
+		AudioManager.refresh_bgm()
 		player.camera.position_smoothing_enabled = true
 
 func update_local_player_nearby_chunk():
@@ -3148,9 +3126,9 @@ func update_local_player_nearby_chunk():
 
 func update_jump_button():
 	if player.is_flying:
-		move_jump_button_icon.texture = move_center_button_fly
+		move_jump_button_icon.texture = TextureManager.get_texture("ui/oreui_flyingascend_button")
 	else:
-		move_jump_button_icon.texture = jump_button_normal
+		move_jump_button_icon.texture = TextureManager.get_texture("ui/jump")
 
 func update_local_player_data():
 	if player.is_dead or player.is_frozen or is_input_frozen:
@@ -3229,7 +3207,7 @@ func init_infinite_container():
 			continue
 		if block == "MISSING_TEXTURE":
 			continue
-		var inventory_grid = inventory_grid_scene.instantiate()
+		var inventory_grid = SceneManager.get_scene("others/inventory_grid").instantiate()
 		inventory_grid.name = "InfiniteGrid"+str(count)
 		blocks_infinite_container.add_child(inventory_grid)
 		inventory_grid.init_inventory_grid(block, 1)
@@ -3244,7 +3222,7 @@ func init_infinite_container():
 			continue
 		if StaticLoad.block_ids.has(item):
 			continue
-		var inventory_grid = inventory_grid_scene.instantiate()
+		var inventory_grid = SceneManager.get_scene("others/inventory_grid").instantiate()
 		inventory_grid.name = "InfiniteGrid"+str(count)
 		items_infinite_container.add_child(inventory_grid)
 		inventory_grid.init_inventory_grid(item, 1)
@@ -3445,7 +3423,7 @@ func update_new_chunk(is_pre_load: bool):
 										#StaticLoad.rpc("create_entity", item_info)
 						else:
 							var mca = ConfigFile.new()
-							var chunk = StaticLoad.generate_chunk(Vector2i(x, y), world_info_dictionary["seed"], world_info_dictionary["world_type"])
+							var chunk = WorldManager.generate_chunk(Vector2i(x, y), world_info_dictionary["seed"], world_info_dictionary["world_type"])
 							set_chunk(Vector2i(x, y), chunk)
 							loaded_chunk_num += 1
 							var value_dict = {
@@ -3546,10 +3524,10 @@ func set_block(block_pos: Vector2i, block_id: int, tile_map_type, is_pre_load = 
 		if not is_pre_load:
 			@warning_ignore("confusable_local_declaration")
 			var atlas_coords = tile_map_layer_tmp.get_cell_atlas_coords(block_pos)
-			sound_audio_manager.play_random_audio_at_position("dig", StaticLoad.get_block_type_by_id(StaticLoad.get_block_id_by_atlas_coords(atlas_coords)), tile_map_layer_tmp.map_to_local(block_pos), 1)
+			AudioManager.play_random_audio_at_position("sound/dig/"+StaticLoad.get_block_type_by_id(StaticLoad.get_block_id_by_atlas_coords(atlas_coords)), tile_map_layer_tmp.map_to_local(block_pos), 1)
 		#if tile_map_type == "solid":
 			#var original_block_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer_tmp.get_cell_atlas_coords(block_pos))
-			#if StaticLoad.get_block_name_by_id(original_block_id) == "DIRT":
+			#if DataManager.get_block_name(original_block_id) == "DIRT":
 				#var chunk_pos = get_chunk_position(block_pos)
 				#var dirt_pos = block_pos-Vector2i(chunk_pos[0]*16,chunk_pos[1]*16)
 				#if loaded_chunks.has(str(chunk_pos[0])+"."+str(chunk_pos[1])):
@@ -3562,7 +3540,7 @@ func set_block(block_pos: Vector2i, block_id: int, tile_map_type, is_pre_load = 
 			#var dirt_pos = down_block_pos-Vector2i(chunk_pos[0]*16,chunk_pos[1]*16)
 			#if loaded_chunks.has(str(chunk_pos[0])+"."+str(chunk_pos[1])):
 				#var down_block_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer_tmp.get_cell_atlas_coords(down_block_pos))
-				#if StaticLoad.get_block_name_by_id(down_block_id) == "DIRT":
+				#if DataManager.get_block_name(down_block_id) == "DIRT":
 					#var chunk = loaded_chunks[str(chunk_pos[0])+"."+str(chunk_pos[1])]
 					#if not chunk.dirt_list.has(dirt_pos):
 						#chunk.dirt_list.append(dirt_pos)
@@ -3579,34 +3557,34 @@ func set_block(block_pos: Vector2i, block_id: int, tile_map_type, is_pre_load = 
 				if loaded_chunk_packed_byte_arrays.has(str(chunk_pos[0])+"."+str(chunk_pos[1])):
 					loaded_chunk_packed_byte_arrays[str(chunk_pos[0])+"."+str(chunk_pos[1])][relative_block_pos[1]*16+relative_block_pos[0]] = 0
 		return true
-	if not is_pre_load and block_id != 0 and StaticLoad.get_is_clingling_by_name(StaticLoad.get_block_name_by_id(block_id)) != "null":
+	if not is_pre_load and block_id != 0 and StaticLoad.get_is_clingling_by_name(DataManager.get_block_name(block_id)) != "null":
 		if not check_has_nearby_solid_block(block_pos, block_id):
 			return false
-		if StaticLoad.get_block_name_by_id(block_id).contains("STAGE"):
+		if DataManager.get_block_name(block_id).contains("STAGE"):
 			var down_block_pos = block_pos+Vector2i(0, 1)
 			var down_chunk_pos = get_chunk_position(down_block_pos)
 			if not loaded_chunks.has(str(down_chunk_pos[0])+"."+str(down_chunk_pos[1])):
 				return false
 			var down_block_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(down_block_pos))
-			if StaticLoad.get_block_name_by_id(down_block_id) != "FARM_LAND":
+			if DataManager.get_block_name(down_block_id) != "FARM_LAND":
 				return false
-		if StaticLoad.get_block_name_by_id(block_id).contains("SAPLING"):
+		if DataManager.get_block_name(block_id).contains("SAPLING"):
 			var down_block_pos = block_pos+Vector2i(0, 1)
 			var down_chunk_pos = get_chunk_position(down_block_pos)
 			if not loaded_chunks.has(str(down_chunk_pos[0])+"."+str(down_chunk_pos[1])):
 				return false
 			var down_block_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(down_block_pos))
-			if StaticLoad.get_block_name_by_id(down_block_id) != "DIRT" and StaticLoad.get_block_name_by_id(down_block_id) != "GRASS_BLOCK":
+			if DataManager.get_block_name(down_block_id) != "DIRT" and DataManager.get_block_name(down_block_id) != "GRASS_BLOCK":
 				return false
-		if StaticLoad.get_block_name_by_id(block_id) == "REEDS":
+		if DataManager.get_block_name(block_id) == "REEDS":
 			var down_block_pos = block_pos+Vector2i(0, 1)
 			var down_chunk_pos = get_chunk_position(down_block_pos)
 			if not loaded_chunks.has(str(down_chunk_pos[0])+"."+str(down_chunk_pos[1])):
 				return false
 			var down_block_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(down_block_pos))
-			if StaticLoad.get_block_name_by_id(down_block_id) != "DIRT" and StaticLoad.get_block_name_by_id(down_block_id) != "GRASS_BLOCK" and StaticLoad.get_block_name_by_id(down_block_id) != "SAND":
+			if DataManager.get_block_name(down_block_id) != "DIRT" and DataManager.get_block_name(down_block_id) != "GRASS_BLOCK" and DataManager.get_block_name(down_block_id) != "SAND":
 				return false
-	#if not is_pre_load and tile_map_type == "solid" and StaticLoad.get_block_name_by_id(block_id) == "DIRT":
+	#if not is_pre_load and tile_map_type == "solid" and DataManager.get_block_name(block_id) == "DIRT":
 		#var chunk_pos = get_chunk_position(block_pos)
 		#if loaded_chunks.has(str(chunk_pos[0])+"."+str(chunk_pos[1])):
 			#var up_block_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(block_pos+Vector2i(0,-1)))
@@ -3616,8 +3594,8 @@ func set_block(block_pos: Vector2i, block_id: int, tile_map_type, is_pre_load = 
 				#if not chunk.dirt_list.has(dirt_pos):
 					#chunk.dirt_list.append(dirt_pos)
 	if not is_pre_load and tile_map_layer_tmp.get_cell_source_id(block_pos) != -1:
-		var original_block_name = StaticLoad.get_block_name_by_id(StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(block_pos)))
-		var new_block_name = StaticLoad.get_block_name_by_id(block_id)
+		var original_block_name = DataManager.get_block_name(StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(block_pos)))
+		var new_block_name = DataManager.get_block_name(block_id)
 		if new_block_name == "FARM_LAND":
 			if original_block_name == "GRASS_BLOCK" or original_block_name == "DIRT":
 				pass
@@ -3647,7 +3625,7 @@ func set_block(block_pos: Vector2i, block_id: int, tile_map_type, is_pre_load = 
 			if loaded_chunk_packed_byte_arrays.has(str(chunk_pos[0])+"."+str(chunk_pos[1])):
 				loaded_chunk_packed_byte_arrays[str(chunk_pos[0])+"."+str(chunk_pos[1])][relative_block_pos[1]*16+relative_block_pos[0]] = block_id
 	if not is_pre_load:
-		sound_audio_manager.play_random_audio_at_position("dig", StaticLoad.get_dig_type_by_block_type(StaticLoad.get_block_type_by_id(block_id)), tile_map_layer_tmp.map_to_local(block_pos), 1)
+		AudioManager.play_random_audio_at_position("sound/dig/"+StaticLoad.get_dig_type_by_block_type(StaticLoad.get_block_type_by_id(block_id)), tile_map_layer_tmp.map_to_local(block_pos), 1)
 	return true
 
 func process_nearby():
@@ -3681,7 +3659,7 @@ func update_nearby_block_state(block_pos, update_state):
 				continue
 			var nearby_block_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(nearby_block_pos))
 			if nearby_block_id != 0 and update_state == "before":
-				if delta == 0 and StaticLoad.get_block_name_by_id(nearby_block_id) == "REEDS":
+				if delta == 0 and DataManager.get_block_name(nearby_block_id) == "REEDS":
 					var local_sugar_cane_pos = nearby_block_pos-Vector2i(nearby_block_chunk_pos[0]*16,nearby_block_chunk_pos[1]*16)
 					var chunk = loaded_chunks[str(nearby_block_chunk_pos[0])+"."+str(nearby_block_chunk_pos[1])]
 					if chunk.sugar_cane_list.has(local_sugar_cane_pos):
@@ -3693,7 +3671,7 @@ func update_nearby_block_state(block_pos, update_state):
 						if not loaded_chunks.has(str(up_chunk_pos[0])+"."+str(up_chunk_pos[1])):
 							break
 						var up_block_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(up_block_pos))
-						if StaticLoad.get_block_name_by_id(up_block_id) != "REEDS":
+						if DataManager.get_block_name(up_block_id) != "REEDS":
 							break
 						var sugar_cane_pos = up_block_pos-Vector2i(up_chunk_pos[0]*16,up_chunk_pos[1]*16)
 						var up_chunk = loaded_chunks[str(up_chunk_pos[0])+"."+str(up_chunk_pos[1])]
@@ -3701,7 +3679,7 @@ func update_nearby_block_state(block_pos, update_state):
 							up_chunk.sugar_cane_list.erase(sugar_cane_pos)
 						set_block_list.append([Time.get_ticks_msec(), "destroy", 0, up_block_pos, "solid", false])
 						up_block_pos += Vector2i(0, -1)
-				elif delta == 0 and StaticLoad.get_block_name_by_id(nearby_block_id) == "SIGN":
+				elif delta == 0 and DataManager.get_block_name(nearby_block_id) == "SIGN":
 					var local_sign_pos = nearby_block_pos-Vector2i(nearby_block_chunk_pos[0]*16,nearby_block_chunk_pos[1]*16)
 					var chunk = loaded_chunks[str(nearby_block_chunk_pos[0])+"."+str(nearby_block_chunk_pos[1])]
 					if chunk.sign_dict.has(local_sign_pos):
@@ -3734,31 +3712,31 @@ func update_nearby_block_state(block_pos, update_state):
 					if loaded_chunks.has(str(up_chunk_pos[0])+"."+str(up_chunk_pos[1])):
 						mark_nearby_leaves(up_block_pos)
 			elif nearby_block_id != 0 and update_state == "after":
-				if StaticLoad.get_block_name_by_id(nearby_block_id) == "SAPLING_OAK":
+				if DataManager.get_block_name(nearby_block_id) == "SAPLING_OAK":
 					var chunk_pos = get_chunk_position(nearby_block_pos)
 					var sapling_pos = nearby_block_pos-Vector2i(chunk_pos[0]*16,chunk_pos[1]*16)
 					var chunk = loaded_chunks[str(chunk_pos[0])+"."+str(chunk_pos[1])]
 					if not chunk.sapling_list.has(sapling_pos):
 						chunk.sapling_list.append(sapling_pos)
-				if StaticLoad.get_block_name_by_id(nearby_block_id) == "SIGN":
+				if DataManager.get_block_name(nearby_block_id) == "SIGN":
 					var chunk_pos = get_chunk_position(nearby_block_pos)
 					var sign_pos = nearby_block_pos-Vector2i(chunk_pos[0]*16,chunk_pos[1]*16)
 					var chunk = loaded_chunks[str(chunk_pos[0])+"."+str(chunk_pos[1])]
 					if not chunk.sign_dict.has(sign_pos):
 						chunk.sign_dict[sign_pos] = ""
-				if StaticLoad.get_block_name_by_id(nearby_block_id) == "REEDS":
+				if DataManager.get_block_name(nearby_block_id) == "REEDS":
 					var down_block_pos = nearby_block_pos+Vector2i(0,1)
 					var down_chunk_pos = get_chunk_position(down_block_pos)
 					if loaded_chunks.has(str(down_chunk_pos[0])+"."+str(down_chunk_pos[1])):
 						var down_block_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(down_block_pos))
-						var down_block_name = StaticLoad.get_block_name_by_id(down_block_id)
+						var down_block_name = DataManager.get_block_name(down_block_id)
 						if down_block_name == "DIRT" or down_block_name == "GRASS_BLOCK" or down_block_name == "SAND":
 							var chunk_pos = get_chunk_position(nearby_block_pos)
 							var sugar_cane_pos = nearby_block_pos-Vector2i(chunk_pos[0]*16,chunk_pos[1]*16)
 							var chunk = loaded_chunks[str(chunk_pos[0])+"."+str(chunk_pos[1])]
 							if not chunk.sugar_cane_list.has(sugar_cane_pos):
 								chunk.sugar_cane_list.append(sugar_cane_pos)
-				if StaticLoad.get_block_name_by_id(nearby_block_id) == "DIRT":
+				if DataManager.get_block_name(nearby_block_id) == "DIRT":
 					var up_block_pos = nearby_block_pos+Vector2i(0,-1)
 					var up_chunk_pos = get_chunk_position(up_block_pos)
 					if loaded_chunks.has(str(up_chunk_pos[0])+"."+str(up_chunk_pos[1])):
@@ -3775,7 +3753,7 @@ func update_nearby_block_state(block_pos, update_state):
 							var chunk = loaded_chunks[str(chunk_pos[0])+"."+str(chunk_pos[1])]
 							if chunk.dirt_list.has(dirt_pos):
 								chunk.dirt_list.erase(dirt_pos)
-				if StaticLoad.get_block_name_by_id(nearby_block_id) == "GRASS_BLOCK":
+				if DataManager.get_block_name(nearby_block_id) == "GRASS_BLOCK":
 					var up_block_pos = nearby_block_pos+Vector2i(0,-1)
 					var up_chunk_pos = get_chunk_position(up_block_pos)
 					if loaded_chunks.has(str(up_chunk_pos[0])+"."+str(up_chunk_pos[1])):
@@ -3792,7 +3770,7 @@ func update_nearby_block_state(block_pos, update_state):
 							var chunk = loaded_chunks[str(chunk_pos[0])+"."+str(chunk_pos[1])]
 							if not chunk.grass_block_list.has(grass_pos):
 								chunk.grass_block_list.append(grass_pos)
-				if StaticLoad.get_block_name_by_id(nearby_block_id) == "FARM_LAND":
+				if DataManager.get_block_name(nearby_block_id) == "FARM_LAND":
 					var up_block_pos = nearby_block_pos+Vector2i(0,-1)
 					var up_chunk_pos = get_chunk_position(up_block_pos)
 					if loaded_chunks.has(str(up_chunk_pos[0])+"."+str(up_chunk_pos[1])):
@@ -3809,12 +3787,12 @@ func update_nearby_block_state(block_pos, update_state):
 							var chunk = loaded_chunks[str(chunk_pos[0])+"."+str(chunk_pos[1])]
 							if not chunk.farm_land_list.has(farm_land_pos):
 								chunk.farm_land_list.append(farm_land_pos)
-				if StaticLoad.get_block_name_by_id(nearby_block_id).contains("STAGE"):
+				if DataManager.get_block_name(nearby_block_id).contains("STAGE"):
 					var down_block_pos = nearby_block_pos+Vector2i(0,1)
 					var down_chunk_pos = get_chunk_position(down_block_pos)
 					if loaded_chunks.has(str(down_chunk_pos[0])+"."+str(down_chunk_pos[1])):
 						var down_block_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(down_block_pos))
-						if down_block_id != StaticLoad.get_block_id_by_name("FARM_LAND"):
+						if down_block_id != DataManager.get_block_id("FARM_LAND"):
 							set_block(nearby_block_pos, 0, "no_reach", false)
 							var chunk_pos = get_chunk_position(nearby_block_pos)
 							update_chunk_light_by_pos(chunk_pos)
@@ -3833,9 +3811,9 @@ func update_nearby_block_state(block_pos, update_state):
 							if not chunk.seed_list.has(seed_pos):
 								chunk.seed_list.append(seed_pos)
 				# 消除列表必须放最后，防止消除后立刻新增
-				if StaticLoad.get_is_clingling_by_name(StaticLoad.get_block_name_by_id(nearby_block_id)) != "null":
+				if StaticLoad.get_is_clingling_by_name(DataManager.get_block_name(nearby_block_id)) != "null":
 					if not check_has_nearby_solid_block(nearby_block_pos, nearby_block_id):
-						if StaticLoad.get_block_name_by_id(nearby_block_id) == "REEDS":
+						if DataManager.get_block_name(nearby_block_id) == "REEDS":
 							var local_sugar_cane_pos = nearby_block_pos-Vector2i(nearby_block_chunk_pos[0]*16,nearby_block_chunk_pos[1]*16)
 							var chunk = loaded_chunks[str(nearby_block_chunk_pos[0])+"."+str(nearby_block_chunk_pos[1])]
 							if chunk.sugar_cane_list.has(local_sugar_cane_pos):
@@ -3847,7 +3825,7 @@ func update_nearby_block_state(block_pos, update_state):
 								if not loaded_chunks.has(str(up_chunk_pos[0])+"."+str(up_chunk_pos[1])):
 									break
 								var up_block_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(up_block_pos))
-								if StaticLoad.get_block_name_by_id(up_block_id) != "REEDS":
+								if DataManager.get_block_name(up_block_id) != "REEDS":
 									break
 								var sugar_cane_pos = up_block_pos-Vector2i(up_chunk_pos[0]*16,up_chunk_pos[1]*16)
 								var up_chunk = loaded_chunks[str(up_chunk_pos[0])+"."+str(up_chunk_pos[1])]
@@ -3875,17 +3853,17 @@ func mark_nearby_leaves(start_pos):
 		for y in [-2, -1, 0, 1, 2]:
 			var block_pos = start_pos + Vector2i(x, y)
 			var block_id = StaticLoad.get_block_id_by_atlas_coords(no_reach_tile_map_layer.get_cell_atlas_coords(block_pos))
-			if StaticLoad.get_block_name_by_id(block_id) != "LEAVES":
+			if DataManager.get_block_name(block_id) != "LEAVES":
 				continue
 			var is_log_found = false
 			var search_height = 1
 			var down_block_id = StaticLoad.get_block_id_by_atlas_coords(no_reach_tile_map_layer.get_cell_atlas_coords(block_pos+Vector2i(0, 1)))
-			if StaticLoad.get_block_name_by_id(down_block_id) == "LEAVES":
+			if DataManager.get_block_name(down_block_id) == "LEAVES":
 				search_height = 2
 			for i in [-2, -1, 0, 1, 2]:
 				var nearby_block_pos = block_pos + Vector2i(i, search_height)
 				var nearby_block_id = StaticLoad.get_block_id_by_atlas_coords(no_reach_tile_map_layer.get_cell_atlas_coords(nearby_block_pos))
-				if StaticLoad.get_block_name_by_id(nearby_block_id) == "LOG_OAK":
+				if DataManager.get_block_name(nearby_block_id) == "LOG_OAK":
 					is_log_found = true
 					break
 			var leaves_pos = block_pos-Vector2i(chunk_pos[0]*16,chunk_pos[1]*16)
@@ -3906,7 +3884,7 @@ func check_has_nearby_leaves(block_pos):
 			if not loaded_chunks.has(str(nearby_chunk_pos[0])+"."+str(nearby_chunk_pos[1])):
 				continue
 			var nearby_block_id = StaticLoad.get_block_id_by_atlas_coords(no_reach_tile_map_layer.get_cell_atlas_coords(nearby_block_pos))
-			if StaticLoad.get_block_name_by_id(nearby_block_id) == "LEAVES":
+			if DataManager.get_block_name(nearby_block_id) == "LEAVES":
 				is_has_nearby_leaves = true
 				break
 		if is_has_nearby_leaves:
@@ -3915,7 +3893,7 @@ func check_has_nearby_leaves(block_pos):
 
 func check_has_nearby_solid_block(block_pos, to_set_block_id):
 	var back_block_id = StaticLoad.get_block_id_by_atlas_coords(back_tile_map_layer.get_cell_atlas_coords(block_pos))
-	var clinging_type = StaticLoad.get_is_clingling_by_name(StaticLoad.get_block_name_by_id(to_set_block_id))
+	var clinging_type = StaticLoad.get_is_clingling_by_name(DataManager.get_block_name(to_set_block_id))
 	if back_block_id != 0:
 		if clinging_type == "all" or clinging_type == "back":
 			return true
@@ -3933,16 +3911,16 @@ func check_has_nearby_solid_block(block_pos, to_set_block_id):
 			if not loaded_chunks.has(str(nearby_block_chunk_pos[0])+"."+str(nearby_block_chunk_pos[1])):
 				continue
 			var nearby_block_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(nearby_block_pos))
-			if nearby_block_id != 0 and StaticLoad.get_is_clingling_by_name(StaticLoad.get_block_name_by_id(nearby_block_id)) == "null":
+			if nearby_block_id != 0 and StaticLoad.get_is_clingling_by_name(DataManager.get_block_name(nearby_block_id)) == "null":
 				is_has_nearby = true
 				break
-			if StaticLoad.get_block_name_by_id(to_set_block_id) == "REEDS":
+			if DataManager.get_block_name(to_set_block_id) == "REEDS":
 				var no_reach_block_id = StaticLoad.get_block_id_by_atlas_coords(no_reach_tile_map_layer.get_cell_atlas_coords(nearby_block_pos))
-				if no_reach_block_id != 0 and StaticLoad.get_block_name_by_id(no_reach_block_id) == "REEDS":
+				if no_reach_block_id != 0 and DataManager.get_block_name(no_reach_block_id) == "REEDS":
 					is_has_nearby = true
 					break
 				var solid_block_id = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer.get_cell_atlas_coords(nearby_block_pos))
-				if solid_block_id != 0 and StaticLoad.get_block_name_by_id(solid_block_id) == "REEDS":
+				if solid_block_id != 0 and DataManager.get_block_name(solid_block_id) == "REEDS":
 					is_has_nearby = true
 					break
 	return is_has_nearby
@@ -4152,7 +4130,7 @@ func refresh_crafting_inventory():
 func init_inventory():
 	refresh_inventory()
 	for i in range(9):
-		var item_icon = item_icon_scene.instantiate()
+		var item_icon = SceneManager.get_scene("others/item_icon").instantiate()
 		item_grids[i].add_child(item_icon)
 		refresh_item_grid(i)
 
@@ -4192,7 +4170,7 @@ func refresh_achievement_info():
 		achieved_achievement_list_tmp = player.achieved_achievement_list
 	for achievement in StaticLoad.achievement_icon_dict:
 		var is_achieved = false
-		var achievement_info = StaticLoad.achievement_info_scene.instantiate()
+		var achievement_info = SceneManager.get_scene("others/achievement_info").instantiate()
 		achievement_scroll_box_container.add_child(achievement_info)	
 		if achieved_achievement_list_tmp.has(achievement):
 			is_achieved = true
@@ -4201,9 +4179,9 @@ func refresh_achievement_info():
 func broadcast_to_person(player_name: String, text:String, color="white"):
 	if player_name != player.player_name:
 		return
-	var messgae_in_instance = message_scene.instantiate()
+	var messgae_in_instance = SceneManager.get_scene("others/message").instantiate()
 	messgae_in_instance.text = text
-	var messgae_out_instance = message_scene.instantiate()
+	var messgae_out_instance = SceneManager.get_scene("others/message").instantiate()
 	messgae_out_instance.text = text
 	if color != "white":
 		messgae_in_instance.set("theme_override_colors/font_color", StaticLoad.colors[color])
@@ -4218,9 +4196,9 @@ func broadcast_to_person(player_name: String, text:String, color="white"):
 	messgae_out_instance.detect_and_disappear()
 	
 func broadcast_to_all(text:String, color="white"):
-	var messgae_in_instance = message_scene.instantiate()
+	var messgae_in_instance = SceneManager.get_scene("others/message").instantiate()
 	messgae_in_instance.text = text
-	var messgae_out_instance = message_scene.instantiate()
+	var messgae_out_instance = SceneManager.get_scene("others/message").instantiate()
 	messgae_out_instance.text = text
 	if color != "white":
 		messgae_in_instance.set("theme_override_colors/font_color", StaticLoad.colors[color])
@@ -4245,14 +4223,14 @@ func summon_destroy_particle(got_position, type, item_name):
 		return
 	if item_name == "TORCH":
 		return
-	var particle = destroy_particle_scene.instantiate()
+	var particle = SceneManager.get_scene("others/destroy_particle").instantiate()
 	back_particles.add_child(particle)
 	particle.init(got_position, type, item_name)
 
 func summon_death_particle(got_position):
 	if not is_particle_effect_on:
 		return
-	var particle = death_particle_scene.instantiate()
+	var particle = SceneManager.get_scene("others/destroy_particle").instantiate()
 	front_particles.add_child(particle)
 	particle.init(got_position)
 
@@ -4306,7 +4284,7 @@ func _on_pause_button_6_pressed() -> void:
 	}
 	SettingsManager.save_settings(change_value)
 	StaticLoad.is_in_game = false
-	AudioManager.bgm_audio_player.refresh_bgm()
+	AudioManager.refresh_bgm()
 	SceneManager.change_scene("menus/main_menu")
 	
 func _on_pause_button_7_pressed() -> void:
@@ -4316,7 +4294,7 @@ func _on_pause_button_7_pressed() -> void:
 	StaticLoad.clear_connections()
 	StaticLoad.is_muti_mode = false
 	StaticLoad.is_in_game = false
-	AudioManager.bgm_audio_player.refresh_bgm()
+	AudioManager.refresh_bgm()
 	SceneManager.change_scene("menus/main_menu")
 
 func _on_death_button_1_pressed() -> void:
@@ -4512,7 +4490,7 @@ func _on_inventory_ui_dark_mask_gui_input(event: InputEvent) -> void:
 		return
 	if event.button_index == 1:
 		if player.mouse_item_amount > 0:
-			sound_audio_manager.play_audio_static("player", "pop")
+			AudioManager.play_static_audio("player/pop")
 			player.drop_item(player.mouse_item_name, player.mouse_item_amount)
 			player.mouse_item_name = "AIR"
 			player.mouse_item_amount = 0
@@ -4539,7 +4517,7 @@ func _on_inventory_ui_hidden() -> void:
 	for item in pop_item_dict:
 		player.drop_item(item, pop_item_dict[item])
 	if is_to_pop:
-		sound_audio_manager.play_audio_static("player", "pop")
+		AudioManager.play_static_audio("player/pop")
 	refresh_inventory_crafting_result()
 
 func _on_crafting_ui_hidden() -> void:
@@ -4564,7 +4542,7 @@ func _on_crafting_ui_hidden() -> void:
 	for item in pop_item_dict:
 		player.drop_item(item, pop_item_dict[item])
 	if is_to_pop:
-		sound_audio_manager.play_audio_static("player", "pop")
+		AudioManager.play_static_audio("player/pop")
 	refresh_table_crafting_result()
 
 func _on_inventory_ui_visibility_changed() -> void:

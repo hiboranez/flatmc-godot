@@ -3,7 +3,7 @@ extends CanvasLayer
 @onready var progress_bar = $ProgressBar
 @onready var button1 = $Button1
 @onready var title = $Title
-@onready var game_path = "res://Assets/Scenes/Game.tscn"
+@onready var game_path = "res://assets/Scenes/Game.tscn"
 @onready var tip_label = $ProgressBar/Tip
 
 var scene_load_progress = []
@@ -85,7 +85,7 @@ func connect_server():
 	while not is_server_connected:
 		await get_tree().create_timer(1).timeout
 	title.text = tr("CONNECTION_SUCCESS")
-	AudioManager.bgm_audio_player.stop()
+	AudioManager.stop_bgm()
 	StaticLoad.rpc_id(1, "request_for_connect_state_check", multiplayer.get_unique_id(), player_name, SettingsManager.get_default_setting("version"))
 	while not is_server_state_checked:
 		if connect_interrupt_reason != "null":

@@ -3,12 +3,12 @@
 importer="mp3"
 type="AudioStreamMP3"
 uid="uid://cdjo6ty44j8m0"
-path="res://.godot/imported/metal3.mp3-855d0983be2e0be484bbc3d51f5f5de4.mp3str"
+path="res://.godot/imported/metal3.mp3-050d51cb5378952553ffb34c47feb0e7.mp3str"
 
 [deps]
 
-source_file="res://assets/audios/sound/Zombie/metal3.mp3"
-dest_files=["res://.godot/imported/metal3.mp3-855d0983be2e0be484bbc3d51f5f5de4.mp3str"]
+source_file="res://assets/audios/sound/zombie/metal3.mp3"
+dest_files=["res://.godot/imported/metal3.mp3-050d51cb5378952553ffb34c47feb0e7.mp3str"]
 
 [params]
 

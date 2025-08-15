@@ -64,9 +64,9 @@ func _notification(what):
 		#"full_screen": StaticLoad.get_on_or_off_by_selection(full_screen_setting_bar.selected, SettingsManager.get_default_setting("full_screen")),
 		#"mini_map_zoom": str(mini_map_zoom_scroll_bar.value)
 	#}
-	#if db_to_linear(AudioManager.bgm_audio_player.volume_db) > 0 and int(change_value["bgm_volume"]) <= 0:
-		#AudioManager.stop()
-	#elif db_to_linear(AudioManager.bgm_audio_player.volume_db) <= 0 and int(change_value["bgm_volume"]) > 0:
+	#if db_to_linear(AudioManager.volume_db) > 0 and int(change_value["bgm_volume"]) <= 0:
+		#AudioManager.stop_bgm()
+	#elif db_to_linear(AudioManager.volume_db) <= 0 and int(change_value["bgm_volume"]) > 0:
 		#AudioManager.refresh_bgm()
 	#SettingsManager.save_settings(change_value)
 	#StaticLoad.click_audio_player.volume_db = linear_to_db(int(change_value["sound_volume"])/50.0)
@@ -86,7 +86,7 @@ func _notification(what):
 	#elif change_value["new_music"] == "on" and not StaticLoad.is_new_music_on:
 		#StaticLoad.is_new_music_on = true
 		#AudioManager.refresh_bgm()
-	#AudioManager.bgm_audio_player.volume_db = linear_to_db(int(change_value["bgm_volume"])/50.0)
+	#AudioManager.volume_db = linear_to_db(int(change_value["bgm_volume"])/50.0)
 	#if StaticLoad.is_in_game:
 		#var game = $".."
 		#game.player.render_chunk = int(change_value["render_chunk"])

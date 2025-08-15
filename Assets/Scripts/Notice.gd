@@ -20,9 +20,13 @@ func play_close_animation() -> Tween:
 	tween.set_ease(Tween.EASE_OUT)
 	tween.set_trans(Tween.TRANS_QUAD)
 	tween.tween_method(set_scale_factor, scale_factor, 0.001, animation_time)
-	tween.parallel().tween_method(set_blur_value, 2, 0.001, animation_time)
+	tween.parallel().tween_method(set_blur_value, 2.0, 0.001, animation_time)
+	tween.parallel().tween_method(set_modulate_alpha, 1.0, 0.0, animation_time)
 	return tween
 
+func set_modulate_alpha(alpha: float) -> void:
+	background_rect.modulate.a = alpha
+	
 func set_scale_factor(scale_factor: float) -> void:
 	background_rect.scale = Vector2(scale_factor, scale_factor)
 

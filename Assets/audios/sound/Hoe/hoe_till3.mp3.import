@@ -3,12 +3,12 @@
 importer="mp3"
 type="AudioStreamMP3"
 uid="uid://4mr042vwswf6"
-path="res://.godot/imported/hoe_till3.mp3-e5e67aed61825f062bc2e61e9c2cc1fb.mp3str"
+path="res://.godot/imported/hoe_till3.mp3-015d508cd3e2e0ac1d00fb600deaf308.mp3str"
 
 [deps]
 
-source_file="res://assets/audios/sound/Hoe/hoe_till3.mp3"
-dest_files=["res://.godot/imported/hoe_till3.mp3-e5e67aed61825f062bc2e61e9c2cc1fb.mp3str"]
+source_file="res://assets/audios/sound/hoe/hoe_till3.mp3"
+dest_files=["res://.godot/imported/hoe_till3.mp3-015d508cd3e2e0ac1d00fb600deaf308.mp3str"]
 
 [params]
 

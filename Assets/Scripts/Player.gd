@@ -129,8 +129,8 @@ var farm_list = []
 var set_block_list = []
 var success_set_block_list = []
 var attacking_list = []
-var item_bar_names = StaticLoad.default_item_bar_names
-var item_bar_amounts = StaticLoad.default_item_bar_amounts
+var item_bar_names = DataManager.get_default_data_dict("default_item_bar_names")
+var item_bar_amounts = DataManager.get_default_data_dict("default_item_bar_amounts")
 var in_hand_item_name = "AIR"
 var current_set_layer = "solid"
 var skin_path
@@ -194,10 +194,10 @@ func update_achievement_progress_dict(got_achievement_progress_dict):
 func init_local(peer_id):
 	position = Vector2i(0, -21)
 	player_peer_id = peer_id
-	var player_icon_instance = StaticLoad.player_icon_scene.instantiate()
+	var player_icon_instance = SceneManager.get_scene("others/player_icon").instantiate()
 	var config = ConfigFile.new()
 	var result = config.load("user://configs.cfg")
-	var skin_texture = load(StaticLoad.default_skin_path) as Texture2D
+	var skin_texture = TextureManager.get_texture("skins/steve_"+SettingsManager.get_current_setting("resource_pack").replace("official_", ""))
 	player_icon_instance.get_node("UpSkin").texture.atlas = skin_texture
 	if result == OK:
 		player_name = config.get_value("settings", "player_name", SettingsManager.get_default_setting("player_name"))
@@ -227,12 +227,12 @@ func init_local(peer_id):
 				set_player_model_skin_by_texture_buffer(skin_texture_buffer)
 			else:
 				set_player_model_skin_by_texture(skin_texture)
-				skin_texture = Image.load_from_file(StaticLoad.default_skin_path)
-				skin_texture_buffer = skin_texture.save_png_to_buffer()
+				skin_texture = TextureManager.get_texture("skins/steve_"+SettingsManager.get_current_setting("resource_pack").replace("official_", ""))
+				skin_texture_buffer = skin_texture.get_image().save_png_to_buffer()
 		else:
 			set_player_model_skin_by_texture(skin_texture)
-			skin_texture = Image.load_from_file(StaticLoad.default_skin_path)
-			skin_texture_buffer = skin_texture.save_png_to_buffer()
+			skin_texture = TextureManager.get_texture("skins/steve_"+SettingsManager.get_current_setting("resource_pack").replace("official_", ""))
+			skin_texture_buffer = skin_texture.get_image().save_png_to_buffer()
 	if not StaticLoad.is_muti_mode:
 		gamemode = StaticLoad.game.world_info_dictionary["gamemode"]
 		var player_infos = DirAccess.get_files_at(ProjectSettings.globalize_path(StaticLoad.player_path))
@@ -304,7 +304,7 @@ func refresh_reading_sign(sign_block_pos):
 	for sign_info_tmp in StaticLoad.game.sign_info_root.get_children():
 		sign_info_tmp.queue_free()
 	reading_sign_block_pos = sign_block_pos
-	var sign_info = StaticLoad.sign_info_scene.instantiate()
+	var sign_info = SceneManager.get_scene("others/sign_info").instantiate()
 	var sign_chunk_pos = StaticLoad.game.get_chunk_position(sign_block_pos)
 	var sign_pos = Vector2i(sign_chunk_pos[0]*16,sign_chunk_pos[1]*16)-sign_block_pos
 	var text = ""
@@ -321,7 +321,7 @@ func update_local_is_reading_sign():
 	var foot_pos = position
 	var foot_block_pos = StaticLoad.game.tile_map_layer.local_to_map(foot_pos)
 	var foot_block_id = StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.tile_map_layer.get_cell_atlas_coords(foot_block_pos))
-	if StaticLoad.get_block_name_by_id(foot_block_id) == "SIGN":
+	if DataManager.get_block_name(foot_block_id) == "SIGN":
 		if not is_reading_sign or reading_sign_block_pos != foot_block_pos:
 			is_reading_sign = true
 			refresh_reading_sign(foot_block_pos)
@@ -334,7 +334,7 @@ func update_local_is_on_ladder():
 	var foot_pos = position
 	var foot_block_pos = StaticLoad.game.tile_map_layer.local_to_map(foot_pos)
 	var foot_block_id = StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.tile_map_layer.get_cell_atlas_coords(foot_block_pos))
-	if StaticLoad.get_block_name_by_id(foot_block_id) == "LADDER":
+	if DataManager.get_block_name(foot_block_id) == "LADDER":
 		if not is_on_ladder:
 			is_on_ladder = true
 	elif is_on_ladder:
@@ -347,14 +347,14 @@ func update_sound_by_data():
 			if last_eat_stage != eat_stage:
 				last_eat_stage = eat_stage
 				StaticLoad.game.summon_destroy_particle(position-Vector2(0,38), "item", in_hand_item_name)
-				StaticLoad.game.sound_audio_manager.play_random_audio_at_position("random", "eat", position, 1)
+				AudioManager.play_random_audio_at_position("sound/random/eat", position, 1)
 	if abs(current_velocity.y) < StaticLoad.FLOAT_DELTA and last_velocity.y > 1100:
 		if last_velocity.y > 1300:
-			StaticLoad.game.sound_audio_manager.play_random_audio_at_position("damage", "fallbig", position, 1)
+			AudioManager.play_random_audio_at_position("sound/damage/fallbig", position, 1)
 		else:
-			StaticLoad.game.sound_audio_manager.play_random_audio_at_position("damage", "fallsmall", position, 1)
+			AudioManager.play_random_audio_at_position("sound/damage/fallsmall", position, 1)
 	if breaking_tool != "null":
-		StaticLoad.game.sound_audio_manager.play_random_audio_at_position("random", "tool_break", position, 1)
+		AudioManager.play_random_audio_at_position("sound/random/tool_break", position, 1)
 		StaticLoad.game.summon_destroy_particle(position-Vector2(0,38), "item", breaking_tool)
 		attack_timer = 0
 		if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1:
@@ -369,7 +369,7 @@ func update_sound_by_data():
 	if not is_flying and is_on_ladder:
 		if step_sound_timer <= 0 and current_velocity.y != 0:
 			step_sound_timer = walk_period
-			StaticLoad.game.sound_audio_manager.play_random_audio_at_position("step", "ladder", position, 1)
+			AudioManager.play_random_audio_at_position("sound/step/ladder", position, 1)
 	elif move_state != "idle":
 		var block_pos = StaticLoad.game.tile_map_layer.local_to_map(position+Vector2(0, 30))
 		var block_id = StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.tile_map_layer.get_cell_atlas_coords(block_pos))
@@ -377,10 +377,10 @@ func update_sound_by_data():
 			if not StaticLoad.get_is_untouchable_by_id(block_id):
 				if move_state == "walk":
 					step_sound_timer = walk_period
-					StaticLoad.game.sound_audio_manager.play_random_audio_at_position("step", StaticLoad.get_step_type_by_name(StaticLoad.get_block_name_by_id(block_id)), position, 1)
+					AudioManager.play_random_audio_at_position("sound/step/"+StaticLoad.get_step_type_by_name(DataManager.get_block_name(block_id)), position, 1)
 				elif move_state == "run":
 					step_sound_timer = run_period
-					StaticLoad.game.sound_audio_manager.play_random_audio_at_position("step", StaticLoad.get_step_type_by_name(StaticLoad.get_block_name_by_id(block_id)), position, 1)
+					AudioManager.play_random_audio_at_position("sound/step/"+StaticLoad.get_step_type_by_name(DataManager.get_block_name(block_id)), position, 1)
 	elif step_sound_timer > 0 and not is_sneaking and not is_pulling and not is_eating:
 		step_sound_timer = 0
 	if step_sound_timer > 0 and not is_sneaking and not is_pulling and not is_eating:
@@ -514,7 +514,7 @@ func update_animation_by_data():
 				if attack_timer <= 0:
 					if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1):
 						attack()
-				StaticLoad.game.sound_audio_manager.play_random_audio_at_position("player", "attack", position, 1)
+				AudioManager.play_random_audio_at_position("sound/player/attack", position, 1)
 				if not attack_animation.visible:
 					attack_animation.visible = true
 				attack_animation.play("sweep")
@@ -909,7 +909,6 @@ func set_item_in_hand(got_item_name):
 	var is_update_player_inventory = not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id()==player_peer_id)
 	item_in_hand.set_item_in_hand(got_item_name, is_update_player_inventory)
 
-
 func update_local_item_in_hand():
 	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != player_peer_id:
 		return
@@ -1177,7 +1176,7 @@ func get_achievement(got_achievement_name):
 			StaticLoad.record_server_log(Time.get_date_string_from_system(), text)
 	if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == player_peer_id):
 		achieved_achievement_list.append(got_achievement_name)
-		var achievement_get = StaticLoad.achievement_get_scene.instantiate()
+		var achievement_get = SceneManager.get_scene("others/achievement_get").instantiate()
 		StaticLoad.game.achievement_get_control.add_child(achievement_get)
 		achievement_get.init(got_achievement_name)
 		StaticLoad.game.achievement_scroll_box_container.get_node(got_achievement_name).update_achieved(true)
@@ -1230,13 +1229,13 @@ func get_damage(args):
 		set_shader_blink_intensity(0.6)
 		die_name_tween = get_tree().create_tween()
 		die_name_tween.tween_method(set_name_label_modulate, Color(1,1,1,1), Color(1,1,1,0), 0.25)
-		StaticLoad.game.sound_audio_manager.play_random_audio_at_position("player", "hurt", position, 1)
+		AudioManager.play_random_audio_at_position("sound/player/hurt", position, 1)
 		die_rotation_tween = get_tree().create_tween()
 		die_rotation_tween.tween_method(set_z_rotation, 0, 90, StaticLoad.DISSOLVE_TIME)
 	else:
 		hurt_tween = get_tree().create_tween()
 		hurt_tween.tween_method(set_shader_blink_intensity, 0.6, 0, StaticLoad.HURT_TIME)
-		StaticLoad.game.sound_audio_manager.play_random_audio_at_position("damage", "hit", position, 1)
+		AudioManager.play_random_audio_at_position("sound/damage/hit", position, 1)
 	if StaticLoad.is_on_mobile_platform:
 		if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == player_peer_id):
 			Input.vibrate_handheld(100, 0.4)
@@ -1332,13 +1331,13 @@ func place_block(block_pos):
 		if up_block_id != 0 and not StaticLoad.get_is_transparent_by_id(up_block_id):
 			return false
 		var local_block_id = StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.tile_map_layer.get_cell_atlas_coords(block_pos))
-		if StaticLoad.get_block_name_by_id(local_block_id) == "GRASS_BLOCK":
+		if DataManager.get_block_name(local_block_id) == "GRASS_BLOCK":
 			#var sound_pos = StaticLoad.game.tile_map_layer.map_to_local(block_pos)+Vector2(0, 25)
-			#StaticLoad.game.sound_audio_manager.play_random_audio_at_position("item", "hoe_still", sound_pos, 1)
-			#StaticLoad.game.set_block(block_pos, StaticLoad.get_block_id_by_name("FARM_LAND"), "solid", true)
-			set_block_list.append([StaticLoad.get_block_id_by_name("FARM_LAND"), block_pos, "solid"])
+			#AudioManager.play_random_audio_at_position("sound/item", "hoe_still", sound_pos, 1)
+			#StaticLoad.game.set_block(block_pos, DataManager.get_block_id("FARM_LAND"), "solid", true)
+			set_block_list.append([DataManager.get_block_id("FARM_LAND"), block_pos, "solid"])
 			#if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1:
-				#StaticLoad.rpc("set_block", [block_pos, StaticLoad.get_block_id_by_name("FARM_LAND"), "solid", true])
+				#StaticLoad.rpc("set_block", [block_pos, DataManager.get_block_id("FARM_LAND"), "solid", true])
 			#wear_and_update_in_hand_tool(1)
 			#var rng = RandomNumberGenerator.new()
 			#var num = rng.randf()
@@ -1353,27 +1352,27 @@ func place_block(block_pos):
 					#StaticLoad.create_entity(summon_item_args)
 			is_punching = true
 			return true
-		elif StaticLoad.get_block_name_by_id(local_block_id) == "DIRT":
+		elif DataManager.get_block_name(local_block_id) == "DIRT":
 			#var sound_pos = StaticLoad.game.tile_map_layer.map_to_local(block_pos)+Vector2(0, 25)
-			set_block_list.append([StaticLoad.get_block_id_by_name("FARM_LAND"), block_pos, "solid"])
-			#StaticLoad.game.sound_audio_manager.play_random_audio_at_position("item", "hoe_still", sound_pos, 1)
-			#StaticLoad.game.set_block(block_pos, StaticLoad.get_block_id_by_name("FARM_LAND"), "solid", true)
+			set_block_list.append([DataManager.get_block_id("FARM_LAND"), block_pos, "solid"])
+			#AudioManager.play_random_audio_at_position("sound/item", "hoe_still", sound_pos, 1)
+			#StaticLoad.game.set_block(block_pos, DataManager.get_block_id("FARM_LAND"), "solid", true)
 			#if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1:
-				#StaticLoad.rpc("set_block", [block_pos, StaticLoad.get_block_id_by_name("FARM_LAND"), "solid", true])
+				#StaticLoad.rpc("set_block", [block_pos, DataManager.get_block_id("FARM_LAND"), "solid", true])
 			is_punching = true
 			return true
 		else:
 			is_punching = true
 			return false
 	var final_item_name = StaticLoad.get_final_place_name_by_name(selected_item_bar_name)
-	var block_id = StaticLoad.get_block_id_by_name(final_item_name)
+	var block_id = DataManager.get_block_id(final_item_name)
 	var tile_map_layer_tmp = StaticLoad.game.tile_map_layer
 	if place_layer == "back":
 		tile_map_layer_tmp = StaticLoad.game.back_tile_map_layer
 	if not StaticLoad.game.check_place_block_state(block_pos, block_id, current_set_layer):
 		return false
 	if gamemode != "creative" and current_set_layer == "solid":
-		if not check_attached_block(block_pos, tile_map_layer_tmp) and StaticLoad.get_is_clingling_by_name(StaticLoad.get_block_name_by_id(block_id)) != "all" and StaticLoad.get_is_clingling_by_name(StaticLoad.get_block_name_by_id(block_id)) != "back":
+		if not check_attached_block(block_pos, tile_map_layer_tmp) and StaticLoad.get_is_clingling_by_name(DataManager.get_block_name(block_id)) != "all" and StaticLoad.get_is_clingling_by_name(DataManager.get_block_name(block_id)) != "back":
 			return false
 	if tile_map_layer_tmp.get_cell_source_id(block_pos) == -1 and StaticLoad.game.no_reach_tile_map_layer.get_cell_source_id(block_pos) == -1 and StaticLoad.block_ids.has(final_item_name):
 		if place_layer == "back":
@@ -1412,7 +1411,7 @@ func eat_food(args):
 		is_eating = false
 	hunger = new_hunger
 	eat_timer = 0
-	StaticLoad.game.sound_audio_manager.play_random_audio_at_position("random", "burp", position, 1)
+	AudioManager.play_random_audio_at_position("sound/random/burp", position, 1)
 
 func update_local_punch_timer():
 	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != player_peer_id:
@@ -1473,7 +1472,7 @@ func wear_inventory_amount(args):
 		StaticLoad.game.refresh_item_grid(sort)
 
 func server_breaking_tool(got_breaking_tool):
-	StaticLoad.game.sound_audio_manager.play_random_audio_at_position("random", "tool_break", position, 1)
+	AudioManager.play_random_audio_at_position("sound/random/tool_break", position, 1)
 	StaticLoad.game.summon_destroy_particle(position-Vector2(0,38), "item", got_breaking_tool)
 	attack_timer = 0
 	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1:
@@ -1756,7 +1755,7 @@ func get_item(args):
 	if item_bar_amounts[selected_item_grid] == 0:
 		item_bar_names[selected_item_grid] = "AIR"
 	if list[0] < amount and sound_on:
-		StaticLoad.game.sound_audio_manager.play_audio_static("player", "pop")
+		AudioManager.play_random_audio_at_position("sound/player/pop", position, 1)
 	#if list[0] < amount:
 		#if item_name == "LOG_OAK":
 			#var change_dict = {
@@ -1829,8 +1828,8 @@ func shoot_arrow():
 func summon_arrow(args):
 	if StaticLoad.is_muti_mode and not multiplayer.get_unique_id() == 1:
 		args[3] = Vector2(0, 0)
-	StaticLoad.game.sound_audio_manager.play_random_audio_at_position("random", "bow_shoot", position, 1)
-	var arrow = StaticLoad.arrow_scene.instantiate()
+	AudioManager.play_random_audio_at_position("sound/random/bow_shoot", position, 1)
+	var arrow = SceneManager.get_scene("entities/arrow").instantiate()
 	StaticLoad.game.arrows.add_child(arrow)
 	arrow.init(args)
 	StaticLoad.game.entities[arrow.get_uuid()] = arrow
@@ -1861,7 +1860,7 @@ func summon_item(args):
 		x_velocity = 0
 	var no_collect_time = args[4]
 	var uuid = args[5]
-	var item = StaticLoad.game.item_scene.instantiate()
+	var item = SceneManager.get_scene("entities/item").instantiate()
 	StaticLoad.game.items.add_child(item)
 	item.init([uuid, droppped_item_name, pos, amount, no_collect_time, x_velocity])
 	StaticLoad.game.entities[item.get_uuid()] = item
@@ -1954,7 +1953,7 @@ func set_name_label_modulate(color):
 func play_successful_hit_audio(args):
 	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != player_peer_id:
 		return
-	StaticLoad.game.sound_audio_manager.play_random_audio_at_position("random", "successful_hit", position, 1)
+	AudioManager.play_random_audio_at_position("sound/random/successful_hit", position, 1)
 
 func leave_server_and_destroy():
 	var tween1 = get_tree().create_tween()
@@ -1975,7 +1974,7 @@ func init_remote(got_data):
 	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == player_peer_id:
 		pass
 	else:
-		var player_icon_instance = StaticLoad.player_icon_scene.instantiate()
+		var player_icon_instance = SceneManager.get_scene("others/player_icon").instantiate()
 		StaticLoad.game.player_icons[player_name] = player_icon_instance
 		StaticLoad.game.mini_map_players.add_child(player_icon_instance)
 		var mini_map_camera_zoom = StaticLoad.game.mini_map_camera.zoom[0]
@@ -2003,7 +2002,7 @@ func init_remote(got_data):
 	if multiplayer.get_unique_id() == 1:
 		return
 	if not StaticLoad.game.online_ui_vbox_container.has_node(str(player_peer_id)):
-		var online_info_instance = StaticLoad.online_info_scene.instantiate()
+		var online_info_instance = SceneManager.get_scene("others/online_info").instantiate()
 		StaticLoad.game.online_ui_vbox_container.add_child(online_info_instance)
 		online_info_instance.name = str(player_peer_id)
 		online_info_instance.player_name.text = self.player_name
@@ -2012,7 +2011,7 @@ func init_remote(got_data):
 		StaticLoad.rpc_id(1, "request_for_ping", multiplayer.get_unique_id(), player_peer_id)
 
 func set_player_model_skin_by_texture_buffer(got_skin_texture_buffer):
-	var player_material = load("res://Assets/Materials/PlayerSkin.tres").duplicate(true)
+	var player_material = load("res://assets/Materials/PlayerSkin.tres").duplicate(true)
 	var skin_texture_image = Image.new()
 	skin_texture_image.load_png_from_buffer(got_skin_texture_buffer)
 	player_material.albedo_texture = ImageTexture.create_from_image(skin_texture_image)
@@ -2024,7 +2023,7 @@ func set_player_model_skin_by_texture_buffer(got_skin_texture_buffer):
 		StaticLoad.game.inventory_player_model_mesh.mesh.surface_set_material(0, player_material)
 
 func set_player_model_skin_by_texture(got_skin_texture):
-	var player_material = load("res://Assets/Materials/PlayerSkin.tres").duplicate(true)
+	var player_material = load("res://assets/materials/player_skin.tres").duplicate(true)
 	player_material.albedo_texture = got_skin_texture
 	player_model_mesh.mesh.surface_set_material(0, player_material)
 	if StaticLoad.game.player_icons.has(player_name):

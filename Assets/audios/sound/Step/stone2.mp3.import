@@ -3,12 +3,12 @@
 importer="mp3"
 type="AudioStreamMP3"
 uid="uid://exot8lexlwui"
-path="res://.godot/imported/stone2.mp3-8b2765de162310bd9e86bfc630ce1e9f.mp3str"
+path="res://.godot/imported/stone2.mp3-6b75a5577a0a15b40f66555a2a4967e7.mp3str"
 
 [deps]
 
-source_file="res://assets/audios/sound/Step/stone2.mp3"
-dest_files=["res://.godot/imported/stone2.mp3-8b2765de162310bd9e86bfc630ce1e9f.mp3str"]
+source_file="res://assets/audios/sound/step/stone2.mp3"
+dest_files=["res://.godot/imported/stone2.mp3-6b75a5577a0a15b40f66555a2a4967e7.mp3str"]
 
 [params]
 

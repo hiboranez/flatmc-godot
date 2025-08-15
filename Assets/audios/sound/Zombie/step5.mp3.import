@@ -3,12 +3,12 @@
 importer="mp3"
 type="AudioStreamMP3"
 uid="uid://d2uqme1dc4hlg"
-path="res://.godot/imported/step5.mp3-a87004349b2d752f5bdb7a12679096ca.mp3str"
+path="res://.godot/imported/step5.mp3-f319f9de4519d238092a4857b66ef7ff.mp3str"
 
 [deps]
 
-source_file="res://assets/audios/sound/Zombie/step5.mp3"
-dest_files=["res://.godot/imported/step5.mp3-a87004349b2d752f5bdb7a12679096ca.mp3str"]
+source_file="res://assets/audios/sound/zombie/step5.mp3"
+dest_files=["res://.godot/imported/step5.mp3-f319f9de4519d238092a4857b66ef7ff.mp3str"]
 
 [params]
 

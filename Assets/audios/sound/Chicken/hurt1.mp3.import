@@ -3,12 +3,12 @@
 importer="mp3"
 type="AudioStreamMP3"
 uid="uid://glmjwfc673xc"
-path="res://.godot/imported/hurt1.mp3-2c94af7bef518d4e3fd28ffd9b97c1d4.mp3str"
+path="res://.godot/imported/hurt1.mp3-c3c8666d00cfb283c1193ef7d4fcb247.mp3str"
 
 [deps]
 
-source_file="res://assets/audios/sound/Chicken/hurt1.mp3"
-dest_files=["res://.godot/imported/hurt1.mp3-2c94af7bef518d4e3fd28ffd9b97c1d4.mp3str"]
+source_file="res://assets/audios/sound/chicken/hurt1.mp3"
+dest_files=["res://.godot/imported/hurt1.mp3-c3c8666d00cfb283c1193ef7d4fcb247.mp3str"]
 
 [params]
 

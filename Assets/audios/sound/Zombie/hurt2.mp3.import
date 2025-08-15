@@ -3,12 +3,12 @@
 importer="mp3"
 type="AudioStreamMP3"
 uid="uid://badjna2rxjhyv"
-path="res://.godot/imported/hurt2.mp3-58c143e40c6c824329eb700326e16149.mp3str"
+path="res://.godot/imported/hurt2.mp3-04432f5688f3acc80d638fcc35c64f7f.mp3str"
 
 [deps]
 
-source_file="res://assets/audios/sound/Zombie/hurt2.mp3"
-dest_files=["res://.godot/imported/hurt2.mp3-58c143e40c6c824329eb700326e16149.mp3str"]
+source_file="res://assets/audios/sound/zombie/hurt2.mp3"
+dest_files=["res://.godot/imported/hurt2.mp3-04432f5688f3acc80d638fcc35c64f7f.mp3str"]
 
 [params]
 

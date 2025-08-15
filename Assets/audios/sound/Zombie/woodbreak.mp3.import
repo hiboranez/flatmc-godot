@@ -3,12 +3,12 @@
 importer="mp3"
 type="AudioStreamMP3"
 uid="uid://fwvqiyaw6waa"
-path="res://.godot/imported/woodbreak.mp3-8c4168332ba50812307ee14363d0dd8f.mp3str"
+path="res://.godot/imported/woodbreak.mp3-46e8e24e7746890d0828b58f8298a11d.mp3str"
 
 [deps]
 
-source_file="res://assets/audios/sound/Zombie/woodbreak.mp3"
-dest_files=["res://.godot/imported/woodbreak.mp3-8c4168332ba50812307ee14363d0dd8f.mp3str"]
+source_file="res://assets/audios/sound/zombie/woodbreak.mp3"
+dest_files=["res://.godot/imported/woodbreak.mp3-46e8e24e7746890d0828b58f8298a11d.mp3str"]
 
 [params]
 
