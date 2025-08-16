@@ -1,12 +1,5 @@
 extends GridContainer
 
-@onready var empty_hunger_tres = load("res://assets/textures/ui/empty_hunger.tres")
-@onready var half_hunger_tres = load("res://assets/textures/ui/half_hunger.tres")
-@onready var full_hunger_tres = load("res://assets/textures/ui/full_hunger.tres")
-@onready var hungry_empty_hunger_tres = load("res://assets/textures/ui/hungry_empty_hunger.tres")
-@onready var hungry_half_hunger_tres = load("res://assets/textures/ui/hungry_half_hunger.tres")
-@onready var hungry_full_hunger_tres = load("res://assets/textures/ui/hungry_full_hunger.tres")
-
 var empty_hungers
 var last_hunger = StaticLoad.DEFAULT_PLAYER_HEALTH
 var flash_timer: float = 0
@@ -29,31 +22,31 @@ func update_flash(delta):
 	if flash_timer < StaticLoad.FLOAT_DELTA:
 		for empty_hunger in empty_hungers:
 			if current_is_hungry:
-				empty_hunger.texture = hungry_empty_hunger_tres
+				empty_hunger.texture = TextureManager.get_texture("ui/hungerbar_hungry_hunger_background")
 			else:
-				empty_hunger.texture = empty_hunger_tres
+				empty_hunger.texture = TextureManager.get_texture("ui/hungerbar_hunger_background")
 		
 
 func update_hunger_bar():
 	var current_hunger = StaticLoad.game.player.hunger
 	if not current_is_hungry and StaticLoad.game.player.effect_dict["hungry"] > 0:
 		for empty_hunger in empty_hungers:
-			empty_hunger.texture = hungry_empty_hunger_tres
-			empty_hunger.get_node("HalfHunger").texture = hungry_half_hunger_tres
-			empty_hunger.get_node("FullHunger").texture = hungry_full_hunger_tres
+			empty_hunger.texture = TextureManager.get_texture("ui/hungerbar_hungry_hunger_background")
+			empty_hunger.get_node("HalfHunger").texture = TextureManager.get_texture("ui/hungerbar_hungry_half_hunger")
+			empty_hunger.get_node("FullHunger").texture = TextureManager.get_texture("ui/hungerbar_hungry_full_hunger")
 			current_is_hungry = (StaticLoad.game.player.effect_dict["hungry"] > 0)
 	elif current_is_hungry and StaticLoad.game.player.effect_dict["hungry"] <= 0:
 		for empty_hunger in empty_hungers:
-			empty_hunger.texture = empty_hunger_tres
-			empty_hunger.get_node("HalfHunger").texture = half_hunger_tres
-			empty_hunger.get_node("FullHunger").texture = full_hunger_tres
+			empty_hunger.texture = TextureManager.get_texture("ui/hungerbar_hunger_background")
+			empty_hunger.get_node("HalfHunger").texture = TextureManager.get_texture("ui/hungerbar_half_hunger")
+			empty_hunger.get_node("FullHunger").texture = TextureManager.get_texture("ui/hungerbar_full_hunger")
 			current_is_hungry = (StaticLoad.game.player.effect_dict["hungry"] > 0)
 	if current_hunger == last_hunger:
 		return
 	if current_hunger > last_hunger:
 		flash_timer = StaticLoad.UI_FLASH_TIME
 		for empty_hunger in empty_hungers:
-			empty_hunger.texture = StaticLoad.flash_hunger_texture
+			empty_hunger.texture = TextureManager.get_texture("ui/hungerbar_flash_hunger_background")
 	
 	var full_hunger_amount = StaticLoad.game.player.hunger / 2
 	if full_hunger_amount < 0:

@@ -5,7 +5,6 @@ extends Menu
 
 func _ready() -> void:
 	menu_controller = $MenuController
-	menu_control.visible = false
 	menu_controller.menu = self
 	scale_factor = SettingsManager.get_menu_scale_factor(SettingsManager.get_current_setting("gui_scale"))
 	

@@ -54,6 +54,8 @@ func load_terrain():
 		is_loaded_terrain = true
 
 func load_finished():
-	StaticLoad.game.unfreeze_game()
-	self.visible = false
 	set_process(false)
+	if menu != null:
+		await menu.menu_controller.vanish("menu")
+	StaticLoad.game.unfreeze_game()
+	

@@ -40,17 +40,10 @@ horizontal_alignment = 1
 metadata/_edit_use_anchors_ = true
 
 [node name="BackButton" parent="." instance=ExtResource("4_0wnyq")]
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
 offset_left = -500.0
 offset_top = 53.0
 offset_right = 500.0
 offset_bottom = 163.0
-grow_horizontal = 2
-grow_vertical = 2
 text = "BACK"
 
 [connection signal="pressed" from="BackButton" to="." method="_on_force_quit_back_button_pressed"]

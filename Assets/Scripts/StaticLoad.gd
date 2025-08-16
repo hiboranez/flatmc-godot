@@ -230,8 +230,6 @@ func _ready() -> void:
 		default_achievement_progress_dict[achievement] = {}
 		for progress in achievement_progress_dict[achievement]:
 			default_achievement_progress_dict[achievement][progress] = false
-	for i in range(8):
-		destroy_light_textures[i+1] = load("res://assets/textures/ui/destroy"+str(i+1)+".png") as Texture2D
 	default_icon_gray_image = load("res://assets/textures/ui/default_offline_server_icon.png").get_image()
 	game_icon_image = load("res://assets/textures/ui/fmc_icon.png").get_image()
 	
@@ -624,6 +622,36 @@ func get_level_by_ping(ping: int):
 	else:
 		return 1	
 
+func start_server():
+	reset_signals(true)
+	if not is_dedicated_server:
+		game.broadcast_to_person(game.player.player_name, tr("OPENING_PORT"), "gold")
+		game.op_list.append(game.player.player_name.to_lower())
+	var port
+	if is_dedicated_server:
+		port = 12419
+	else:
+		port = get_random_available_port()
+	var err = multiplayer_peer.create_server(port)
+	if OK != err:
+		game.broadcast_to_person(game.player.player_name, tr("OPEN_SERVER_FAIL_1")+StaticLoad.HOST_IP+":"+str(port)+tr("OPEN_SERVER_FAIL_2"), "pink")
+		return
+	if is_dedicated_server:
+		var text = "["+get_time_string(false)+" INFO]: "+"Server opened on 127.0.0.1:12419"
+		print(text)
+		ServerManager.record_server_log(Time.get_date_string_from_system(), text)
+	multiplayer.multiplayer_peer = multiplayer_peer
+	if not is_dedicated_server:
+		game.pause_button_5.state = ButtonState.DISABLED
+		game.broadcast_to_person(game.player.player_name, tr("OPEN_SERVER_SUCCESS")+StaticLoad.HOST_IP+":"+str(port), "chartreuse")
+	var ping_instance = SceneManager.get_scene("others/ping").instantiate()
+	ping_instance.target_peer_id = 1
+	ping_instance.ping = 1
+	ping_peer_dict[1] = ping_instance
+	StaticLoad.is_muti_mode = true
+	ServiceDiscovery.server_data = {'Name':str(port)+"|"+game.player.player_name}
+	ServiceDiscovery.set_server()
+
 func dedicated_server_create_world():
 	var world_name = "world"
 	world_path = "user://worlds/"+world_name
@@ -745,10 +773,11 @@ func client_got_server_disconnected():
 
 func client_got_connected_to_server():
 	#print(multiplayer.get_unique_id()," : connected to server")
-	if has_node("/root/LoadingServerUI"):
-		get_node("/root/LoadingServerUI").is_server_connected = true
-	elif has_node("/root/MutiMenu/ServerDetect"):
-		get_node("/root/MutiMenu/ServerDetect").is_server_connected = true
+	ServerManager.is_server_connected = true
+	#if has_node("/root/LoadingServerUI"):
+		#get_node("/root/LoadingServerUI").is_server_connected = true
+	#elif has_node("/root/MutiMenu/ServerDetect"):
+		#get_node("/root/MutiMenu/ServerDetect").is_server_connected = true
 
 func client_got_connection_failed():
 	#print(multiplayer.get_unique_id(), " : connection_failed")
@@ -948,7 +977,7 @@ func reply_for_update_chunk(is_init, x_chunk, y_chunk, blocks_list, entities_to_
 			game.undead_mobs.add_child(entity_instance)
 			entity_instance.init([entity["uuid"], entity["entity_name"], entity["position"], entity["health"]])
 			game.entities[entity_instance.get_uuid()] = entity_instance
-		else:
+		elif entity["type"] != "player":
 			var entity_instance = SceneManager.get_scene("entities/"+entity["type"]).instantiate()
 			game.mobs.add_child(entity_instance)
 			entity_instance.init([entity["uuid"], entity["entity_name"], entity["position"], entity["health"]])
@@ -1061,15 +1090,15 @@ func request_for_connect_state_check(client_peer_id, player_name, version_tmp):
 @rpc("authority", "call_remote", "reliable", 1)
 func reply_for_connect_state_check(state):
 	if state == "state_checked":
-		get_node("/root/LoadingServerUI").is_server_state_checked = true
+		ServerManager.is_server_state_checked = true
 	elif state == "same_player_name":
-		get_node("/root/LoadingServerUI").connect_interrupt_reason = "same_player_name"
+		ServerManager.connect_interrupt_reason = "same_player_name"
 	elif state == "version_conflict":
-		get_node("/root/LoadingServerUI").connect_interrupt_reason = "version_conflict"
+		ServerManager.connect_interrupt_reason = "version_conflict"
 	elif state == "player_name_exceed":
-		get_node("/root/LoadingServerUI").connect_interrupt_reason = "player_name_exceed"
+		ServerManager.connect_interrupt_reason = "player_name_exceed"
 	elif state == "player_name_space":
-		get_node("/root/LoadingServerUI").connect_interrupt_reason = "player_name_space"
+		ServerManager.connect_interrupt_reason = "player_name_space"
 
 # 二次握手：获取玩家信息
 @rpc("any_peer", "call_remote", "reliable", 1)

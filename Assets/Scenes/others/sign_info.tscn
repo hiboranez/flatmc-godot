@@ -1,11 +1,9 @@
-[gd_scene load_steps=9 format=3 uid="uid://elm51fobipaj"]
+[gd_scene load_steps=7 format=3 uid="uid://elm51fobipaj"]
 
 [ext_resource type="Script" path="res://assets/scripts/SignInfo.gd" id="1_ny3u6"]
 [ext_resource type="Texture2D" uid="uid://xgaxyh00ns4a" path="res://assets/textures/ui/achievement_background_small.png" id="2_qt3jb"]
 [ext_resource type="Script" path="res://assets/scripts/drag_scroll.gd" id="3_t8axx"]
 [ext_resource type="FontFile" uid="uid://dahei608a1d0f" path="res://assets/fonts/MinecraftAE.ttf" id="4_tymm3"]
-[ext_resource type="Script" path="res://assets/scripts/GameButton.gd" id="5_jeq3m"]
-[ext_resource type="Texture2D" uid="uid://b6wbqichdrhpr" path="res://assets/textures/ui/game_button_normal.png" id="6_p5ynh"]
 
 [sub_resource type="Theme" id="Theme_5lh5j"]
 
@@ -74,43 +72,5 @@ theme_override_fonts/normal_font = ExtResource("4_tymm3")
 theme_override_font_sizes/normal_font_size = 25
 theme_override_styles/normal = SubResource("StyleBoxEmpty_aqpjs")
 fit_content = true
-
-[node name="Button" type="Button" parent="NinePatchRect"]
-visible = false
-light_mask = 4
-z_index = 1
-layout_mode = 1
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -76.0
-offset_right = 76.0
-offset_bottom = 29.0
-grow_horizontal = 2
-grow_vertical = 0
-size_flags_horizontal = 6
-focus_mode = 0
-theme_override_colors/icon_disabled_color = Color(0.784314, 0.784314, 0.784314, 1)
-theme_override_fonts/font = ExtResource("4_tymm3")
-theme_override_font_sizes/font_size = 15
-text = "MODIFY"
-flat = true
-icon_alignment = 1
-expand_icon = true
-script = ExtResource("5_jeq3m")
-
-[node name="Icon" type="TextureRect" parent="NinePatchRect/Button"]
-light_mask = 4
-z_index = -1
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-texture = ExtResource("6_p5ynh")
-expand_mode = 1
 
 [connection signal="gui_input" from="NinePatchRect/ScrollContainer" to="NinePatchRect/ScrollContainer" method="_on_scrollcontainer_gui_input"]

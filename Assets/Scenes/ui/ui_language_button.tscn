@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://assets/scripts/ui_language_button.gd" id="1_lnye3"]
 [ext_resource type="FontVariation" uid="uid://ck7gxbgy6ry6b" path="res://assets/fonts/fmcles.tres" id="2_0jr8y"]
-[ext_resource type="Texture2D" uid="uid://rwn5mc2as2oo" path="res://assets/textures/ui/ui_button_hovered.png" id="2_xdnfm"]
+[ext_resource type="Texture2D" uid="uid://rwn5mc2as2oo" path="res://assets/textures/ui/ui_normal_button_hovered.png" id="2_xdnfm"]
 
 [node name="UILanguageButton" type="Control"]
 self_modulate = Color(1, 1, 1, 0)

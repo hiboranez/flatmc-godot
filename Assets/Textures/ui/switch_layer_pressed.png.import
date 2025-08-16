@@ -2,16 +2,12 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://d0qo7ll3p7krq"
-path="res://.godot/imported/switch_layer_pressed.png-b214ef9f671dfd42ca37d09552b37ee7.ctex"
-metadata={
-"vram_texture": false
-}
+uid="uid://dk7r6cae76hcj"
+valid=false
 
 [deps]
 
 source_file="res://assets/textures/ui/switch_layer_pressed.png"
-dest_files=["res://.godot/imported/switch_layer_pressed.png-b214ef9f671dfd42ca37d09552b37ee7.ctex"]
 
 [params]
 

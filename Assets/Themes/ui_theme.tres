@@ -1,7 +1,7 @@
 [gd_resource type="Theme" load_steps=13 format=3 uid="uid://do1xfdxltcv20"]
 
 [ext_resource type="FontVariation" uid="uid://ck7gxbgy6ry6b" path="res://assets/fonts/fmcles.tres" id="1_6wq5p"]
-[ext_resource type="Texture2D" uid="uid://deimirpdo6qxu" path="res://assets/textures/ui/small_arrow.png" id="1_eunar"]
+[ext_resource type="Texture2D" uid="uid://deimirpdo6qxu" path="res://assets/textures/ui/dropdown_icon.png" id="1_eunar"]
 [ext_resource type="FontFile" uid="uid://dahei608a1d0f" path="res://assets/fonts/MinecraftAE.ttf" id="1_mslcl"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qdthc"]

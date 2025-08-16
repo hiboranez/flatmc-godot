@@ -2,7 +2,7 @@
 
 [ext_resource type="FontVariation" uid="uid://ck7gxbgy6ry6b" path="res://assets/fonts/fmcles.tres" id="1_aemtk"]
 [ext_resource type="Script" path="res://assets/scripts/ui_line_edit.gd" id="1_wsyc3"]
-[ext_resource type="Texture2D" uid="uid://ciujo1nm3h45y" path="res://assets/textures/ui/ui_button_disabled.png" id="3_5lt08"]
+[ext_resource type="Texture2D" uid="uid://ciujo1nm3h45y" path="res://assets/textures/ui/ui_normal_button_disabled.png" id="3_5lt08"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_hegfc"]
 content_margin_left = 25.0

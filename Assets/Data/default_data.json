@@ -30,7 +30,8 @@
 	],
 		
 	"step_types" : {
-		"GRASS_SNOWED": "snow"
+		"GRASS_SNOWED": "snow",
+		"GLOWSTONE": "stone",
 	},
 	
 	"dig_types" : {

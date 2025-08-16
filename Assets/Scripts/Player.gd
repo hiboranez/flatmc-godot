@@ -347,7 +347,7 @@ func update_sound_by_data():
 			if last_eat_stage != eat_stage:
 				last_eat_stage = eat_stage
 				StaticLoad.game.summon_destroy_particle(position-Vector2(0,38), "item", in_hand_item_name)
-				AudioManager.play_random_audio_at_position("sound/random/eat", position, 1)
+				AudioManager.play_random_audio_at_position("sound/player/eat", position, 1)
 	if abs(current_velocity.y) < StaticLoad.FLOAT_DELTA and last_velocity.y > 1100:
 		if last_velocity.y > 1300:
 			AudioManager.play_random_audio_at_position("sound/damage/fallbig", position, 1)
@@ -756,8 +756,6 @@ func place_sign(args):
 		StaticLoad.game.sign_edit_text.text = ""
 		StaticLoad.game.sign_edit_ui.visible = true
 		StaticLoad.game.is_sign_edit = true
-		if not Input.emulate_mouse_from_touch:
-			Input.emulate_mouse_from_touch = true
 
 func change_sign_text(args):
 	var sign_chunk_pos = args[0]
@@ -1374,7 +1372,7 @@ func place_block(block_pos):
 	if gamemode != "creative" and current_set_layer == "solid":
 		if not check_attached_block(block_pos, tile_map_layer_tmp) and StaticLoad.get_is_clingling_by_name(DataManager.get_block_name(block_id)) != "all" and StaticLoad.get_is_clingling_by_name(DataManager.get_block_name(block_id)) != "back":
 			return false
-	if tile_map_layer_tmp.get_cell_source_id(block_pos) == -1 and StaticLoad.game.no_reach_tile_map_layer.get_cell_source_id(block_pos) == -1 and StaticLoad.block_ids.has(final_item_name):
+	if tile_map_layer_tmp.get_cell_source_id(block_pos) == -1 and StaticLoad.game.no_reach_tile_map_layer.get_cell_source_id(block_pos) == -1 and DataManager.block_id_dict.has(final_item_name):
 		if place_layer == "back":
 			var solid_block_id = StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.tile_map_layer.get_cell_atlas_coords(block_pos))
 			if StaticLoad.get_is_untouchable_by_id(solid_block_id):
@@ -1549,7 +1547,7 @@ func player_die(reason, object):
 	if is_other:
 		return
 	for button in StaticLoad.game.death_ui_flow_container.get_children():
-		button.disabled = true
+		button.state = ButtonState.DISABLED
 	StaticLoad.game.die_no_press_timer = 1
 	if StaticLoad.game.is_pause:
 		StaticLoad.game.pause_ui.visible = false
@@ -1575,8 +1573,6 @@ func player_die(reason, object):
 		StaticLoad.game.item_bar_panel.visible = true
 	StaticLoad.game.death_ui.visible = true
 	StaticLoad.game.is_input_frozen = true
-	if StaticLoad.is_on_mobile_platform:
-		Input.emulate_mouse_from_touch = true
 	StaticLoad.game.move_input_list.clear()
 
 func send_message(message: String):
@@ -1887,8 +1883,6 @@ func respawn(is_animation = true):
 	freeze()
 	position = Vector2(0, -24)
 	if not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id() == player_peer_id):
-		if StaticLoad.is_on_mobile_platform:
-			Input.emulate_mouse_from_touch = false
 		StaticLoad.game.death_ui.visible = false
 		StaticLoad.game.is_input_frozen = false
 		StaticLoad.game.move_input_list.clear()
@@ -2011,7 +2005,7 @@ func init_remote(got_data):
 		StaticLoad.rpc_id(1, "request_for_ping", multiplayer.get_unique_id(), player_peer_id)
 
 func set_player_model_skin_by_texture_buffer(got_skin_texture_buffer):
-	var player_material = load("res://assets/Materials/PlayerSkin.tres").duplicate(true)
+	var player_material = load("res://assets/materials/player_skin.tres").duplicate(true)
 	var skin_texture_image = Image.new()
 	skin_texture_image.load_png_from_buffer(got_skin_texture_buffer)
 	player_material.albedo_texture = ImageTexture.create_from_image(skin_texture_image)

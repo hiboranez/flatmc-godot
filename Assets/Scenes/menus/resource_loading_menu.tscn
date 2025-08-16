@@ -1,7 +1,7 @@
 [gd_scene load_steps=7 format=3 uid="uid://bgm73bxj7hg4h"]
 
 [ext_resource type="Script" path="res://assets/scripts/menus/resource_loading_menu.gd" id="1_8bvvj"]
-[ext_resource type="Texture2D" uid="uid://u3bl4iixr7sl" path="res://assets/textures/ui/hiboranez_logo.png" id="2_abd7k"]
+[ext_resource type="Texture2D" uid="uid://u3bl4iixr7sl" path="res://assets/textures/ui/fmc_author_logo.png" id="2_abd7k"]
 [ext_resource type="FontVariation" uid="uid://ck7gxbgy6ry6b" path="res://assets/fonts/fmcles.tres" id="3_d3x46"]
 [ext_resource type="Texture2D" uid="uid://nutwg38cremd" path="res://assets/textures/ui/loading_frame.png" id="4_gps12"]
 

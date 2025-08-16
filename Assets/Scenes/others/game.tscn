@@ -1,20 +1,20 @@
-[gd_scene load_steps=113 format=4 uid="uid://2hv5eany3vpf"]
+[gd_scene load_steps=111 format=4 uid="uid://2hv5eany3vpf"]
 
 [ext_resource type="Script" path="res://assets/scripts/Game.gd" id="1_hi01f"]
 [ext_resource type="Texture2D" uid="uid://bl0xpo1luvy7i" path="res://assets/textures/ui/white_background.png" id="2_a0lnw"]
 [ext_resource type="TileSet" uid="uid://bggb6d560u47r" path="res://assets/TileSets/official_new.tres" id="4_r3duk"]
-[ext_resource type="Texture2D" uid="uid://cyxsiopf4sp15" path="res://assets/textures/ui/selected_block_ui.png" id="5_u3jgx"]
-[ext_resource type="Texture2D" uid="uid://d2h42yenvpbpg" path="res://assets/textures/ui/virtual_button_panel.png" id="6_uije1"]
+[ext_resource type="Texture2D" uid="uid://cyxsiopf4sp15" path="res://assets/textures/ui/block_selection_frame.png" id="5_u3jgx"]
+[ext_resource type="Texture2D" uid="uid://d2h42yenvpbpg" path="res://assets/textures/ui/oreui_normal_button.png" id="6_uije1"]
 [ext_resource type="FontFile" uid="uid://dahei608a1d0f" path="res://assets/fonts/MinecraftAE.ttf" id="7_7xgpv"]
 [ext_resource type="Texture2D" uid="uid://3ixafl6xterh" path="res://assets/textures/ui/menu_button.png" id="8_ecxgn"]
-[ext_resource type="Texture2D" uid="uid://dl6nsmyrgcqvc" path="res://assets/textures/ui/chat_button_BE2.png" id="9_qtx65"]
+[ext_resource type="Texture2D" uid="uid://dl6nsmyrgcqvc" path="res://assets/textures/ui/oreui_chat_button.png" id="9_qtx65"]
 [ext_resource type="Texture2D" uid="uid://bquvercx5u4ap" path="res://assets/textures/ui/oreui_sprint_button.png" id="10_mvjb7"]
-[ext_resource type="Texture2D" uid="uid://ieeo5rsm5wx2" path="res://assets/textures/ui/sneak.png" id="11_mkd5u"]
-[ext_resource type="Texture2D" uid="uid://bwwlvjsw0jgsh" path="res://assets/textures/ui/switch_layer.png" id="12_pkjcn"]
-[ext_resource type="Texture2D" uid="uid://c54jual1nitga" path="res://assets/textures/ui/joystick_panel.png" id="13_qn7bk"]
+[ext_resource type="Texture2D" uid="uid://ieeo5rsm5wx2" path="res://assets/textures/ui/oreui_sneak_button.png" id="11_mkd5u"]
+[ext_resource type="Texture2D" uid="uid://bwwlvjsw0jgsh" path="res://assets/textures/ui/oreui_switch_layer_button.png" id="12_pkjcn"]
+[ext_resource type="Texture2D" uid="uid://c54jual1nitga" path="res://assets/textures/ui/oreui_joystick_panel.png" id="13_qn7bk"]
 [ext_resource type="Script" path="res://assets/scripts/JoystickPanel.gd" id="14_jrbss"]
-[ext_resource type="Texture2D" uid="uid://d3qitq50bfota" path="res://assets/textures/ui/joystick.png" id="15_ay7bo"]
-[ext_resource type="Texture2D" uid="uid://bkljnb17sf2d4" path="res://assets/textures/ui/jump.png" id="16_vknxq"]
+[ext_resource type="Texture2D" uid="uid://d3qitq50bfota" path="res://assets/textures/ui/oreui_joystick.png" id="15_ay7bo"]
+[ext_resource type="Texture2D" uid="uid://bkljnb17sf2d4" path="res://assets/textures/ui/oreui_jump_button.png" id="16_vknxq"]
 [ext_resource type="Texture2D" uid="uid://dhefkaoror8o7" path="res://assets/textures/ui/oreui_attack_button.png" id="17_nmjrd"]
 [ext_resource type="Texture2D" uid="uid://de2qux5nqcvuc" path="res://assets/textures/ui/widgets.png" id="18_k6emc"]
 [ext_resource type="Texture2D" uid="uid://co37dhrfnga6g" path="res://assets/textures/backgrounds/Sky.png" id="19_e1l03"]
@@ -27,41 +27,39 @@
 [ext_resource type="Script" path="res://assets/scripts/MouseItem.gd" id="26_rbrxh"]
 [ext_resource type="PackedScene" uid="uid://dpnk4w3vgwyft" path="res://assets/scenes/others/item_icon.tscn" id="27_rov1w"]
 [ext_resource type="Script" path="res://assets/scripts/HealthBar.gd" id="28_wg72r"]
-[ext_resource type="Texture2D" uid="uid://5bfw6khqwyta" path="res://assets/textures/ui/empty_heart.png" id="29_qrp53"]
-[ext_resource type="Texture2D" uid="uid://d0y2isr3jncsw" path="res://assets/textures/ui/full_heart.png" id="30_o5wgn"]
-[ext_resource type="Texture2D" uid="uid://22byb2ldosct" path="res://assets/textures/ui/half_heart.png" id="31_t8qwx"]
+[ext_resource type="Texture2D" uid="uid://5bfw6khqwyta" path="res://assets/textures/ui/healthbar_heart_background.png" id="29_qrp53"]
+[ext_resource type="Texture2D" uid="uid://d0y2isr3jncsw" path="res://assets/textures/ui/healthbar_full_heart.png" id="30_o5wgn"]
+[ext_resource type="Texture2D" uid="uid://22byb2ldosct" path="res://assets/textures/ui/healthbar_half_heart.png" id="31_t8qwx"]
 [ext_resource type="Script" path="res://assets/scripts/HungerBar.gd" id="32_5jr8a"]
-[ext_resource type="Texture2D" uid="uid://vutqtrlf4jep" path="res://assets/textures/ui/empty_hunger.tres" id="33_5lnmg"]
-[ext_resource type="Texture2D" uid="uid://cw4hajmw2amfp" path="res://assets/textures/ui/half_hunger.tres" id="34_5r8ne"]
-[ext_resource type="Texture2D" uid="uid://jb117pr4fbf" path="res://assets/textures/ui/full_hunger.tres" id="35_bicyk"]
-[ext_resource type="Texture2D" uid="uid://bvpnht645lbjk" path="res://assets/textures/ui/empty_hunger.png" id="36_ga7n5"]
-[ext_resource type="Texture2D" uid="uid://0bdl2cih0wwr" path="res://assets/textures/ui/half_hunger.png" id="37_8b1g1"]
-[ext_resource type="Texture2D" uid="uid://brqtbd5fcst4m" path="res://assets/textures/ui/full_hunger.png" id="38_t0ril"]
-[ext_resource type="Texture2D" uid="uid://cs3fok1sy1875" path="res://assets/textures/ui/hotbar_attack_indicator_background.png" id="39_us5h2"]
+[ext_resource type="Texture2D" uid="uid://bvpnht645lbjk" path="res://assets/textures/ui/hungerbar_hunger_background.png" id="36_ga7n5"]
+[ext_resource type="Texture2D" uid="uid://0bdl2cih0wwr" path="res://assets/textures/ui/hungerbar_half_hunger.png" id="37_8b1g1"]
+[ext_resource type="Texture2D" uid="uid://brqtbd5fcst4m" path="res://assets/textures/ui/hungerbar_full_hunger.png" id="38_t0ril"]
+[ext_resource type="Texture2D" uid="uid://cs3fok1sy1875" path="res://assets/textures/ui/hotbar_attack_indicator_background_icon.png" id="39_us5h2"]
 [ext_resource type="Shader" path="res://assets/Shaders/VProgress.gdshader" id="40_5qald"]
-[ext_resource type="Texture2D" uid="uid://2bluohf2j7v0" path="res://assets/textures/ui/hotbar_attack_indicator_progress.png" id="41_c5c41"]
-[ext_resource type="Texture2D" uid="uid://4xb0w6so7sy1" path="res://assets/textures/ui/item_bar_left.png" id="42_ij817"]
+[ext_resource type="Texture2D" uid="uid://2bluohf2j7v0" path="res://assets/textures/ui/hotbar_attack_indicator_progress_icon.png" id="41_c5c41"]
+[ext_resource type="Texture2D" uid="uid://4xb0w6so7sy1" path="res://assets/textures/ui/hotbar_left_slot.png" id="42_ij817"]
 [ext_resource type="Script" path="res://assets/scripts/ItemGrid.gd" id="43_b78ha"]
 [ext_resource type="Texture2D" uid="uid://cb3c6rd57rnuu" path="res://assets/textures/ui/transparent_background.png" id="44_o8myi"]
-[ext_resource type="Texture2D" uid="uid://bcse7navndyua" path="res://assets/textures/ui/selected_item_bar.png" id="45_fmuui"]
-[ext_resource type="Texture2D" uid="uid://dggx0hmyex5x6" path="res://assets/textures/ui/item_bar.png" id="46_wt8yl"]
-[ext_resource type="Texture2D" uid="uid://dk0idgw4v2ve2" path="res://assets/textures/ui/item_bar_right.png" id="47_n2hfv"]
-[ext_resource type="Texture2D" uid="uid://18usdnqj200e" path="res://assets/textures/ui/more_ui.png" id="48_7oouv"]
+[ext_resource type="Texture2D" uid="uid://bcse7navndyua" path="res://assets/textures/ui/hotbar_slot_selected.png" id="45_fmuui"]
+[ext_resource type="Texture2D" uid="uid://dggx0hmyex5x6" path="res://assets/textures/ui/hotbar_middle_slot.png" id="46_wt8yl"]
+[ext_resource type="Texture2D" uid="uid://dk0idgw4v2ve2" path="res://assets/textures/ui/hotbar_right_slot.png" id="47_n2hfv"]
+[ext_resource type="Texture2D" uid="uid://18usdnqj200e" path="res://assets/textures/ui/hotbar_ellipsis_icon.png" id="48_7oouv"]
 [ext_resource type="TileSet" uid="uid://cgix634ydmo4p" path="res://assets/TileSets/official_old.tres" id="49_eljbd"]
 [ext_resource type="Texture2D" uid="uid://cknufva8e2vcv" path="res://assets/textures/ui/panel.png" id="50_jsfj1"]
 [ext_resource type="PackedScene" uid="uid://bhyxpmrih3ijn" path="res://assets/scenes/others/inventory_grid.tscn" id="51_wmj8i"]
-[ext_resource type="Texture2D" uid="uid://bl03d3dhjffag" path="res://assets/textures/ui/arrow_panel.png" id="52_duq8y"]
+[ext_resource type="Texture2D" uid="uid://bl03d3dhjffag" path="res://assets/textures/ui/inventory_arrow_icon.png" id="52_duq8y"]
 [ext_resource type="Material" uid="uid://xffbfmc4nkjq" path="res://assets/materials/player_skin.tres" id="53_tvvpq"]
 [ext_resource type="PackedScene" uid="uid://dx77wbim6mom7" path="res://assets/scenes/others/ItemInHand.tscn" id="54_t6f7b"]
-[ext_resource type="Texture2D" uid="uid://p66pcctndsk1" path="res://assets/textures/ui/close_button.png" id="55_yjry8"]
+[ext_resource type="Texture2D" uid="uid://p66pcctndsk1" path="res://assets/textures/ui/ui_close_button.png" id="55_yjry8"]
 [ext_resource type="Script" path="res://assets/scripts/TouchButton.gd" id="56_lknot"]
-[ext_resource type="Texture2D" uid="uid://5usjvr6nn8e1" path="res://assets/textures/ui/tab_panel_right.png" id="57_43aeu"]
+[ext_resource type="Texture2D" uid="uid://5usjvr6nn8e1" path="res://assets/textures/ui/ui_right_tab.png" id="57_43aeu"]
 [ext_resource type="Texture2D" uid="uid://bhf0vdb84mjy8" path="res://assets/ResourcePacks/official_old/Blocks/sign.png" id="58_ehp5l"]
-[ext_resource type="Script" path="res://assets/scripts/GameButton.gd" id="59_qs45l"]
-[ext_resource type="Texture2D" uid="uid://b6wbqichdrhpr" path="res://assets/textures/ui/game_button_normal.png" id="60_u6c54"]
-[ext_resource type="Texture2D" uid="uid://b14xkgu1d1omr" path="res://assets/textures/backgrounds/stone_wall.png" id="61_ogfed"]
-[ext_resource type="Texture2D" uid="uid://ovfrn8y2usm7" path="res://assets/textures/ui/achievement_background.png" id="62_q7440"]
+[ext_resource type="PackedScene" uid="uid://df6k4i6hb4a6p" path="res://assets/scenes/ui/ui_normal_button.tscn" id="60_y17ix"]
+[ext_resource type="Texture2D" uid="uid://bd725jipoa84m" path="res://assets/textures/backgrounds/dirt_wall.png" id="61_pgago"]
+[ext_resource type="Texture2D" uid="uid://ovfrn8y2usm7" path="res://assets/textures/ui/achievement_icon_atlas.png" id="62_q7440"]
+[ext_resource type="PackedScene" uid="uid://t7ibude322ee" path="res://assets/scenes/ui/drag_scroll_container.tscn" id="63_4yal1"]
 [ext_resource type="PackedScene" uid="uid://c2xj82s25mlo" path="res://assets/scenes/menus/settings_menu.tscn" id="63_xnywc"]
+[ext_resource type="PackedScene" uid="uid://b6xpmcn8ertif" path="res://assets/scenes/others/achievement_info.tscn" id="64_ajc62"]
 [ext_resource type="PackedScene" uid="uid://dgk4c6ipagqa4" path="res://assets/scenes/menus/languages_menu.tscn" id="69_6o2gp"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_6ugo2"]
@@ -102,6 +100,9 @@ border_width_top = 7
 border_width_right = 10
 border_width_bottom = 5
 border_color = Color(0, 0, 0, 0.588235)
+
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_rsif6"]
+load_path = "res://.godot/imported/full_hunger.png-c9e0833e50650891c91a82439142fe9c.ctex"
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_eoy31"]
 shader = ExtResource("40_5qald")
@@ -1691,8 +1692,6 @@ size = Vector2(150, 150)
 atlas = ExtResource("62_q7440")
 region = Rect2(0, 0, 256, 202)
 
-[sub_resource type="Theme" id="Theme_640ft"]
-
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_pjen4"]
 content_margin_left = 0.0
 content_margin_top = 0.0
@@ -1751,7 +1750,6 @@ texture = ExtResource("5_u3jgx")
 light_mask = 4
 
 [node name="MobileUI" type="CanvasLayer" parent="."]
-visible = false
 
 [node name="FunctionButtons" type="Control" parent="MobileUI"]
 layout_mode = 3
@@ -2907,7 +2905,7 @@ script = ExtResource("32_5jr8a")
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-texture = ExtResource("33_5lnmg")
+texture = ExtResource("36_ga7n5")
 expand_mode = 5
 
 [node name="HalfHunger" type="TextureRect" parent="GameUI/ItemBarPanel/HungerBar/EmptyHunger1"]
@@ -2923,7 +2921,7 @@ offset_right = 19.705
 offset_bottom = 18.575
 grow_horizontal = 2
 grow_vertical = 2
-texture = ExtResource("34_5r8ne")
+texture = ExtResource("37_8b1g1")
 expand_mode = 1
 
 [node name="FullHunger" type="TextureRect" parent="GameUI/ItemBarPanel/HungerBar/EmptyHunger1"]
@@ -2939,7 +2937,7 @@ offset_right = 19.84
 offset_bottom = 19.0
 grow_horizontal = 2
 grow_vertical = 2
-texture = ExtResource("35_bicyk")
+texture = SubResource("CompressedTexture2D_rsif6")
 expand_mode = 1
 
 [node name="EmptyHunger2" type="TextureRect" parent="GameUI/ItemBarPanel/HungerBar"]
@@ -5357,40 +5355,18 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 0.392157)
 
-[node name="Button" type="Button" parent="SignEditUI/TextureRect"]
-z_index = 1
-custom_minimum_size = Vector2(600, 108)
+[node name="UINormalButton" parent="SignEditUI/TextureRect" instance=ExtResource("60_y17ix")]
+custom_minimum_size = Vector2(800, 100)
 layout_mode = 1
 anchors_preset = 7
-anchor_left = 0.5
 anchor_top = 1.0
-anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -300.0
-offset_top = -108.0
-offset_right = 300.0
-grow_horizontal = 2
+offset_left = -400.0
+offset_top = -100.0
+offset_right = 400.0
+offset_bottom = 0.0
 grow_vertical = 0
-size_flags_horizontal = 6
-focus_mode = 0
-theme_override_colors/icon_disabled_color = Color(0.784314, 0.784314, 0.784314, 1)
-theme_override_fonts/font = ExtResource("7_7xgpv")
-theme_override_font_sizes/font_size = 40
 text = "CONFIRM"
-flat = true
-icon_alignment = 1
-expand_icon = true
-script = ExtResource("59_qs45l")
-
-[node name="Icon" type="TextureRect" parent="SignEditUI/TextureRect/Button"]
-z_index = -1
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-texture = ExtResource("60_u6c54")
 
 [node name="PauseUI" type="CanvasLayer" parent="."]
 visible = false
@@ -5409,189 +5385,50 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -500.0
-offset_top = -374.0
-offset_right = 500.0
-offset_bottom = 294.0
+offset_left = -400.0
+offset_top = -350.0
+offset_right = 400.0
+offset_bottom = 270.0
 grow_horizontal = 2
 grow_vertical = 2
 size_flags_vertical = 4
 
-[node name="Button1" type="Button" parent="PauseUI/FlowContainer"]
-z_index = 1
-custom_minimum_size = Vector2(1000, 108)
+[node name="UINormalButton1" parent="PauseUI/FlowContainer" instance=ExtResource("60_y17ix")]
+custom_minimum_size = Vector2(800, 100)
 layout_mode = 2
-size_flags_horizontal = 6
-focus_mode = 0
-theme_override_colors/icon_disabled_color = Color(0.784314, 0.784314, 0.784314, 1)
-theme_override_fonts/font = ExtResource("7_7xgpv")
-theme_override_font_sizes/font_size = 40
 text = "CONTINUE_GAME"
-flat = true
-icon_alignment = 1
-expand_icon = true
-script = ExtResource("59_qs45l")
 
-[node name="Icon" type="TextureRect" parent="PauseUI/FlowContainer/Button1"]
-z_index = -1
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-texture = ExtResource("60_u6c54")
-
-[node name="Button2" type="Button" parent="PauseUI/FlowContainer"]
-z_index = 1
-custom_minimum_size = Vector2(1000, 108)
-layout_mode = 2
-size_flags_horizontal = 6
-focus_mode = 0
-theme_override_colors/icon_disabled_color = Color(0.784314, 0.784314, 0.784314, 1)
-theme_override_fonts/font = ExtResource("7_7xgpv")
-theme_override_font_sizes/font_size = 40
-text = "OPTIONS"
-flat = true
-icon_alignment = 1
-expand_icon = true
-script = ExtResource("59_qs45l")
-
-[node name="Icon" type="TextureRect" parent="PauseUI/FlowContainer/Button2"]
-z_index = -1
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-texture = ExtResource("60_u6c54")
-
-[node name="Button3" type="Button" parent="PauseUI/FlowContainer"]
-z_index = 1
-custom_minimum_size = Vector2(1000, 108)
-layout_mode = 2
-size_flags_horizontal = 6
-focus_mode = 0
-theme_override_colors/icon_disabled_color = Color(0.784314, 0.784314, 0.784314, 1)
-theme_override_fonts/font = ExtResource("7_7xgpv")
-theme_override_font_sizes/font_size = 40
-text = "LANGUAGE"
-flat = true
-icon_alignment = 1
-expand_icon = true
-script = ExtResource("59_qs45l")
-
-[node name="Icon" type="TextureRect" parent="PauseUI/FlowContainer/Button3"]
-z_index = -1
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-texture = ExtResource("60_u6c54")
-
-[node name="Button4" type="Button" parent="PauseUI/FlowContainer"]
-z_index = 1
-custom_minimum_size = Vector2(1000, 108)
-layout_mode = 2
-size_flags_horizontal = 6
-focus_mode = 0
-theme_override_colors/icon_disabled_color = Color(0.784314, 0.784314, 0.784314, 1)
-theme_override_fonts/font = ExtResource("7_7xgpv")
-theme_override_font_sizes/font_size = 40
-text = "ACHIEVEMENT"
-flat = true
-icon_alignment = 1
-expand_icon = true
-script = ExtResource("59_qs45l")
-
-[node name="Icon" type="TextureRect" parent="PauseUI/FlowContainer/Button4"]
-z_index = -1
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-texture = ExtResource("60_u6c54")
-
-[node name="Button5" type="Button" parent="PauseUI/FlowContainer"]
-z_index = 1
-custom_minimum_size = Vector2(1000, 108)
-layout_mode = 2
-size_flags_horizontal = 6
-focus_mode = 0
-theme_override_colors/icon_disabled_color = Color(0.784314, 0.784314, 0.784314, 1)
-theme_override_fonts/font = ExtResource("7_7xgpv")
-theme_override_font_sizes/font_size = 40
-text = "OPEN_TO_LAN"
-flat = true
-icon_alignment = 1
-expand_icon = true
-script = ExtResource("59_qs45l")
-
-[node name="Icon" type="TextureRect" parent="PauseUI/FlowContainer/Button5"]
-z_index = -1
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-texture = ExtResource("60_u6c54")
-
-[node name="Button6" type="Button" parent="PauseUI/FlowContainer"]
-z_index = 1
-custom_minimum_size = Vector2(1000, 108)
-layout_mode = 2
-size_flags_horizontal = 6
-focus_mode = 0
-theme_override_colors/icon_disabled_color = Color(0.784314, 0.784314, 0.784314, 1)
-theme_override_fonts/font = ExtResource("7_7xgpv")
-theme_override_font_sizes/font_size = 40
-text = "SAVE_AND_QUIT"
-flat = true
-icon_alignment = 1
-expand_icon = true
-script = ExtResource("59_qs45l")
-
-[node name="Icon" type="TextureRect" parent="PauseUI/FlowContainer/Button6"]
-z_index = -1
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-texture = ExtResource("60_u6c54")
-
-[node name="Button7" type="Button" parent="PauseUI/FlowContainer"]
+[node name="UINormalButton2" parent="PauseUI/FlowContainer" instance=ExtResource("60_y17ix")]
 visible = false
-z_index = 1
-custom_minimum_size = Vector2(1000, 108)
+custom_minimum_size = Vector2(800, 100)
 layout_mode = 2
-size_flags_horizontal = 6
-focus_mode = 0
-theme_override_colors/icon_disabled_color = Color(0.784314, 0.784314, 0.784314, 1)
-theme_override_fonts/font = ExtResource("7_7xgpv")
-theme_override_font_sizes/font_size = 40
-text = "DISCONNECT"
-flat = true
-icon_alignment = 1
-expand_icon = true
-script = ExtResource("59_qs45l")
+text = "SETTINGS"
 
-[node name="Icon" type="TextureRect" parent="PauseUI/FlowContainer/Button7"]
-z_index = -1
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-texture = ExtResource("60_u6c54")
+[node name="UINormalButton3" parent="PauseUI/FlowContainer" instance=ExtResource("60_y17ix")]
+custom_minimum_size = Vector2(800, 100)
+layout_mode = 2
+text = "LANGUAGES"
+
+[node name="UINormalButton4" parent="PauseUI/FlowContainer" instance=ExtResource("60_y17ix")]
+custom_minimum_size = Vector2(800, 100)
+layout_mode = 2
+text = "ACHIEVEMENT"
+
+[node name="UINormalButton5" parent="PauseUI/FlowContainer" instance=ExtResource("60_y17ix")]
+custom_minimum_size = Vector2(800, 100)
+layout_mode = 2
+text = "OPEN_TO_LAN"
+
+[node name="UINormalButton6" parent="PauseUI/FlowContainer" instance=ExtResource("60_y17ix")]
+custom_minimum_size = Vector2(800, 100)
+layout_mode = 2
+text = "SAVE_AND_QUIT"
+
+[node name="UINormalButton7" parent="PauseUI/FlowContainer" instance=ExtResource("60_y17ix")]
+visible = false
+custom_minimum_size = Vector2(800, 100)
+layout_mode = 2
+text = "DISCONNECT"
 
 [node name="AchievementUI" type="CanvasLayer" parent="."]
 visible = false
@@ -5616,7 +5453,7 @@ offset_right = 512.0
 offset_bottom = 400.0
 grow_horizontal = 2
 grow_vertical = 2
-texture = ExtResource("61_ogfed")
+texture = ExtResource("61_pgago")
 expand_mode = 1
 stretch_mode = 1
 
@@ -5660,65 +5497,41 @@ theme_override_styles/normal = SubResource("StyleBoxEmpty_eci0f")
 text = "ACHIEVEMENT_TITLE"
 vertical_alignment = 1
 
-[node name="Button1" type="Button" parent="AchievementUI/StoneWall/Frame"]
-z_index = 1
-custom_minimum_size = Vector2(800, 80)
+[node name="UINormalButton" parent="AchievementUI/StoneWall/Frame" instance=ExtResource("60_y17ix")]
+custom_minimum_size = Vector2(800, 100)
 layout_mode = 1
 anchors_preset = 7
-anchor_left = 0.5
 anchor_top = 1.0
-anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -399.5
-offset_top = -113.0
-offset_right = 400.5
-offset_bottom = -33.0
-grow_horizontal = 2
+offset_top = -124.0
+offset_bottom = -24.0
 grow_vertical = 0
-size_flags_horizontal = 6
-focus_mode = 0
-theme_override_colors/icon_disabled_color = Color(0.784314, 0.784314, 0.784314, 1)
-theme_override_fonts/font = ExtResource("7_7xgpv")
-theme_override_font_sizes/font_size = 40
 text = "CONFIRM"
-flat = true
-icon_alignment = 1
-expand_icon = true
-script = ExtResource("59_qs45l")
 
-[node name="Icon" type="TextureRect" parent="AchievementUI/StoneWall/Frame/Button1"]
-z_index = -1
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
+[node name="ColorRect" type="ColorRect" parent="AchievementUI/StoneWall"]
+layout_mode = 2
+offset_left = 76.0
+offset_top = 79.0
+offset_right = 76.0
+offset_bottom = 79.0
 grow_horizontal = 2
 grow_vertical = 2
-texture = ExtResource("60_u6c54")
 
-[node name="ScrollContainer" type="ScrollContainer" parent="AchievementUI/StoneWall"]
-z_index = 2
+[node name="DragScrollContainer" parent="AchievementUI/StoneWall" instance=ExtResource("63_4yal1")]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -464.0
-offset_top = -368.0
-offset_right = 464.0
-offset_bottom = 288.0
-grow_horizontal = 2
-grow_vertical = 2
-theme = SubResource("Theme_640ft")
-horizontal_scroll_mode = 0
-script = ExtResource("25_t0v7h")
+offset_left = 46.0
+offset_top = 29.0
+offset_right = -52.0
+offset_bottom = -120.0
 
-[node name="VBoxContainer" type="VBoxContainer" parent="AchievementUI/StoneWall/ScrollContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="AchievementUI/StoneWall/DragScrollContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_constants/separation = 0
+
+[node name="AchievementInfo" parent="AchievementUI/StoneWall/DragScrollContainer/VBoxContainer" instance=ExtResource("64_ajc62")]
+layout_mode = 2
 
 [node name="DeathUI" type="CanvasLayer" parent="."]
 visible = false
@@ -5762,83 +5575,24 @@ vertical_alignment = 1
 [node name="FlowContainer" type="FlowContainer" parent="DeathUI/VSplitContainer"]
 z_index = 1
 layout_mode = 2
+size_flags_horizontal = 4
 size_flags_vertical = 4
 
-[node name="Button1" type="Button" parent="DeathUI/VSplitContainer/FlowContainer"]
-z_index = 1
-custom_minimum_size = Vector2(1000, 108)
+[node name="UINormalButton1" parent="DeathUI/VSplitContainer/FlowContainer" instance=ExtResource("60_y17ix")]
+custom_minimum_size = Vector2(800, 100)
 layout_mode = 2
-size_flags_horizontal = 6
-focus_mode = 0
-theme_override_colors/icon_disabled_color = Color(0.784314, 0.784314, 0.784314, 1)
-theme_override_fonts/font = ExtResource("7_7xgpv")
-theme_override_font_sizes/font_size = 40
 text = "RESPAWN"
-flat = true
-icon_alignment = 1
-expand_icon = true
-script = ExtResource("59_qs45l")
 
-[node name="Icon" type="TextureRect" parent="DeathUI/VSplitContainer/FlowContainer/Button1"]
-z_index = -1
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-texture = ExtResource("60_u6c54")
-
-[node name="Button2" type="Button" parent="DeathUI/VSplitContainer/FlowContainer"]
-z_index = 1
-custom_minimum_size = Vector2(1000, 108)
+[node name="UINormalButton2" parent="DeathUI/VSplitContainer/FlowContainer" instance=ExtResource("60_y17ix")]
+custom_minimum_size = Vector2(800, 100)
 layout_mode = 2
-size_flags_horizontal = 6
-focus_mode = 0
-theme_override_colors/icon_disabled_color = Color(0.784314, 0.784314, 0.784314, 1)
-theme_override_fonts/font = ExtResource("7_7xgpv")
-theme_override_font_sizes/font_size = 40
 text = "SAVE_AND_QUIT"
-flat = true
-icon_alignment = 1
-expand_icon = true
-script = ExtResource("59_qs45l")
 
-[node name="Icon" type="TextureRect" parent="DeathUI/VSplitContainer/FlowContainer/Button2"]
-z_index = -1
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-texture = ExtResource("60_u6c54")
-
-[node name="Button3" type="Button" parent="DeathUI/VSplitContainer/FlowContainer"]
+[node name="UINormalButton3" parent="DeathUI/VSplitContainer/FlowContainer" instance=ExtResource("60_y17ix")]
 visible = false
-z_index = 1
-custom_minimum_size = Vector2(1000, 108)
+custom_minimum_size = Vector2(800, 100)
 layout_mode = 2
-size_flags_horizontal = 6
-focus_mode = 0
-theme_override_colors/icon_disabled_color = Color(0.784314, 0.784314, 0.784314, 1)
-theme_override_fonts/font = ExtResource("7_7xgpv")
-theme_override_font_sizes/font_size = 40
 text = "DISCONNECT"
-flat = true
-icon_alignment = 1
-expand_icon = true
-script = ExtResource("59_qs45l")
-
-[node name="Icon" type="TextureRect" parent="DeathUI/VSplitContainer/FlowContainer/Button3"]
-z_index = -1
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-texture = ExtResource("60_u6c54")
 
 [node name="SettingsMenu" parent="." instance=ExtResource("63_xnywc")]
 visible = false
@@ -5895,16 +5649,15 @@ visible = false
 [connection signal="focus_entered" from="GameUI/CraftingUI/Panel/CraftingCloseButton" to="GameUI/CraftingUI/Panel/CraftingCloseButton" method="_touch_button_focus_entered"]
 [connection signal="pressed" from="GameUI/CraftingUI/Panel/CraftingCloseButton/CraftingCloseButton" to="GameUI/CraftingUI/Panel/CraftingCloseButton" method="_touch_button_focus_entered"]
 [connection signal="gui_input" from="SignEditUI/TextureRect/ScrollContainer" to="SignEditUI/TextureRect/ScrollContainer" method="_on_scrollcontainer_gui_input"]
-[connection signal="pressed" from="SignEditUI/TextureRect/Button" to="." method="_on_sign_edit_confirm_button_pressed"]
-[connection signal="pressed" from="PauseUI/FlowContainer/Button1" to="." method="_on_pause_button_1_pressed"]
-[connection signal="pressed" from="PauseUI/FlowContainer/Button2" to="." method="_on_pause_button_2_pressed"]
-[connection signal="pressed" from="PauseUI/FlowContainer/Button3" to="." method="_on_pause_button_3_pressed"]
-[connection signal="pressed" from="PauseUI/FlowContainer/Button4" to="." method="_on_pause_button_4_pressed"]
-[connection signal="pressed" from="PauseUI/FlowContainer/Button5" to="." method="_on_pause_button_5_pressed"]
-[connection signal="pressed" from="PauseUI/FlowContainer/Button6" to="." method="_on_pause_button_6_pressed"]
-[connection signal="pressed" from="PauseUI/FlowContainer/Button7" to="." method="_on_pause_button_7_pressed"]
-[connection signal="pressed" from="AchievementUI/StoneWall/Frame/Button1" to="." method="_on_achievement_button_1_pressed"]
-[connection signal="gui_input" from="AchievementUI/StoneWall/ScrollContainer" to="AchievementUI/StoneWall/ScrollContainer" method="_on_scrollcontainer_gui_input"]
-[connection signal="pressed" from="DeathUI/VSplitContainer/FlowContainer/Button1" to="." method="_on_death_button_1_pressed"]
-[connection signal="pressed" from="DeathUI/VSplitContainer/FlowContainer/Button2" to="." method="_on_death_button_2_pressed"]
-[connection signal="pressed" from="DeathUI/VSplitContainer/FlowContainer/Button3" to="." method="_on_death_button_3_pressed"]
+[connection signal="pressed" from="SignEditUI/TextureRect/UINormalButton" to="." method="_on_sign_edit_confirm_button_pressed"]
+[connection signal="pressed" from="PauseUI/FlowContainer/UINormalButton1" to="." method="_on_pause_button_1_pressed"]
+[connection signal="pressed" from="PauseUI/FlowContainer/UINormalButton2" to="." method="_on_pause_button_2_pressed"]
+[connection signal="pressed" from="PauseUI/FlowContainer/UINormalButton3" to="." method="_on_pause_button_3_pressed"]
+[connection signal="pressed" from="PauseUI/FlowContainer/UINormalButton4" to="." method="_on_pause_button_4_pressed"]
+[connection signal="pressed" from="PauseUI/FlowContainer/UINormalButton5" to="." method="_on_pause_button_5_pressed"]
+[connection signal="pressed" from="PauseUI/FlowContainer/UINormalButton6" to="." method="_on_pause_button_6_pressed"]
+[connection signal="pressed" from="PauseUI/FlowContainer/UINormalButton7" to="." method="_on_pause_button_7_pressed"]
+[connection signal="pressed" from="AchievementUI/StoneWall/Frame/UINormalButton" to="." method="_on_achievement_button_1_pressed"]
+[connection signal="pressed" from="DeathUI/VSplitContainer/FlowContainer/UINormalButton1" to="." method="_on_death_button_1_pressed"]
+[connection signal="pressed" from="DeathUI/VSplitContainer/FlowContainer/UINormalButton2" to="." method="_on_death_button_2_pressed"]
+[connection signal="pressed" from="DeathUI/VSplitContainer/FlowContainer/UINormalButton3" to="." method="_on_death_button_3_pressed"]

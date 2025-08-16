@@ -1,6 +1,6 @@
 [gd_scene load_steps=6 format=3 uid="uid://dimh4elfrl7m5"]
 
-[ext_resource type="Texture2D" uid="uid://ovfrn8y2usm7" path="res://assets/textures/ui/achievement_background.png" id="1_3int6"]
+[ext_resource type="Texture2D" uid="uid://ovfrn8y2usm7" path="res://assets/textures/ui/achievement_icon_atlas.png" id="1_3int6"]
 [ext_resource type="PackedScene" uid="uid://dpnk4w3vgwyft" path="res://assets/scenes/others/item_icon.tscn" id="2_t1jfx"]
 [ext_resource type="Script" path="res://assets/scripts/AchievementGet.gd" id="2_td4ak"]
 [ext_resource type="FontFile" uid="uid://dahei608a1d0f" path="res://assets/fonts/MinecraftAE.ttf" id="3_whe8e"]

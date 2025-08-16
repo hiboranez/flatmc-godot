@@ -25,11 +25,11 @@ func _process(delta: float) -> void:
 	if scroll_state != prev_scroll_state:
 		match scroll_state:
 			ButtonState.NORMAL:
-				scroll.texture = TextureManager.get_texture("ui/ui_button")
+				scroll.texture = TextureManager.get_texture("ui/ui_normal_button")
 			ButtonState.HOVERD:
-				scroll.texture = TextureManager.get_texture("ui/ui_button_hovered")
+				scroll.texture = TextureManager.get_texture("ui/ui_normal_button_hovered")
 			ButtonState.DISABLED:
-				scroll.texture = TextureManager.get_texture("ui/ui_button_disabled")
+				scroll.texture = TextureManager.get_texture("ui/ui_normal_button_disabled")
 		prev_scroll_state = scroll_state
 
 func _gui_input(event: InputEvent) -> void:

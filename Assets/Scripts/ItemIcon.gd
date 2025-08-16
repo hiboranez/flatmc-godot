@@ -29,7 +29,7 @@ func init_icon(block_name):
 			$SubViewportContainer.visible = false
 	elif StaticLoad.get_item_model_type_by_name(block_name.to_upper()) == 3:
 		item_mesh.mesh = load("res://assets/Meshs/BlockMesh.tres").duplicate(true)
-		var block_material = load("res://assets/Materials/BlockModel.tres").duplicate(true)
+		var block_material = load("res://assets/materials/BlockModel.tres").duplicate(true)
 		var block_texture = load("res://assets/ResourcePacks/"+SettingsManager.get_current_setting("resource_pack")+"/ModelBlocks/"+block_name.to_lower()+".png")
 		if block_texture != null:
 			block_material.albedo_texture = block_texture

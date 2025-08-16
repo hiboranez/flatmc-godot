@@ -2,7 +2,7 @@
 
 [ext_resource type="FontFile" uid="uid://dahei608a1d0f" path="res://assets/fonts/MinecraftAE.ttf" id="1_o2lu4"]
 [ext_resource type="Script" path="res://assets/scripts/OnlineInfo.gd" id="1_rq3an"]
-[ext_resource type="Texture2D" uid="uid://eb2hdkojpck2" path="res://assets/textures/ui/icons.png" id="2_uk7ui"]
+[ext_resource type="Texture2D" uid="uid://eb2hdkojpck2" path="res://assets/textures/ui/hud_icon_atlas.png" id="2_uk7ui"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_vjqkh"]
 content_margin_left = 15.0

@@ -9,7 +9,7 @@ func init_light(new_light_name, new_block_pos, new_sort):
 	name = new_light_name
 	position = block_pos * 50
 	if sort > 0:
-		texture = StaticLoad.destroy_light_textures[sort]
+		texture = TextureManager.get_block_crack_texture(sort)
 	enabled = true
 
 func update_block_pos(got_block_pos):

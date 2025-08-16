@@ -1,7 +1,7 @@
 [gd_scene load_steps=12 format=3 uid="uid://du2661adlbfc7"]
 
 [ext_resource type="Script" path="res://assets/scripts/DeathParticle.gd" id="1_yq4hu"]
-[ext_resource type="Texture2D" uid="uid://bo14nwudx2ec3" path="res://assets/textures/ui/particles.png" id="2_aehll"]
+[ext_resource type="Texture2D" uid="uid://bo14nwudx2ec3" path="res://assets/textures/ui/particle_icon_atlas.png" id="2_aehll"]
 
 [sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_2xuqn"]
 particle_flag_disable_z = true

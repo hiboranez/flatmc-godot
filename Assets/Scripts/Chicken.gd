@@ -685,7 +685,7 @@ func die(reason, object):
 	destroy_entity([])
 
 func set_entity_model_skin_by_texture(got_skin_texture):
-	var entity_material = load("res://assets/Materials/Chicken.tres").duplicate(true)
+	var entity_material = load("res://assets/materials/Chicken.tres").duplicate(true)
 	entity_material.albedo_texture = got_skin_texture
 	entity_model_mesh.mesh.surface_set_material(0, entity_material)
 

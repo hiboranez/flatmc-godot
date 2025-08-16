@@ -31,12 +31,12 @@ extends Node2D
 @onready var details_chunk = $GameUI/Details/Chunk
 @onready var details_fps = $GameUI/Details/Fps
 @onready var language_ui = $LanguagesMenu
-@onready var pause_button_4 = $PauseUI/FlowContainer/Button4
-@onready var pause_button_5 = $PauseUI/FlowContainer/Button5
-@onready var pause_button_6 = $PauseUI/FlowContainer/Button6
-@onready var pause_button_7 = $PauseUI/FlowContainer/Button7
-@onready var death_button_2 = $DeathUI/VSplitContainer/FlowContainer/Button2
-@onready var death_button_3 = $DeathUI/VSplitContainer/FlowContainer/Button3
+@onready var pause_button_4 = $PauseUI/FlowContainer/UINormalButton4
+@onready var pause_button_5 = $PauseUI/FlowContainer/UINormalButton5
+@onready var pause_button_6 = $PauseUI/FlowContainer/UINormalButton6
+@onready var pause_button_7 = $PauseUI/FlowContainer/UINormalButton7
+@onready var death_button_2 = $DeathUI/VSplitContainer/FlowContainer/UINormalButton2
+@onready var death_button_3 = $DeathUI/VSplitContainer/FlowContainer/UINormalButton3
 @onready var players = $Players
 @onready var mobile_ui = $MobileUI
 @onready var move_panel = $MobileUI/MovePanel
@@ -84,7 +84,7 @@ extends Node2D
 @onready var attack_indicator_progress = $GameUI/ItemBarPanel/AttackIcon/AttackIndicatorProgress
 @onready var death_ui_flow_container = $DeathUI/VSplitContainer/FlowContainer
 @onready var achievement_ui = $AchievementUI
-@onready var achievement_scroll_box_container = $AchievementUI/StoneWall/ScrollContainer/VBoxContainer
+@onready var achievement_scroll_box_container = $AchievementUI/StoneWall/DragScrollContainer/VBoxContainer
 @onready var path_2d = $StaticBackground/Path2D
 @onready var moon_path = $StaticBackground/Path2D/MoonPath
 @onready var sun_path = $StaticBackground/Path2D/SunPath
@@ -286,6 +286,7 @@ func _exit_tree():
 		set_block_thread.wait_to_finish()
 
 func _ready() -> void:
+	StaticLoad.is_in_game = true
 	StaticLoad.update_game_node()
 	StaticLoad.update_select_world_path()
 	Input.set_emulate_mouse_from_touch(false)
@@ -295,10 +296,14 @@ func _ready() -> void:
 	if StaticLoad.is_muti_mode:
 		var loading_ui = SceneManager.get_scene("menus/loading_server_menu").instantiate()
 		add_child(loading_ui)
+		if get_tree() != null:
+			await get_tree().process_frame
 	else:
 		freeze_game()
 		var loading_ui = SceneManager.get_scene("menus/loading_world_menu").instantiate()
 		add_child(loading_ui)
+		if get_tree() != null:
+			await get_tree().process_frame
 		if StaticLoad.is_dedicated_server:
 			init_game_as_dedicated_server()
 		else:
@@ -334,7 +339,6 @@ func _process(delta: float) -> void:
 	process_mouse_action()
 	process_touch_input()
 	process_drop_action()
-	rectify_emulate_mouse_from_touch()
 
 func process_tick_cycle():
 	while(true):
@@ -459,7 +463,7 @@ func update_die_no_press_timer():
 		die_no_press_timer -= get_process_delta_time()
 	elif die_no_press_timer < 0:
 		for button in death_ui_flow_container.get_children():
-			button.disabled = false
+			button.state = ButtonState.NORMAL
 		die_no_press_timer = 0
 
 func update_nature_growth():
@@ -1056,7 +1060,7 @@ func process_drop_action():
 		player.item_bar_names[selected_item_grid_tmp] = "AIR"
 		StaticLoad.game.refresh_item_grid(selected_item_grid_tmp)
 		inventory_show_grids.get_node("InventoryGrid"+str(selected_item_grid_tmp)).init_inventory_grid(player.item_bar_names[selected_item_grid_tmp], player.item_bar_amounts[selected_item_grid_tmp])
-		AudioManager.play_static_audio("player/pop")
+		AudioManager.play_static_audio("sound/player/pop")
 		drop_timer = 0
 
 func update_health_hunger_bar():
@@ -1649,7 +1653,7 @@ func _input(event: InputEvent) -> void:
 							player.item_bar_names[select_sort] = "AIR"
 						refresh_item_grid(select_sort)
 	
-	if event is InputEventMouseMotion and not is_input_frozen and not player.is_dead:
+	if event is InputEventMouseMotion and not is_input_frozen and player != null and not player.is_dead:
 		set_block_selection_pos(get_local_mouse_position(), true)
 	
 	if Input.is_action_just_pressed("esc"):
@@ -2523,7 +2527,7 @@ func update_destroy_ui():
 			if destroy_light_names.has(peer_id):
 				if destroy_light_names[peer_id].sort != destroy_sort:
 					destroy_light_names[peer_id].update_block_pos(player_selected_block_pos)
-					destroy_light_names[peer_id].set_texture(StaticLoad.destroy_light_textures[destroy_sort])
+					destroy_light_names[peer_id].set_texture(TextureManager.get_block_crack_texture(destroy_sort))
 					#var old_destroy_light = destroy_light_names[peer_id]
 					#destroy_light_names.erase(peer_id)
 					#old_destroy_light.queue_free()
@@ -2790,6 +2794,8 @@ func init_game_as_single():
 					#else:
 						#StaticLoad.create_entity([entity_info[0], uuid, entity_info[1], entity_info[2], entity_info[3]])
 			loaded_chunk_num += 1
+			if get_tree() != null:
+				await get_tree().process_frame
 	for x in range(x_player_chunk-render_chunk_tmp, x_player_chunk+render_chunk_tmp+1):
 		var min_y: int = 2000000
 		for chunk_name in loaded_success_chunk_list:
@@ -2841,8 +2847,6 @@ func init_game_as_client():
 	mini_map_on = config.get_value("settings", "mini_map", SettingsManager.get_default_setting("mini_map"))
 	mini_map_zoom = float(config.get_value("settings", "mini_map_zoom", SettingsManager.get_default_setting("mini_map_zoom")))
 	smooth_lighting_on = config.get_value("settings", "smooth_lighting", SettingsManager.get_default_setting("smooth_lighting"))
-	AudioManager.volume_db = linear_to_db(int(config.get_value("settings", "bgm_volume", SettingsManager.get_default_setting("bgm_volume")))/50.0)
-	AudioManager.volume_db = linear_to_db(int(config.get_value("settings", "sound_volume", SettingsManager.get_default_setting("sound_volume")))/50.0)
 	var mini_map_zoom_tmp = mini_map_zoom/100
 	mini_map_camera.zoom = Vector2(mini_map_zoom_tmp, mini_map_zoom_tmp)
 	var icon_scale = StaticLoad.MINI_MAP_SCALE_FACTOR/mini_map_camera.zoom[0]
@@ -2919,9 +2923,9 @@ func create_player(peer_id = 1):
 		player.init_local(peer_id)
 	else:
 		player_instance.is_other = true
-		var skin_texture = load(StaticLoad.default_skin_path) as Texture2D
+		var skin_texture = TextureManager.get_texture("skins/steve_"+SettingsManager.get_current_setting("resource_pack").replace("official_", ""))
 		player_instance.set_player_model_skin_by_texture(skin_texture)
-		skin_texture = Image.load_from_file(StaticLoad.default_skin_path)
+		skin_texture = skin_texture.get_image()
 		player_instance.skin_texture_buffer = skin_texture.save_png_to_buffer()
 		var tween1 = get_tree().create_tween()
 		tween1.tween_method(player_instance.set_shader_transparent_intensity, 1.0, 0.0, StaticLoad.TELEPORT_TIME/2.0)
@@ -3083,16 +3087,6 @@ func refresh_item_grid(sort):
 				item_grid_tmp.get_node("Amount").text = str(item_amount)
 				item_grid_tmp.get_node("Amount").visible = true
 
-func rectify_emulate_mouse_from_touch():
-	if not StaticLoad.is_on_mobile_platform:
-		return
-	if is_crafting or is_map or is_pause or is_chat or is_inventory or is_sign_edit:
-		if not Input.emulate_mouse_from_touch:
-			reset_touch(true)
-	else:
-		if Input.emulate_mouse_from_touch:
-			reset_touch(false)
-
 func reset_touch(is_open_mouse_emulate):
 	for touch in touch_list:
 		var time_counter = touch_time_counters.get_node(str(touch.index))
@@ -3128,7 +3122,7 @@ func update_jump_button():
 	if player.is_flying:
 		move_jump_button_icon.texture = TextureManager.get_texture("ui/oreui_flyingascend_button")
 	else:
-		move_jump_button_icon.texture = TextureManager.get_texture("ui/jump")
+		move_jump_button_icon.texture = TextureManager.get_texture("ui/oreui_jump_button")
 
 func update_local_player_data():
 	if player.is_dead or player.is_frozen or is_input_frozen:
@@ -3202,7 +3196,7 @@ func update_local_player_data():
 
 func init_infinite_container():
 	var count = 0
-	for block in StaticLoad.block_ids:
+	for block in DataManager.block_id_dict:
 		if block == "AIR":
 			continue
 		if block == "MISSING_TEXTURE":
@@ -3410,6 +3404,8 @@ func update_new_chunk(is_pre_load: bool):
 							var block_list = value_list[2]
 							set_chunk(Vector2i(x, y), block_list)
 							loaded_chunk_num += 1
+							if get_tree() != null:
+								await get_tree().process_frame
 							create_chunk_entities(str(x)+"."+str(y), chunk_config)
 							#var chunk_entity_list = chunk_config.get_value("chunk", "entity_list")
 							#if chunk_entity_list != null:
@@ -3426,6 +3422,8 @@ func update_new_chunk(is_pre_load: bool):
 							var chunk = WorldManager.generate_chunk(Vector2i(x, y), world_info_dictionary["seed"], world_info_dictionary["world_type"])
 							set_chunk(Vector2i(x, y), chunk)
 							loaded_chunk_num += 1
+							if get_tree() != null:
+								await get_tree().process_frame
 							var value_dict = {
 									"blocks" : chunk[0],
 									"no_reach_blocks" : chunk[1],
@@ -4250,12 +4248,13 @@ func _on_pause_button_1_pressed() -> void:
 
 func _on_pause_button_2_pressed() -> void:
 	AudioManager.play_static_audio("sound/ui/click")
-	settings_ui.load_in_game_settings()
 	settings_ui.visible = true
+	pause_ui.visible = false
 
 func _on_pause_button_3_pressed() -> void:
 	AudioManager.play_static_audio("sound/ui/click")
 	language_ui.visible = true
+	pause_ui.visible = false
 
 func _on_pause_button_4_pressed() -> void:
 	AudioManager.play_static_audio("sound/ui/click")
@@ -4490,7 +4489,7 @@ func _on_inventory_ui_dark_mask_gui_input(event: InputEvent) -> void:
 		return
 	if event.button_index == 1:
 		if player.mouse_item_amount > 0:
-			AudioManager.play_static_audio("player/pop")
+			AudioManager.play_static_audio("sound/player/pop")
 			player.drop_item(player.mouse_item_name, player.mouse_item_amount)
 			player.mouse_item_name = "AIR"
 			player.mouse_item_amount = 0
@@ -4517,7 +4516,7 @@ func _on_inventory_ui_hidden() -> void:
 	for item in pop_item_dict:
 		player.drop_item(item, pop_item_dict[item])
 	if is_to_pop:
-		AudioManager.play_static_audio("player/pop")
+		AudioManager.play_static_audio("sound/player/pop")
 	refresh_inventory_crafting_result()
 
 func _on_crafting_ui_hidden() -> void:
@@ -4542,7 +4541,7 @@ func _on_crafting_ui_hidden() -> void:
 	for item in pop_item_dict:
 		player.drop_item(item, pop_item_dict[item])
 	if is_to_pop:
-		AudioManager.play_static_audio("player/pop")
+		AudioManager.play_static_audio("sound/player/pop")
 	refresh_table_crafting_result()
 
 func _on_inventory_ui_visibility_changed() -> void:
@@ -4612,10 +4611,10 @@ func _on_mobile_run_button_pressed() -> void:
 	AudioManager.play_static_audio("sound/ui/click")
 	if is_mobile_running:
 		is_mobile_running = false
-		run_button_icon.texture = StaticLoad.run_button_texture
+		run_button_icon.texture = TextureManager.get_texture("ui/oreui_sprint_button_pressed")
 	else:
 		is_mobile_running = true
-		run_button_icon.texture = StaticLoad.run_button_pressed_texture
+		run_button_icon.texture = TextureManager.get_texture("ui/oreui_sprint_button")
 
 func _on_mobile_sneak_button_pressed() -> void:
 	if is_map or is_pause or is_chat or is_inventory or is_crafting or is_sign_edit:
@@ -4626,11 +4625,11 @@ func _on_mobile_sneak_button_pressed() -> void:
 		player.is_sneaking = true
 		if player.move_state == "run":
 			player.move_state = "walk"
-		sneak_button_icon.texture = StaticLoad.sneak_button_pressed_texture
+		sneak_button_icon.texture = TextureManager.get_texture("ui/oreui_sneak_button_pressed")
 	elif player.is_sneaking:
 		is_mobile_sneaking = false
 		player.is_sneaking = false
-		sneak_button_icon.texture = StaticLoad.sneak_button_texture
+		sneak_button_icon.texture = TextureManager.get_texture("ui/oreui_sneak_button")
 
 func _on_mobile_switch_layer_button_pressed() -> void:
 	if is_map or is_pause or is_chat or is_inventory or is_crafting or is_sign_edit:
@@ -4641,10 +4640,10 @@ func _on_mobile_switch_layer_button_pressed() -> void:
 		tile_map_layer.modulate = Color(0.393,0.393,0.393,1)
 		no_reach_tile_map_layer.modulate = Color(0.393,0.393,0.393,1)
 		back_tile_map_layer.modulate = Color(1,1,1,1)
-		switch_layer_button_icon.texture = StaticLoad.switch_layer_button_pressed_texture
+		switch_layer_button_icon.texture = TextureManager.get_texture("ui/oreui_switch_layer_button_pressed")
 	elif player.current_set_layer == "back":
 		player.current_set_layer = "solid"
 		tile_map_layer.modulate = Color(1,1,1,1)
 		no_reach_tile_map_layer.modulate = Color(1,1,1,1)
 		back_tile_map_layer.modulate = Color(0.393,0.393,0.393,1)
-		switch_layer_button_icon.texture = StaticLoad.switch_layer_button_texture
+		switch_layer_button_icon.texture = TextureManager.get_texture("ui/oreui_switch_layer_button")

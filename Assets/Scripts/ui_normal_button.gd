@@ -42,14 +42,16 @@ func _process(delta: float) -> void:
 	if state != prev_state:
 		match state:
 			ButtonState.NORMAL:
-				background_rect.texture = TextureManager.get_texture("ui/ui_button")
+				background_rect.texture = TextureManager.get_texture("ui/ui_normal_button")
 			ButtonState.HOVERD:
-				background_rect.texture = TextureManager.get_texture("ui/ui_button_hovered")
+				background_rect.texture = TextureManager.get_texture("ui/ui_normal_button_hovered")
 			ButtonState.DISABLED:
-				background_rect.texture = TextureManager.get_texture("ui/ui_button_disabled")
+				background_rect.texture = TextureManager.get_texture("ui/ui_normal_button_disabled")
 		prev_state = state
 
 func _gui_input(event: InputEvent) -> void:
+	if state == ButtonState.DISABLED:
+		return
 	if event is InputEventMouseButton:
 		if event.button_index == 1 and not event.pressed:
 			if Rect2(Vector2(), size).has_point(event.position):

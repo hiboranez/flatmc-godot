@@ -141,7 +141,17 @@ func _on_join_server_button_pressed() -> void:
 		return
 	for server_detect in StaticLoad.server_detects.get_children():
 		server_detect.disconnect_and_free()
-	SceneManager.change_scene("menus/loading_server_menu")
+	await menu.menu_controller.vanish("multi_game_panel")
+	var loading_server_panel = SceneManager.get_scene("panels/loading_server_panel").instantiate()
+	menu.panel_control_dict["loading_server_panel"] = loading_server_panel
+	menu.base_content_panel.set_content(loading_server_panel)
+	loading_server_panel.menu = menu
+	menu.base_content_panel.title = loading_server_panel.title
+	menu.base_content_panel.content_top_margin = loading_server_panel.content_top_margin
+	menu.base_content_panel.content_bottom_margin = loading_server_panel.content_bottom_margin
+	menu.base_content_panel.animated_refresh_size(loading_server_panel)
+	await menu.menu_controller.appear("loading_server_panel")
+	loading_server_panel.connect_server()
 
 func _on_refresh_button_pressed() -> void:
 	AudioManager.play_static_audio("sound/ui/click")

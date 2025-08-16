@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://assets/scripts/ui_world_button.gd" id="1_g4cby"]
 [ext_resource type="Texture2D" uid="uid://bmk3gvhnhpvqp" path="res://assets/textures/ui/default_world_icon.png" id="2_1hep8"]
-[ext_resource type="Texture2D" uid="uid://rwn5mc2as2oo" path="res://assets/textures/ui/ui_button_hovered.png" id="2_onamo"]
+[ext_resource type="Texture2D" uid="uid://rwn5mc2as2oo" path="res://assets/textures/ui/ui_normal_button_hovered.png" id="2_onamo"]
 [ext_resource type="FontVariation" uid="uid://ck7gxbgy6ry6b" path="res://assets/fonts/fmcles.tres" id="3_ng511"]
 
 [node name="UIWorldButton" type="Control"]

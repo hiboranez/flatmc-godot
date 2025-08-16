@@ -2,6 +2,8 @@ extends Node
 
 var texture_dict: Dictionary
 
+var block_crack_texture_dict: Dictionary
+
 func get_resource_amount() -> int:
 	var amount: int = 0
 	var texture_type_list = DirAccess.get_directories_at("res://assets/textures")
@@ -34,10 +36,16 @@ func update_resource() -> void:
 			texture_dict_tmp[texture_name] = load("res://assets/textures/"+texture_type+"/"+texture_file_name) as Texture2D
 			ResourceLoadingMenu.call_deferred("add_loaded_amount")
 		texture_dict[texture_type.to_lower()] = texture_dict_tmp
-
+	for i in range(8):
+		block_crack_texture_dict[i+1] = get_texture("ui/block_crack_stage_"+str(i+1))
 
 func get_texture(path: String) -> Texture2D:
 	if not path.contains("/"):
-		return
+		return null
 	var splits = path.split("/")
 	return texture_dict[splits[0]][splits[1]]
+
+func get_block_crack_texture(stage: int) -> Texture2D:
+	if not block_crack_texture_dict.has(stage):
+		return null
+	return block_crack_texture_dict[stage]

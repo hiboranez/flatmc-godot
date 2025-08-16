@@ -5,6 +5,10 @@ var server_type: String = ""
 var server_ip: String = ""
 var server_port: int = -1
 
+var connect_interrupt_reason: String = "null"
+var is_server_state_checked = false
+var is_server_connected = false
+
 func update_data(args: Dictionary) -> void:
 	if args.has("server_name") and args["server_name"] is String:
 		server_name = args["server_name"]
@@ -19,7 +23,7 @@ func update_data(args: Dictionary) -> void:
 
 func check_server_version(check_version):
 	var splits_1 = check_version.split(".")
-	var splits_2 = SettingsManager.get_default_setting("version").split(".")
+	var splits_2 = "0.2.0".split(".")
 	for i in range(3):
 		if splits_1[i] != splits_2[i]:
 			return false
@@ -61,7 +65,7 @@ func start_server():
 		#record_server_log(Time.get_date_string_from_system(), text)
 	#multiplayer.multiplayer_peer = multiplayer_peer
 	#if not is_dedicated_server:
-		#game.pause_button_5.disabled = true
+		#game.pause_button_5.state = ButtonState.DISABLED
 		#game.broadcast_to_person(game.player.player_name, tr("OPEN_SERVER_SUCCESS")+StaticLoad.HOST_IP+":"+str(port), "chartreuse")
 	#var ping_instance = ping_scene.instantiate()
 	#ping_instance.target_peer_id = 1

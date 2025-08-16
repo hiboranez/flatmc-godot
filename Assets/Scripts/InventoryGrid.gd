@@ -11,23 +11,23 @@ var mouse_stay_timer = StaticLoad.INVENTORY_NAME_SHOW_STAY_TIME
 func _ready() -> void:
 	set_process(false)
 	if slot_function == "armor_helmet":
-		$BackIcon.texture = TextureManager.get_texture("ui/empty_slot_helmet")
+		$BackIcon.texture = TextureManager.get_texture("ui/inventory_helmet_icon")
 		$BackIcon.visible = true
 		$ItemIcon.visible = false
 	elif slot_function == "armor_chestplate":
-		$BackIcon.texture = TextureManager.get_texture("ui/empty_slot_chestplate")
+		$BackIcon.texture = TextureManager.get_texture("ui/inventory_chestplate_icon")
 		$BackIcon.visible = true
 		$ItemIcon.visible = false
 	elif slot_function == "armor_leggings":
-		$BackIcon.texture = TextureManager.get_texture("ui/empty_slot_leggings")
+		$BackIcon.texture = TextureManager.get_texture("ui/inventory_leggings_icon")
 		$BackIcon.visible = true
 		$ItemIcon.visible = false
 	elif slot_function == "armor_boots":
-		$BackIcon.texture = TextureManager.get_texture("ui/empty_slot_boots")
+		$BackIcon.texture = TextureManager.get_texture("ui/inventory_boots_icon")
 		$BackIcon.visible = true
 		$ItemIcon.visible = false
 	elif slot_function == "delete":
-		texture = TextureManager.get_texture("ui/delete_slot")
+		texture = TextureManager.get_texture("ui/inventory_delete_slot")
 		$ItemIcon.visible = false
 
 func _process(delta: float) -> void:
@@ -185,13 +185,18 @@ func update_achievement():
 func _on_gui_input(event: InputEvent) -> void:
 	if slot_function.contains("armor"):
 		return
-	if not (event is InputEventMouseButton):
+	if not (event is InputEventMouseButton or event is InputEventScreenTouch):
 		return
+	var is_event_double_click = false
+	var event_index = 1
+	if event is InputEventMouseButton:
+		is_event_double_click = event.double_click
+		event_index = event.button_index
 	var player = StaticLoad.game.player
 	var mouse_item_name_tmp = player.mouse_item_name
 	var mouse_item_amount_tmp = player.mouse_item_amount
 	if event is InputEventMouseButton:
-		if event.double_click and event.button_index == 1:
+		if is_event_double_click and event_index == 1:
 			var assemble_item_name = mouse_item_name_tmp
 			var current_item_amount = mouse_item_amount_tmp
 			#if assemble_item_name == "AIR":
@@ -248,16 +253,16 @@ func _on_gui_input(event: InputEvent) -> void:
 			if name.contains("InfiniteGrid"):
 				return
 			if name.contains("InventoryGrid") or (slot_function.contains("craft") and not slot_function.contains("craft_result")):
-				if event.button_index == 1 and Input.is_action_pressed("shift"):
+				if event_index == 1 and Input.is_action_pressed("shift"):
 					pass
 				else:
 					var player_mouse_item_name = StaticLoad.game.player.mouse_item_name
 					if player_mouse_item_name != "AIR" and StaticLoad.game.drag_inventory_grid_state == "null" and (item_name == "AIR" or item_name == player_mouse_item_name):
-						if event.button_index == 1:
+						if event_index == 1:
 							StaticLoad.game.drag_inventory_grid_state = "left"
-						elif event.button_index == 2:
+						elif event_index == 2:
 							StaticLoad.game.drag_inventory_grid_state = "right"
-						elif StaticLoad.game.player.gamemode == "creative" and event.button_index == 3:
+						elif StaticLoad.game.player.gamemode == "creative" and event_index == 3:
 							StaticLoad.game.drag_inventory_grid_state = "middle"
 					return
 		else:
@@ -268,12 +273,12 @@ func _on_gui_input(event: InputEvent) -> void:
 				return
 		if StaticLoad.game.mouse_in_inventory_grid != self:
 			return
-		if event.button_index == 4 or event.button_index == 5:
+		if event_index == 4 or event_index == 5:
 			return
 	var is_operated = false
 	
 	if name.contains("InventoryGrid"):
-		if event.button_index == 1:
+		if event_index == 1:
 			if Input.is_action_pressed("shift"):
 				if item_name != "AIR":
 					var sort = int(name.replace("InventoryGrid", ""))
@@ -347,7 +352,7 @@ func _on_gui_input(event: InputEvent) -> void:
 						StaticLoad.game.refresh_item_grid(sort)
 					if not (player.mouse_item_name == "AIR" and item_name == "AIR"):
 						is_operated = true
-		elif event.button_index == 2:
+		elif event_index == 2:
 			if mouse_item_amount_tmp == 0 and item_amount >= 2 and not StaticLoad.get_is_durable_by_name(item_name):
 				player.mouse_item_name = item_name
 				player.mouse_item_amount = item_amount/2
@@ -409,7 +414,7 @@ func _on_gui_input(event: InputEvent) -> void:
 					StaticLoad.game.refresh_item_grid(sort)
 				if not (player.mouse_item_name == "AIR" and item_name == "AIR"):
 					is_operated = true
-		elif event.button_index == 3 and player.gamemode == "creative":
+		elif event_index == 3 and player.gamemode == "creative":
 			if mouse_item_amount_tmp == 0 and item_name != "AIR":
 				if StaticLoad.get_is_durable_by_name(item_name):
 					player.mouse_item_name = item_name
@@ -422,7 +427,7 @@ func _on_gui_input(event: InputEvent) -> void:
 					if not (player.mouse_item_name == "AIR" and item_name == "AIR"):
 						is_operated = true
 	elif slot_function.contains("craft") and not slot_function.contains("craft_result"):
-		if event.button_index == 1:
+		if event_index == 1:
 			if Input.is_action_pressed("shift"):
 				if item_name != "AIR":
 					if item_amount > player.if_get_item_left(item_name, item_amount, 0, 9):
@@ -475,7 +480,7 @@ func _on_gui_input(event: InputEvent) -> void:
 						StaticLoad.game.refresh_inventory_crafting_result()
 					elif slot_function.contains("table"):
 						StaticLoad.game.refresh_table_crafting_result()
-		elif event.button_index == 2:
+		elif event_index == 2:
 			if mouse_item_amount_tmp == 0 and item_amount >= 2 and not StaticLoad.get_is_durable_by_name(item_name):
 				player.mouse_item_name = item_name
 				player.mouse_item_amount = item_amount/2
@@ -527,7 +532,7 @@ func _on_gui_input(event: InputEvent) -> void:
 						StaticLoad.game.game_ui.add_child(StaticLoad.game.mouse_item_name_label)
 						StaticLoad.game.mouse_item_name_label.text = tr(item_name)
 						StaticLoad.game.mouse_item_name_label.start_following()
-		elif event.button_index == 3 and player.gamemode == "creative":
+		elif event_index == 3 and player.gamemode == "creative":
 			if mouse_item_amount_tmp == 0 and item_name != "AIR":
 				if StaticLoad.get_is_durable_by_name(item_name):
 					player.mouse_item_name = item_name
@@ -536,7 +541,7 @@ func _on_gui_input(event: InputEvent) -> void:
 					player.mouse_item_name = item_name
 					player.mouse_item_amount = StaticLoad.get_max_amount_by_name(item_name)
 	elif slot_function.contains("craft_result"):
-		if event.button_index == 1 and event.pressed:
+		if event_index == 1 and event.pressed:
 			if Input.is_action_pressed("shift"):
 				if item_name != "AIR":
 					var min_amount = 0
@@ -603,7 +608,7 @@ func _on_gui_input(event: InputEvent) -> void:
 						elif slot_function.contains("table"):
 							StaticLoad.game.decline_table_crafting_material(1)
 							StaticLoad.game.refresh_table_crafting_result()
-		elif (event.button_index == 2 or event.button_index == 3) and event.pressed:
+		elif (event_index == 2 or event_index == 3) and event.pressed:
 			if Input.is_action_pressed("shift"):
 				if item_name != "AIR":
 					if player.if_get_item_left(item_name, item_amount, 0, 36) == 0:
@@ -659,7 +664,7 @@ func _on_gui_input(event: InputEvent) -> void:
 							StaticLoad.game.decline_table_crafting_material(1)
 							StaticLoad.game.refresh_table_crafting_result()
 	elif name.contains("InfiniteGrid") and player.gamemode == "creative":
-		if event.button_index == 1:
+		if event_index == 1:
 			if Input.is_action_pressed("shift"):
 				player.get_item([item_name, StaticLoad.get_max_amount_by_name(item_name), 0, 9, false])
 				StaticLoad.game.append_process_refresh("refresh_inventory")
@@ -687,7 +692,7 @@ func _on_gui_input(event: InputEvent) -> void:
 					player.mouse_item_amount = 0
 					if not (player.mouse_item_name == "AIR" and item_name == "AIR"):
 						is_operated = true
-		if event.button_index == 2:
+		if event_index == 2:
 			if mouse_item_amount_tmp != 0:
 				if StaticLoad.get_is_durable_by_name(mouse_item_name_tmp):
 					player.mouse_item_amount = 0
@@ -701,7 +706,7 @@ func _on_gui_input(event: InputEvent) -> void:
 					player.mouse_item_name = "AIR"
 					if not (player.mouse_item_name == "AIR" and item_name == "AIR"):
 						is_operated = true
-		elif event.button_index == 3:
+		elif event_index == 3:
 			if mouse_item_amount_tmp == 0 and item_name != "AIR":
 				player.mouse_item_name = item_name
 				player.mouse_item_amount = StaticLoad.get_max_amount_by_name(item_name)

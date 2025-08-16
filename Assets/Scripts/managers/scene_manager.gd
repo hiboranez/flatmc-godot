@@ -41,7 +41,11 @@ func change_scene(path):
 	var scene = get_scene(path)
 	if scene == null:
 		return
-	get_tree().change_scene_to_packed(scene)
+	if get_tree() != null:
+		await get_tree().process_frame
+	await get_tree().change_scene_to_packed(scene)
+	if get_tree() != null:
+		await get_tree().process_frame
 
 func get_scene(path):
 	if not path.contains("/"):

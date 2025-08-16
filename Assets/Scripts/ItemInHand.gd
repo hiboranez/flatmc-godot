@@ -17,7 +17,7 @@ func set_item_in_hand(got_item_name, is_update_player_inventory):
 		if got_item_name.contains("SPAWN_EGG"):
 			var item_mesh = get_node("Item/Mesh")
 			var inventory_player_model_item_mesh = StaticLoad.game.inventory_player_model_item_in_hand.get_node("Item/Mesh")
-			var item_material = load("res://assets/Materials/ItemModel.tres").duplicate(true)
+			var item_material = load("res://assets/materials/ItemModel.tres").duplicate(true)
 			var item_texture = load("res://assets/ResourcePacks/"+SettingsManager.get_current_setting("resource_pack")+"/Items/spawn_egg.png")
 			item_material.albedo_texture = item_texture
 			item_mesh.mesh.surface_set_material(0, item_material)
@@ -25,7 +25,7 @@ func set_item_in_hand(got_item_name, is_update_player_inventory):
 				inventory_player_model_item_mesh.mesh.surface_set_material(0, item_material)
 			var item_top_mesh = get_node("ItemTop/Mesh")
 			var inventory_player_model_item_top_mesh = StaticLoad.game.inventory_player_model_item_in_hand.get_node("ItemTop/Mesh")
-			var item_top_material = load("res://assets/Materials/ItemModel.tres").duplicate(true)
+			var item_top_material = load("res://assets/materials/ItemModel.tres").duplicate(true)
 			var item_top_texture = load("res://assets/ResourcePacks/"+SettingsManager.get_current_setting("resource_pack")+"/Items/spawn_egg_overlay.png")
 			item_top_material.albedo_texture = item_top_texture
 			item_top_mesh.mesh.surface_set_material(0, item_top_material)
@@ -49,7 +49,7 @@ func set_item_in_hand(got_item_name, is_update_player_inventory):
 		else:
 			var item_mesh = get_node("Item/Mesh")
 			var inventory_player_model_item_mesh = StaticLoad.game.inventory_player_model_item_in_hand.get_node("Item/Mesh")
-			var item_material = load("res://assets/Materials/ItemModel.tres").duplicate(true)
+			var item_material = load("res://assets/materials/ItemModel.tres").duplicate(true)
 			var item_texture = load("res://assets/ResourcePacks/"+SettingsManager.get_current_setting("resource_pack")+"/Items/"+got_item_name.to_lower()+".png")
 			if item_texture == null:
 				item_texture = load("res://assets/ResourcePacks/"+SettingsManager.get_current_setting("resource_pack")+"/Items/missing_texture.png")
@@ -73,7 +73,7 @@ func set_item_in_hand(got_item_name, is_update_player_inventory):
 		if got_item_name.contains("BOW"):
 			tool_mesh = get_node("Bow/Mesh")
 		var inventory_player_model_tool_mesh = StaticLoad.game.inventory_player_model_item_in_hand.get_node("Tool/Mesh")
-		var tool_material = load("res://assets/Materials/ToolModel.tres").duplicate(true)
+		var tool_material = load("res://assets/materials/ToolModel.tres").duplicate(true)
 		var tool_texture = load("res://assets/ResourcePacks/"+SettingsManager.get_current_setting("resource_pack")+"/Items/"+got_item_name.to_lower()+".png")
 		if tool_texture == null:
 			tool_texture = load("res://assets/ResourcePacks/"+SettingsManager.get_current_setting("resource_pack")+"/Items/missing_texture.png")
@@ -103,7 +103,7 @@ func set_item_in_hand(got_item_name, is_update_player_inventory):
 	elif StaticLoad.get_item_model_type_by_name(got_item_name) == 3:
 		var block_mesh = get_node("Block/Mesh")
 		var inventory_player_model_block_mesh = StaticLoad.game.inventory_player_model_item_in_hand.get_node("Block/Mesh")
-		var block_material = load("res://assets/Materials/BlockModel.tres").duplicate(true)
+		var block_material = load("res://assets/materials/BlockModel.tres").duplicate(true)
 		block_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 		var block_texture = load("res://assets/ResourcePacks/"+SettingsManager.get_current_setting("resource_pack")+"/ModelBlocks/"+got_item_name.to_lower()+".png")
 		if block_texture == null:

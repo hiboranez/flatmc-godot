@@ -2,9 +2,9 @@
 
 [ext_resource type="Script" path="res://assets/scripts/ui_server_button.gd" id="1_brp8u"]
 [ext_resource type="Texture2D" uid="uid://bvtu8ithtvsc3" path="res://assets/textures/ui/default_offline_server_icon.png" id="2_ipyl2"]
-[ext_resource type="Texture2D" uid="uid://rwn5mc2as2oo" path="res://assets/textures/ui/ui_button_hovered.png" id="2_s8jfb"]
+[ext_resource type="Texture2D" uid="uid://rwn5mc2as2oo" path="res://assets/textures/ui/ui_normal_button_hovered.png" id="2_s8jfb"]
 [ext_resource type="FontVariation" uid="uid://ck7gxbgy6ry6b" path="res://assets/fonts/fmcles.tres" id="3_rpd2u"]
-[ext_resource type="Texture2D" uid="uid://eb2hdkojpck2" path="res://assets/textures/ui/icons.png" id="4_1lhk2"]
+[ext_resource type="Texture2D" uid="uid://eb2hdkojpck2" path="res://assets/textures/ui/hud_icon_atlas.png" id="4_1lhk2"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_0hjob"]
 atlas = ExtResource("4_1lhk2")

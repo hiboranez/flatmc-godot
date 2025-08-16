@@ -49,6 +49,9 @@ func load_settings() -> void:
 			setting_node.load_setting(config)
 			if get_tree() != null:
 				await get_tree().process_frame
+	if StaticLoad.is_in_game:
+		if single_column_gridcontainer.has_node("PlayerName"):
+			single_column_gridcontainer.get_node("PlayerName").visible = false
 
 func save_settings() -> Dictionary:
 	if single_column_gridcontainer.has_node("PlayerName"):
@@ -90,28 +93,36 @@ func _on_save_button_pressed() -> void:
 	AudioManager.play_static_audio("sound/ui/click")
 	if last_setting_dict.has("saving_state") and not last_setting_dict["saving_state"]:
 		return
-	if menu != null:
-		await menu.menu_controller.vanish("menu")
-	if has_node("/root/MainMenu"):
-		var main_menu = get_node("/root/MainMenu")
-		main_menu.menu_scroll_speed = float(SettingsManager.get_current_setting("menu_scroll"))/100.0
-		main_menu.refresh_size()
-		main_menu.menu_controller.appear("menu")
-	if menu != null:
-		get_viewport().size_changed.disconnect(refresh_size)
-		menu.queue_free()
+	if StaticLoad.is_in_game:
+		menu.visible = false
+		StaticLoad.game.pause_ui.visible = true
+	else:
+		if menu != null:
+			await menu.menu_controller.vanish("menu")
+		if has_node("/root/MainMenu"):
+			var main_menu = get_node("/root/MainMenu")
+			main_menu.menu_scroll_speed = float(SettingsManager.get_current_setting("menu_scroll"))/100.0
+			main_menu.refresh_size()
+			main_menu.menu_controller.appear("menu")
+		if menu != null:
+			get_viewport().size_changed.disconnect(refresh_size)
+			menu.queue_free()
 
 func _on_cancel_button_pressed() -> void:
 	AudioManager.play_static_audio("sound/ui/click")
-	if menu != null:
-		await menu.menu_controller.vanish("menu")
-	if has_node("/root/MainMenu"):
-		var main_menu = get_node("/root/MainMenu")
-		main_menu.refresh_size()
-		main_menu.menu_controller.appear("menu")
-	if menu != null:
-		get_viewport().size_changed.disconnect(refresh_size)
-		menu.queue_free()
+	if StaticLoad.is_in_game:
+		menu.visible = false
+		StaticLoad.game.pause_ui.visible = true
+	else:
+		if menu != null:
+			await menu.menu_controller.vanish("menu")
+		if has_node("/root/MainMenu"):
+			var main_menu = get_node("/root/MainMenu")
+			main_menu.refresh_size()
+			main_menu.menu_controller.appear("menu")
+		if menu != null:
+			get_viewport().size_changed.disconnect(refresh_size)
+			menu.queue_free()
 
 func _on_gui_scale_switch_button_changed() -> void:
 	if not double_column_gridcontainer.has_node("GUIScale"):

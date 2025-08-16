@@ -44,9 +44,10 @@ func _on_confirm_button_pressed() -> void:
 	SettingsManager.save_settings(change_value)
 	SettingsManager.set_current_setting("language", select_language)
 	if StaticLoad.is_in_game:
-		self.visible = false
-		$"..".update_game_details(true)
-		$"..".refresh_achievement_info()
+		menu.visible = false
+		StaticLoad.game.pause_ui.visible = true
+		StaticLoad.game.update_game_details(true)
+		StaticLoad.game.refresh_achievement_info()
 	else:
 		if menu != null:
 			await menu.menu_controller.vanish("menu")
@@ -58,7 +59,8 @@ func _on_confirm_button_pressed() -> void:
 func _on_cancel_button_pressed() -> void:
 	AudioManager.play_static_audio("sound/ui/click")
 	if StaticLoad.is_in_game:
-		self.visible = false
+		menu.visible = false
+		StaticLoad.game.pause_ui.visible = true
 	else:
 		if menu != null:
 			await menu.menu_controller.vanish("menu")

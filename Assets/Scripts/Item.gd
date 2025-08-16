@@ -237,7 +237,7 @@ func get_fire_damage_timer():
 func refresh_model():
 	if DataManager.block_id_dict.has(item_name) and StaticLoad.get_item_model_type_by_name(item_name) >= 3:
 		item_model_type = "block"
-		var block_material = load("res://assets/Materials/BlockModel.tres").duplicate(true)
+		var block_material = load("res://assets/materials/BlockModel.tres").duplicate(true)
 		var texture = load("res://assets/ResourcePacks/"+SettingsManager.get_current_setting("resource_pack")+"/ModelBlocks/"+item_name.to_lower()+".png")
 		if texture == null:
 			block_model.visible = true
@@ -250,14 +250,14 @@ func refresh_model():
 	else:
 		item_model_type = "item"
 		if item_name.contains("SPAWN_EGG"):
-			var item_material = load("res://assets/Materials/ItemModel.tres").duplicate(true)
+			var item_material = load("res://assets/materials/ItemModel.tres").duplicate(true)
 			var texture = load("res://assets/ResourcePacks/"+SettingsManager.get_current_setting("resource_pack")+"/Items/spawn_egg.png")
 			item_material.albedo_texture = texture
 			if texture == null:
 				item_model.visible = true
 				return
 			item_model.get_node("Mesh").mesh.surface_set_material(0, item_material)
-			var item_top_material = load("res://assets/Materials/ItemModel.tres").duplicate(true)
+			var item_top_material = load("res://assets/materials/ItemModel.tres").duplicate(true)
 			var texture_top = load("res://assets/ResourcePacks/"+SettingsManager.get_current_setting("resource_pack")+"/Items/spawn_egg_overlay.png")
 			item_top_material.albedo_texture = texture_top
 			if texture_top == null:
@@ -274,7 +274,7 @@ func refresh_model():
 			item_model.visible = true
 			item_top_model.visible = true
 		else:
-			var item_material = load("res://assets/Materials/ItemModel.tres").duplicate(true)
+			var item_material = load("res://assets/materials/ItemModel.tres").duplicate(true)
 			var texture = load("res://assets/ResourcePacks/"+SettingsManager.get_current_setting("resource_pack")+"/Items/"+item_name.to_lower()+".png")
 			item_material.albedo_texture = texture
 			if texture == null:

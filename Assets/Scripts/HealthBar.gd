@@ -20,7 +20,7 @@ func update_flash(delta):
 	flash_timer -= delta
 	if flash_timer < StaticLoad.FLOAT_DELTA:
 		for empty_heart in empty_hearts:
-			empty_heart.texture = TextureManager.get_texture("ui/empty_heart")
+			empty_heart.texture = TextureManager.get_texture("ui/healthbar_heart_background")
 		
 
 func update_health_bar():
@@ -30,7 +30,7 @@ func update_health_bar():
 	
 	flash_timer = StaticLoad.UI_FLASH_TIME
 	for empty_heart in empty_hearts:
-		empty_heart.texture = TextureManager.get_texture("ui/flash_heart")
+		empty_heart.texture = TextureManager.get_texture("ui/healthbar_flash_heart_background")
 	
 	var full_health_amount = StaticLoad.game.player.health / 2
 	if full_health_amount < 0:

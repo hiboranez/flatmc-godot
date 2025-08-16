@@ -11,8 +11,6 @@ func _ready() -> void:
 		title.text = tr("CONNECTION_TIMEOUT")
 	title.set("theme_override_colors/font_color", StaticLoad.colors["pink"])
 	StaticLoad.force_quit_reason = "null"
-	if StaticLoad.is_on_mobile_platform:
-		Input.emulate_mouse_from_touch = true
 	AudioManager.refresh_bgm()
 
 func _on_force_quit_back_button_pressed() -> void:
