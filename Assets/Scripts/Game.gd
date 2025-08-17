@@ -38,15 +38,7 @@ extends Node2D
 @onready var death_button_2 = $DeathUI/VSplitContainer/FlowContainer/UINormalButton2
 @onready var death_button_3 = $DeathUI/VSplitContainer/FlowContainer/UINormalButton3
 @onready var players = $Players
-@onready var mobile_ui = $MobileUI
-@onready var move_panel = $MobileUI/MovePanel
-@onready var move_buttons_right = $MobileUI/MoveButtonsRight
-@onready var move_jump_button_icon = $MobileUI/MoveButtonsRight/JumpButton/JumpButton
-@onready var attack_button = $MobileUI/MoveButtonsRight/AttackButton
-@onready var attack_button_icon = $MobileUI/MoveButtonsRight/AttackButton/AttackButton
-@onready var run_button_icon = $MobileUI/FunctionButtons/RunButton/RunButton
-@onready var sneak_button_icon = $MobileUI/FunctionButtons/SneakButton/SneakButton
-@onready var switch_layer_button_icon = $MobileUI/FunctionButtons/SwitchLayerButton/SwitchLayerButton
+@onready var mobile_ui = $VirtualUI
 @onready var inventory_ui = $GameUI/InventoryUI
 @onready var mini_map_camera = $GameUI/MiniMap/SubViewportContainer/SubViewport/Camera2D
 @onready var mini_map_tile_map_layer = $GameUI/MiniMap/SubViewportContainer/SubViewport/TileMapLayer
@@ -97,9 +89,6 @@ extends Node2D
 @onready var crafting_ui = $GameUI/CraftingUI
 @onready var sign_info_root = $SignInfoRoot
 @onready var sign_edit_text = $SignEditUI/TextureRect/ScrollContainer/VBoxContainer/TextEdit
-@onready var joystick_panel = $MobileUI/MovePanel/JoystickPanel
-@onready var mouse_joystick_panel = $MobileUI/MoveButtonsRight/JoystickPanel
-@onready var mouse_ui = $MobileUI/MouseUI
 
 var frozen_entity_dict = {}
 var destroy_light_names = {}
@@ -463,7 +452,7 @@ func update_die_no_press_timer():
 		die_no_press_timer -= get_process_delta_time()
 	elif die_no_press_timer < 0:
 		for button in death_ui_flow_container.get_children():
-			button.state = ButtonState.NORMAL
+			button.set_available(true)
 		die_no_press_timer = 0
 
 func update_nature_growth():
@@ -2168,12 +2157,6 @@ func process_touch_input():
 		is_mouse_motion_updated = false
 		last_mouse_in_world_pos = mouse_to_in_world_pos_tmp
 	
-	if player.in_hand_item_name.contains("BOW") or (StaticLoad.tools_type.has(player.in_hand_item_name) and StaticLoad.tools_type[player.in_hand_item_name].has("sword")):
-		if not attack_button.visible:
-			attack_button.visible = true
-	elif attack_button.visible:
-		attack_button.visible = false
-	
 	if not Input.is_mouse_button_pressed(1) and not Input.is_mouse_button_pressed(2):
 		if is_mobile_attacking:
 			if player.in_hand_item_name.contains("BOW"):
@@ -2195,7 +2178,7 @@ func process_touch_input():
 					player.last_shoot_stage = -1
 	
 	if player != null:
-		var joystick_pos = joystick_panel.get_now_pos()
+		var joystick_pos = mobile_ui.get_move_joystick_value()
 		if joystick_pos != null:
 			if joystick_pos.x != 0:
 				if joystick_pos.x > 0:
@@ -3120,9 +3103,9 @@ func update_local_player_nearby_chunk():
 
 func update_jump_button():
 	if player.is_flying:
-		move_jump_button_icon.texture = TextureManager.get_texture("ui/oreui_flyingascend_button")
+		mobile_ui.set_jump_button_background(TextureManager.get_texture("ui/oreui_flyingascend_button"))
 	else:
-		move_jump_button_icon.texture = TextureManager.get_texture("ui/oreui_jump_button")
+		mobile_ui.set_jump_button_background(TextureManager.get_texture("ui/oreui_jump_button"))
 
 func update_local_player_data():
 	if player.is_dead or player.is_frozen or is_input_frozen:
@@ -4387,8 +4370,7 @@ func _on_mobile_f1_button_pressed():
 		return
 	AudioManager.play_static_audio("sound/ui/click")
 	switch_ui_visibility()
-	move_panel.visible = game_ui.visible
-	move_buttons_right.visible = game_ui.visible
+	mobile_ui.set_ui_visible(game_ui.visible)
 
 func _on_mobile_f2_button_pressed():
 	if is_map or is_pause or is_chat or is_inventory or is_crafting or is_sign_edit:
@@ -4590,60 +4572,3 @@ func _on_sign_edit_confirm_button_pressed() -> void:
 		#if player.is_reading_sign:
 			#player.refresh_reading_sign(player.reading_sign_block_pos)
 	#sign_edit_text.text = ""
-func _on_mobile_jump_button_pressed():
-	if not Input.is_action_pressed("jump"):
-		Input.action_press("jump")
-		
-func _on_mobile_jump_button_released():
-	Input.action_release("jump")
-
-func _on_mobile_attack_button_pressed() -> void:
-	if is_map or is_pause or is_chat or is_inventory or is_crafting or is_sign_edit:
-		return
-	is_mobile_attacking = true
-
-func _on_mobile_attack_button_released() -> void:
-	is_mobile_attacking = false
-
-func _on_mobile_run_button_pressed() -> void:
-	if is_map or is_pause or is_chat or is_inventory or is_crafting or is_sign_edit:
-		return
-	AudioManager.play_static_audio("sound/ui/click")
-	if is_mobile_running:
-		is_mobile_running = false
-		run_button_icon.texture = TextureManager.get_texture("ui/oreui_sprint_button_pressed")
-	else:
-		is_mobile_running = true
-		run_button_icon.texture = TextureManager.get_texture("ui/oreui_sprint_button")
-
-func _on_mobile_sneak_button_pressed() -> void:
-	if is_map or is_pause or is_chat or is_inventory or is_crafting or is_sign_edit:
-		return
-	AudioManager.play_static_audio("sound/ui/click")
-	if not player.is_sneaking:
-		is_mobile_sneaking = true
-		player.is_sneaking = true
-		if player.move_state == "run":
-			player.move_state = "walk"
-		sneak_button_icon.texture = TextureManager.get_texture("ui/oreui_sneak_button_pressed")
-	elif player.is_sneaking:
-		is_mobile_sneaking = false
-		player.is_sneaking = false
-		sneak_button_icon.texture = TextureManager.get_texture("ui/oreui_sneak_button")
-
-func _on_mobile_switch_layer_button_pressed() -> void:
-	if is_map or is_pause or is_chat or is_inventory or is_crafting or is_sign_edit:
-		return
-	AudioManager.play_static_audio("sound/ui/click")
-	if player.current_set_layer == "solid":
-		player.current_set_layer = "back"
-		tile_map_layer.modulate = Color(0.393,0.393,0.393,1)
-		no_reach_tile_map_layer.modulate = Color(0.393,0.393,0.393,1)
-		back_tile_map_layer.modulate = Color(1,1,1,1)
-		switch_layer_button_icon.texture = TextureManager.get_texture("ui/oreui_switch_layer_button_pressed")
-	elif player.current_set_layer == "back":
-		player.current_set_layer = "solid"
-		tile_map_layer.modulate = Color(1,1,1,1)
-		no_reach_tile_map_layer.modulate = Color(1,1,1,1)
-		back_tile_map_layer.modulate = Color(0.393,0.393,0.393,1)
-		switch_layer_button_icon.texture = TextureManager.get_texture("ui/oreui_switch_layer_button")

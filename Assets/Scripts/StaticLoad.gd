@@ -642,7 +642,7 @@ func start_server():
 		ServerManager.record_server_log(Time.get_date_string_from_system(), text)
 	multiplayer.multiplayer_peer = multiplayer_peer
 	if not is_dedicated_server:
-		game.pause_button_5.state = ButtonState.DISABLED
+		game.pause_button_5.set_available(false)
 		game.broadcast_to_person(game.player.player_name, tr("OPEN_SERVER_SUCCESS")+StaticLoad.HOST_IP+":"+str(port), "chartreuse")
 	var ping_instance = SceneManager.get_scene("others/ping").instantiate()
 	ping_instance.target_peer_id = 1

@@ -1547,7 +1547,7 @@ func player_die(reason, object):
 	if is_other:
 		return
 	for button in StaticLoad.game.death_ui_flow_container.get_children():
-		button.state = ButtonState.DISABLED
+		button.set_available(false)
 	StaticLoad.game.die_no_press_timer = 1
 	if StaticLoad.game.is_pause:
 		StaticLoad.game.pause_ui.visible = false

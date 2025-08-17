@@ -9,6 +9,7 @@ extends Control
 @export var font_size: int = 35
 @export var button_type: String = "text"
 @export var icon_path: String = ""
+@export var background_path: String = ""
 
 signal pressed
 
@@ -19,6 +20,12 @@ var is_hovered: bool = false
 func _ready() -> void:
 	text_label.text = tr(text)
 	text_label.set("theme_override_font_sizes/font_size", font_size)
+	if background_path != "":
+		background_rect.texture = TextureManager.get_texture(background_path)
+		icon_margin_container.visible = false
+		text_label.visible = false
+		set_process(false)
+		return
 	if (button_type == "all" or button_type == "icon") and icon_path.contains("/"):
 		icon_texture_rect.texture = TextureManager.get_texture(icon_path)
 		if icon_texture_rect.texture == null:
@@ -43,11 +50,11 @@ func _process(delta: float) -> void:
 	if state != prev_state:
 		match state:
 			ButtonState.NORMAL:
-				background_rect.texture = TextureManager.get_texture("ui/ui_normal_button")
+				background_rect.texture = TextureManager.get_texture("ui/oreui_normal_button")
 			ButtonState.HOVERD:
-				background_rect.texture = TextureManager.get_texture("ui/ui_normal_button_hovered")
+				background_rect.texture = TextureManager.get_texture("ui/oreui_normal_button")
 			ButtonState.DISABLED:
-				background_rect.texture = TextureManager.get_texture("ui/ui_normal_button_disabled")
+				background_rect.texture = TextureManager.get_texture("ui/oreui_normal_button_disabled")
 		prev_state = state
 
 func _gui_input(event: InputEvent) -> void:
