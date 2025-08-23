@@ -81,7 +81,7 @@ func convert_world_version(old_version):
 		final_old_version = "0.1.0.0"
 	else:
 		final_old_version = old_version
-	WorldManager.convert_world_version(selected_world_name, final_old_version)
+	WorldConverter.convert_world_version(selected_world_name, final_old_version)
 	update_world_list()
 	selected_world_name = ""
 

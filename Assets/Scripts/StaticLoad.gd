@@ -4,24 +4,6 @@ extends Control
 @onready var click_audio_player = $ClickAudioPlayer
 @onready var server_detects = $ServerDetects
 
-class Chunk:
-	static var para_list = [
-		"entity_list", "dirt_list", "grass_block_list",
-		"seed_list", "sapling_list", "leaves_list",
-		"farm_land_list", "sugar_cane_list", "sign_dict"
-	]
-	var is_loaded: bool = false
-	var is_to_save: bool = false
-	var entity_list: Array = []
-	var dirt_list: Array = []
-	var grass_block_list: Array = []
-	var seed_list: Array = []
-	var sapling_list: Array = []
-	var leaves_list: Array = []
-	var farm_land_list: Array = []
-	var sugar_cane_list: Array = []
-	var sign_dict: Dictionary = {}
-
 # 常数据
 const AIR_RESISTANCE = 5000
 const DROPPED_ITEM_SPEED = 1000
@@ -32,7 +14,6 @@ const UI_FLASH_TIME = 0.2
 const DEFAULT_PLAYER_HEALTH = 20
 const DEFAULT_PLAYER_HUNGER = 20
 const FLOAT_DELTA: float = 0.01
-const ITEM_NAME_SHOW_TIME: float = 2
 const ITEM_NAME_DISAPPEAR_TIME: float = 0.2
 const DOUBLE_CLICK_THRESHOLD:float = 0.25
 const DEFAULT_PLAYER_SPAWN_POS = Vector2(0, -1)
@@ -193,9 +174,9 @@ func _ready() -> void:
 		"item_model_types" : "int",
 		"item_max_amounts" : "int"
 	}
-	var recipe_dict = DataManager.load_json_file("res://assets/data/crafting_recipes.json", {})
+	var recipe_dict = ResourceManager.load_json_file("res://assets/data/crafting_recipes.json", {})
 	crafting_recipe_dict = recipe_dict["crafting_recipe_dict"]
-	var game_dict = DataManager.load_json_file("res://assets/data/default_data.json", game_data_type_dict)
+	var game_dict = ResourceManager.load_json_file("res://assets/data/default_data.json", game_data_type_dict)
 	default_item_bar_names = game_dict["default_item_bar_names"]
 	default_item_bar_amounts = game_dict["default_item_bar_amounts"]
 	transparent_block_names = game_dict["transparent_block_names"]
@@ -242,7 +223,7 @@ func _ready() -> void:
 	
 	# 初始化据
 	for transparent_block_name in transparent_block_names:
-		transparent_block_ids.append(DataManager.get_block_id(transparent_block_name))
+		transparent_block_ids.append(AttributeManager.get_block_id(transparent_block_name))
 	
 	# 如果是专用服务器，直接开服
 	#if is_dedicated_server:
@@ -406,7 +387,7 @@ func get_destroy_total_time(block_id, tool):
 	if not tools_type.has(tool):
 		return original_time
 	if block_type == "stone" and tools_type[tool].has("pickaxe"):
-		var block_name = DataManager.get_block_name(block_id)
+		var block_name = AttributeManager.get_block_name(block_id)
 		if dropped_items.has(block_name):
 			var tool_type_dict = get_tools_type_by_name(tool)
 			var tool_type = tool_type_dict.keys()[0]
@@ -447,7 +428,7 @@ func get_dig_type_by_block_type(block_type) -> String:
 
 func get_block_type_by_id(id: int) -> String:
 	var value = "stone"
-	var block_name = DataManager.get_block_name(id)
+	var block_name = AttributeManager.get_block_name(id)
 	if block_types.has(block_name):
 		value = block_types[block_name]
 	return value
@@ -526,13 +507,13 @@ func get_dropped_item_by_name(find_type, block_name, tool_name):
 			return {"AIR":1}
 
 func get_light_color_by_id(id: int):
-	var block_name = DataManager.get_block_name(id)
+	var block_name = AttributeManager.get_block_name(id)
 	if light_colors.has(block_name):
 		return [true, light_colors[block_name]]
 	return [false, null]
 
 func get_is_untouchable_by_id(id: int):
-	var block_name = DataManager.get_block_name(id)
+	var block_name = AttributeManager.get_block_name(id)
 	if untouchable_blocks.has(block_name):
 		return true
 	return false
@@ -670,18 +651,18 @@ func dedicated_server_create_world():
 		"world_type": "default",
 		"gamemode": "survival"
 	}
-	WorldManager.save_level_dat(level, level_change_value)
+	WorldSaver.save_level_dat(level, level_change_value)
 	level.save_encrypted_pass(world_path+"/level.dat", SettingsManager.get_default_value("config_password"))
 	for x in range(-1,1):
 		for y in range(-1,1):
 			var mca = ConfigFile.new()
-			var chunk = WorldManager.generate_chunk(Vector2i(x, y), seed, "default")
+			var chunk = WorldGenerator.generate_chunk(Vector2i(x, y), str(seed), "default")
 			var value_dict = {
 				"blocks" : chunk[0],
 				"no_reach_blocks" : chunk[1],
 				"back_blocks" : chunk[2]
 			}
-			WorldManager.set_mca_value(mca, value_dict)
+			WorldSaver.save_mca(mca, value_dict)
 			mca.save_encrypted_pass(region_path+"/r."+str(x)+"."+str(y)+".mca", SettingsManager.get_default_value("config_password"))
 
 func get_random_available_port():
@@ -882,7 +863,7 @@ func request_for_update_chunk(client_peer_id, is_init, x_chunk, y_chunk):
 			return
 		var seed = world_config.get_value("world", "seed", "1241999312")
 		var world_type = world_config.get_value("world", "world_type", "default")
-		var chunk = WorldManager.generate_chunk(Vector2i(x_chunk, y_chunk), seed, world_type)
+		var chunk = WorldGenerator.generate_chunk(Vector2i(x_chunk, y_chunk), seed, world_type)
 		game.loaded_chunk_num += 1
 		var value_dict = {
 				"blocks" : chunk[0],
@@ -892,7 +873,7 @@ func request_for_update_chunk(client_peer_id, is_init, x_chunk, y_chunk):
 		blocks = chunk[0]
 		no_reach_blocks = chunk[1]
 		back_blocks = chunk[2]
-		WorldManager.set_mca_value(mca, value_dict)
+		WorldSaver.save_mca(mca, value_dict)
 		mca.save_encrypted_pass(region_path+"/r."+str(x_chunk)+"."+str(y_chunk)+".mca", SettingsManager.get_default_value("config_password"))
 		game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)] = Chunk.new()
 		game.loaded_chunks[str(x_chunk)+"."+str(y_chunk)].is_to_save = false

@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://assets/scripts/menus/single_game_menu.gd" id="1_33u14"]
 [ext_resource type="PackedScene" uid="uid://drjcxql1q3ha5" path="res://assets/scenes/panels/base_content_panel.tscn" id="2_3dvoe"]
-[ext_resource type="Script" path="res://assets/scripts/controllers/menu_controller.gd" id="2_3wbtc"]
+[ext_resource type="Script" path="res://assets/scripts/components/menu_controller.gd" id="2_3wbtc"]
 
 [node name="SingleGameMenu" type="CanvasLayer"]
 layer = 2

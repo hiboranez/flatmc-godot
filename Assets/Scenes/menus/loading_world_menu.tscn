@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://assets/scripts/menus/loading_world_menu.gd" id="1_hb7ua"]
 [ext_resource type="PackedScene" uid="uid://drjcxql1q3ha5" path="res://assets/scenes/panels/base_content_panel.tscn" id="2_blfuk"]
-[ext_resource type="Script" path="res://assets/scripts/controllers/menu_controller.gd" id="2_ecaoh"]
+[ext_resource type="Script" path="res://assets/scripts/components/menu_controller.gd" id="2_ecaoh"]
 
 [node name="LoadingWorldMenu" type="CanvasLayer"]
 layer = 2

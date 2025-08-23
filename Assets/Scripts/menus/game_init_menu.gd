@@ -12,4 +12,6 @@ func _ready() -> void:
 	])
 	await ResourceLoadingMenu.load_finished
 	SettingsManager.apply_settings()
+	AttributeManager.update_attributes()
+	InputManager.update_components()
 	SceneManager.change_scene("menus/main_menu")

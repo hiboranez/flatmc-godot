@@ -69,7 +69,7 @@ func _on_confirm_button_pressed() -> void:
 		"allow_cheat": read_allow_cheat,
 		"achievement": read_achievement
 	}
-	WorldManager.save_level_dat(level, level_change_value)
+	WorldSaver.save_level_dat(level, level_change_value)
 	level.save_encrypted_pass(old_world_path+"/level.dat", SettingsManager.get_default_value("config_password"))
 	DirAccess.rename_absolute(old_world_path, new_world_path)
 	if has_node("/root/SingleMenu"):

@@ -1,0 +1,24 @@
+[gd_scene load_steps=3 format=3 uid="uid://7y3fw6am6obk"]
+
+[ext_resource type="FontFile" uid="uid://dahei608a1d0f" path="res://assets/fonts/MinecraftAE.ttf" id="1_e5v8p"]
+[ext_resource type="Script" path="res://assets/scripts/ui/hot_bar_text.gd" id="2_vvk0y"]
+
+[node name="HotBarText" type="Label"]
+self_modulate = Color(1, 1, 1, 0)
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -62.5
+offset_top = -313.0
+offset_right = 62.5
+offset_bottom = -262.0
+grow_horizontal = 2
+grow_vertical = 0
+pivot_offset = Vector2(62, 250)
+theme_override_fonts/font = ExtResource("1_e5v8p")
+theme_override_font_sizes/font_size = 50
+text = "test"
+horizontal_alignment = 1
+script = ExtResource("2_vvk0y")

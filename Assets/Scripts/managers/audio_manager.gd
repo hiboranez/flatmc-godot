@@ -33,7 +33,7 @@ func get_resource_amount() -> int:
 	return amount
 
 func update_resource() -> void:
-	random_audio_type_dict = DataManager.load_json_file("res://assets/data/random_audios.json", {})
+	random_audio_type_dict = ResourceManager.load_json_file("res://assets/data/random_audios.json", {})
 	for type in random_audio_type_dict.keys():
 		random_audio_list_dict[type] = {}
 	var music_type_list = []

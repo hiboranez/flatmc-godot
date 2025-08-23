@@ -5,9 +5,9 @@ extends TextureRect
 
 var panel
 
-func init_tab_panel(icon_name, panel_name):
+func init_tab_panel(icon_name, panel_name, tab_panels):
 	item_icon.init_icon(icon_name)
-	panel = StaticLoad.game.inventory_ui.get_node("Panel").get_node(panel_name+"Panel")
+	panel = tab_panels
 
 func switch_tab():
 	for tab in StaticLoad.game.inventory_tabs.get_children():

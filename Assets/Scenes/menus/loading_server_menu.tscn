@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=3 uid="uid://decsrx4hcc3xp"]
 
 [ext_resource type="Script" path="res://assets/scripts/menus/loading_server_menu.gd" id="1_p42xi"]
-[ext_resource type="Script" path="res://assets/scripts/controllers/menu_controller.gd" id="2_dsgiu"]
+[ext_resource type="Script" path="res://assets/scripts/components/menu_controller.gd" id="2_dsgiu"]
 [ext_resource type="PackedScene" uid="uid://drjcxql1q3ha5" path="res://assets/scenes/panels/base_content_panel.tscn" id="3_iqfb2"]
 
 [node name="LoadingServerMenu" type="CanvasLayer"]

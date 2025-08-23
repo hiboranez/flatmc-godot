@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://7egddyyjkxvq"]
+
+[ext_resource type="Texture2D" uid="uid://cyxsiopf4sp15" path="res://assets/textures/ui/block_selection_frame.png" id="1_6cut0"]
+
+[node name="BlockSelectionFrame" type="Sprite2D"]
+light_mask = 4
+z_index = 1
+texture = ExtResource("1_6cut0")

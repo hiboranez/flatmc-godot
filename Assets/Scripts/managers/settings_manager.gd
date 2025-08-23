@@ -16,7 +16,7 @@ func get_resource_amount() -> int:
 
 func update_resource() -> void:
 	ResourceLoadingMenu.call_deferred("set_loading_info", "res://assets/data/default_settings.json")
-	var default_settings_json = DataManager.load_json_file("res://assets/data/default_settings.json", {})
+	var default_settings_json = ResourceManager.load_json_file("res://assets/data/default_settings.json", {})
 	default_setting_dict = default_settings_json["settings"]
 	default_value_dict = default_settings_json["values"]
 	default_language_dict = default_settings_json["languages"]
@@ -37,7 +37,6 @@ func apply_settings():
 			for setting in setting_list:
 				set_current_setting(setting, config.get_value("settings", setting, get_default_setting(setting)))
 	
-	DataManager.update_block_id_dict()
 	TranslationServer.set_locale(get_current_setting("language"))
 	if get_current_setting("full_screen") == "on" and DisplayServer.window_get_mode() != DisplayServer.WINDOW_MODE_FULLSCREEN:
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)

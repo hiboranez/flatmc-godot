@@ -194,15 +194,15 @@ func update_achievement_progress_dict(got_achievement_progress_dict):
 func init_local(peer_id):
 	position = Vector2i(0, -21)
 	player_peer_id = peer_id
-	var player_icon_instance = SceneManager.get_scene("others/player_icon").instantiate()
 	var config = ConfigFile.new()
 	var result = config.load("user://configs.cfg")
 	var skin_texture = TextureManager.get_texture("skins/steve_"+SettingsManager.get_current_setting("resource_pack").replace("official_", ""))
-	player_icon_instance.get_node("UpSkin").texture.atlas = skin_texture
 	if result == OK:
 		player_name = config.get_value("settings", "player_name", SettingsManager.get_default_setting("player_name"))
-		StaticLoad.game.player_icons[player_name] = player_icon_instance
-		StaticLoad.game.mini_map_players.add_child(player_icon_instance)
+		ActionManager.execute_action("mini_map", "add_player", {
+			"skin_texture": skin_texture,
+			"player_name": player_name
+		})
 		uuid = UUID.uuid_from_username(player_name)
 		name_label.text = player_name
 		StaticLoad.player_peer_dict[player_peer_id] = self
@@ -252,49 +252,28 @@ func init_local(peer_id):
 				item_bar_amounts = player_config.get_value("player", "item_bar_amounts", item_bar_amounts)
 				var achievement_progress_dict_tmp = player_config.get_value("player", "achievement_progress_dict", achievement_progress_dict)
 				update_achievement_progress_dict(achievement_progress_dict_tmp)
-				StaticLoad.game.refresh_achievement_info()
+				ActionManager.execute_action("achievement_get_panel", "refresh")
+				ActionManager.execute_action("achievement_ui", "refresh")
 		inventory_dict = calculate_inventory_dict([item_bar_names, item_bar_amounts, mouse_item_name, mouse_item_amount])
 		if gamemode != "creative":
 			is_flying = false
-		if self.gamemode == "creative":
-			StaticLoad.game.health_bar.visible = false
-			StaticLoad.game.hunger_bar.visible = false
+		ActionManager.execute_action("health_bar", "update_visible")
+		ActionManager.execute_action("hunger_bar", "update_visible")
 		update_player_face_rotation()
 		StaticLoad.game.update_new_chunk(true)
-	
-	
-	var mini_map_camera_zoom = StaticLoad.game.mini_map_camera.zoom[0]
-	var player_icon_scale = StaticLoad.MINI_MAP_SCALE_FACTOR/mini_map_camera_zoom
-	player_icon_instance.scale = Vector2(player_icon_scale, player_icon_scale)
-	player_icon_instance.name = player_name
-	
 	
 	if is_other:
 		camera.queue_free()
 	unfreeze()
-	StaticLoad.game.update_game_details(true)
-	StaticLoad.game.init_inventory()
 	for i in range(9):
 		if item_bar_names[i] == "AIR":
 			continue
-		StaticLoad.game.item_grids[i].get_node("ItemIcon").init_icon(item_bar_names[i].to_lower())
-		var item_name = item_bar_names[i]
-		var item_amount = item_bar_amounts[i]
-		if StaticLoad.get_is_durable_by_name(item_name):
-			StaticLoad.game.item_grids[i].get_node("Amount").text = ""
-			StaticLoad.game.item_grids[i].get_node("Amount").visible = false
-			var progress_bar = StaticLoad.game.item_grids[i].get_node("ProgressBar")
-			progress_bar.max_value = StaticLoad.get_max_amount_by_name(item_name)
-			progress_bar.value = item_amount
-			StaticLoad.game.item_grids[i].get_node("ProgressBar").visible = true
-		else:
-			StaticLoad.game.item_grids[i].get_node("ProgressBar").visible = false
-			if item_amount <= 1:
-				StaticLoad.game.item_grids[i].get_node("Amount").text = ""
-				StaticLoad.game.item_grids[i].get_node("Amount").visible = false
-			else:
-				StaticLoad.game.item_grids[i].get_node("Amount").text = str(item_amount)
-				StaticLoad.game.item_grids[i].get_node("Amount").visible = true
+		ActionManager.execute_action("hot_bar", "update_slot_data", {
+			"index": i,
+			"item_name": item_bar_names[i],
+			"item_amount": item_bar_amounts[i],
+			"refresh": true
+		})
 	
 	if not StaticLoad.is_muti_mode:
 		return
@@ -321,7 +300,7 @@ func update_local_is_reading_sign():
 	var foot_pos = position
 	var foot_block_pos = StaticLoad.game.tile_map_layer.local_to_map(foot_pos)
 	var foot_block_id = StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.tile_map_layer.get_cell_atlas_coords(foot_block_pos))
-	if DataManager.get_block_name(foot_block_id) == "SIGN":
+	if AttributeManager.get_block_name(foot_block_id) == "SIGN":
 		if not is_reading_sign or reading_sign_block_pos != foot_block_pos:
 			is_reading_sign = true
 			refresh_reading_sign(foot_block_pos)
@@ -334,7 +313,7 @@ func update_local_is_on_ladder():
 	var foot_pos = position
 	var foot_block_pos = StaticLoad.game.tile_map_layer.local_to_map(foot_pos)
 	var foot_block_id = StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.tile_map_layer.get_cell_atlas_coords(foot_block_pos))
-	if DataManager.get_block_name(foot_block_id) == "LADDER":
+	if AttributeManager.get_block_name(foot_block_id) == "LADDER":
 		if not is_on_ladder:
 			is_on_ladder = true
 	elif is_on_ladder:
@@ -377,10 +356,10 @@ func update_sound_by_data():
 			if not StaticLoad.get_is_untouchable_by_id(block_id):
 				if move_state == "walk":
 					step_sound_timer = walk_period
-					AudioManager.play_random_audio_at_position("sound/step/"+StaticLoad.get_step_type_by_name(DataManager.get_block_name(block_id)), position, 1)
+					AudioManager.play_random_audio_at_position("sound/step/"+StaticLoad.get_step_type_by_name(AttributeManager.get_block_name(block_id)), position, 1)
 				elif move_state == "run":
 					step_sound_timer = run_period
-					AudioManager.play_random_audio_at_position("sound/step/"+StaticLoad.get_step_type_by_name(DataManager.get_block_name(block_id)), position, 1)
+					AudioManager.play_random_audio_at_position("sound/step/"+StaticLoad.get_step_type_by_name(AttributeManager.get_block_name(block_id)), position, 1)
 	elif step_sound_timer > 0 and not is_sneaking and not is_pulling and not is_eating:
 		step_sound_timer = 0
 	if step_sound_timer > 0 and not is_sneaking and not is_pulling and not is_eating:
@@ -907,6 +886,9 @@ func set_item_in_hand(got_item_name):
 	var is_update_player_inventory = not StaticLoad.is_muti_mode or (StaticLoad.is_muti_mode and multiplayer.get_unique_id()==player_peer_id)
 	item_in_hand.set_item_in_hand(got_item_name, is_update_player_inventory)
 
+func get_handheld_name() -> String:
+	return item_bar_names[selected_item_grid]
+
 func update_local_item_in_hand():
 	if StaticLoad.is_muti_mode and multiplayer.get_unique_id() != player_peer_id:
 		return
@@ -1289,26 +1271,6 @@ func destroy_block(block_pos: Vector2i):
 		else:
 			return false
 
-func check_attached_block(block_pos, tile_map_layer_tmp):
-	var chunk_pos_tmp
-	var block_pos_tmp
-	var is_attached_block = false
-	for i in [1, -1]:
-		block_pos_tmp = block_pos + Vector2i(i, 0)
-		chunk_pos_tmp = StaticLoad.game.get_chunk_position(block_pos_tmp)
-		if StaticLoad.game.loaded_chunks.has(str(chunk_pos_tmp[0])+"."+str(chunk_pos_tmp[1])):
-			var block_id_tmp = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer_tmp.get_cell_atlas_coords(block_pos_tmp))
-			if block_id_tmp != 0:	
-				is_attached_block = true
-	for i in [1, -1]:
-		block_pos_tmp = block_pos + Vector2i(0, i)
-		chunk_pos_tmp = StaticLoad.game.get_chunk_position(block_pos_tmp)
-		if StaticLoad.game.loaded_chunks.has(str(chunk_pos_tmp[0])+"."+str(chunk_pos_tmp[1])):
-			var block_id_tmp = StaticLoad.get_block_id_by_atlas_coords(tile_map_layer_tmp.get_cell_atlas_coords(block_pos_tmp))
-			if block_id_tmp != 0:	
-				is_attached_block = true
-	return is_attached_block
-
 func place_block(block_pos):
 	var place_layer = current_set_layer
 	var chunk_pos = StaticLoad.game.get_chunk_position(block_pos)
@@ -1329,13 +1291,13 @@ func place_block(block_pos):
 		if up_block_id != 0 and not StaticLoad.get_is_transparent_by_id(up_block_id):
 			return false
 		var local_block_id = StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.tile_map_layer.get_cell_atlas_coords(block_pos))
-		if DataManager.get_block_name(local_block_id) == "GRASS_BLOCK":
+		if AttributeManager.get_block_name(local_block_id) == "GRASS_BLOCK":
 			#var sound_pos = StaticLoad.game.tile_map_layer.map_to_local(block_pos)+Vector2(0, 25)
 			#AudioManager.play_random_audio_at_position("sound/item", "hoe_still", sound_pos, 1)
-			#StaticLoad.game.set_block(block_pos, DataManager.get_block_id("FARM_LAND"), "solid", true)
-			set_block_list.append([DataManager.get_block_id("FARM_LAND"), block_pos, "solid"])
+			#StaticLoad.game.set_block(block_pos, AttributeManager.get_block_id("FARM_LAND"), "solid", true)
+			set_block_list.append([AttributeManager.get_block_id("FARM_LAND"), block_pos, "solid"])
 			#if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1:
-				#StaticLoad.rpc("set_block", [block_pos, DataManager.get_block_id("FARM_LAND"), "solid", true])
+				#StaticLoad.rpc("set_block", [block_pos, AttributeManager.get_block_id("FARM_LAND"), "solid", true])
 			#wear_and_update_in_hand_tool(1)
 			#var rng = RandomNumberGenerator.new()
 			#var num = rng.randf()
@@ -1350,29 +1312,29 @@ func place_block(block_pos):
 					#StaticLoad.create_entity(summon_item_args)
 			is_punching = true
 			return true
-		elif DataManager.get_block_name(local_block_id) == "DIRT":
+		elif AttributeManager.get_block_name(local_block_id) == "DIRT":
 			#var sound_pos = StaticLoad.game.tile_map_layer.map_to_local(block_pos)+Vector2(0, 25)
-			set_block_list.append([DataManager.get_block_id("FARM_LAND"), block_pos, "solid"])
+			set_block_list.append([AttributeManager.get_block_id("FARM_LAND"), block_pos, "solid"])
 			#AudioManager.play_random_audio_at_position("sound/item", "hoe_still", sound_pos, 1)
-			#StaticLoad.game.set_block(block_pos, DataManager.get_block_id("FARM_LAND"), "solid", true)
+			#StaticLoad.game.set_block(block_pos, AttributeManager.get_block_id("FARM_LAND"), "solid", true)
 			#if StaticLoad.is_muti_mode and multiplayer.get_unique_id() == 1:
-				#StaticLoad.rpc("set_block", [block_pos, DataManager.get_block_id("FARM_LAND"), "solid", true])
+				#StaticLoad.rpc("set_block", [block_pos, AttributeManager.get_block_id("FARM_LAND"), "solid", true])
 			is_punching = true
 			return true
 		else:
 			is_punching = true
 			return false
 	var final_item_name = StaticLoad.get_final_place_name_by_name(selected_item_bar_name)
-	var block_id = DataManager.get_block_id(final_item_name)
+	var block_id = AttributeManager.get_block_id(final_item_name)
 	var tile_map_layer_tmp = StaticLoad.game.tile_map_layer
 	if place_layer == "back":
 		tile_map_layer_tmp = StaticLoad.game.back_tile_map_layer
 	if not StaticLoad.game.check_place_block_state(block_pos, block_id, current_set_layer):
 		return false
 	if gamemode != "creative" and current_set_layer == "solid":
-		if not check_attached_block(block_pos, tile_map_layer_tmp) and StaticLoad.get_is_clingling_by_name(DataManager.get_block_name(block_id)) != "all" and StaticLoad.get_is_clingling_by_name(DataManager.get_block_name(block_id)) != "back":
+		if not WorldInspector.check_has_nearby_block(block_pos, BlockLayer.get_index(current_set_layer)) and StaticLoad.get_is_clingling_by_name(AttributeManager.get_block_name(block_id)) != "all" and StaticLoad.get_is_clingling_by_name(AttributeManager.get_block_name(block_id)) != "back":
 			return false
-	if tile_map_layer_tmp.get_cell_source_id(block_pos) == -1 and StaticLoad.game.no_reach_tile_map_layer.get_cell_source_id(block_pos) == -1 and DataManager.block_id_dict.has(final_item_name):
+	if tile_map_layer_tmp.get_cell_source_id(block_pos) == -1 and StaticLoad.game.no_reach_tile_map_layer.get_cell_source_id(block_pos) == -1 and AttributeManager.block_id_dict.has(final_item_name):
 		if place_layer == "back":
 			var solid_block_id = StaticLoad.get_block_id_by_atlas_coords(StaticLoad.game.tile_map_layer.get_cell_atlas_coords(block_pos))
 			if StaticLoad.get_is_untouchable_by_id(solid_block_id):
@@ -2014,7 +1976,10 @@ func set_player_model_skin_by_texture_buffer(got_skin_texture_buffer):
 		StaticLoad.game.player_icons[player_name].texture.atlas = ImageTexture.create_from_image(skin_texture_image)
 		StaticLoad.game.player_icons[player_name].get_node("UpSkin").texture.atlas = ImageTexture.create_from_image(skin_texture_image)
 	if not StaticLoad.is_muti_mode or player_peer_id == multiplayer.get_unique_id():
-		StaticLoad.game.inventory_player_model_mesh.mesh.surface_set_material(0, player_material)
+		ActionManager.execute_action("inventory_ui", "set_mesh_surface_material", {
+			"mesh": "player",
+			"surface_material": player_material
+		})
 
 func set_player_model_skin_by_texture(got_skin_texture):
 	var player_material = load("res://assets/materials/player_skin.tres").duplicate(true)
@@ -2024,7 +1989,10 @@ func set_player_model_skin_by_texture(got_skin_texture):
 		StaticLoad.game.player_icons[player_name].texture.atlas = got_skin_texture
 		StaticLoad.game.player_icons[player_name].get_node("UpSkin").texture.atlas = got_skin_texture
 	if not StaticLoad.is_muti_mode or player_peer_id == multiplayer.get_unique_id():
-		StaticLoad.game.inventory_player_model_mesh.mesh.surface_set_material(0, player_material)
+		ActionManager.execute_action("inventory_ui", "set_mesh_surface_material", {
+			"mesh": "player",
+			"surface_material": player_material
+		})
 
 func update_local_hunger():
 	if StaticLoad.is_muti_mode and not multiplayer.get_unique_id() == 1:

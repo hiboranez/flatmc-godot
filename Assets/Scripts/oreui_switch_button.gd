@@ -7,6 +7,7 @@ signal pressed(is_pressed: bool)
 
 var state = ButtonState.NORMAL
 var prev_state = ButtonState.NORMAL
+var is_pressed: bool = false
 
 func _ready() -> void:
 	background_rect.texture = TextureManager.get_texture("ui/oreui_"+button_name+"_button")

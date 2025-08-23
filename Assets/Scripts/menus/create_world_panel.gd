@@ -55,18 +55,18 @@ func create_world(world_name: String):
 		"allow_cheat": allow_cheat,
 		"achievement": achievement,
 	}
-	WorldManager.save_level_dat(level, level_change_value)
+	WorldSaver.save_level_dat(level, level_change_value)
 	level.save_encrypted_pass(world_path+"/level.dat", SettingsManager.get_default_value("config_password"))
 	for x in range(-1,1):
 		for y in range(-1,1):
 			var mca = ConfigFile.new()
-			var chunk = WorldManager.generate_chunk(Vector2i(x, y), world_seed, world_type)
+			var chunk = WorldGenerator.generate_chunk(Vector2i(x, y), world_seed, world_type)
 			var value_dict = {
 				"blocks" : chunk[0],
 				"no_reach_blocks" : chunk[1],
 				"back_blocks" : chunk[2]
 			}
-			WorldManager.set_mca_value(mca, value_dict)
+			WorldSaver.save_mca(mca, value_dict)
 			mca.save_encrypted_pass(region_path+"/r."+str(x)+"."+str(y)+".mca", SettingsManager.get_default_value("config_password"))
 
 func _on_create_world_button_pressed() -> void:

@@ -114,7 +114,7 @@ EDIT_SERVER;编辑服务器;edit server;サーバーを編集;서버 편집;Edit
 LAST_MODIFIED;上次修改;last modified;最終更新;마지막 수정;Última modificación;Dernière modification;Zuletzt geändert;Последнее изменение;अंतिम संशोधन;Lần sửa cuối;แก้ไขล่าสุด
 INVALID_IP;无效的 ip 地址;invalid ip address;無効なIPアドレス;잘못된 IP 주소;Dirección IP inválida;Adresse IP invalide;Ungültige IP-Adresse;Неверный IP-адрес;अमान्य आईपी पता;Địa chỉ IP không hợp lệ;ที่อยู่ IP ไม่ถูกต้อง
 ONLINE_PLAYERS;在线玩家;online players;オンラインプレイヤー;온라인 플레이어;Jugadores en línea;Joueurs en ligne;Spieler online;Игроки онлайн;ऑनलाइन खिलाड़ी;Người chơi trực tuyến;ผู้เล่นออนไลน์
-POSITON;坐标;position;座標;좌표;Posición;Position;Position;Позиция;स्थिति;Vị trí;ตำแหน่ง
+COORDINATE;坐标;coordinate;座標;좌표;coordenada;coordonnée;Koordinate;координата;निर्देशांक;tọa độ;พิกัด
 SELECTED_POSITION;选中坐标;selected position;選択中の座標;선택된 좌표;Posición seleccionada;Position sélectionnée;Ausgewählte Position;Выбранная позиция;चयनित स्थिति;Vị trí đã chọn;ตำแหน่งที่เลือก
 CHUNK;区块;chunk;チャンク;청크;Chunk;Tronçon;Chunk;Чанк;चंक;Chunk;ส่วน
 FULL_SCREEN;全屏;full screen;全画面表示;전체 화면;Pantalla completa;Plein écran;Vollbild;Полный экран;पूर्ण स्क्रीन;Toàn màn hình;เต็มหน้าจอ

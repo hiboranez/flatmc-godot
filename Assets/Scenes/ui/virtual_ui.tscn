@@ -185,6 +185,12 @@ scale = Vector2(2, 2)
 pivot_offset = Vector2(50, 50)
 texture = SubResource("AtlasTexture_6gvfi")
 
+[connection signal="pressed" from="FunctionButtons/F1Button" to="." method="_on_f1_button_pressed"]
+[connection signal="pressed" from="FunctionButtons/F2Button" to="." method="_on_f2_button_pressed"]
+[connection signal="pressed" from="FunctionButtons/F3Button" to="." method="_on_f3_button_pressed"]
+[connection signal="pressed" from="FunctionButtons/MenuButton" to="." method="_on_menu_button_pressed"]
+[connection signal="pressed" from="FunctionButtons/ChatButton" to="." method="_on_chat_button_pressed"]
+[connection signal="pressed" from="FunctionButtons/TabButton" to="." method="_on_tab_button_pressed"]
 [connection signal="state_changed" from="RightUI/JumpButton" to="." method="_on_jump_button_state_changed"]
 [connection signal="pressed" from="RightUI/SprintButton" to="." method="_on_sprint_button_pressed"]
 [connection signal="pressed" from="RightUI/SneakButton" to="." method="_on_sneak_button_pressed"]

@@ -350,7 +350,10 @@ func update_texture(update_neighbour_state):
 	texture_tmp = self.texture
 	if not StaticLoad.game.is_smooth_light or not update_neighbour_state.contains("update"):
 		set_texture(image_texture)
-	StaticLoad.game.update_mini_map_chunk_light(chunk_pos, light_image)
+	ActionManager.execute_action("mini_map", "update_chunk_light", {
+		"chunk_coordinate": chunk_pos,
+		"light_image": light_image
+	})
 	var chunk_light_name = str(chunk_pos[0])+"."+str(chunk_pos[1])
 	if StaticLoad.game.loaded_chunk_packed_byte_arrays.has(chunk_light_name):
 		if not StaticLoad.game.chunk_sky_light_datas.has(chunk_light_name):

@@ -1,0 +1,31 @@
+[gd_scene load_steps=10 format=3 uid="uid://7b2up7fypsle"]
+
+[ext_resource type="Script" path="res://assets/scripts/ui/game_ui.gd" id="1_iksb8"]
+[ext_resource type="PackedScene" uid="uid://ny640y2c8qne" path="res://assets/scenes/game_ui/mouse_attached_item.tscn" id="2_2q0qc"]
+[ext_resource type="PackedScene" uid="uid://bv0f5rmm1q86w" path="res://assets/scenes/game_ui/right_top_panel.tscn" id="5_0osns"]
+[ext_resource type="PackedScene" uid="uid://df64m1nhutag7" path="res://assets/scenes/game_ui/bottom_panel.tscn" id="6_kw687"]
+[ext_resource type="PackedScene" uid="uid://cyn56715e0asn" path="res://assets/scenes/ui/inventory_ui.tscn" id="6_pvu6y"]
+[ext_resource type="PackedScene" uid="uid://7egddyyjkxvq" path="res://assets/scenes/ui/block_selection_frame.tscn" id="8_jrn7e"]
+[ext_resource type="PackedScene" uid="uid://b084qw7odimik" path="res://assets/scenes/game_ui/left_top_panel.tscn" id="8_ofsvc"]
+[ext_resource type="Script" path="res://assets/scripts/ui/block_selection_frame.gd" id="9_a3j14"]
+[ext_resource type="PackedScene" uid="uid://b2n4pv4lm045o" path="res://assets/scenes/ui/crafting_ui/crafting_ui.tscn" id="18_et7n7"]
+
+[node name="GameUI" type="CanvasLayer"]
+script = ExtResource("1_iksb8")
+
+[node name="MouseAttachedItem" parent="." instance=ExtResource("2_2q0qc")]
+
+[node name="RightTopPanel" parent="." instance=ExtResource("5_0osns")]
+
+[node name="LeftTopPanel" parent="." instance=ExtResource("8_ofsvc")]
+
+[node name="BottomPanel" parent="." instance=ExtResource("6_kw687")]
+
+[node name="InventoryUI" parent="." instance=ExtResource("6_pvu6y")]
+visible = false
+
+[node name="CraftingUI" parent="." instance=ExtResource("18_et7n7")]
+visible = false
+
+[node name="BlockSelectionFrame" parent="." instance=ExtResource("8_jrn7e")]
+script = ExtResource("9_a3j14")

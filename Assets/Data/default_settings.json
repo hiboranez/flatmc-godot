@@ -39,7 +39,14 @@
 		"server_log_path": "user://local_server/logs/",
 		"config_password": "QQ1241999312",
 		"game_spt": "0.05",
-		"max_name_length": "16"
+		"chunk_dormant_time": "5",
+		"max_name_length": "16",
+		"mini_map_scale_factor": "3.36",
+		"mini_map_icon_size": "8",
+		"hot_bar_text_display_time": "2",
+		"hot_bar_text_disappear_time": "0.2",
+		"block_selection_display_time": "3",
+		"block_selection_disappear_time": "0.2"
 	},
 	
 	"world_infos": {

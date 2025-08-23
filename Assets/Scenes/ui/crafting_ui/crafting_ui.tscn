@@ -1,0 +1,363 @@
+[gd_scene load_steps=9 format=3 uid="uid://b2n4pv4lm045o"]
+
+[ext_resource type="Texture2D" uid="uid://3yvcqbp5ui5p" path="res://assets/textures/ui/ui_normal_panel.png" id="1_a00gy"]
+[ext_resource type="FontFile" uid="uid://dahei608a1d0f" path="res://assets/fonts/MinecraftAE.ttf" id="2_76ece"]
+[ext_resource type="Texture2D" uid="uid://br3dvltcnxhnc" path="res://assets/textures/ui/ui_content_panel.png" id="3_0gtt7"]
+[ext_resource type="PackedScene" uid="uid://bhyxpmrih3ijn" path="res://assets/scenes/others/inventory_grid.tscn" id="4_btwrp"]
+[ext_resource type="Texture2D" uid="uid://bl03d3dhjffag" path="res://assets/textures/ui/inventory_arrow_icon.png" id="5_t8eog"]
+[ext_resource type="Texture2D" uid="uid://p66pcctndsk1" path="res://assets/textures/ui/ui_close_button.png" id="6_1nssg"]
+[ext_resource type="Script" path="res://assets/scripts/TouchButton.gd" id="7_qq3le"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_eci0f"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+
+[node name="CraftingUI" type="CanvasLayer"]
+
+[node name="Background" type="ColorRect" parent="."]
+z_index = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_force_pass_scroll_events = false
+color = Color(0, 0, 0, 0.705882)
+
+[node name="Panel" type="NinePatchRect" parent="."]
+z_index = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -493.0
+offset_top = -457.0
+offset_right = 493.0
+offset_bottom = 457.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1_a00gy")
+patch_margin_left = 21
+patch_margin_top = 21
+patch_margin_right = 21
+patch_margin_bottom = 21
+
+[node name="Crafting" type="Control" parent="Panel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -503.5
+offset_right = 20.0
+offset_bottom = -463.5
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="CraftTitle" type="Label" parent="Panel/Crafting"]
+light_mask = 4
+z_index = 2
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -328.0
+offset_top = 66.0
+offset_right = 104.0
+offset_bottom = 137.0
+grow_horizontal = 2
+size_flags_horizontal = 6
+size_flags_vertical = 0
+localize_numeral_system = false
+mouse_filter = 1
+theme_override_colors/font_color = Color(0.215686, 0.215686, 0.215686, 1)
+theme_override_fonts/font = ExtResource("2_76ece")
+theme_override_font_sizes/font_size = 40
+theme_override_styles/normal = SubResource("StyleBoxEmpty_eci0f")
+text = "CRAFTING"
+vertical_alignment = 1
+
+[node name="CraftResultPanel" type="NinePatchRect" parent="Panel/Crafting"]
+layout_mode = 0
+offset_left = 198.0
+offset_top = 209.0
+offset_right = 338.0
+offset_bottom = 349.0
+texture = ExtResource("3_0gtt7")
+region_rect = Rect2(0, 0, 64, 64)
+patch_margin_left = 4
+patch_margin_top = 4
+patch_margin_right = 4
+patch_margin_bottom = 4
+
+[node name="CraftResult" parent="Panel/Crafting/CraftResultPanel" instance=ExtResource("4_btwrp")]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -50.0
+offset_top = -50.0
+offset_right = 50.0
+offset_bottom = 50.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = null
+slot_function = "table_craft_result"
+
+[node name="ArrowMark" type="TextureRect" parent="Panel/Crafting"]
+layout_mode = 0
+offset_left = 31.0
+offset_top = 234.0
+offset_right = 155.0
+offset_bottom = 321.0
+texture = ExtResource("5_t8eog")
+
+[node name="GridContainer" type="GridContainer" parent="Panel/Crafting"]
+layout_mode = 0
+offset_left = -309.0
+offset_top = 130.0
+offset_right = -9.0
+offset_bottom = 430.0
+theme_override_constants/h_separation = 0
+theme_override_constants/v_separation = 0
+columns = 3
+
+[node name="Craft6" parent="Panel/Crafting/GridContainer" instance=ExtResource("4_btwrp")]
+layout_mode = 2
+slot_function = "table_craft_6"
+
+[node name="Craft7" parent="Panel/Crafting/GridContainer" instance=ExtResource("4_btwrp")]
+layout_mode = 2
+slot_function = "table_craft_7"
+
+[node name="Craft8" parent="Panel/Crafting/GridContainer" instance=ExtResource("4_btwrp")]
+layout_mode = 2
+slot_function = "table_craft_8"
+
+[node name="Craft3" parent="Panel/Crafting/GridContainer" instance=ExtResource("4_btwrp")]
+layout_mode = 2
+slot_function = "table_craft_3"
+
+[node name="Craft4" parent="Panel/Crafting/GridContainer" instance=ExtResource("4_btwrp")]
+layout_mode = 2
+slot_function = "table_craft_4"
+
+[node name="Craft5" parent="Panel/Crafting/GridContainer" instance=ExtResource("4_btwrp")]
+layout_mode = 2
+slot_function = "table_craft_5"
+
+[node name="Craft0" parent="Panel/Crafting/GridContainer" instance=ExtResource("4_btwrp")]
+layout_mode = 2
+slot_function = "table_craft_0"
+
+[node name="Craft1" parent="Panel/Crafting/GridContainer" instance=ExtResource("4_btwrp")]
+layout_mode = 2
+slot_function = "table_craft_1"
+
+[node name="Craft2" parent="Panel/Crafting/GridContainer" instance=ExtResource("4_btwrp")]
+layout_mode = 2
+slot_function = "table_craft_2"
+
+[node name="Inventory" type="Control" parent="Panel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -44.5
+offset_right = 20.0
+offset_bottom = -4.5
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="InventoryTitle" type="Label" parent="Panel/Inventory"]
+light_mask = 4
+z_index = 2
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -451.0
+offset_top = -29.5
+offset_right = 445.0
+offset_bottom = 41.5
+grow_horizontal = 2
+size_flags_horizontal = 6
+size_flags_vertical = 0
+localize_numeral_system = false
+mouse_filter = 1
+theme_override_colors/font_color = Color(0.215686, 0.215686, 0.215686, 1)
+theme_override_fonts/font = ExtResource("2_76ece")
+theme_override_font_sizes/font_size = 40
+theme_override_styles/normal = SubResource("StyleBoxEmpty_eci0f")
+text = "INVENTORY"
+vertical_alignment = 1
+
+[node name="InventoryBackContainer" type="FlowContainer" parent="Panel/Inventory"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -450.0
+offset_top = 13.0
+offset_right = 450.0
+offset_bottom = 313.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/h_separation = 0
+theme_override_constants/v_separation = 0
+
+[node name="InventoryGrid9" parent="Panel/Inventory/InventoryBackContainer" instance=ExtResource("4_btwrp")]
+layout_mode = 2
+
+[node name="InventoryGrid10" parent="Panel/Inventory/InventoryBackContainer" instance=ExtResource("4_btwrp")]
+layout_mode = 2
+
+[node name="InventoryGrid11" parent="Panel/Inventory/InventoryBackContainer" instance=ExtResource("4_btwrp")]
+layout_mode = 2
+
+[node name="InventoryGrid12" parent="Panel/Inventory/InventoryBackContainer" instance=ExtResource("4_btwrp")]
+layout_mode = 2
+
+[node name="InventoryGrid13" parent="Panel/Inventory/InventoryBackContainer" instance=ExtResource("4_btwrp")]
+layout_mode = 2
+
+[node name="InventoryGrid14" parent="Panel/Inventory/InventoryBackContainer" instance=ExtResource("4_btwrp")]
+layout_mode = 2
+
+[node name="InventoryGrid15" parent="Panel/Inventory/InventoryBackContainer" instance=ExtResource("4_btwrp")]
+layout_mode = 2
+
+[node name="InventoryGrid16" parent="Panel/Inventory/InventoryBackContainer" instance=ExtResource("4_btwrp")]
+layout_mode = 2
+
+[node name="InventoryGrid17" parent="Panel/Inventory/InventoryBackContainer" instance=ExtResource("4_btwrp")]
+layout_mode = 2
+
+[node name="InventoryGrid18" parent="Panel/Inventory/InventoryBackContainer" instance=ExtResource("4_btwrp")]
+layout_mode = 2
+
+[node name="InventoryGrid19" parent="Panel/Inventory/InventoryBackContainer" instance=ExtResource("4_btwrp")]
+layout_mode = 2
+
+[node name="InventoryGrid20" parent="Panel/Inventory/InventoryBackContainer" instance=ExtResource("4_btwrp")]
+layout_mode = 2
+
+[node name="InventoryGrid21" parent="Panel/Inventory/InventoryBackContainer" instance=ExtResource("4_btwrp")]
+layout_mode = 2
+
+[node name="InventoryGrid22" parent="Panel/Inventory/InventoryBackContainer" instance=ExtResource("4_btwrp")]
+layout_mode = 2
+
+[node name="InventoryGrid23" parent="Panel/Inventory/InventoryBackContainer" instance=ExtResource("4_btwrp")]
+layout_mode = 2
+
+[node name="InventoryGrid24" parent="Panel/Inventory/InventoryBackContainer" instance=ExtResource("4_btwrp")]
+layout_mode = 2
+
+[node name="InventoryGrid25" parent="Panel/Inventory/InventoryBackContainer" instance=ExtResource("4_btwrp")]
+layout_mode = 2
+
+[node name="InventoryGrid26" parent="Panel/Inventory/InventoryBackContainer" instance=ExtResource("4_btwrp")]
+layout_mode = 2
+
+[node name="InventoryGrid27" parent="Panel/Inventory/InventoryBackContainer" instance=ExtResource("4_btwrp")]
+layout_mode = 2
+
+[node name="InventoryGrid28" parent="Panel/Inventory/InventoryBackContainer" instance=ExtResource("4_btwrp")]
+layout_mode = 2
+
+[node name="InventoryGrid29" parent="Panel/Inventory/InventoryBackContainer" instance=ExtResource("4_btwrp")]
+layout_mode = 2
+
+[node name="InventoryGrid30" parent="Panel/Inventory/InventoryBackContainer" instance=ExtResource("4_btwrp")]
+layout_mode = 2
+
+[node name="InventoryGrid31" parent="Panel/Inventory/InventoryBackContainer" instance=ExtResource("4_btwrp")]
+layout_mode = 2
+
+[node name="InventoryGrid32" parent="Panel/Inventory/InventoryBackContainer" instance=ExtResource("4_btwrp")]
+layout_mode = 2
+
+[node name="InventoryGrid33" parent="Panel/Inventory/InventoryBackContainer" instance=ExtResource("4_btwrp")]
+layout_mode = 2
+
+[node name="InventoryGrid34" parent="Panel/Inventory/InventoryBackContainer" instance=ExtResource("4_btwrp")]
+layout_mode = 2
+
+[node name="InventoryGrid35" parent="Panel/Inventory/InventoryBackContainer" instance=ExtResource("4_btwrp")]
+layout_mode = 2
+
+[node name="InventoryShowContainer" type="FlowContainer" parent="Panel/Inventory"]
+z_index = 1
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -450.0
+offset_top = 333.0
+offset_right = 450.0
+offset_bottom = 433.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/h_separation = 0
+theme_override_constants/v_separation = 0
+
+[node name="InventoryGrid0" parent="Panel/Inventory/InventoryShowContainer" instance=ExtResource("4_btwrp")]
+layout_mode = 2
+
+[node name="InventoryGrid1" parent="Panel/Inventory/InventoryShowContainer" instance=ExtResource("4_btwrp")]
+layout_mode = 2
+
+[node name="InventoryGrid2" parent="Panel/Inventory/InventoryShowContainer" instance=ExtResource("4_btwrp")]
+layout_mode = 2
+
+[node name="InventoryGrid3" parent="Panel/Inventory/InventoryShowContainer" instance=ExtResource("4_btwrp")]
+layout_mode = 2
+
+[node name="InventoryGrid4" parent="Panel/Inventory/InventoryShowContainer" instance=ExtResource("4_btwrp")]
+layout_mode = 2
+
+[node name="InventoryGrid5" parent="Panel/Inventory/InventoryShowContainer" instance=ExtResource("4_btwrp")]
+layout_mode = 2
+
+[node name="InventoryGrid6" parent="Panel/Inventory/InventoryShowContainer" instance=ExtResource("4_btwrp")]
+layout_mode = 2
+
+[node name="InventoryGrid7" parent="Panel/Inventory/InventoryShowContainer" instance=ExtResource("4_btwrp")]
+layout_mode = 2
+
+[node name="InventoryGrid8" parent="Panel/Inventory/InventoryShowContainer" instance=ExtResource("4_btwrp")]
+layout_mode = 2
+
+[node name="CraftingCloseButton" type="TextureRect" parent="Panel"]
+z_index = 1
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -93.0
+offset_top = 19.0
+offset_right = -22.0
+offset_bottom = 90.0
+grow_horizontal = 0
+focus_mode = 2
+mouse_filter = 0
+texture = ExtResource("6_1nssg")
+expand_mode = 1
+script = ExtResource("7_qq3le")
+
+[connection signal="focus_entered" from="Panel/CraftingCloseButton" to="Panel/CraftingCloseButton" method="_touch_button_focus_entered"]

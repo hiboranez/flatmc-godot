@@ -1,7 +1,7 @@
 [gd_scene load_steps=35 format=4 uid="uid://cncuuwqbjeqqm"]
 
 [ext_resource type="Script" path="res://assets/scripts/menus/main_menu.gd" id="1_66xcn"]
-[ext_resource type="Script" path="res://assets/scripts/controllers/menu_controller.gd" id="2_sb85c"]
+[ext_resource type="Script" path="res://assets/scripts/components/menu_controller.gd" id="2_sb85c"]
 [ext_resource type="Texture2D" uid="uid://bpicfs0othad7" path="res://assets/textures/ui/menu_landscape.png" id="2_xwd25"]
 [ext_resource type="Shader" path="res://assets/Shaders/Blur.gdshader" id="3_xmoo7"]
 [ext_resource type="Texture2D" uid="uid://b14xkgu1d1omr" path="res://assets/textures/backgrounds/stone_wall.png" id="4_ygkn7"]

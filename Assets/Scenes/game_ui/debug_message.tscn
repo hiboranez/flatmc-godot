@@ -1,0 +1,26 @@
+[gd_scene load_steps=2 format=3 uid="uid://cj5q3hf8740rs"]
+
+[ext_resource type="FontFile" uid="uid://dahei608a1d0f" path="res://assets/fonts/MinecraftAE.ttf" id="1_qw2vv"]
+
+[node name="DebugMessage" type="Label"]
+z_index = 1
+size_flags_horizontal = 0
+theme_override_fonts/font = ExtResource("1_qw2vv")
+theme_override_font_sizes/font_size = 40
+text = "PLAYER_NAME:"
+vertical_alignment = 1
+
+[node name="ColorRect" type="ColorRect" parent="."]
+z_index = -1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -9.0
+offset_top = -12.0
+offset_right = 7.0
+offset_bottom = 8.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 0.509804)

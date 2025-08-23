@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=3 uid="uid://dgk4c6ipagqa4"]
 
 [ext_resource type="Script" path="res://assets/scripts/menus/languages_menu.gd" id="1_fkyiv"]
-[ext_resource type="Script" path="res://assets/scripts/controllers/menu_controller.gd" id="2_42hyp"]
+[ext_resource type="Script" path="res://assets/scripts/components/menu_controller.gd" id="2_42hyp"]
 [ext_resource type="PackedScene" uid="uid://drjcxql1q3ha5" path="res://assets/scenes/panels/base_content_panel.tscn" id="2_vjku5"]
 
 [node name="LanguagesMenu" type="CanvasLayer"]

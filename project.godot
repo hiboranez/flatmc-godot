@@ -33,7 +33,12 @@ SceneManager="*res://assets/scripts/managers/scene_manager.gd"
 ServerManager="*res://assets/scripts/managers/server_manager.gd"
 SettingsManager="*res://assets/scripts/managers/settings_manager.gd"
 TextureManager="*res://assets/scripts/managers/texture_manager.gd"
-WorldManager="*res://assets/scripts/managers/world_manager.gd"
+AttributeManager="*res://assets/scripts/managers/attribute_manager.gd"
+ResourceManager="*res://assets/scripts/managers/resource_manager.gd"
+ClientManager="*res://assets/scripts/managers/client_manager.gd"
+UIManager="*res://assets/scripts/managers/ui_manager.gd"
+ActionManager="*res://assets/scripts/managers/action_manager.gd"
+InputManager="*res://assets/scripts/managers/input_manager.gd"
 
 [display]
 
@@ -126,6 +131,11 @@ switch_ui_visibility={
 "events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":4194332,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
 ]
 }
+select_item_grid_0={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":48,"key_label":0,"unicode":48,"location":0,"echo":false,"script":null)
+]
+}
 select_item_grid_1={
 "deadzone": 0.5,
 "events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":49,"key_label":0,"unicode":49,"location":0,"echo":false,"script":null)
@@ -164,11 +174,6 @@ select_item_grid_7={
 select_item_grid_8={
 "deadzone": 0.5,
 "events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":56,"key_label":0,"unicode":56,"location":0,"echo":false,"script":null)
-]
-}
-select_item_grid_9={
-"deadzone": 0.5,
-"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":57,"key_label":0,"unicode":57,"location":0,"echo":false,"script":null)
 ]
 }
 chat={

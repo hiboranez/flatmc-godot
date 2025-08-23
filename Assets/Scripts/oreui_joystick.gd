@@ -12,13 +12,18 @@ func _input(event: InputEvent) -> void:
 		return
 	
 	if event is InputEventMouseButton and event.is_pressed():
-		
 		var mouse_pos = (event.position - self.global_position - Vector2(170, 170)).length()
-		
 		if mouse_pos <= max_len or event.button_index == on_draging:
 			on_draging = event.button_index
 			joystick.set_global_position(event.position - Vector2(170, 170))
-			
+			if get_point_pos().length() > max_len:
+				joystick.set_position(get_point_pos().normalized() * max_len)
+	
+	if event is InputEventMouseMotion and on_draging == 1:
+		var mouse_pos = (event.position - self.global_position - Vector2(170, 170)).length()
+		if mouse_pos <= max_len:
+			on_draging = 1
+			joystick.set_global_position(event.position - Vector2(170, 170))
 			if get_point_pos().length() > max_len:
 				joystick.set_position(get_point_pos().normalized() * max_len)
 	
@@ -28,13 +33,10 @@ func _input(event: InputEvent) -> void:
 			on_draging = -1
 	
 	if event is InputEventScreenDrag or (event is InputEventScreenTouch and event.is_pressed()):
-		
 		var mouse_pos = (event.position - self.global_position - Vector2(170, 170)).length()
-		
 		if mouse_pos <= max_len or event.get_index() == on_draging:
 			on_draging = event.get_index()
 			joystick.set_global_position(event.position - Vector2(170, 170))
-			
 			if get_point_pos().length() > max_len:
 				joystick.set_position(get_point_pos().normalized() * max_len)
 	

@@ -142,10 +142,10 @@ func update_sound_by_data():
 			if not StaticLoad.get_is_untouchable_by_id(block_id):
 				if move_state == "walk":
 					step_sound_timer = walk_period
-					AudioManager.play_random_audio_at_position("sound/step/"+StaticLoad.get_step_type_by_name(DataManager.get_block_name(block_id)), position, 1)
+					AudioManager.play_random_audio_at_position("sound/step/"+StaticLoad.get_step_type_by_name(AttributeManager.get_block_name(block_id)), position, 1)
 				elif move_state == "run":
 					step_sound_timer = run_period
-					AudioManager.play_random_audio_at_position("sound/step/"+StaticLoad.get_step_type_by_name(DataManager.get_block_name(block_id)), position, 1)
+					AudioManager.play_random_audio_at_position("sound/step/"+StaticLoad.get_step_type_by_name(AttributeManager.get_block_name(block_id)), position, 1)
 	elif step_sound_timer > 0:
 		step_sound_timer = 0
 	if step_sound_timer > 0:
@@ -380,7 +380,7 @@ func update_local_is_on_ladder():
 		ladder_repeat_timer -= get_process_delta_time()
 	elif ladder_repeat_timer < 0:
 		ladder_repeat_timer = 0
-	if DataManager.get_block_name(foot_block_id) == "LADDER":
+	if AttributeManager.get_block_name(foot_block_id) == "LADDER":
 		if not is_on_ladder:
 			is_on_ladder = true
 	elif is_on_ladder:

@@ -235,7 +235,7 @@ func get_fire_damage_timer():
 	return fire_damage_timer
 
 func refresh_model():
-	if DataManager.block_id_dict.has(item_name) and StaticLoad.get_item_model_type_by_name(item_name) >= 3:
+	if AttributeManager.block_id_dict.has(item_name) and StaticLoad.get_item_model_type_by_name(item_name) >= 3:
 		item_model_type = "block"
 		var block_material = load("res://assets/materials/BlockModel.tres").duplicate(true)
 		var texture = load("res://assets/ResourcePacks/"+SettingsManager.get_current_setting("resource_pack")+"/ModelBlocks/"+item_name.to_lower()+".png")
