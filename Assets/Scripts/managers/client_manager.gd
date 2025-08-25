@@ -8,7 +8,9 @@ var local_player: Node = null
 var background_layer: TileMapLayer = null
 var substantial_layer: TileMapLayer = null
 var insubstantial_layer: TileMapLayer = null
-var chunk_dict: Dictionary
+ 
+var is_game_connected: bool = false
+
 var connection_list = [
 	"players", "mobs", "undead_mobs", "local_player", "game",
 	"background_layer", "substantial_layer", "insubstantial_layer"
@@ -18,6 +20,7 @@ func update_connections(args: Dictionary) -> void:
 	for connection_name in connection_list:
 		if args.has(connection_name):
 			set(connection_name, args[connection_name])
+	is_game_connected = check_connections()
 
 func check_connections() -> bool:
 	for connection_name in connection_list:
@@ -28,4 +31,3 @@ func check_connections() -> bool:
 func clear_connections() -> void:
 	for connection_name in connection_list:
 		set(connection_name, null)
-	chunk_dict.clear()

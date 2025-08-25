@@ -1976,7 +1976,7 @@ func set_player_model_skin_by_texture_buffer(got_skin_texture_buffer):
 		StaticLoad.game.player_icons[player_name].texture.atlas = ImageTexture.create_from_image(skin_texture_image)
 		StaticLoad.game.player_icons[player_name].get_node("UpSkin").texture.atlas = ImageTexture.create_from_image(skin_texture_image)
 	if not StaticLoad.is_muti_mode or player_peer_id == multiplayer.get_unique_id():
-		ActionManager.execute_action("inventory_ui", "set_mesh_surface_material", {
+		ActionManager.execute_action("inventory_creative_ui", "set_mesh_surface_material", {
 			"mesh": "player",
 			"surface_material": player_material
 		})
@@ -1989,7 +1989,7 @@ func set_player_model_skin_by_texture(got_skin_texture):
 		StaticLoad.game.player_icons[player_name].texture.atlas = got_skin_texture
 		StaticLoad.game.player_icons[player_name].get_node("UpSkin").texture.atlas = got_skin_texture
 	if not StaticLoad.is_muti_mode or player_peer_id == multiplayer.get_unique_id():
-		ActionManager.execute_action("inventory_ui", "set_mesh_surface_material", {
+		ActionManager.execute_action("inventory_creative_ui", "set_mesh_surface_material", {
 			"mesh": "player",
 			"surface_material": player_material
 		})

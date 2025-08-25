@@ -12,7 +12,7 @@ anchor_right = 1.0
 offset_left = -551.0
 offset_bottom = 388.0
 grow_horizontal = 0
-mouse_filter = 1
+mouse_filter = 2
 
 [node name="DebugPanel" parent="." instance=ExtResource("1_c5txe")]
 visible = false
@@ -31,4 +31,5 @@ anchor_right = 1.0
 offset_left = -640.0
 offset_bottom = 160.0
 grow_horizontal = 0
+mouse_filter = 2
 script = ExtResource("3_7y13k")

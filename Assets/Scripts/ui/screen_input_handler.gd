@@ -14,7 +14,7 @@ func _process(delta: float) -> void:
 	execute_touch_pressing_actions()
 
 func _on_screen_input_receiver_gui_input(event: InputEvent) -> void:
-	if not ClientManager.check_connections():
+	if not ClientManager.is_game_connected:
 		return
 	if event is InputEventMouseButton:
 		if event.pressed:
@@ -47,10 +47,12 @@ func _on_screen_input_receiver_gui_input(event: InputEvent) -> void:
 			touch_dict[event.index].position = event.position
 
 func touch_pressed(event: InputEvent) -> void:
-	ActionManager.execute_action("block_selection_frame", "set_frame_restricted_position", event.position)
+	ActionManager.execute_action("block_selection_frame", "set_frame_restricted_location", event.position)
 	ActionManager.execute_action("block_selection_frame", "refresh_visible_timer")
 
 func touch_released(event: InputEvent) -> void:
+	if not ClientManager.is_game_connected:
+		return
 	var pressed_time = touch_time_counters.get_node(str(event.index)).timer
 	var selected_block_layer = BlockLayer.get_index(ClientManager.local_player.current_set_layer)
 	var handheld_item_name = ClientManager.local_player.get_handheld_name()
@@ -168,7 +170,9 @@ func touch_released(event: InputEvent) -> void:
 
 
 func touch_dragged(event: InputEvent) -> void:
-	ActionManager.execute_action("block_selection_frame", "set_frame_restricted_position", event.position)
+	if not ClientManager.is_game_connected:
+		return
+	ActionManager.execute_action("block_selection_frame", "set_frame_restricted_location", event.position)
 	ActionManager.execute_action("block_selection_frame", "refresh_visible_timer")
 	if ClientManager.local_player.gamemode != "creative":
 		var mouse_position = InputManager.get_mouse_position()
@@ -180,11 +184,13 @@ func touch_dragged(event: InputEvent) -> void:
 		InputManager.prev_mouse_position = mouse_position
 
 func mouse_pressed(event: InputEvent) -> void:
+	if not ClientManager.is_game_connected:
+		return
 	if event.button_index == 1:
 		if ClientManager.local_player.gamemode != "creative":
-			ActionManager.execute_action("block_selection_frame", "set_frame_restricted_position", event.position)
+			ActionManager.execute_action("block_selection_frame", "set_frame_restricted_location", event.position)
 		else:
-			ActionManager.execute_action("block_selection_frame", "set_frame_restricted_position", event.position)
+			ActionManager.execute_action("block_selection_frame", "set_frame_restricted_location", event.position)
 		ActionManager.execute_action("block_selection_frame", "refresh_visible_timer")
 	if event.button_index == 4:
 		if Input.is_action_pressed("ctrl"):
@@ -193,7 +199,7 @@ func mouse_pressed(event: InputEvent) -> void:
 			if ClientManager.local_player.selected_item_grid >= 1:
 				ActionManager.execute_action("hot_bar", "select_slot", ClientManager.local_player.selected_item_grid-1)
 			else:
-				ActionManager.execute_action("hot_bar", "select_slot", ClientManager.local_player.selected_item_grid-8)
+				ActionManager.execute_action("hot_bar", "select_slot", 8)
 			ActionManager.execute_action("block_selection_frame", "update_visible", ClientManager.local_player.item_bar_names[ClientManager.local_player.selected_item_grid])
 			ActionManager.execute_action("hot_bar_text", "refresh")
 	if event.button_index == 5:
@@ -208,6 +214,8 @@ func mouse_pressed(event: InputEvent) -> void:
 			ActionManager.execute_action("hot_bar_text", "refresh")
 
 func mouse_released(event: InputEvent) -> void:
+	if not ClientManager.is_game_connected:
+		return
 	if event.button_index == 1:
 		ClientManager.local_player.destroy_timer = 0
 		if ClientManager.game.destroy_light_names.has(ClientManager.local_player.player_peer_id):
@@ -227,7 +235,9 @@ func mouse_released(event: InputEvent) -> void:
 			ClientManager.local_player.eat_timer = 0
 
 func mouse_moved(event: InputEvent) -> void:
-	ActionManager.execute_action("block_selection_frame", "set_frame_restricted_position", event.position)
+	if not ClientManager.is_game_connected:
+		return
+	ActionManager.execute_action("block_selection_frame", "set_frame_restricted_location", event.position)
 	ActionManager.execute_action("block_selection_frame", "refresh_visible_timer")
 	if ClientManager.local_player.gamemode != "creative":
 		var mouse_position = InputManager.get_mouse_position()
@@ -239,6 +249,8 @@ func mouse_moved(event: InputEvent) -> void:
 		InputManager.prev_mouse_position = mouse_position
 
 func execute_mouse_pressing_actions():
+	if not ClientManager.is_game_connected:
+		return
 	if ClientManager.local_player.is_dead:
 		return
 	var mouse_position = InputManager.get_mouse_position()
@@ -334,6 +346,8 @@ func execute_mouse_pressing_actions():
 			ClientManager.local_player.place_block(final_mouse_coordinate)
 
 func execute_touch_pressing_actions():
+	if not ClientManager.is_game_connected:
+		return
 	var selected_block_layer = BlockLayer.get_index(ClientManager.local_player.current_set_layer)
 	var handheld_item_name = ClientManager.local_player.get_handheld_name()
 	for index in touch_dict:

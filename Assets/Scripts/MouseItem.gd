@@ -1,6 +1,10 @@
 extends Control
 
-var mouse_item_name_now = null
+@onready var item_icon = $ItemIcon
+@onready var amount_label = $Amount
+@onready var progress_bar = $ProgressBar
+
+var item_name: String = ""
 
 func _ready() -> void:
 	set_process(false)
@@ -9,47 +13,48 @@ func _ready() -> void:
 
 @warning_ignore("unused_parameter")
 func _process(delta: float) -> void:
-	if StaticLoad.game.player.mouse_item_name == "AIR":
-		if $ItemIcon.visible:
-			$ItemIcon.visible = false
-			$ProgressBar.visible = false
-			$Amount.visible = false
-			$Amount.text = ""
-		#await get_tree().create_timer(0.01).timeout
+	if not ClientManager.is_game_connected:
 		return
-	elif not $ItemIcon.visible:
-		$ItemIcon.init_icon(StaticLoad.game.player.mouse_item_name.to_lower())
-		mouse_item_name_now = StaticLoad.game.player.mouse_item_name
-		$ItemIcon.visible = true
-	if StaticLoad.game.player.mouse_item_amount <= 1:
-		$Amount.text = ""
-		$Amount.visible = false
+	if ClientManager.local_player.mouse_item_name == "AIR":
+		if item_icon.visible:
+			item_icon.visible = false
+			progress_bar.visible = false
+			amount_label.visible = false
+			amount_label.text = ""
+		return
+	elif not item_icon.visible:
+		item_icon.init_icon(ClientManager.local_player.mouse_item_name.to_lower())
+		item_name = ClientManager.local_player.mouse_item_name
+		item_icon.visible = true
+	if ClientManager.local_player.mouse_item_amount <= 1:
+		amount_label.text = ""
+		amount_label.visible = false
 	else:
-		$Amount.text = str(StaticLoad.game.player.mouse_item_amount)
-		$Amount.visible = true
-	update_progress_bar(StaticLoad.game.player.mouse_item_name, StaticLoad.game.player.mouse_item_amount)
+		amount_label.text = str(ClientManager.local_player.mouse_item_amount)
+		amount_label.visible = true
+	update_progress_bar(ClientManager.local_player.mouse_item_name, ClientManager.local_player.mouse_item_amount)
 	position = get_global_mouse_position()-Vector2(50, 50)
-	if mouse_item_name_now == null:
+	if item_name == "":
 		return
-	if mouse_item_name_now != StaticLoad.game.player.mouse_item_name:
-		$ItemIcon.init_icon(StaticLoad.game.player.mouse_item_name.to_lower())
-	mouse_item_name_now = StaticLoad.game.player.mouse_item_name
+	if item_name != ClientManager.local_player.mouse_item_name:
+		item_icon.init_icon(ClientManager.local_player.mouse_item_name.to_lower())
+	item_name = ClientManager.local_player.mouse_item_name
 
 func update_progress_bar(got_item_name, got_item_amount):
 	if StaticLoad.get_is_durable_by_name(got_item_name):
-		$ProgressBar.max_value = StaticLoad.get_max_amount_by_name(got_item_name)
-		$ProgressBar.value = got_item_amount
+		progress_bar.max_value = StaticLoad.get_max_amount_by_name(got_item_name)
+		progress_bar.value = got_item_amount
 		var percentage =  got_item_amount / float(StaticLoad.get_max_amount_by_name(got_item_name))
-		var stylebox = $ProgressBar.get_theme_stylebox("fill")
+		var stylebox = progress_bar.get_theme_stylebox("fill")
 		if percentage > 0.667:
 			stylebox.bg_color = Color(0, 0.727, 0.135)
 		elif percentage > 0.333 and percentage <= 0.667:
 			stylebox.bg_color = Color(0.863, 0.675, 0)
 		elif percentage >= 0 and percentage <= 0.333:
 			stylebox.bg_color = Color(0.73, 0, 0)
-		$ProgressBar.add_theme_stylebox_override("fill", stylebox)
-		$Amount.visible = false
-		$ProgressBar.visible = true
+		progress_bar.add_theme_stylebox_override("fill", stylebox)
+		amount_label.visible = false
+		progress_bar.visible = true
 	else:
-		$Amount.visible = true
-		$ProgressBar.visible = false
+		amount_label.visible = true
+		progress_bar.visible = false

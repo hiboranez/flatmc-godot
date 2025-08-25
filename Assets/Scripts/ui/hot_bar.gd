@@ -41,6 +41,6 @@ func update_slot_data(args: Dictionary) -> void:
 func select_slot(index: int):
 	hot_bar_slot_list[index].select_slot()
 
-func clear_selection_frame() -> void:
+func clear_selection() -> void:
 	for hot_bar_slot in hot_bar_slot_list:
 		hot_bar_slot.selection_frame.visible = false

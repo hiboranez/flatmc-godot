@@ -19,7 +19,7 @@ func _on_gui_input(event: InputEvent) -> void:
 		select_slot()
 
 func update_data(args: Dictionary):
-	if args.has("hot_bar") and args["hot_bar"] is int:
+	if args.has("hot_bar") and args["hot_bar"] is Node:
 		hot_bar = args["hot_bar"]
 	if args.has("index") and args["index"] is int:
 		index = args["index"]
@@ -62,12 +62,14 @@ func refresh():
 			amount_label.visible = true
 
 func select_slot() -> void:
+	if not ClientManager.is_game_connected:
+		return
 	if index == 9:
 		AudioManager.play_static_audio("sound/ui/click")
 		InputManager.is_move_input_frozen = true
 		ClientManager.local_player.stop_move()
 		return
-	hot_bar.clear_selection_frame()
+	hot_bar.clear_selection()
 	if ClientManager.local_player.selected_item_grid != index:
 		if ClientManager.local_player.is_eating:
 			ClientManager.local_player.is_eating = false

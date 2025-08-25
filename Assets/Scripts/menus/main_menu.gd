@@ -3,8 +3,6 @@ extends Menu
 @onready var menu_control = $MenuControl
 @onready var base_panel = $MenuControl/BasePanel
 @onready var background_camera = $MenuControl/Background/SubViewportContainer/SubViewport/Camera3D
-@onready var player_model = $MenuControl/BasePanel/Player/SubViewportContainer/SubViewport/PlayerModel
-@onready var player_model_mesh = $MenuControl/BasePanel/Player/SubViewportContainer/SubViewport/PlayerModel/Root/Skeleton3D/Mesh
 @onready var change_skin_file_dialog = $MenuControl/BasePanel/ChangeSkinFileDialog
 @onready var title_video_rect = $MenuControl/BasePanel/TitleVideo
 @onready var title_picture_rect = $MenuControl/BasePanel/TitlePicture
@@ -12,7 +10,8 @@ extends Menu
 @onready var copyright_label = $MenuControl/BasePanel/Copyright
 @onready var main_buttons = $MenuControl/BasePanel/MainButtons
 @onready var corner_buttons = $MenuControl/BasePanel/CornerButtons
-@onready var player_rect = $MenuControl/BasePanel/Player
+@onready var right_panel = $MenuControl/BasePanel/RightPanel
+@onready var oriented_player = $MenuControl/BasePanel/RightPanel/OrientedPlayer
 
 var curr_mouse_pos: Vector2
 var prev_mouse_pos: Vector2
@@ -35,7 +34,7 @@ func _ready() -> void:
 		copyright_label,
 		main_buttons,
 		corner_buttons,
-		player_rect,
+		right_panel,
 	]
 	menu_controller = $MenuController
 	menu_controller.menu = self
@@ -69,30 +68,18 @@ func update_mouse_position():
 	curr_mouse_pos = get_viewport().get_mouse_position()
 	if prev_mouse_pos != curr_mouse_pos:
 		prev_mouse_pos = curr_mouse_pos
-		update_player_model_rotation(curr_mouse_pos)
+		oriented_player.update_rotation(curr_mouse_pos)
 
 func update_background_camera_rotation():
 	background_camera.rotate(Vector3.UP, -0.0833*get_process_delta_time()*menu_scroll_speed)
 
-func update_player_model_rotation(viewport_pos):
-	var viewport_size = menu_control.get_viewport_rect().size
-	var viewport_half_size = viewport_size/2.0
-	var target_pos = viewport_pos-viewport_half_size-Vector2(viewport_size[0]*0.375, 0)
-	player_model.look_at(Vector3(target_pos[0], -target_pos[1], 3250), Vector3.UP, true)
-
 func update_player_model_skin():
-	var player_texture = TextureManager.get_texture("skins/steve_"+SettingsManager.get_current_setting("resource_pack").replace("official_", ""))
-	var player_material = load("res://assets/materials/player_skin.tres").duplicate(true)
 	var config = ConfigFile.new()
 	var result = config.load("user://configs.cfg")
 	if result == OK:
-		var skin_path = config.get_value("settings", "skin_path", "null")
-		if skin_path != "null":	
-			var player_texture_tmp = ImageTexture.create_from_image(Image.load_from_file(skin_path))
-			if player_texture_tmp != null:
-				player_texture = player_texture_tmp
-	player_material.albedo_texture = player_texture
-	player_model_mesh.mesh.surface_set_material(0, player_material)
+		var skin_path = config.get_value("settings", "skin_path", "")
+		if skin_path != "":	
+			oriented_player.update_skin(skin_path)
 			
 func _on_single_mode_button_pressed() -> void:
 	AudioManager.play_static_audio("sound/ui/click")
@@ -160,7 +147,7 @@ func _on_change_skin_file_dialog_file_selected(path: String) -> void:
 
 func _on_menu_control_gui_input(event: InputEvent) -> void:
 	if event is InputEventScreenTouch or event is InputEventScreenDrag:
-		update_player_model_rotation(event.position)
+		oriented_player.update_rotation(event.position)
 
 func _on_video_stream_player_finished() -> void:
 	title_picture_rect.self_modulate = Color(1,1,1,1)

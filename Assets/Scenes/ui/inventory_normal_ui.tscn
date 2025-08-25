@@ -1,0 +1,41 @@
+[gd_scene load_steps=4 format=3 uid="uid://yqlu7t0plv5p"]
+
+[ext_resource type="Texture2D" uid="uid://3yvcqbp5ui5p" path="res://assets/textures/ui/ui_normal_panel.png" id="1_uegnw"]
+[ext_resource type="PackedScene" uid="uid://c2uny2vx6np4c" path="res://assets/scenes/ui/inventory_normal_panel.tscn" id="2_re0c8"]
+[ext_resource type="PackedScene" uid="uid://cv5owsyd2uoum" path="res://assets/scenes/ui/ui_close_button.tscn" id="9_xinq8"]
+
+[node name="InventoryNormalUI" type="CanvasLayer"]
+
+[node name="Background" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_force_pass_scroll_events = false
+color = Color(0, 0, 0, 0.705882)
+
+[node name="BasePanel" type="NinePatchRect" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -488.5
+offset_top = -458.5
+offset_right = 488.5
+offset_bottom = 458.5
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1_uegnw")
+region_rect = Rect2(0, 0, 64, 64)
+patch_margin_left = 21
+patch_margin_top = 21
+patch_margin_right = 21
+patch_margin_bottom = 21
+
+[node name="InventoryNormalPanel" parent="BasePanel" instance=ExtResource("2_re0c8")]
+layout_mode = 1
+
+[node name="UICloseButton" parent="BasePanel" instance=ExtResource("9_xinq8")]
+layout_mode = 1

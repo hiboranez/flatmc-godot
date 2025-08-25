@@ -30,7 +30,7 @@ func update_flash() -> void:
 				hunger_bar_hunger.texture = TextureManager.get_texture("ui/hunger_bar_hunger_background")
 
 func update_visible() -> void:
-	if ClientManager.local_player == null:
+	if not ClientManager.is_game_connected:
 		return
 	if ClientManager.local_player.gamemode == "creative" and visible:
 		visible = false
@@ -38,19 +38,21 @@ func update_visible() -> void:
 		visible = true
 
 func update_hunger_bar() -> void:
-	var current_hunger = StaticLoad.game.player.hunger
-	if not current_is_hungry and StaticLoad.game.player.effect_dict["hungry"] > 0:
+	if not ClientManager.is_game_connected:
+		return
+	var current_hunger = ClientManager.local_player.hunger
+	if not current_is_hungry and ClientManager.local_player.effect_dict["hungry"] > 0:
 		for hunger_bar_hunger in hunger_bar_hunger_list:
 			hunger_bar_hunger.texture = TextureManager.get_texture("ui/hunger_bar_hungry_hunger_background")
 			hunger_bar_hunger.get_node("HalfHunger").texture = TextureManager.get_texture("ui/hunger_bar_hungry_half_hunger")
 			hunger_bar_hunger.get_node("FullHunger").texture = TextureManager.get_texture("ui/hunger_bar_hungry_full_hunger")
-			current_is_hungry = (StaticLoad.game.player.effect_dict["hungry"] > 0)
-	elif current_is_hungry and StaticLoad.game.player.effect_dict["hungry"] <= 0:
+			current_is_hungry = (ClientManager.local_player.effect_dict["hungry"] > 0)
+	elif current_is_hungry and ClientManager.local_player.effect_dict["hungry"] <= 0:
 		for hunger_bar_hunger in hunger_bar_hunger_list:
 			hunger_bar_hunger.texture = TextureManager.get_texture("ui/hunger_bar_hunger_background")
 			hunger_bar_hunger.get_node("HalfHunger").texture = TextureManager.get_texture("ui/hunger_bar_half_hunger")
 			hunger_bar_hunger.get_node("FullHunger").texture = TextureManager.get_texture("ui/hunger_bar_full_hunger")
-			current_is_hungry = (StaticLoad.game.player.effect_dict["hungry"] > 0)
+			current_is_hungry = (ClientManager.local_player.effect_dict["hungry"] > 0)
 	if current_hunger == last_hunger:
 		return
 	if current_hunger > last_hunger:
@@ -58,7 +60,7 @@ func update_hunger_bar() -> void:
 		for hunger_bar_hunger in hunger_bar_hunger_list:
 			hunger_bar_hunger.texture = TextureManager.get_texture("ui/hunger_bar_flash_hunger_background")
 	
-	var full_hunger_amount = StaticLoad.game.player.hunger / 2
+	var full_hunger_amount = ClientManager.local_player.hunger / 2
 	if full_hunger_amount < 0:
 		full_hunger_amount = 0
 	if full_hunger_amount > 10:
@@ -69,7 +71,7 @@ func update_hunger_bar() -> void:
 	for i in range(full_hunger_amount):
 		hunger_bar_hunger_list[i].get_node("FullHunger").visible = true
 
-	var half_hunger_odd = StaticLoad.game.player.hunger % 2
+	var half_hunger_odd = ClientManager.local_player.hunger % 2
 	for i in range(10):
 		hunger_bar_hunger_list[i].get_node("HalfHunger").visible = false
 	if half_hunger_odd == 1 and full_hunger_amount < 10:

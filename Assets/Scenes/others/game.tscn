@@ -1,7 +1,9 @@
-[gd_scene load_steps=33 format=3 uid="uid://2hv5eany3vpf"]
+[gd_scene load_steps=35 format=3 uid="uid://2hv5eany3vpf"]
 
 [ext_resource type="Script" path="res://assets/scripts/Game.gd" id="1_hi01f"]
 [ext_resource type="Texture2D" uid="uid://bl0xpo1luvy7i" path="res://assets/textures/ui/white_background.png" id="2_a0lnw"]
+[ext_resource type="PackedScene" uid="uid://7egddyyjkxvq" path="res://assets/scenes/ui/block_selection_frame.tscn" id="2_cdp5h"]
+[ext_resource type="Script" path="res://assets/scripts/ui/block_selection_frame.gd" id="3_pmcgh"]
 [ext_resource type="TileSet" uid="uid://bggb6d560u47r" path="res://assets/TileSets/official_new.tres" id="4_r3duk"]
 [ext_resource type="PackedScene" uid="uid://c4xm8ryxw40a8" path="res://assets/scenes/ui/virtual_ui.tscn" id="5_jbhhm"]
 [ext_resource type="FontFile" uid="uid://dahei608a1d0f" path="res://assets/fonts/MinecraftAE.ttf" id="7_7xgpv"]
@@ -66,6 +68,9 @@ script = ExtResource("1_hi01f")
 metadata/_edit_horizontal_guides_ = [-10.0]
 metadata/_edit_vertical_guides_ = [1640.0]
 
+[node name="BlockSelectionFrame" parent="." instance=ExtResource("2_cdp5h")]
+script = ExtResource("3_pmcgh")
+
 [node name="Lights" type="Node2D" parent="."]
 
 [node name="DarkLight" type="PointLight2D" parent="Lights"]
@@ -106,8 +111,6 @@ tile_set = ExtResource("4_r3duk")
 
 [node name="SignInfoRoot" type="Node2D" parent="."]
 light_mask = 4
-
-[node name="VirtualUI" parent="." instance=ExtResource("5_jbhhm")]
 
 [node name="StaticBackground" type="ParallaxBackground" parent="."]
 layer = -3
@@ -180,6 +183,8 @@ stretch_mode = 1
 
 [node name="ScreenInputHandler" parent="." instance=ExtResource("11_bd2mm")]
 
+[node name="VirtualUI" parent="." instance=ExtResource("5_jbhhm")]
+
 [node name="OnlineUI" type="CanvasLayer" parent="."]
 visible = false
 
@@ -234,8 +239,6 @@ theme_override_font_sizes/font_size = 35
 text = "ONLINE_PLAYERS"
 horizontal_alignment = 1
 vertical_alignment = 1
-
-[node name="GameUI" parent="." instance=ExtResource("13_t64ao")]
 
 [node name="SignEditUI" type="CanvasLayer" parent="."]
 visible = false
@@ -320,6 +323,8 @@ offset_right = 400.0
 offset_bottom = 0.0
 grow_vertical = 0
 text = "CONFIRM"
+
+[node name="GameUI" parent="." instance=ExtResource("13_t64ao")]
 
 [node name="PauseUI" type="CanvasLayer" parent="."]
 visible = false

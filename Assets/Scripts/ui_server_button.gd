@@ -53,7 +53,7 @@ func set_selected_background_visible(got_visible: bool) -> void:
 
 func _on_server_button_pressed() -> void:
 	if panel != null:
-		panel.clear_selected_background()
+		panel.clear_selection()
 		selected_background_rect.visible = true
 		ServerManager.update_data({
 			"server_name": server_name,

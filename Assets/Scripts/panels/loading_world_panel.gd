@@ -19,7 +19,7 @@ func _process(delta: float) -> void:
 	load_terrain()
 	if not is_loaded_terrain:
 		return
-	if StaticLoad.game.player == null or StaticLoad.game.player.is_frozen:
+	if ClientManager.local_player == null or ClientManager.local_player.is_frozen:
 		return
 	title_label.text = tr("COMPLETED")
 	await get_tree().create_timer(1).timeout

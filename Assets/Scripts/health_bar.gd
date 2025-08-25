@@ -26,7 +26,7 @@ func update_flash() -> void:
 			health_bar_heart.texture = TextureManager.get_texture("ui/health_bar_heart_background")
 
 func update_visible() -> void:
-	if ClientManager.local_player == null:
+	if not ClientManager.is_game_connected:
 		return
 	if ClientManager.local_player.gamemode == "creative" and visible:
 		visible = false
@@ -34,7 +34,9 @@ func update_visible() -> void:
 		visible = true
 
 func update_health_bar() -> void:
-	var current_health = StaticLoad.game.player.health
+	if not ClientManager.is_game_connected:
+		return
+	var current_health = ClientManager.local_player.health
 	if current_health == last_health:
 		return
 	
@@ -42,7 +44,7 @@ func update_health_bar() -> void:
 	for health_bar_heart in health_bar_heart_list:
 		health_bar_heart.texture = TextureManager.get_texture("ui/health_bar_flash_heart_background")
 	
-	var full_health_amount = StaticLoad.game.player.health / 2
+	var full_health_amount = ClientManager.local_player.health / 2
 	if full_health_amount < 0:
 		full_health_amount = 0
 	if full_health_amount > 10:
@@ -53,7 +55,7 @@ func update_health_bar() -> void:
 	for i in range(full_health_amount):
 		health_bar_heart_list[i].get_node("FullHeart").visible = true
 
-	var half_health_odd = StaticLoad.game.player.health % 2
+	var half_health_odd = ClientManager.local_player.health % 2
 	for i in range(10):
 		health_bar_heart_list[i].get_node("HalfHeart").visible = false
 	if half_health_odd == 1 and full_health_amount < 10:

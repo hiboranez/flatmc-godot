@@ -32,6 +32,6 @@ func _gui_input(event: InputEvent) -> void:
 func _on_language_button_pressed() -> void:
 	if panel != null:
 		panel.select_language = language_abbr
-		panel.clear_selected_background()
+		panel.clear_selection()
 		selected_background_rect.visible = true
 		StaticLoad.is_lan_server = false

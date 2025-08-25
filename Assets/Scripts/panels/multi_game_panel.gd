@@ -20,7 +20,7 @@ func refresh_size() -> void:
 	scale = Vector2(menu.scale_factor, menu.scale_factor)
 	set_deferred("size", Vector2(canvas_size.x/menu.scale_factor, (canvas_size.y-((content_top_margin+content_bottom_margin)*menu.scale_factor))/menu.scale_factor))
 
-func clear_selected_background():
+func clear_selection():
 	for server in server_list_gridcontainer.get_children():
 		if server.has_method("set_selected_background_visible"):
 			server.set_selected_background_visible(false)

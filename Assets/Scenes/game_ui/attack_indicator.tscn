@@ -20,6 +20,7 @@ offset_top = -142.0
 offset_bottom = -142.0
 grow_horizontal = 2
 grow_vertical = 0
+mouse_filter = 2
 script = ExtResource("1_t500k")
 
 [node name="Background" type="TextureRect" parent="."]
@@ -36,6 +37,7 @@ offset_bottom = 69.0
 grow_horizontal = 2
 grow_vertical = 2
 size_flags_vertical = 3
+mouse_filter = 2
 texture = ExtResource("1_lhwn8")
 expand_mode = 1
 
@@ -54,5 +56,6 @@ offset_bottom = 69.0
 grow_horizontal = 2
 grow_vertical = 2
 size_flags_vertical = 3
+mouse_filter = 2
 texture = ExtResource("3_8w7qt")
 expand_mode = 1

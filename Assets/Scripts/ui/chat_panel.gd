@@ -1,46 +1,46 @@
 extends Control
 
-@onready var chat_outside_history = $ChatOutsideHistory
-@onready var chat_outside_history_vbox_container = $ChatOutsideHistory/VBoxContainer
-@onready var chat_inside_panel = $ChatInsidePanel
-@onready var chat_inside_history = $ChatInsidePanel/ChatInsideHistory
-@onready var chat_inside_history_vbox_container = $ChatInsidePanel/ChatInsideHistory/VoxContainer
-@onready var chat_line_edit = $ChatInsidePanel/ChatLineEdit
+@onready var outside_history = $OutsideHistory
+@onready var outside_history_vbox_container = $OutsideHistory/VBoxContainer
+@onready var inside_panel = $InsidePanel
+@onready var inside_history = $InsidePanel/InsideHistory
+@onready var inside_history_vbox_container = $InsidePanel/InsideHistory/VoxContainer
+@onready var line_edit = $InsidePanel/LineEdit
 
-func _on_chat_line_edit_gui_input(event: InputEvent) -> void:
+func _on_line_edit_gui_input(event: InputEvent) -> void:
 	if event is InputEventScreenTouch:
 		if not event.pressed and Rect2(Vector2(), size).has_point(event.position):
-			if chat_line_edit.has_focus():
-				chat_line_edit.release_focus()
+			if line_edit.has_focus():
+				line_edit.release_focus()
 			else:
-				chat_line_edit.grab_focus()
-				chat_line_edit.select_all()
+				line_edit.grab_focus()
+				line_edit.select_all()
 
 func open_chat(is_command_mode: bool) -> void:
 	if ClientManager.local_ClientManager.local_player.is_dead:
 		return
 	ClientManager.local_ClientManager.local_player.stop_move()
 	InputManager.is_move_input_frozen = true
-	chat_outside_history_vbox_container.visible = false
-	chat_inside_panel.visible = true
+	outside_history_vbox_container.visible = false
+	inside_panel.visible = true
 	if get_tree() != null:
 		await get_tree().process_frame
-	chat_inside_history.scroll_vertical = 1e9
-	chat_line_edit.grab_focus()
-	chat_line_edit.text = ""
+	inside_history.scroll_vertical = 1e9
+	line_edit.grab_focus()
+	line_edit.text = ""
 	if is_command_mode:
-		chat_line_edit.insert_text_at_caret("/")
+		line_edit.insert_text_at_caret("/")
 
 func close_chat() -> void:
-	chat_line_edit.release_focus()
+	line_edit.release_focus()
 	InputManager.is_move_input_frozen = false
-	chat_inside_panel.visible = false
-	chat_outside_history_vbox_container.visible = true
+	inside_panel.visible = false
+	outside_history_vbox_container.visible = true
 	if get_tree() != null:
 		await get_tree().process_frame
-	chat_inside_history.scroll_vertical = 1e9
-	chat_outside_history.scroll_vertical = 1e9
-	chat_line_edit.text = ""
+	inside_history.scroll_vertical = 1e9
+	outside_history.scroll_vertical = 1e9
+	line_edit.text = ""
 	
 func add_message(text:String, color="white"):
 	var messgae_in_instance = SceneManager.get_scene("ui/chat_message").instantiate()
@@ -50,20 +50,20 @@ func add_message(text:String, color="white"):
 	if color != "white":
 		messgae_in_instance.set("theme_override_colors/font_color", StaticLoad.colors[color])
 		messgae_out_instance.set("theme_override_colors/font_color", StaticLoad.colors[color])
-	chat_inside_history_vbox_container.add_child(messgae_in_instance)
-	chat_outside_history_vbox_container.add_child(messgae_out_instance)
-	if chat_inside_panel.visible:
-		chat_outside_history_vbox_container.visible = false
+	inside_history_vbox_container.add_child(messgae_in_instance)
+	outside_history_vbox_container.add_child(messgae_out_instance)
+	if inside_panel.visible:
+		outside_history_vbox_container.visible = false
 	if get_tree() != null:
 		await get_tree().process_frame
-	chat_inside_history_vbox_container.scroll_vertical = 1e9
+	inside_history_vbox_container.scroll_vertical = 1e9
 	messgae_out_instance.is_disappearing = true
 	messgae_out_instance.detect_and_disappear()
 
-func _on_chat_line_edit_text_submitted(new_text: String) -> void:
-	if chat_line_edit.text == "":
+func _on_line_edit_text_submitted(new_text: String) -> void:
+	if line_edit.text == "":
 		return
-	var text: String = chat_line_edit.text
+	var text: String = line_edit.text
 	if StaticLoad.is_muti_mode:
 		if text[0] != "/":
 			ClientManager.local_player.send_message(text)
@@ -82,13 +82,13 @@ func _on_chat_line_edit_text_submitted(new_text: String) -> void:
 			ClientManager.local_player.send_message(text)
 		else:
 			ClientManager.local_player.send_command(text)
-	if chat_inside_panel.visible:
-		chat_outside_history_vbox_container.visible = false
-	chat_line_edit.text = ""
+	if inside_panel.visible:
+		outside_history_vbox_container.visible = false
+	line_edit.text = ""
 	if get_tree() != null:
 		await get_tree().process_frame
-	chat_inside_history_vbox_container.scroll_vertical = 1e9
-	chat_outside_history_vbox_container.scroll_vertical = 1e9
+	inside_history_vbox_container.scroll_vertical = 1e9
+	outside_history_vbox_container.scroll_vertical = 1e9
 	if StaticLoad.is_on_mobile_platform:
 		close_chat()
 		if get_tree() != null:
@@ -99,5 +99,5 @@ func _on_chat_line_edit_text_submitted(new_text: String) -> void:
 			await get_tree().process_frame
 		InputManager.is_move_input_frozen = false
 
-func _on_chat_outside_history_pre_sort_children() -> void:
-	chat_outside_history_vbox_container.scroll_vertical = 1e9
+func _on_outside_history_pre_sort_children() -> void:
+	outside_history.scroll_vertical = 1e9

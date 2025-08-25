@@ -26,15 +26,15 @@ extends Node2D
 @onready var mini_map = $GameUI/MiniMap
 @onready var item_bar_panel = $GameUI/ItemBarPanel
 @onready var lights = $Lights
-@onready var inventory_back_grids = $GameUI/InventoryUI/Panel/InventoryPanel/Inventory/InventoryBackContainer
-@onready var inventory_show_grids = $GameUI/InventoryUI/Panel/InventoryShowContainer
-@onready var crafting_inventory_back_grids = $GameUI/CraftingUI/Panel/InventoryPanel/Inventory/InventoryBackContainer
-@onready var crafting_inventory_show_grids = $GameUI/CraftingUI/Panel/InventoryShowContainer
+#@onready var inventory_back_grids = $GameUI/InventoryUI/Panel/InventoryPanel/Inventory/InventoryBackContainer
+#@onready var inventory_show_grids = $GameUI/InventoryUI/Panel/InventoryShowContainer
+#@onready var crafting_inventory_back_grids = $GameUI/CraftingUI/Panel/InventoryPanel/Inventory/InventoryBackContainer
+#@onready var crafting_inventory_show_grids = $GameUI/CraftingUI/Panel/InventoryShowContainer
 @onready var items = $Items
 @onready var arrows = $Arrows
 @onready var mobs = $Mobs
 @onready var undead_mobs = $UndeadMobs
-@onready var inventory_tabs = $GameUI/InventoryUI/Panel/Tabs
+#@onready var inventory_tabs = $GameUI/InventoryUI/Panel/Tabs
 @onready var blocks_infinite_container = $GameUI/InventoryUI/Panel/BlocksPanel/InfiniteScrollContainer/InfiniteContainer
 @onready var items_infinite_container = $GameUI/InventoryUI/Panel/ItemsPanel/InfiniteScrollContainer/InfiniteContainer
 @onready var delete_tab_panel = $GameUI/InventoryUI/Panel/DeleteTabPanel
@@ -54,8 +54,8 @@ extends Node2D
 @onready var sun_path = $StaticBackground/Path2D/SunPath
 @onready var moon_path_texture = $StaticBackground/Path2D/MoonPath/TextureRect
 @onready var sun_path_texture = $StaticBackground/Path2D/SunPath/TextureRect
-@onready var inventory_craft_grid = $GameUI/InventoryUI/Panel/InventoryPanel/Crafting/GridContainer
-@onready var inventory_craft_result_grid = $GameUI/InventoryUI/Panel/InventoryPanel/Crafting/CraftResult
+#@onready var inventory_craft_grid = $GameUI/InventoryUI/Panel/InventoryPanel/Crafting/GridContainer
+#@onready var inventory_craft_result_grid = $GameUI/InventoryUI/Panel/InventoryPanel/Crafting/CraftResult
 @onready var table_craft_grid = $GameUI/CraftingUI/Panel/InventoryPanel/Crafting/GridContainer
 @onready var table_craft_result_grid = $GameUI/CraftingUI/Panel/InventoryPanel/Crafting/CraftResult
 @onready var crafting_ui = $GameUI/CraftingUI
@@ -64,7 +64,7 @@ extends Node2D
 
 var frozen_entity_dict = {}
 var destroy_light_names = {}
-var mouse_in_inventory_grid = null
+#var mouse_in_inventory_grid = null
 var light_thread = Thread.new()
 var item_thread = Thread.new()
 var refresh_thread = Thread.new()
@@ -178,7 +178,6 @@ func _notification(what):
 			crafting_ui.visible = false
 			is_input_frozen = false
 			is_crafting = false
-			mouse_in_inventory_grid = null
 			player.stop_move()
 			await get_tree().create_timer(0.01).timeout
 		elif is_inventory:
@@ -188,7 +187,6 @@ func _notification(what):
 			achievement_ui.visible = false
 			is_input_frozen = false
 			is_inventory = false
-			mouse_in_inventory_grid = null
 			player.stop_move()
 			await get_tree().create_timer(0.01).timeout
 		elif is_sign_edit:
@@ -900,7 +898,6 @@ func process_set_block():
 										entity.item_bar_amounts[entity.selected_item_grid] = 0
 										item_name_timer = 0
 								refresh_item_grid(entity.selected_item_grid)
-								inventory_show_grids.get_node("InventoryGrid"+str(entity.selected_item_grid)).init_inventory_grid(entity.item_bar_names[entity.selected_item_grid], entity.item_bar_amounts[entity.selected_item_grid])
 						if is_to_sync and StaticLoad.is_muti_mode and multiplayer.get_unique_id() != 1:
 							if multiplayer.get_unique_id() == entity.player_peer_id:
 								var player_set_block_info = [set_block_id, set_block_pos, set_block_layer]
@@ -989,7 +986,6 @@ func process_drop_action():
 		player.item_bar_amounts[selected_item_grid_tmp] = 0
 		player.item_bar_names[selected_item_grid_tmp] = "AIR"
 		StaticLoad.game.refresh_item_grid(selected_item_grid_tmp)
-		inventory_show_grids.get_node("InventoryGrid"+str(selected_item_grid_tmp)).init_inventory_grid(player.item_bar_names[selected_item_grid_tmp], player.item_bar_amounts[selected_item_grid_tmp])
 		AudioManager.play_static_audio("sound/player/pop")
 		drop_timer = 0
 	

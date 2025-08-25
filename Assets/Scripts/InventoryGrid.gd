@@ -135,9 +135,9 @@ func _on_mouse_entered() -> void:
 func _on_mouse_exited() -> void:
 	if name.contains("InventoryGrid") or (slot_function.contains("craft") and not slot_function.contains("craft_result")):
 		if StaticLoad.game.drag_inventory_grid_state != "null" and StaticLoad.game.drag_inventory_grid_item_name == "null":
-			if not StaticLoad.get_is_durable_by_name(StaticLoad.game.player.mouse_item_name) or StaticLoad.game.drag_inventory_grid_state == "middle":
-				StaticLoad.game.drag_inventory_grid_item_name = StaticLoad.game.player.mouse_item_name
-				StaticLoad.game.dragging_total_amount = StaticLoad.game.player.mouse_item_amount
+			if not StaticLoad.get_is_durable_by_name(ClientManager.local_player.mouse_item_name) or StaticLoad.game.drag_inventory_grid_state == "middle":
+				StaticLoad.game.drag_inventory_grid_item_name = ClientManager.local_player.mouse_item_name
+				StaticLoad.game.dragging_total_amount = ClientManager.local_player.mouse_item_amount
 				StaticLoad.game.drag_inventory_grid_amount_dict.clear()
 				StaticLoad.game.drag_inventory_grid_dict.clear()
 				StaticLoad.game.drag_inventory_grid_dict[name] = self
@@ -160,27 +160,27 @@ func update_achievement():
 		var change_dict = {
 			"make_crafting_table" : true
 		}
-		StaticLoad.game.player.process_achievement_progress(change_dict)
+		ClientManager.local_player.process_achievement_progress(change_dict)
 	elif item_name == "BREAD":
 		var change_dict = {
 			"make_bread" : true
 		}
-		StaticLoad.game.player.process_achievement_progress(change_dict)
+		ClientManager.local_player.process_achievement_progress(change_dict)
 	elif item_name.contains("PICKAXE"):
 		var change_dict = {
 			"make_pickaxe" : true
 		}
-		StaticLoad.game.player.process_achievement_progress(change_dict)
+		ClientManager.local_player.process_achievement_progress(change_dict)
 	elif item_name.contains("HOE"):
 		var change_dict = {
 			"make_hoe" : true
 		}
-		StaticLoad.game.player.process_achievement_progress(change_dict)
+		ClientManager.local_player.process_achievement_progress(change_dict)
 	elif item_name.contains("SWORD"):
 		var change_dict = {
 			"make_sword" : true
 		}
-		StaticLoad.game.player.process_achievement_progress(change_dict)
+		ClientManager.local_player.process_achievement_progress(change_dict)
 
 func _on_gui_input(event: InputEvent) -> void:
 	if slot_function.contains("armor"):
@@ -192,7 +192,7 @@ func _on_gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		is_event_double_click = event.double_click
 		event_index = event.button_index
-	var player = StaticLoad.game.player
+	var player = ClientManager.local_player
 	var mouse_item_name_tmp = player.mouse_item_name
 	var mouse_item_amount_tmp = player.mouse_item_amount
 	if event is InputEventMouseButton:
@@ -256,13 +256,13 @@ func _on_gui_input(event: InputEvent) -> void:
 				if event_index == 1 and Input.is_action_pressed("shift"):
 					pass
 				else:
-					var player_mouse_item_name = StaticLoad.game.player.mouse_item_name
+					var player_mouse_item_name = ClientManager.local_player.mouse_item_name
 					if player_mouse_item_name != "AIR" and StaticLoad.game.drag_inventory_grid_state == "null" and (item_name == "AIR" or item_name == player_mouse_item_name):
 						if event_index == 1:
 							StaticLoad.game.drag_inventory_grid_state = "left"
 						elif event_index == 2:
 							StaticLoad.game.drag_inventory_grid_state = "right"
-						elif StaticLoad.game.player.gamemode == "creative" and event_index == 3:
+						elif ClientManager.local_player.gamemode == "creative" and event_index == 3:
 							StaticLoad.game.drag_inventory_grid_state = "middle"
 					return
 		else:

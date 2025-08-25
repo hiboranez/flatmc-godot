@@ -40,5 +40,5 @@ func set_selected_background_visible(got_visible: bool) -> void:
 func _on_world_button_pressed() -> void:
 	if panel != null:
 		panel.selected_world_name = world_name_label.text
-		panel.clear_selected_background()
+		panel.clear_selection()
 		selected_background.visible = true

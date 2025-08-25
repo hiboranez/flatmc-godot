@@ -1,0 +1,15 @@
+[gd_scene load_steps=2 format=3 uid="uid://crldyfpnqxvoy"]
+
+[ext_resource type="PackedScene" uid="uid://bxq30uel2jkjg" path="res://assets/scenes/ui/inventory_show_container.tscn" id="1_lvouu"]
+
+[node name="InventoryHotBar" type="Control"]
+layout_mode = 3
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+grow_vertical = 0
+
+[node name="InventoryShowContainer" parent="." instance=ExtResource("1_lvouu")]
+layout_mode = 1
+grow_horizontal = 1
+grow_vertical = 1

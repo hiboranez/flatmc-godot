@@ -1,0 +1,183 @@
+[gd_scene load_steps=9 format=3 uid="uid://cyn56715e0asn"]
+
+[ext_resource type="Script" path="res://assets/scripts/ui/inventory_creative_ui.gd" id="1_thmke"]
+[ext_resource type="Texture2D" uid="uid://3yvcqbp5ui5p" path="res://assets/textures/ui/ui_normal_panel.png" id="2_jwbmr"]
+[ext_resource type="PackedScene" uid="uid://1ssdq6reknyw" path="res://assets/scenes/ui/ui_tab_top_button.tscn" id="3_ylqkt"]
+[ext_resource type="PackedScene" uid="uid://c3821y0uqdw5o" path="res://assets/scenes/ui/ui_tab_bottom_button.tscn" id="4_uy23u"]
+[ext_resource type="PackedScene" uid="uid://6rwpuk4b0k4y" path="res://assets/scenes/ui/inventory_creative_panel.tscn" id="5_sjagp"]
+[ext_resource type="PackedScene" uid="uid://b5uintdd5lvuv" path="res://assets/scenes/ui/inventory_infinite_panel.tscn" id="6_oyli0"]
+[ext_resource type="PackedScene" uid="uid://crldyfpnqxvoy" path="res://assets/scenes/ui/inventory_hot_bar.tscn" id="7_3xvyw"]
+[ext_resource type="PackedScene" uid="uid://cv5owsyd2uoum" path="res://assets/scenes/ui/ui_close_button.tscn" id="8_cdvm6"]
+
+[node name="InventoryCreativeUI" type="CanvasLayer"]
+script = ExtResource("1_thmke")
+
+[node name="Background" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_force_pass_scroll_events = false
+color = Color(0, 0, 0, 0.705882)
+
+[node name="BasePanel" type="NinePatchRect" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -537.0
+offset_top = -380.0
+offset_right = 537.0
+offset_bottom = 380.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_jwbmr")
+region_rect = Rect2(0, 0, 64, 64)
+patch_margin_left = 21
+patch_margin_top = 21
+patch_margin_right = 21
+patch_margin_bottom = 21
+
+[node name="TabLeftTopContainer" type="GridContainer" parent="BasePanel"]
+show_behind_parent = true
+layout_mode = 1
+offset_top = -132.0
+offset_right = 716.0
+offset_bottom = 21.0
+theme_override_constants/h_separation = 10
+columns = 5
+
+[node name="UITabTopButton0" parent="BasePanel/TabLeftTopContainer" instance=ExtResource("3_ylqkt")]
+visible = false
+layout_mode = 2
+horizonal_location = "left"
+
+[node name="UITabTopButton1" parent="BasePanel/TabLeftTopContainer" instance=ExtResource("3_ylqkt")]
+visible = false
+layout_mode = 2
+index = 1
+
+[node name="UITabTopButton2" parent="BasePanel/TabLeftTopContainer" instance=ExtResource("3_ylqkt")]
+visible = false
+layout_mode = 2
+index = 2
+
+[node name="UITabTopButton3" parent="BasePanel/TabLeftTopContainer" instance=ExtResource("3_ylqkt")]
+visible = false
+layout_mode = 2
+index = 3
+
+[node name="UITabTopButton4" parent="BasePanel/TabLeftTopContainer" instance=ExtResource("3_ylqkt")]
+visible = false
+layout_mode = 2
+index = 4
+
+[node name="TabRightTopContainer" type="GridContainer" parent="BasePanel"]
+show_behind_parent = true
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -284.0
+offset_top = -132.0
+offset_bottom = 21.0
+grow_horizontal = 0
+theme_override_constants/h_separation = 10
+columns = 2
+
+[node name="UITabTopButton5" parent="BasePanel/TabRightTopContainer" instance=ExtResource("3_ylqkt")]
+visible = false
+layout_mode = 2
+index = 5
+
+[node name="UITabTopButton6" parent="BasePanel/TabRightTopContainer" instance=ExtResource("3_ylqkt")]
+visible = false
+layout_mode = 2
+index = 6
+horizonal_location = "right"
+
+[node name="TabLeftBottomContainer" type="GridContainer" parent="BasePanel"]
+show_behind_parent = true
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -10.0
+offset_right = 740.0
+offset_bottom = 143.0
+grow_vertical = 0
+theme_override_constants/h_separation = 10
+columns = 5
+
+[node name="UITabBottomButton0" parent="BasePanel/TabLeftBottomContainer" instance=ExtResource("4_uy23u")]
+visible = false
+layout_mode = 2
+index = 1
+horizonal_location = "left"
+
+[node name="UITabBottomButton1" parent="BasePanel/TabLeftBottomContainer" instance=ExtResource("4_uy23u")]
+visible = false
+layout_mode = 2
+
+[node name="UITabBottomButton2" parent="BasePanel/TabLeftBottomContainer" instance=ExtResource("4_uy23u")]
+visible = false
+layout_mode = 2
+index = 2
+
+[node name="UITabBottomButton3" parent="BasePanel/TabLeftBottomContainer" instance=ExtResource("4_uy23u")]
+visible = false
+layout_mode = 2
+index = 3
+
+[node name="UITabBottomButton4" parent="BasePanel/TabLeftBottomContainer" instance=ExtResource("4_uy23u")]
+visible = false
+layout_mode = 2
+index = 4
+
+[node name="TabRightBottomContainer" type="GridContainer" parent="BasePanel"]
+show_behind_parent = true
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -140.0
+offset_top = -10.0
+offset_bottom = 143.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_constants/h_separation = 10
+
+[node name="UITabBottomButton5" parent="BasePanel/TabRightBottomContainer" instance=ExtResource("4_uy23u")]
+visible = false
+layout_mode = 2
+index = 5
+
+[node name="UITabBottomButton6" parent="BasePanel/TabRightBottomContainer" instance=ExtResource("4_uy23u")]
+layout_mode = 2
+index = 6
+horizonal_location = "right"
+
+[node name="Panels" type="Control" parent="BasePanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="InventoryCreativePanel" parent="BasePanel/Panels" instance=ExtResource("5_sjagp")]
+layout_mode = 1
+
+[node name="InventoryInfinitePanel" parent="BasePanel/Panels" instance=ExtResource("6_oyli0")]
+visible = false
+layout_mode = 1
+
+[node name="InventoryHotBar" parent="BasePanel" instance=ExtResource("7_3xvyw")]
+layout_mode = 1
+
+[node name="UICloseButton" parent="BasePanel" instance=ExtResource("8_cdvm6")]
+layout_mode = 1

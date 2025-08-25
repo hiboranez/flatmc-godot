@@ -7,6 +7,7 @@ layout_mode = 3
 anchors_preset = 0
 offset_right = 653.0
 offset_bottom = 384.0
+mouse_filter = 2
 
 [node name="ChatPanel" parent="." instance=ExtResource("1_v8e0k")]
 layout_mode = 1

@@ -21,7 +21,7 @@ func _process(delta: float) -> void:
 		self_modulate = Color(1,1,1,0)
 
 func refresh() -> void:
-	if ClientManager.local_player == null:
+	if not ClientManager.is_game_connected:
 		return
 	var display_name = ClientManager.local_player.item_bar_names[ClientManager.local_player.selected_item_grid]
 	if display_name != "AIR":

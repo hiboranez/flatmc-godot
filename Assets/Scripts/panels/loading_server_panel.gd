@@ -29,12 +29,12 @@ func _process(delta: float) -> void:
 	load_terrain()
 	if not is_loaded_terrain:
 		return
-	var player_tmp = StaticLoad.game.player
-	if player_tmp == null or StaticLoad.game.player.is_frozen:
+	var player_tmp = ClientManager.local_player
+	if player_tmp == null or ClientManager.local_player.is_frozen:
 		return
 	title_label.text = tr("COMPLETED")
-	StaticLoad.game.player.velocity = Vector2(0, 0)
-	StaticLoad.game.player.unfreeze()
+	ClientManager.local_player.velocity = Vector2(0, 0)
+	ClientManager.local_player.unfreeze()
 	await get_tree().create_timer(1).timeout
 	load_finished()
 

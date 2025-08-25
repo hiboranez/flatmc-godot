@@ -30,7 +30,7 @@ func update_language_list():
 		if get_tree() != null:
 			await get_tree().process_frame
 
-func clear_selected_background():
+func clear_selection():
 	var current_languages = language_list_gridcontainer.get_children()
 	for language in current_languages:
 		language.selected_background_rect.visible = false

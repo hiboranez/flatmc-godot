@@ -11,5 +11,6 @@ offset_top = 8.0
 offset_right = -40.0
 offset_bottom = 58.0
 grow_horizontal = 2
+mouse_filter = 2
 columns = 10
 script = ExtResource("1_a4mee")

@@ -27,6 +27,7 @@ offset_bottom = 50.0
 grow_horizontal = 2
 grow_vertical = 2
 pivot_offset = Vector2(50, 50)
+mouse_filter = 2
 script = ExtResource("1_4kdwn")
 
 [node name="ItemIcon" parent="." instance=ExtResource("2_dtrhy")]
@@ -63,6 +64,7 @@ offset_right = -10.0
 offset_bottom = -9.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 theme_override_fonts/font = ExtResource("3_3ispm")
 theme_override_font_sizes/font_size = 30
 theme_override_styles/background = SubResource("StyleBoxFlat_u1cbi")

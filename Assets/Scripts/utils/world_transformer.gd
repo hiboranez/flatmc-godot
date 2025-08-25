@@ -1,12 +1,12 @@
 class_name WorldTransformer
 
 static func block_position_to_id(block_position: Vector2, block_layer: int) -> int:
-	if not ClientManager.check_connections():
+	if not ClientManager.is_game_connected:
 		return 0
 	return get_block_id(get_atlas_coordinate(get_block_coordinate(block_position), block_layer))
 
 static func block_coordinate_to_id(block_coordinate: Vector2, block_layer: int) -> int:
-	if not ClientManager.check_connections():
+	if not ClientManager.is_game_connected:
 		return 0
 	return get_block_id(get_atlas_coordinate(block_coordinate, block_layer))
 
@@ -17,7 +17,7 @@ static func screen_position_to_world_position(camera: Camera2D, screen_position:
 	return actual_screen_center_pos
 
 static func get_restricted_block_selection_position(target_position: Vector2) -> Vector2:
-	if not ClientManager.check_connections():
+	if not ClientManager.is_game_connected:
 		return Vector2(0, 0)
 	var mouse_in_world_position = target_position
 	var player_head_position = ClientManager.local_player.position - Vector2(0, 60)
@@ -42,7 +42,7 @@ static func get_restricted_block_selection_position(target_position: Vector2) ->
 	return mouse_in_world_position
 
 static func get_block_coordinate(block_position: Vector2) -> Vector2i:
-	if not ClientManager.check_connections():
+	if not ClientManager.is_game_connected:
 		return Vector2i(0, 0)
 	return ClientManager.substantial_layer.local_to_map(block_position)
 
@@ -63,7 +63,7 @@ static func get_chunk_coordinate(block_coordinate: Vector2i) -> Vector2i:
 	return Vector2i(x_chunk, y_chunk)
 
 static func get_atlas_coordinate(block_coordinate: Vector2i, block_layer: int) -> Vector2i:
-	if not ClientManager.check_connections():
+	if not ClientManager.is_game_connected:
 		return Vector2i(-1, -1)
 	var atlas_coordinate = Vector2i(-1, -1)
 	if block_layer == BlockLayer.MIDDLE:

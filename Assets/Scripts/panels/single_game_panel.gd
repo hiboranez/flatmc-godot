@@ -45,7 +45,7 @@ func update_world_list():
 		if get_tree() != null:
 			await get_tree().process_frame
 
-func clear_selected_background():
+func clear_selection():
 	var current_worlds = world_list_container.get_children()
 	for world in current_worlds:
 		if world.has_method("set_selected_background_visible"):

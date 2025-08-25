@@ -25,7 +25,7 @@ func _ready() -> void:
 	ActionManager.register_action("mini_map", "zoom_out", zoom_out)
 
 func _process(delta: float) -> void:
-	if ClientManager.local_player == null:
+	if not ClientManager.is_game_connected:
 		return
 	camera.position = ClientManager.local_player.camera.get_screen_center_position()
 	var icon_scale = mini_map_scale_factor/camera.zoom[0]

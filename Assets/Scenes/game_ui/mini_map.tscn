@@ -6,7 +6,6 @@
 [ext_resource type="Texture2D" uid="uid://bl0xpo1luvy7i" path="res://assets/textures/ui/white_background.png" id="4_gar7l"]
 
 [node name="MiniMap" type="Control"]
-z_index = 1
 layout_mode = 3
 anchors_preset = 1
 anchor_left = 1.0
@@ -24,6 +23,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 color = Color(0.95158, 0.95158, 0.951579, 1)
 
 [node name="SkyBackground" type="ColorRect" parent="."]
@@ -37,6 +37,7 @@ offset_right = -15.0
 offset_bottom = -15.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 color = Color(0.443137, 0.698039, 1, 1)
 
 [node name="SubViewportContainer" type="SubViewportContainer" parent="."]
@@ -50,6 +51,7 @@ offset_right = -15.0
 offset_bottom = -14.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 stretch = true
 
 [node name="SubViewport" type="SubViewport" parent="SubViewportContainer"]
@@ -76,6 +78,7 @@ offset_right = 20000.0
 offset_bottom = 8000.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
+mouse_filter = 2
 texture = ExtResource("2_wrvnp")
 stretch_mode = 1
 

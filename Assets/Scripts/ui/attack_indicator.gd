@@ -4,7 +4,7 @@ extends Control
 @onready var progress_rect = $Progress
 
 func _process(delta: float) -> void:
-	if ClientManager.local_player == null:
+	if not ClientManager.is_game_connected:
 		return
 	if ClientManager.local_player.attack_timer <= 0:
 		if visible:
