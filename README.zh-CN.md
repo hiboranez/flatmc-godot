@@ -1,6 +1,6 @@
 <div align="center">
 
-# FlatMC Godot Alpha
+# FlatMC Godot Edition
 
 ### FlatMC 2D 沙盒游戏的 Godot 历史实现
 
@@ -63,4 +63,3 @@ FlatMC Godot Alpha 是功能最完整的 FlatMC 实现，支持 Windows、Androi
 ## 许可证
 
 本项目采用 [Apache License 2.0](LICENSE)。素材和第三方组件可能适用单独条款。
-

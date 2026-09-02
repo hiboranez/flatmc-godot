@@ -1,6 +1,6 @@
 <div align="center">
 
-# FlatMC Godot Alpha
+# FlatMC Godot Edition
 
 ### An archived Godot implementation of the FlatMC 2D sandbox game
 
