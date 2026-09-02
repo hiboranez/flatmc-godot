@@ -1,0 +1,61 @@
+[gd_scene load_steps=6 format=3 uid="uid://df64m1nhutag7"]
+
+[ext_resource type="PackedScene" uid="uid://cbhotiho0yrn3" path="res://assets/scenes/game_ui/health_bar.tscn" id="1_kxyne"]
+[ext_resource type="PackedScene" uid="uid://ukedlnnepc10" path="res://assets/scenes/game_ui/hunger_bar.tscn" id="2_7m3wf"]
+[ext_resource type="PackedScene" uid="uid://7y3fw6am6obk" path="res://assets/scenes/game_ui/hot_bar_text.tscn" id="3_7jt6o"]
+[ext_resource type="PackedScene" uid="uid://begjm6hpkybu7" path="res://assets/scenes/game_ui/attack_indicator.tscn" id="7_4d1o4"]
+[ext_resource type="PackedScene" uid="uid://ct60fsbu3oyyh" path="res://assets/scenes/game_ui/hot_bar.tscn" id="7_i7hmb"]
+
+[node name="BottomPanel" type="Control"]
+layout_mode = 3
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -241.0
+grow_horizontal = 2
+grow_vertical = 0
+size_flags_vertical = 4
+mouse_filter = 2
+
+[node name="HealthBar" parent="." instance=ExtResource("1_kxyne")]
+layout_mode = 1
+anchors_preset = 7
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = -644.0
+offset_top = -219.0
+offset_right = -108.0
+offset_bottom = -169.0
+grow_vertical = 0
+pivot_offset = Vector2(268, 200)
+
+[node name="HungerBar" parent="." instance=ExtResource("2_7m3wf")]
+layout_mode = 1
+anchors_preset = 7
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 108.0
+offset_top = -219.0
+offset_right = 644.0
+offset_bottom = -169.0
+grow_vertical = 0
+pivot_offset = Vector2(268, 200)
+
+[node name="HotBarText" parent="." instance=ExtResource("3_7jt6o")]
+layout_mode = 1
+offset_top = -301.0
+offset_bottom = -247.0
+
+[node name="HotBar" parent="." instance=ExtResource("7_i7hmb")]
+layout_mode = 1
+offset_top = -157.0
+offset_bottom = -21.0
+pivot_offset = Vector2(655, 136)
+
+[node name="AttackIndicator" parent="." instance=ExtResource("7_4d1o4")]
+visible = false
+layout_mode = 1
+offset_top = -151.0
+offset_bottom = -151.0
+pivot_offset = Vector2(728, 99)

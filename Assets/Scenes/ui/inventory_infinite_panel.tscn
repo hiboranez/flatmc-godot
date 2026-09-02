@@ -1,0 +1,151 @@
+[gd_scene load_steps=12 format=3 uid="uid://b5uintdd5lvuv"]
+
+[ext_resource type="Texture2D" uid="uid://3yvcqbp5ui5p" path="res://assets/textures/ui/ui_normal_panel.png" id="1_1t8yh"]
+[ext_resource type="FontFile" uid="uid://dahei608a1d0f" path="res://assets/fonts/MinecraftAE.ttf" id="1_4idny"]
+[ext_resource type="Texture2D" uid="uid://br3dvltcnxhnc" path="res://assets/textures/ui/ui_content_panel.png" id="2_sn53s"]
+[ext_resource type="Script" path="res://assets/scripts/drag_scroll.gd" id="3_0pioq"]
+[ext_resource type="Texture2D" uid="uid://guk3wk7rrlu3" path="res://assets/textures/ui/ui_scroller.png" id="4_agdd1"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_eci0f"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+
+[sub_resource type="StyleBoxLine" id="StyleBoxLine_jcnnj"]
+color = Color(0.478431, 0.478431, 0.478431, 1)
+thickness = 15
+vertical = true
+
+[sub_resource type="StyleBoxLine" id="StyleBoxLine_65bxr"]
+color = Color(0.996078, 0.996078, 0.996078, 1)
+thickness = 15
+vertical = true
+
+[sub_resource type="StyleBoxLine" id="StyleBoxLine_i0mpo"]
+color = Color(0.478431, 0.478431, 0.478431, 1)
+thickness = 15
+vertical = true
+
+[sub_resource type="StyleBoxLine" id="StyleBoxLine_mhoyp"]
+color = Color(0.129412, 0.129412, 0.129412, 1)
+thickness = 15
+vertical = true
+
+[sub_resource type="Theme" id="Theme_37g7j"]
+VScrollBar/styles/grabber = SubResource("StyleBoxLine_jcnnj")
+VScrollBar/styles/grabber_highlight = SubResource("StyleBoxLine_65bxr")
+VScrollBar/styles/grabber_pressed = SubResource("StyleBoxLine_i0mpo")
+VScrollBar/styles/scroll = SubResource("StyleBoxLine_mhoyp")
+
+[node name="InventoryInfinitePanel" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Background" type="NinePatchRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1_1t8yh")
+region_rect = Rect2(0, 0, 64, 64)
+patch_margin_left = 21
+patch_margin_top = 21
+patch_margin_right = 21
+patch_margin_bottom = 21
+
+[node name="Title" type="Label" parent="."]
+light_mask = 4
+z_index = 2
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 38.0
+offset_top = 28.0
+offset_right = -138.0
+offset_bottom = 92.0
+grow_horizontal = 2
+size_flags_horizontal = 6
+size_flags_vertical = 0
+localize_numeral_system = false
+mouse_filter = 1
+theme_override_colors/font_color = Color(0.215686, 0.215686, 0.215686, 1)
+theme_override_fonts/font = ExtResource("1_4idny")
+theme_override_font_sizes/font_size = 40
+theme_override_styles/normal = SubResource("StyleBoxEmpty_eci0f")
+text = "Title"
+vertical_alignment = 1
+text_overrun_behavior = 1
+
+[node name="ContentPanel" type="NinePatchRect" parent="."]
+layout_mode = 1
+offset_left = 36.0
+offset_top = 101.0
+offset_right = 936.0
+offset_bottom = 601.0
+texture = ExtResource("2_sn53s")
+draw_center = false
+region_rect = Rect2(0, 0, 64, 64)
+patch_margin_left = 4
+patch_margin_top = 4
+patch_margin_right = 4
+patch_margin_bottom = 4
+
+[node name="InfiniteScrollContainer" type="ScrollContainer" parent="ContentPanel"]
+custom_minimum_size = Vector2(900, 500)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = SubResource("Theme_37g7j")
+horizontal_scroll_mode = 0
+vertical_scroll_mode = 3
+script = ExtResource("3_0pioq")
+
+[node name="InfiniteContainer" type="HFlowContainer" parent="ContentPanel/InfiniteScrollContainer"]
+custom_minimum_size = Vector2(900, 500)
+layout_mode = 2
+theme_override_constants/h_separation = 0
+theme_override_constants/v_separation = 0
+
+[node name="UIVScrollBar" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -115.0
+offset_top = 101.0
+offset_right = -39.0
+offset_bottom = 724.0
+grow_horizontal = 0
+
+[node name="ScrollerPanel" type="NinePatchRect" parent="UIVScrollBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_sn53s")
+draw_center = false
+region_rect = Rect2(0, 0, 64, 64)
+patch_margin_left = 4
+patch_margin_top = 4
+patch_margin_right = 4
+patch_margin_bottom = 4
+
+[node name="Scroller" type="TextureRect" parent="UIVScrollBar/ScrollerPanel"]
+layout_mode = 0
+offset_left = 4.0
+offset_top = 4.0
+offset_right = 72.0
+offset_bottom = 72.0
+texture = ExtResource("4_agdd1")

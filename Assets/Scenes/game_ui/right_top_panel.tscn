@@ -1,0 +1,35 @@
+[gd_scene load_steps=4 format=3 uid="uid://bv0f5rmm1q86w"]
+
+[ext_resource type="PackedScene" uid="uid://dh6631fiyn877" path="res://assets/scenes/game_ui/debug_panel.tscn" id="1_c5txe"]
+[ext_resource type="PackedScene" uid="uid://dkosbpirsc3uj" path="res://assets/scenes/game_ui/mini_map.tscn" id="2_mdp1k"]
+[ext_resource type="Script" path="res://assets/scripts/ui/game_ui/achievement_get_panel.gd" id="3_7y13k"]
+
+[node name="RightTopPanel" type="Control"]
+layout_mode = 3
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -551.0
+offset_bottom = 388.0
+grow_horizontal = 0
+mouse_filter = 2
+
+[node name="DebugPanel" parent="." instance=ExtResource("1_c5txe")]
+visible = false
+layout_mode = 1
+
+[node name="MiniMap" parent="." instance=ExtResource("2_mdp1k")]
+layout_mode = 1
+
+[node name="AchievementGetPanel" type="Control" parent="."]
+self_modulate = Color(1, 1, 1, 0)
+z_index = 3
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -640.0
+offset_bottom = 160.0
+grow_horizontal = 0
+mouse_filter = 2
+script = ExtResource("3_7y13k")

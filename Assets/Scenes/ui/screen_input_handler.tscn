@@ -1,0 +1,21 @@
+[gd_scene load_steps=2 format=3 uid="uid://b7t0h7bus0j2c"]
+
+[ext_resource type="Script" path="res://assets/scripts/ui/screen_input_handler.gd" id="1_dek0f"]
+
+[node name="ScreenInputHandler" type="Node"]
+script = ExtResource("1_dek0f")
+
+[node name="TouchTimeCounters" type="Node" parent="."]
+
+[node name="ScreenCanvas" type="CanvasLayer" parent="."]
+
+[node name="ScreenInputReceiver" type="Control" parent="ScreenCanvas"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+
+[connection signal="gui_input" from="ScreenCanvas/ScreenInputReceiver" to="." method="_on_screen_input_receiver_gui_input"]

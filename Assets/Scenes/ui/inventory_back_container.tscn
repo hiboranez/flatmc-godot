@@ -1,0 +1,97 @@
+[gd_scene load_steps=2 format=3 uid="uid://dbubunts5b1cw"]
+
+[ext_resource type="PackedScene" uid="uid://bhyxpmrih3ijn" path="res://assets/scenes/others/inventory_slot.tscn" id="1_mu0v1"]
+
+[node name="InventoryBackContainer" type="GridContainer"]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 38.0
+offset_top = -456.0
+offset_right = 938.0
+offset_bottom = -156.0
+grow_vertical = 0
+theme_override_constants/h_separation = 0
+theme_override_constants/v_separation = 0
+columns = 9
+
+[node name="InventoryGrid9" parent="." instance=ExtResource("1_mu0v1")]
+layout_mode = 2
+
+[node name="InventoryGrid10" parent="." instance=ExtResource("1_mu0v1")]
+layout_mode = 2
+
+[node name="InventoryGrid11" parent="." instance=ExtResource("1_mu0v1")]
+layout_mode = 2
+
+[node name="InventoryGrid12" parent="." instance=ExtResource("1_mu0v1")]
+layout_mode = 2
+
+[node name="InventoryGrid13" parent="." instance=ExtResource("1_mu0v1")]
+layout_mode = 2
+
+[node name="InventoryGrid14" parent="." instance=ExtResource("1_mu0v1")]
+layout_mode = 2
+
+[node name="InventoryGrid15" parent="." instance=ExtResource("1_mu0v1")]
+layout_mode = 2
+
+[node name="InventoryGrid16" parent="." instance=ExtResource("1_mu0v1")]
+layout_mode = 2
+
+[node name="InventoryGrid17" parent="." instance=ExtResource("1_mu0v1")]
+layout_mode = 2
+
+[node name="InventoryGrid18" parent="." instance=ExtResource("1_mu0v1")]
+layout_mode = 2
+
+[node name="InventoryGrid19" parent="." instance=ExtResource("1_mu0v1")]
+layout_mode = 2
+
+[node name="InventoryGrid20" parent="." instance=ExtResource("1_mu0v1")]
+layout_mode = 2
+
+[node name="InventoryGrid21" parent="." instance=ExtResource("1_mu0v1")]
+layout_mode = 2
+
+[node name="InventoryGrid22" parent="." instance=ExtResource("1_mu0v1")]
+layout_mode = 2
+
+[node name="InventoryGrid23" parent="." instance=ExtResource("1_mu0v1")]
+layout_mode = 2
+
+[node name="InventoryGrid24" parent="." instance=ExtResource("1_mu0v1")]
+layout_mode = 2
+
+[node name="InventoryGrid25" parent="." instance=ExtResource("1_mu0v1")]
+layout_mode = 2
+
+[node name="InventoryGrid26" parent="." instance=ExtResource("1_mu0v1")]
+layout_mode = 2
+
+[node name="InventoryGrid27" parent="." instance=ExtResource("1_mu0v1")]
+layout_mode = 2
+
+[node name="InventoryGrid28" parent="." instance=ExtResource("1_mu0v1")]
+layout_mode = 2
+
+[node name="InventoryGrid29" parent="." instance=ExtResource("1_mu0v1")]
+layout_mode = 2
+
+[node name="InventoryGrid30" parent="." instance=ExtResource("1_mu0v1")]
+layout_mode = 2
+
+[node name="InventoryGrid31" parent="." instance=ExtResource("1_mu0v1")]
+layout_mode = 2
+
+[node name="InventoryGrid32" parent="." instance=ExtResource("1_mu0v1")]
+layout_mode = 2
+
+[node name="InventoryGrid33" parent="." instance=ExtResource("1_mu0v1")]
+layout_mode = 2
+
+[node name="InventoryGrid34" parent="." instance=ExtResource("1_mu0v1")]
+layout_mode = 2
+
+[node name="InventoryGrid35" parent="." instance=ExtResource("1_mu0v1")]
+layout_mode = 2

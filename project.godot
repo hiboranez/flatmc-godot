@@ -11,19 +11,34 @@ config_version=5
 [application]
 
 config/name="FlatMC"
-config/description="我的世界2D版"
-config/version="Alpha 0.1.2.0"
-run/main_scene="res://Assets/Scenes/Menu.tscn"
+config/description="FlatMC - 2D Minecraft Game"
+config/version="Alpha v0.2.1"
+run/main_scene="res://assets/scenes/menus/game_init_menu.tscn"
 run/disable_stderr=true
 config/features=PackedStringArray("4.3", "Mobile")
+boot_splash/bg_color=Color(0.894118, 0.211765, 0.243137, 1)
 boot_splash/show_image=false
-boot_splash/image="res://Assets/Textures/GUI/author.png"
-config/icon="res://Assets/Textures/GUI/icon.png"
+boot_splash/image="res://assets/textures/ui/fmc_author_page.png"
+config/icon="res://assets/textures/ui/fmc_icon.png"
 
 [autoload]
 
-StaticLoad="*res://Assets/Scenes/StaticLoad.tscn"
+StaticLoad="*res://assets/scenes/others/StaticLoad.tscn"
 ServiceDiscovery="*res://addons/lan_servers_discovery/servers_discovery.gd"
+UUID="*res://addons/uuid/uuid.gd"
+ResourceLoadingMenu="*res://assets/scenes/menus/resource_loading_menu.tscn"
+AudioManager="*res://assets/scripts/managers/audio_manager.gd"
+DataManager="*res://assets/scripts/managers/data_manager.gd"
+SceneManager="*res://assets/scripts/managers/scene_manager.gd"
+ServerManager="*res://assets/scripts/managers/server_manager.gd"
+SettingsManager="*res://assets/scripts/managers/settings_manager.gd"
+TextureManager="*res://assets/scripts/managers/texture_manager.gd"
+AttributeManager="*res://assets/scripts/managers/attribute_manager.gd"
+ResourceManager="*res://assets/scripts/managers/resource_manager.gd"
+ClientManager="*res://assets/scripts/managers/client_manager.gd"
+UIManager="*res://assets/scripts/managers/ui_manager.gd"
+ActionManager="*res://assets/scripts/managers/action_manager.gd"
+InputManager="*res://assets/scripts/managers/input_manager.gd"
 
 [display]
 
@@ -31,12 +46,26 @@ window/size/viewport_width=1920
 window/size/viewport_height=1080
 window/size/window_width_override=1280
 window/size/window_height_override=720
-window/stretch/mode="viewport"
+window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
+window/vsync/vsync_mode=0
+
+[dotnet]
+
+project/assembly_name="FlatMC"
+
+[editor]
+
+export/convert_text_resources_to_binary=false
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/lan_servers_discovery/plugin.cfg")
+enabled=PackedStringArray("res://addons/lan_servers_discovery/plugin.cfg", "res://addons/uuid/plugin.cfg")
+
+[gui]
+
+theme/custom="res://assets/themes/ui_theme.tres"
+theme/custom_font="res://assets/fonts/fmcles.tres"
 
 [importer_defaults]
 
@@ -45,6 +74,9 @@ animation_library={
 }
 texture={
 "detect_3d/compress_to": 0
+}
+csv_translation={
+"delimiter": 1
 }
 
 [input]
@@ -99,6 +131,11 @@ switch_ui_visibility={
 "events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":4194332,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
 ]
 }
+select_item_grid_0={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":48,"key_label":0,"unicode":48,"location":0,"echo":false,"script":null)
+]
+}
 select_item_grid_1={
 "deadzone": 0.5,
 "events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":49,"key_label":0,"unicode":49,"location":0,"echo":false,"script":null)
@@ -137,11 +174,6 @@ select_item_grid_7={
 select_item_grid_8={
 "deadzone": 0.5,
 "events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":56,"key_label":0,"unicode":56,"location":0,"echo":false,"script":null)
-]
-}
-select_item_grid_9={
-"deadzone": 0.5,
-"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":57,"key_label":0,"unicode":57,"location":0,"echo":false,"script":null)
 ]
 }
 chat={
@@ -189,10 +221,34 @@ open_map={
 "events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":77,"key_label":0,"unicode":109,"location":0,"echo":false,"script":null)
 ]
 }
+drop_item={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":81,"key_label":0,"unicode":113,"location":0,"echo":false,"script":null)
+]
+}
+shift={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":4194325,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
+]
+}
+switch_layer={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":70,"key_label":0,"unicode":102,"location":0,"echo":false,"script":null)
+]
+}
+
+[input_devices]
+
+pointing/emulate_mouse_from_touch=false
 
 [internationalization]
 
-locale/translations=PackedStringArray("res://language.en.translation", "res://language.zh.translation")
+locale/translation_remaps={}
+locale/translations=PackedStringArray("res://assets/languages/translation.de.translation", "res://assets/languages/translation.en.translation", "res://assets/languages/translation.es.translation", "res://assets/languages/translation.fr.translation", "res://assets/languages/translation.hi.translation", "res://assets/languages/translation.ja.translation", "res://assets/languages/translation.ko.translation", "res://assets/languages/translation.ru.translation", "res://assets/languages/translation.th.translation", "res://assets/languages/translation.vi.translation", "res://assets/languages/translation.zh.translation")
+
+[memory]
+
+limits/message_queue/max_size_mb=64
 
 [physics]
 

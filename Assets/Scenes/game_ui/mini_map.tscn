@@ -1,0 +1,108 @@
+[gd_scene load_steps=5 format=3 uid="uid://dkosbpirsc3uj"]
+
+[ext_resource type="Script" path="res://assets/scripts/ui/game_ui/mini_map.gd" id="1_lojjp"]
+[ext_resource type="Texture2D" uid="uid://4yhjmj0m1jrd" path="res://assets/textures/backgrounds/stars_full.png" id="2_wrvnp"]
+[ext_resource type="TileSet" uid="uid://cgix634ydmo4p" path="res://assets/TileSets/official_old.tres" id="3_611ch"]
+[ext_resource type="Texture2D" uid="uid://bl0xpo1luvy7i" path="res://assets/textures/ui/white_background.png" id="4_gar7l"]
+
+[node name="MiniMap" type="Control"]
+layout_mode = 3
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -269.735
+offset_right = 0.265015
+offset_bottom = 270.0
+grow_horizontal = 0
+script = ExtResource("1_lojjp")
+
+[node name="WhiteFrame" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.95158, 0.95158, 0.951579, 1)
+
+[node name="SkyBackground" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 15.0
+offset_top = 15.0
+offset_right = -15.0
+offset_bottom = -15.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.443137, 0.698039, 1, 1)
+
+[node name="SubViewportContainer" type="SubViewportContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 14.0
+offset_top = 15.0
+offset_right = -15.0
+offset_bottom = -14.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+stretch = true
+
+[node name="SubViewport" type="SubViewport" parent="SubViewportContainer"]
+transparent_bg = true
+handle_input_locally = false
+snap_2d_transforms_to_pixel = true
+canvas_item_default_texture_filter = 0
+size = Vector2i(241, 241)
+render_target_update_mode = 4
+
+[node name="StaticBackground" type="ParallaxBackground" parent="SubViewportContainer/SubViewport"]
+layer = -3
+scroll_ignore_camera_zoom = true
+
+[node name="ParallaxLayer" type="ParallaxLayer" parent="SubViewportContainer/SubViewport/StaticBackground"]
+motion_scale = Vector2(0.5, 0.5)
+motion_offset = Vector2(10000, 4000)
+motion_mirroring = Vector2(20000, 8000)
+
+[node name="StarBackground" type="TextureRect" parent="SubViewportContainer/SubViewport/StaticBackground/ParallaxLayer"]
+texture_filter = 1
+texture_repeat = 3
+offset_right = 20000.0
+offset_bottom = 8000.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 2
+texture = ExtResource("2_wrvnp")
+stretch_mode = 1
+
+[node name="BackTileMapLayer" type="TileMapLayer" parent="SubViewportContainer/SubViewport"]
+modulate = Color(0.393086, 0.393086, 0.393085, 1)
+tile_set = ExtResource("3_611ch")
+collision_enabled = false
+
+[node name="NoReachTileMapLayer" type="TileMapLayer" parent="SubViewportContainer/SubViewport"]
+tile_set = ExtResource("3_611ch")
+collision_enabled = false
+
+[node name="TileMapLayer" type="TileMapLayer" parent="SubViewportContainer/SubViewport"]
+tile_set = ExtResource("3_611ch")
+
+[node name="PlayerIcons" type="Node2D" parent="SubViewportContainer/SubViewport"]
+
+[node name="Camera2D" type="Camera2D" parent="SubViewportContainer/SubViewport"]
+zoom = Vector2(0.1, 0.1)
+
+[node name="Lights" type="Node2D" parent="SubViewportContainer/SubViewport"]
+
+[node name="DarkLight" type="PointLight2D" parent="SubViewportContainer/SubViewport/Lights"]
+scale = Vector2(20000, 20000)
+color = Color(0, 0, 0, 1)
+blend_mode = 2
+texture = ExtResource("4_gar7l")

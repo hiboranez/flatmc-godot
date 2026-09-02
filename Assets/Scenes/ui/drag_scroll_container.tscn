@@ -1,0 +1,21 @@
+[gd_scene load_steps=3 format=3 uid="uid://t7ibude322ee"]
+
+[ext_resource type="Script" path="res://assets/scripts/drag_scroll.gd" id="1_mfq2y"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_rfgq5"]
+content_margin_left = 30.0
+content_margin_top = 50.0
+content_margin_right = 30.0
+content_margin_bottom = 30.0
+
+[node name="DragScrollContainer" type="ScrollContainer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxEmpty_rfgq5")
+horizontal_scroll_mode = 0
+script = ExtResource("1_mfq2y")
+
+[connection signal="gui_input" from="." to="." method="_on_scrollcontainer_gui_input"]

@@ -1,0 +1,11 @@
+[gd_resource type="StandardMaterial3D" load_steps=2 format=3 uid="uid://cof4bjt7jgu3p"]
+
+[ext_resource type="Texture2D" uid="uid://e2xefdl7b7ti" path="res://assets/ResourcePacks/official_old/Entites/sheep.png" id="1_hipnq"]
+
+[resource]
+resource_local_to_scene = true
+resource_name = "Sheep"
+cull_mode = 2
+shading_mode = 0
+albedo_texture = ExtResource("1_hipnq")
+texture_filter = 2

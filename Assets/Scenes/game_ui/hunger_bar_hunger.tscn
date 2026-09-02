@@ -1,0 +1,45 @@
+[gd_scene load_steps=4 format=3 uid="uid://dcjrcdwhmluoo"]
+
+[ext_resource type="Texture2D" uid="uid://bvpnht645lbjk" path="res://assets/textures/ui/hunger_bar_hunger_background.png" id="1_wjr4u"]
+[ext_resource type="Texture2D" uid="uid://0bdl2cih0wwr" path="res://assets/textures/ui/hunger_bar_half_hunger.png" id="2_d4kxb"]
+
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_rsif6"]
+load_path = "res://.godot/imported/full_hunger.png-c9e0833e50650891c91a82439142fe9c.ctex"
+
+[node name="HungerBarHunger" type="TextureRect"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+texture = ExtResource("1_wjr4u")
+expand_mode = 5
+
+[node name="HalfHunger" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -15.325
+offset_top = -19.425
+offset_right = 19.705
+offset_bottom = 18.575
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_d4kxb")
+expand_mode = 1
+
+[node name="FullHunger" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -19.83
+offset_top = -19.0
+offset_right = 19.84
+offset_bottom = 19.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = SubResource("CompressedTexture2D_rsif6")
+expand_mode = 1

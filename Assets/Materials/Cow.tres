@@ -1,0 +1,11 @@
+[gd_resource type="StandardMaterial3D" load_steps=2 format=3 uid="uid://bn3mxtis1y7st"]
+
+[ext_resource type="Texture2D" uid="uid://dxxj75er44s6k" path="res://assets/ResourcePacks/official_old/Entites/cow.png" id="1_fgv0g"]
+
+[resource]
+resource_local_to_scene = true
+resource_name = "Cow.001"
+cull_mode = 2
+shading_mode = 0
+albedo_texture = ExtResource("1_fgv0g")
+texture_filter = 2

@@ -1,0 +1,20 @@
+{
+	"music": {
+		
+	},
+	
+	"sound": {
+		"chicken": ["hurt", "say"],
+		"cow": ["hurt", "say"],
+		"damage": ["hit"],
+		"dig": ["cloth", "grass", "gravel", "sand", "snow", "stone", "wood", "glass"],
+		"hoe": ["hoe_till"],
+		"pig": ["say"],
+		"player": ["eat"],
+		"random": ["bow_hit", "explode"],
+		"sheep": ["say"],
+		"skeleton": ["hurt", "say"],
+		"step": ["cloth", "grass", "gravel", "ladder", "sand", "snow", "stone", "wood"],
+		"zombie": ["hurt", "metal", "say", "step", "wood"],
+	}
+}

@@ -1,0 +1,15 @@
+[gd_scene load_steps=2 format=3 uid="uid://dhqvv18q6keqh"]
+
+[ext_resource type="PackedScene" uid="uid://dbubunts5b1cw" path="res://assets/scenes/ui/inventory_back_container.tscn" id="1_rhxa4"]
+
+[node name="InventoryKnapsack" type="Control"]
+layout_mode = 3
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+grow_vertical = 0
+
+[node name="InventoryBackContainer" parent="." instance=ExtResource("1_rhxa4")]
+layout_mode = 1
+offset_left = 37.0
+offset_right = 937.0

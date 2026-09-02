@@ -1,0 +1,77 @@
+{
+	"settings" : {
+		"version": "0.2.1",
+		"updated": "false",
+		"player_name": "Steve",
+		"language": "zh",
+		"render_chunk": "2",
+		"fov_zoom" : "20",
+		"bgm_volume": "50",
+		"sound_volume": "50",
+		"block_selection_box": "show_when_changing",
+		"full_screen": "off",
+		"auto_jump": "on",
+		"new_music": "on",
+		"smooth_lighting": "on",
+		"particle_effect": "off",
+		"v_sync": "on",
+		"mini_map": "on",
+		"mini_map_zoom": "30",
+		"skin_path": "null",
+		"resource_pack": "official_new",
+		"gui_scale": "big",
+		"menu_scroll": "50"
+	},
+	
+	"official_server_infos": {
+		"server_name": "FlatMC",
+		"server_type": "official",
+		"server_ip": "flatmc.hiboranez.work",
+		"server_port": "12419",
+		"server_icon_path": "ui/fmc_icon"
+	},
+	
+	"values": {
+		"screenshot_path": "user://screenshots/",
+		"world_list_path": "user://worlds/",
+		"server_list_path": "user://servers/",
+		"server_root_path": "user://local_server/",
+		"server_log_path": "user://local_server/logs/",
+		"config_password": "QQ1241999312",
+		"game_spt": "0.05",
+		"chunk_dormant_time": "5",
+		"max_name_length": "16",
+		"mini_map_scale_factor": "3.36",
+		"mini_map_icon_size": "8",
+		"hot_bar_text_display_time": "2",
+		"hot_bar_text_disappear_time": "0.2",
+		"block_selection_display_time": "3",
+		"block_selection_disappear_time": "0.2"
+	},
+	
+	"world_infos": {
+		"last_modified": "UNKNOWN",
+		"version": "unknown",
+		"seed": "1241999312",
+		"world_type": "default",
+		"gamemode": "survival",
+		"tick_timer": "9000",
+		"world_day": "0",
+		"allow_cheat": "off",
+		"achievement": "on"
+	},
+	
+	"languages": {
+		"zh": "中文",
+		"en": "English",
+		"ja": "日本語",
+		"ko": "한국어",
+		"es": "Español",
+		"fr": "Français",
+		"de": "Deutsch",
+		"ru": "Русский",
+		"hi": "हिन्दी",
+		"vi": "Tiếng Việt",
+		"th": "ภาษาไทย"
+	}
+}

@@ -1,0 +1,43 @@
+[gd_scene load_steps=3 format=3 uid="uid://dh6631fiyn877"]
+
+[ext_resource type="Script" path="res://assets/scripts/ui/game_ui/debug_panel.gd" id="1_kwxyi"]
+[ext_resource type="PackedScene" uid="uid://cj5q3hf8740rs" path="res://assets/scenes/game_ui/debug_message.tscn" id="1_r4mxp"]
+
+[node name="DebugPanel" type="Control"]
+layout_mode = 3
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -553.0
+offset_bottom = 364.0
+grow_horizontal = 0
+mouse_filter = 2
+script = ExtResource("1_kwxyi")
+
+[node name="VFlowContainer" type="VFlowContainer" parent="."]
+layout_direction = 3
+layout_mode = 1
+offset_right = 500.0
+offset_bottom = 368.0
+mouse_filter = 2
+theme_override_constants/v_separation = 30
+alignment = 1
+
+[node name="PlayerName" parent="VFlowContainer" instance=ExtResource("1_r4mxp")]
+layout_mode = 2
+
+[node name="SelectedPosition" parent="VFlowContainer" instance=ExtResource("1_r4mxp")]
+layout_mode = 2
+text = "SELECTED_POSITION:"
+
+[node name="Coordinate" parent="VFlowContainer" instance=ExtResource("1_r4mxp")]
+layout_mode = 2
+text = "POSITION:"
+
+[node name="Chunk" parent="VFlowContainer" instance=ExtResource("1_r4mxp")]
+layout_mode = 2
+text = "CHUNK:"
+
+[node name="Fps" parent="VFlowContainer" instance=ExtResource("1_r4mxp")]
+layout_mode = 2
+text = "FPS:"

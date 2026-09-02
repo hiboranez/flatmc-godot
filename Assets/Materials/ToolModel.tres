@@ -1,0 +1,13 @@
+[gd_resource type="StandardMaterial3D" load_steps=2 format=3 uid="uid://oavmo0n2opgs"]
+
+[ext_resource type="Texture2D" uid="uid://dm5g0jraxxlui" path="res://assets/ResourcePacks/official_old/Items/bow.png" id="1_3uox1"]
+
+[resource]
+resource_name = "Item"
+transparency = 3
+alpha_hash_scale = 1.0
+alpha_antialiasing_mode = 0
+cull_mode = 2
+shading_mode = 0
+albedo_texture = ExtResource("1_3uox1")
+texture_filter = 2

@@ -1,0 +1,24 @@
+[gd_scene load_steps=4 format=3 uid="uid://cnyxlc6wneab6"]
+
+[ext_resource type="Script" path="res://assets/scripts/menus/resource_pack_menu.gd" id="1_cxkxb"]
+[ext_resource type="Script" path="res://assets/scripts/components/menu_controller.gd" id="2_ybhoi"]
+[ext_resource type="PackedScene" uid="uid://drjcxql1q3ha5" path="res://assets/scenes/panels/base_content_panel.tscn" id="3_vy1mt"]
+
+[node name="ResourcePackMenu" type="CanvasLayer"]
+layer = 2
+script = ExtResource("1_cxkxb")
+
+[node name="MenuController" type="Node" parent="."]
+script = ExtResource("2_ybhoi")
+
+[node name="MenuControl" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="BaseContentPanel" parent="MenuControl" instance=ExtResource("3_vy1mt")]
+layout_mode = 1
+title = "RESOURCE_PACK"

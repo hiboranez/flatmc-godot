@@ -1,0 +1,7 @@
+{
+	"ui_attributes": {
+		"mini_map":{
+			"open_restriction": [""]
+		}
+	}
+}

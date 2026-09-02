@@ -1,0 +1,13 @@
+[gd_scene load_steps=2 format=3 uid="uid://b084qw7odimik"]
+
+[ext_resource type="PackedScene" uid="uid://ch4xe7w4mrqb3" path="res://assets/scenes/game_ui/chat_panel.tscn" id="1_v8e0k"]
+
+[node name="LeftTopPanel" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 653.0
+offset_bottom = 384.0
+mouse_filter = 2
+
+[node name="ChatPanel" parent="." instance=ExtResource("1_v8e0k")]
+layout_mode = 1

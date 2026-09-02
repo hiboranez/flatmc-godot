@@ -1,0 +1,11 @@
+[gd_resource type="StandardMaterial3D" load_steps=2 format=3 uid="uid://dem75epyp8ffj"]
+
+[ext_resource type="Texture2D" uid="uid://bvk1ls043xq4y" path="res://Assets/Models/Torch_torch_on.png" id="1_hfnay"]
+
+[resource]
+resource_local_to_scene = true
+resource_name = "TorchModel"
+cull_mode = 2
+albedo_texture = ExtResource("1_hfnay")
+roughness = 0.0
+texture_filter = 2

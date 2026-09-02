@@ -1,0 +1,20 @@
+[gd_scene load_steps=4 format=3 uid="uid://dawffcsxvxlwd"]
+
+[ext_resource type="Texture2D" uid="uid://7ue7l5p7mkcr" path="res://assets/textures/skins/steve_old.png" id="1_fkx2v"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_087iu"]
+resource_local_to_scene = true
+atlas = ExtResource("1_fkx2v")
+region = Rect2(8, 8, 8, 8)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_8h7nd"]
+resource_local_to_scene = true
+region = Rect2(40, 8, 8, 8)
+
+[node name="PlayerIcon" type="Sprite2D"]
+scale = Vector2(32, 32)
+texture = SubResource("AtlasTexture_087iu")
+
+[node name="UpSkin" type="Sprite2D" parent="."]
+scale = Vector2(1.025, 1.025)
+texture = SubResource("AtlasTexture_8h7nd")

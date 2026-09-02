@@ -1,0 +1,120 @@
+[gd_scene load_steps=6 format=3 uid="uid://6rwpuk4b0k4y"]
+
+[ext_resource type="Texture2D" uid="uid://br3dvltcnxhnc" path="res://assets/textures/ui/ui_content_panel.png" id="1_4g721"]
+[ext_resource type="Texture2D" uid="uid://3yvcqbp5ui5p" path="res://assets/textures/ui/ui_normal_panel.png" id="1_i2ahw"]
+[ext_resource type="PackedScene" uid="uid://bayn31na6x6du" path="res://assets/scenes/ui/oriented_player.tscn" id="3_flhcd"]
+[ext_resource type="PackedScene" uid="uid://bhyxpmrih3ijn" path="res://assets/scenes/others/inventory_slot.tscn" id="4_tthth"]
+[ext_resource type="PackedScene" uid="uid://dhqvv18q6keqh" path="res://assets/scenes/ui/inventory_knapsack.tscn" id="6_xoild"]
+
+[node name="InventoryCreativePanel" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Background" type="NinePatchRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1_i2ahw")
+region_rect = Rect2(0, 0, 64, 64)
+patch_margin_left = 21
+patch_margin_top = 21
+patch_margin_right = 21
+patch_margin_bottom = 21
+
+[node name="PlayerPanel" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+grow_horizontal = 2
+
+[node name="Frame" type="NinePatchRect" parent="PlayerPanel"]
+layout_mode = 2
+offset_left = -101.0
+offset_top = 34.0
+offset_right = 99.0
+offset_bottom = 284.0
+texture = ExtResource("1_4g721")
+draw_center = false
+region_rect = Rect2(0, 0, 64, 64)
+patch_margin_left = 4
+patch_margin_top = 4
+patch_margin_right = 4
+patch_margin_bottom = 4
+
+[node name="Background" type="ColorRect" parent="PlayerPanel/Frame"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 4.0
+offset_top = 4.0
+offset_right = -4.0
+offset_bottom = -4.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
+
+[node name="OrientedPlayer" parent="PlayerPanel/Frame" instance=ExtResource("3_flhcd")]
+layout_mode = 1
+offset_left = -70.0
+offset_top = -140.0
+offset_right = 70.0
+offset_bottom = 140.0
+
+[node name="LeftGridContainer" type="GridContainer" parent="PlayerPanel"]
+layout_mode = 0
+offset_left = -201.0
+offset_top = 34.0
+offset_right = -101.0
+offset_bottom = 284.0
+theme_override_constants/v_separation = 50
+
+[node name="Helmet" parent="PlayerPanel/LeftGridContainer" instance=ExtResource("4_tthth")]
+layout_mode = 2
+slot_function = "armor_helmet"
+
+[node name="Chestplate" parent="PlayerPanel/LeftGridContainer" instance=ExtResource("4_tthth")]
+layout_mode = 2
+slot_function = "armor_chestplate"
+
+[node name="RightGridContainer" type="GridContainer" parent="PlayerPanel"]
+layout_mode = 0
+offset_left = 99.0
+offset_top = 34.0
+offset_right = 199.0
+offset_bottom = 284.0
+theme_override_constants/v_separation = 50
+
+[node name="Leggings" parent="PlayerPanel/RightGridContainer" instance=ExtResource("4_tthth")]
+layout_mode = 2
+slot_function = "armor_leggings"
+
+[node name="Boots" parent="PlayerPanel/RightGridContainer" instance=ExtResource("4_tthth")]
+layout_mode = 2
+slot_function = "armor_boots"
+
+[node name="DeleteSlot" parent="." instance=ExtResource("4_tthth")]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -126.0
+offset_top = -136.0
+offset_right = -26.0
+offset_bottom = -36.0
+grow_horizontal = 0
+grow_vertical = 0
+slot_function = "delete"
+
+[node name="InventoryKnapsack" parent="." instance=ExtResource("6_xoild")]
+layout_mode = 1

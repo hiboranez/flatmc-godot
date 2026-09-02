@@ -1,0 +1,11 @@
+[gd_resource type="StandardMaterial3D" load_steps=2 format=3 uid="uid://paeswhiik3iy"]
+
+[ext_resource type="Texture2D" uid="uid://cxbhpd80nvt4" path="res://assets/ResourcePacks/official_old/Entites/zombie.png" id="1_uynxe"]
+
+[resource]
+resource_local_to_scene = true
+resource_name = "Skinzomnb.001"
+cull_mode = 2
+shading_mode = 0
+albedo_texture = ExtResource("1_uynxe")
+texture_filter = 0

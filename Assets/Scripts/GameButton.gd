@@ -1,15 +1,14 @@
 extends Button
 
-@onready var icon_texture = $Icon
+@onready var nine_patch_rect = $Icon
 
-@warning_ignore("unused_parameter")
 func _process(delta: float) -> void:
 	if disabled:
-		icon_texture.texture = StaticLoad.button_disabled
+		nine_patch_rect.texture = TextureManager.texture_dict["ui"]["ui_button_disabled"]
 		return
 	#elif pressed():
-		#self.icon = load("res://Assets/Textures/GUI/button_pressed.png") as Texture2D
+		#self.icon = load("res://assets/Textures/GUI/button_pressed.png") as Texture2D
 	elif is_hovered():
-		icon_texture.texture = StaticLoad.button_chosen
+		nine_patch_rect.texture = TextureManager.texture_dict["ui"]["ui_button_hovered"]
 	else:
-		icon_texture.texture = StaticLoad.button_normal
+		nine_patch_rect.texture = TextureManager.texture_dict["ui"]["ui_button"]

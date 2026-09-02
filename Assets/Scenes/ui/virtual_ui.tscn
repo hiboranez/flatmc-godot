@@ -1,0 +1,197 @@
+[gd_scene load_steps=8 format=3 uid="uid://c4xm8ryxw40a8"]
+
+[ext_resource type="PackedScene" uid="uid://orxqssfho4wf" path="res://assets/scenes/ui/oreui_normal_button.tscn" id="1_swb87"]
+[ext_resource type="Script" path="res://assets/scripts/ui/virtual_ui.gd" id="1_ywghs"]
+[ext_resource type="PackedScene" uid="uid://tnf5nsr35yt3" path="res://assets/scenes/ui/oreui_joystick.tscn" id="2_4tqqc"]
+[ext_resource type="PackedScene" uid="uid://bt1pnqod8hmph" path="res://assets/scenes/ui/oreui_switch_button.tscn" id="3_rnhuq"]
+[ext_resource type="PackedScene" uid="uid://cs4o3dy0f2d1t" path="res://assets/scenes/ui/oreui_hold_button.tscn" id="4_jsmx7"]
+[ext_resource type="Texture2D" uid="uid://de2qux5nqcvuc" path="res://assets/textures/ui/widgets.png" id="4_m1h30"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_6gvfi"]
+atlas = ExtResource("4_m1h30")
+region = Rect2(240, 0, 15, 15)
+
+[node name="VirtualUI" type="CanvasLayer"]
+script = ExtResource("1_ywghs")
+
+[node name="FunctionButtons" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_top = 12.0
+offset_bottom = 12.0
+grow_horizontal = 2
+mouse_filter = 2
+
+[node name="F1Button" parent="FunctionButtons" instance=ExtResource("1_swb87")]
+layout_mode = 1
+anchors_preset = 5
+anchor_top = 0.0
+anchor_bottom = 0.0
+offset_left = -296.0
+offset_top = 0.0
+offset_right = -206.0
+offset_bottom = 90.0
+grow_vertical = 1
+text = "F1"
+font_size = 30
+
+[node name="F2Button" parent="FunctionButtons" instance=ExtResource("1_swb87")]
+layout_mode = 1
+anchors_preset = 5
+anchor_top = 0.0
+anchor_bottom = 0.0
+offset_left = -196.0
+offset_top = 0.0
+offset_right = -106.0
+offset_bottom = 90.0
+grow_vertical = 1
+text = "F2"
+font_size = 30
+
+[node name="F3Button" parent="FunctionButtons" instance=ExtResource("1_swb87")]
+layout_mode = 1
+anchors_preset = 5
+anchor_top = 0.0
+anchor_bottom = 0.0
+offset_left = -96.0
+offset_top = 0.0
+offset_right = -6.0
+offset_bottom = 90.0
+grow_vertical = 1
+text = "F3"
+font_size = 30
+
+[node name="MenuButton" parent="FunctionButtons" instance=ExtResource("1_swb87")]
+layout_mode = 1
+anchors_preset = 5
+anchor_top = 0.0
+anchor_bottom = 0.0
+offset_left = 4.0
+offset_top = 0.0
+offset_right = 94.0
+offset_bottom = 90.0
+grow_vertical = 1
+background_path = "ui/oreui_menu_button"
+
+[node name="ChatButton" parent="FunctionButtons" instance=ExtResource("1_swb87")]
+layout_mode = 1
+anchors_preset = 5
+anchor_top = 0.0
+anchor_bottom = 0.0
+offset_left = 104.0
+offset_top = 0.0
+offset_right = 194.0
+offset_bottom = 90.0
+grow_vertical = 1
+background_path = "ui/oreui_chat_button"
+
+[node name="TabButton" parent="FunctionButtons" instance=ExtResource("1_swb87")]
+layout_mode = 1
+anchors_preset = 5
+anchor_top = 0.0
+anchor_bottom = 0.0
+offset_left = 204.0
+offset_top = 0.0
+offset_right = 294.0
+offset_bottom = 90.0
+grow_vertical = 1
+text = "Tab"
+font_size = 30
+
+[node name="LeftUI" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 270.0
+offset_top = -430.0
+offset_right = 270.0
+offset_bottom = -430.0
+grow_vertical = 0
+mouse_filter = 2
+
+[node name="MoveJoystick" parent="LeftUI" instance=ExtResource("2_4tqqc")]
+layout_mode = 1
+
+[node name="RightUI" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -270.0
+offset_top = -430.0
+offset_right = -270.0
+offset_bottom = -430.0
+grow_horizontal = 0
+grow_vertical = 0
+mouse_filter = 2
+
+[node name="OperateJoystick" parent="RightUI" instance=ExtResource("2_4tqqc")]
+layout_mode = 1
+
+[node name="JumpButton" parent="RightUI" instance=ExtResource("4_jsmx7")]
+layout_mode = 1
+offset_left = -243.0
+offset_top = -45.0
+offset_right = -153.0
+offset_bottom = 45.0
+button_name = "jump"
+
+[node name="SprintButton" parent="RightUI" instance=ExtResource("3_rnhuq")]
+layout_mode = 1
+offset_left = 153.0
+offset_top = -145.0
+offset_right = 243.0
+offset_bottom = -55.0
+button_name = "sprint"
+
+[node name="SneakButton" parent="RightUI" instance=ExtResource("3_rnhuq")]
+layout_mode = 1
+offset_left = 153.0
+offset_top = -45.0
+offset_right = 243.0
+offset_bottom = 45.0
+button_name = "sneak"
+
+[node name="SwitchLayerButton" parent="RightUI" instance=ExtResource("3_rnhuq")]
+layout_mode = 1
+offset_left = 151.0
+offset_top = 55.0
+offset_right = 241.0
+offset_bottom = 145.0
+button_name = "switch_layer"
+
+[node name="MouseUI" type="TextureRect" parent="."]
+visible = false
+light_mask = 4
+z_index = 1
+custom_minimum_size = Vector2(50, 50)
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -1920.0
+offset_top = -1080.0
+offset_right = -1870.0
+offset_bottom = -1030.0
+grow_horizontal = 0
+grow_vertical = 0
+scale = Vector2(2, 2)
+pivot_offset = Vector2(50, 50)
+texture = SubResource("AtlasTexture_6gvfi")
+
+[connection signal="pressed" from="FunctionButtons/F1Button" to="." method="_on_f1_button_pressed"]
+[connection signal="pressed" from="FunctionButtons/F2Button" to="." method="_on_f2_button_pressed"]
+[connection signal="pressed" from="FunctionButtons/F3Button" to="." method="_on_f3_button_pressed"]
+[connection signal="pressed" from="FunctionButtons/MenuButton" to="." method="_on_menu_button_pressed"]
+[connection signal="pressed" from="FunctionButtons/ChatButton" to="." method="_on_chat_button_pressed"]
+[connection signal="pressed" from="FunctionButtons/TabButton" to="." method="_on_tab_button_pressed"]
+[connection signal="state_changed" from="RightUI/JumpButton" to="." method="_on_jump_button_state_changed"]
+[connection signal="pressed" from="RightUI/SprintButton" to="." method="_on_sprint_button_pressed"]
+[connection signal="pressed" from="RightUI/SneakButton" to="." method="_on_sneak_button_pressed"]
+[connection signal="pressed" from="RightUI/SwitchLayerButton" to="." method="_on_switch_layer_button_pressed"]

@@ -1,0 +1,107 @@
+[gd_scene load_steps=7 format=3 uid="uid://bhyxpmrih3ijn"]
+
+[ext_resource type="Texture2D" uid="uid://cx13x00aocnau" path="res://assets/textures/ui/inventory_slot.png" id="1_okcax"]
+[ext_resource type="Script" path="res://assets/scripts/InventoryGrid.gd" id="2_kedk6"]
+[ext_resource type="PackedScene" uid="uid://dpnk4w3vgwyft" path="res://assets/scenes/others/item_icon.tscn" id="3_latsn"]
+[ext_resource type="FontFile" uid="uid://dahei608a1d0f" path="res://assets/fonts/MinecraftAE.ttf" id="4_ntyvc"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cjbd7"]
+bg_color = Color(0.270222, 0.270222, 0.270222, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jlk4s"]
+resource_local_to_scene = true
+bg_color = Color(0.886143, 0.478883, 7.70092e-07, 1)
+
+[node name="InventorySlot" type="Control"]
+custom_minimum_size = Vector2(100, 100)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 100.0
+offset_bottom = 100.0
+script = ExtResource("2_kedk6")
+
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1_okcax")
+
+[node name="WhiteColorRect" type="ColorRect" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 4.0
+offset_top = 4.0
+offset_right = -4.0
+offset_bottom = -4.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 1, 1, 0.392157)
+
+[node name="BackIcon" type="TextureRect" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -32.0
+offset_top = -32.0
+offset_right = 32.0
+offset_bottom = 32.0
+grow_horizontal = 2
+grow_vertical = 2
+expand_mode = 1
+
+[node name="ItemIcon" parent="." instance=ExtResource("3_latsn")]
+visible = false
+layout_mode = 1
+
+[node name="Amount" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -44.0
+offset_top = 13.0
+offset_right = 44.0
+offset_bottom = 44.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("4_ntyvc")
+theme_override_font_sizes/font_size = 30
+horizontal_alignment = 2
+text_overrun_behavior = 1
+
+[node name="ProgressBar" type="ProgressBar" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 83.0
+offset_right = -10.0
+offset_bottom = -9.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_fonts/font = ExtResource("4_ntyvc")
+theme_override_font_sizes/font_size = 30
+theme_override_styles/background = SubResource("StyleBoxFlat_cjbd7")
+theme_override_styles/fill = SubResource("StyleBoxFlat_jlk4s")
+step = 1.0
+show_percentage = false
+
+[connection signal="gui_input" from="." to="." method="_on_gui_input"]
+[connection signal="mouse_entered" from="." to="." method="_on_mouse_entered"]
+[connection signal="mouse_exited" from="." to="." method="_on_mouse_exited"]

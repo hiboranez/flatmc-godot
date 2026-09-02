@@ -1,0 +1,23 @@
+[gd_scene load_steps=4 format=3 uid="uid://cu3jvcsxmx5r"]
+
+[ext_resource type="Script" path="res://assets/scripts/menus/loading_world_menu.gd" id="1_hb7ua"]
+[ext_resource type="PackedScene" uid="uid://drjcxql1q3ha5" path="res://assets/scenes/panels/base_content_panel.tscn" id="2_blfuk"]
+[ext_resource type="Script" path="res://assets/scripts/components/menu_controller.gd" id="2_ecaoh"]
+
+[node name="LoadingWorldMenu" type="CanvasLayer"]
+layer = 2
+script = ExtResource("1_hb7ua")
+
+[node name="MenuController" type="Node" parent="."]
+script = ExtResource("2_ecaoh")
+
+[node name="MenuControl" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="BaseContentPanel" parent="MenuControl" instance=ExtResource("2_blfuk")]
+layout_mode = 1

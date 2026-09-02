@@ -1,0 +1,57 @@
+[gd_scene load_steps=4 format=3 uid="uid://tnf5nsr35yt3"]
+
+[ext_resource type="Script" path="res://assets/scripts/oreui_joystick.gd" id="1_8ug4x"]
+[ext_resource type="Texture2D" uid="uid://c54jual1nitga" path="res://assets/textures/ui/oreui_joystick_panel.png" id="2_sij8o"]
+[ext_resource type="Texture2D" uid="uid://d3qitq50bfota" path="res://assets/textures/ui/oreui_joystick.png" id="3_dnq44"]
+
+[node name="OreUIJoystick" type="Control"]
+layout_mode = 3
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -125.0
+offset_top = -125.0
+offset_right = 125.0
+offset_bottom = 125.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset = Vector2(125, 125)
+script = ExtResource("1_8ug4x")
+
+[node name="JoystickPanel" type="TextureRect" parent="."]
+custom_minimum_size = Vector2(250, 250)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -125.0
+offset_top = -125.0
+offset_right = 125.0
+offset_bottom = 125.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset = Vector2(125, 125)
+texture = ExtResource("2_sij8o")
+expand_mode = 1
+
+[node name="Joystick" type="TextureRect" parent="JoystickPanel"]
+custom_minimum_size = Vector2(250, 250)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -125.0
+offset_top = -125.0
+offset_right = 125.0
+offset_bottom = 125.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset = Vector2(125, 125)
+texture = ExtResource("3_dnq44")
+expand_mode = 1

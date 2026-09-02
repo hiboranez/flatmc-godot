@@ -1,0 +1,26 @@
+[gd_scene load_steps=4 format=3 uid="uid://c2xj82s25mlo"]
+
+[ext_resource type="Script" path="res://assets/scripts/menus/settings_menu.gd" id="1_jnnly"]
+[ext_resource type="PackedScene" uid="uid://drjcxql1q3ha5" path="res://assets/scenes/panels/base_content_panel.tscn" id="2_r17os"]
+[ext_resource type="Script" path="res://assets/scripts/components/menu_controller.gd" id="2_s7pyh"]
+
+[node name="SettingsMenu" type="CanvasLayer"]
+layer = 2
+script = ExtResource("1_jnnly")
+
+[node name="MenuController" type="Node" parent="."]
+script = ExtResource("2_s7pyh")
+
+[node name="MenuControl" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="BaseContentPanel" parent="MenuControl" instance=ExtResource("2_r17os")]
+layout_mode = 1
+mouse_filter = 1
+title = "SETTINGS"
+content_top_margin = 120.0

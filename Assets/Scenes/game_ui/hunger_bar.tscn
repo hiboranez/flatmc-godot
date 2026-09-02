@@ -1,0 +1,16 @@
+[gd_scene load_steps=2 format=3 uid="uid://ukedlnnepc10"]
+
+[ext_resource type="Script" path="res://assets/scripts/hunger_bar.gd" id="1_o6ne7"]
+
+[node name="HungerBar" type="GridContainer"]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = 40.0
+offset_top = 8.0
+offset_right = 576.0
+offset_bottom = 58.0
+grow_horizontal = 2
+mouse_filter = 2
+columns = 10
+script = ExtResource("1_o6ne7")

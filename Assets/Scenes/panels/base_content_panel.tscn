@@ -1,0 +1,80 @@
+[gd_scene load_steps=3 format=3 uid="uid://drjcxql1q3ha5"]
+
+[ext_resource type="Script" path="res://assets/scripts/panels/base_content_panel.gd" id="1_fp4tv"]
+[ext_resource type="FontVariation" uid="uid://ck7gxbgy6ry6b" path="res://assets/fonts/fmcles.tres" id="2_phuqj"]
+
+[node name="BaseContentPanel" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_fp4tv")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+color = Color(0, 0, 0, 0.509804)
+
+[node name="Title" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 27.0
+offset_bottom = 133.0
+grow_horizontal = 2
+scale = Vector2(0.8, 0.8)
+pivot_offset = Vector2(960, 0)
+size_flags_horizontal = 4
+focus_mode = 2
+mouse_filter = 1
+theme_override_colors/font_color = Color(0.878431, 0.878431, 0.878431, 1)
+theme_override_colors/font_shadow_color = Color(0.243137, 0.243137, 0.243137, 1)
+theme_override_constants/shadow_offset_x = 5
+theme_override_constants/shadow_offset_y = 5
+theme_override_fonts/font = ExtResource("2_phuqj")
+theme_override_font_sizes/font_size = 50
+text = "Title"
+horizontal_alignment = 1
+vertical_alignment = 1
+text_overrun_behavior = 1
+
+[node name="Content" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 148.0
+offset_bottom = -212.0
+grow_horizontal = 2
+grow_vertical = 2
+focus_mode = 2
+mouse_filter = 1
+color = Color(0, 0, 0, 0.235294)
+
+[node name="SplitBarUp" type="ColorRect" parent="Content"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = -7.0
+grow_horizontal = 2
+mouse_filter = 1
+color = Color(1, 1, 1, 0.431373)
+
+[node name="SplitBarDown" type="ColorRect" parent="Content"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_bottom = 7.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 1
+color = Color(1, 1, 1, 0.431373)
