@@ -6,7 +6,7 @@
 
 [![Godot](https://img.shields.io/badge/Godot-4.3-478cbf?logo=godot-engine)](https://godotengine.org/)
 [![Version](https://img.shields.io/badge/Version-0.2.0-blue)](#version-history)
-[![License](https://img.shields.io/badge/License-Apache--2.0-blue)](LICENSE)
+[![License](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
 [![Status](https://img.shields.io/badge/Status-Archived-lightgrey)](#project-status)
 
 **English** | [简体中文](README.zh-CN.md)
@@ -62,4 +62,4 @@ Development has ended. FlatCraft is the successor to FlatMC.
 
 ## License
 
-This project is licensed under the [Apache License 2.0](LICENSE). Bundled assets and third-party components may be subject to separate terms.
+Except where otherwise noted, this project is licensed under the [MIT License](LICENSE). Bundled assets and third-party components may be subject to separate terms.

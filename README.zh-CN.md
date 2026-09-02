@@ -6,7 +6,7 @@
 
 [![Godot](https://img.shields.io/badge/Godot-4.3-478cbf?logo=godot-engine)](https://godotengine.org/)
 [![Version](https://img.shields.io/badge/Version-0.2.0-blue)](#版本记录)
-[![License](https://img.shields.io/badge/License-Apache--2.0-blue)](LICENSE)
+[![License](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
 [![Status](https://img.shields.io/badge/Status-Archived-lightgrey)](#项目状态)
 
 [English](README.md) | **简体中文**
@@ -62,4 +62,4 @@ FlatMC Godot Alpha 是功能最完整的 FlatMC 实现，支持 Windows、Androi
 
 ## 许可证
 
-本项目采用 [Apache License 2.0](LICENSE)。素材和第三方组件可能适用单独条款。
+除另有说明外，本项目采用 [MIT License](LICENSE)。仓库内附带的素材和第三方组件可能适用单独条款。
