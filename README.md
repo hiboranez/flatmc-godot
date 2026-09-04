@@ -24,20 +24,20 @@ FlatMC Godot Alpha was the most developed FlatMC implementation. It supported Wi
 
 | Version | Original version | Date | Summary |
 | --- | --- | --- | --- |
-| v0.1.0 | 0.1.0.0 | 2024-11-10/11 | Initial Godot release |
-| v0.1.1 | 0.1.0.1 | 2024-11-13/15 | Configuration, Android, and multiplayer fixes |
-| v0.1.2 | 0.1.1.0 | 2024-11-16 | Blocks, inventory, save migration, and version checks |
-| v0.1.3 | 0.1.1.1 | 2024-11-23 | Controls, x86 support, and synchronization fixes |
-| v0.1.4 | 0.1.2.0 | 2024-11-24 | Chunk streaming and server performance |
-| v0.1.5 | 0.1.3 | 2024-12-14 | Survival, lighting, and natural terrain |
-| v0.1.6 | 25w8a | 2025-02-23 | Historical snapshot; details not fully recovered |
-| v0.1.7 | 25w20a | 2025-05-23 | Historical snapshot; details not fully recovered |
-| v0.1.8 | 25w22a | 2025-05-30 | Historical snapshot; details not fully recovered |
-| v0.2.0 | 0.2.0 | 2025-06-09/14 | Final major FlatMC Godot update |
+| 0.1.0 | 0.1.0.0 | 2024-11-10/11 | Initial Godot release |
+| 0.1.1 | 0.1.0.1 | 2024-11-13/15 | Configuration, Android, and multiplayer fixes |
+| 0.1.2 | 0.1.1.0 | 2024-11-16 | Blocks, inventory, save migration, and version checks |
+| 0.1.3 | 0.1.1.1 | 2024-11-23 | Controls, x86 support, and synchronization fixes |
+| 0.1.4 | 0.1.2.0 | 2024-11-24 | Chunk streaming and server performance |
+| 0.1.5 | 0.1.3 | 2024-12-14 | Survival, lighting, and natural terrain |
+| 0.1.6 | 25w8a | 2025-02-23 | Historical snapshot; details not fully recovered |
+| 0.1.7 | 25w20a | 2025-05-23 | Historical snapshot; details not fully recovered |
+| 0.1.8 | 25w22a | 2025-05-30 | Historical snapshot; details not fully recovered |
+| 0.2.0 | 0.2.0 | 2025-06-09/14 | Final major FlatMC Godot update |
 
-The first normalized GitHub release is `v0.1.0`. Later historical releases will be published only after review.
+The first normalized GitHub release is `0.1.0`. Later historical releases will be published only after review.
 
-## v0.1.0 Features
+## 0.1.0 Features
 
 - Windows and Android controls.
 - Basic blocks and superflat chunk generation.
@@ -49,8 +49,8 @@ The first normalized GitHub release is `v0.1.0`. Later historical releases will 
 
 ## Known Limitations
 
-- The repository is a later preservation snapshot, not a reconstructed `v0.1.0` source tree.
-- No original, verifiable `v0.1.0` binary is currently attached.
+- The repository is a later preservation snapshot, not a reconstructed `0.1.0` source tree.
+- No original, verifiable `0.1.0` binary is currently attached.
 - Detailed notes for the three weekly snapshots have not been fully recovered.
 - Historical saves and protocols are not compatible with FlatCraft.
 
